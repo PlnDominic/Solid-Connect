@@ -3,12 +3,16 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeScreen } from '../screens/customer/HomeScreen';
 import { NewRequestScreen } from '../screens/customer/NewRequestScreen';
 import { MatchingScreen } from '../screens/customer/MatchingScreen';
+import { AllProvidersScreen } from '../screens/customer/AllProvidersScreen';
 import { RequestsScreen } from '../screens/customer/RequestsScreen';
 import { JobsScreen } from '../screens/customer/JobsScreen';
 import { JobDetailScreen } from '../screens/customer/JobDetailScreen';
 import { ProfileScreen } from '../screens/customer/ProfileScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
+import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
+import { NotificationsScreen } from '../screens/shared/NotificationsScreen';
+import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
 import { TabBar } from './TabBar';
 
 const HomeStackNav = createNativeStackNavigator();
@@ -18,6 +22,7 @@ function HomeStack() {
       <HomeStackNav.Screen name="Home" component={HomeScreen} />
       <HomeStackNav.Screen name="NewRequest" component={NewRequestScreen} />
       <HomeStackNav.Screen name="Matching" component={MatchingScreen} />
+      <HomeStackNav.Screen name="AllProviders" component={AllProvidersScreen} />
     </HomeStackNav.Navigator>
   );
 }
@@ -53,6 +58,18 @@ function ChatStack() {
   );
 }
 
+const ProfileStackNav = createNativeStackNavigator();
+function ProfileStack() {
+  return (
+    <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStackNav.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
+      <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
+      <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
+    </ProfileStackNav.Navigator>
+  );
+}
+
 const Tab = createBottomTabNavigator();
 
 export function CustomerTabs() {
@@ -62,7 +79,7 @@ export function CustomerTabs() {
       <Tab.Screen name="RequestsTab" component={RequestsStack} options={{ tabBarLabel: 'Requests' }} />
       <Tab.Screen name="JobsTab" component={JobsStack} options={{ tabBarLabel: 'Jobs' }} />
       <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
+      <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
 }

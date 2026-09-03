@@ -5,8 +5,11 @@ import { RequestDetailScreen } from '../screens/provider/RequestDetailScreen';
 import { JobsScreen } from '../screens/provider/JobsScreen';
 import { JobDetailScreen } from '../screens/provider/JobDetailScreen';
 import { ProfileScreen } from '../screens/provider/ProfileScreen';
+import { PayoutDetailsScreen } from '../screens/provider/PayoutDetailsScreen';
+import { ServiceAreasScreen } from '../screens/provider/ServiceAreasScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
+import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
 import { TabBar } from './TabBar';
 
 const FeedStackNav = createNativeStackNavigator();
@@ -41,6 +44,18 @@ function ChatStack() {
   );
 }
 
+const ProfileStackNav = createNativeStackNavigator();
+function ProfileStack() {
+  return (
+    <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStackNav.Screen name="PayoutDetails" component={PayoutDetailsScreen} />
+      <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
+      <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
+    </ProfileStackNav.Navigator>
+  );
+}
+
 const Tab = createBottomTabNavigator();
 
 export function ProviderTabs() {
@@ -49,7 +64,7 @@ export function ProviderTabs() {
       <Tab.Screen name="FeedTab" component={FeedStack} options={{ tabBarLabel: 'Feed' }} />
       <Tab.Screen name="JobsTab" component={JobsStack} options={{ tabBarLabel: 'Jobs' }} />
       <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
+      <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>
   );
 }

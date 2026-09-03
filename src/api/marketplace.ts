@@ -31,6 +31,20 @@ export function useTopProviders() {
   });
 }
 
+/** All providers, optionally filtered by category — backs "See all". */
+export function useAllProviders(categoryName?: string | null) {
+  return useQuery({
+    queryKey: ['providers', 'all', categoryName ?? null],
+    queryFn: async (): Promise<Profile[]> => {
+      let query = supabase.from('profiles').select('*').eq('role', 'provider').order('provider_rating', { ascending: false });
+      if (categoryName) query = query.eq('provider_category', categoryName);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export function useProvider(providerId: string | null | undefined) {
   return useQuery({
     queryKey: ['provider', providerId],

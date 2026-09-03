@@ -37,7 +37,9 @@ export function HomeScreen({ navigation }: { navigation: any }) {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Top rated nearby</Text>
-          <Text style={styles.seeAll}>See all</Text>
+          <Pressable onPress={() => navigation.navigate('AllProviders')} hitSlop={8}>
+            <Text style={styles.seeAll}>See all</Text>
+          </Pressable>
         </View>
 
         <View style={{ gap: 12 }}>

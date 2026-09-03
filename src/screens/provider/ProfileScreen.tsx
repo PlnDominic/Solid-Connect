@@ -7,9 +7,13 @@ import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii } from '../../theme';
 
-const SETTINGS_ROWS = ['Payout details', 'Service areas', 'Help & support'];
+const SETTINGS_ROWS: { label: string; screen: string }[] = [
+  { label: 'Payout details', screen: 'PayoutDetails' },
+  { label: 'Service areas', screen: 'ServiceAreas' },
+  { label: 'Help & support', screen: 'HelpSupport' },
+];
 
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: earnings = 0 } = useProviderEarningsThisMonth(profile?.id ?? null);
   const switchRole = useSwitchRole();
@@ -64,9 +68,14 @@ export function ProfileScreen() {
 
         <View style={styles.settingsCard}>
           {SETTINGS_ROWS.map((row, i) => (
-            <View key={row} style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}>
-              <Text style={styles.settingsLabel}>{row}</Text>
-            </View>
+            <Pressable
+              key={row.label}
+              onPress={() => navigation.navigate(row.screen)}
+              style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}
+            >
+              <Text style={styles.settingsLabel}>{row.label}</Text>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
           ))}
         </View>
       </ScrollView>
@@ -91,7 +100,8 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, color: colors.textFaint },
   statValue: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
   settingsCard: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  settingsRow: { paddingVertical: 14, paddingHorizontal: 16 },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16 },
   settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairlineSoft },
   settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
+  chevron: { fontSize: 16, color: colors.textFaint },
 });

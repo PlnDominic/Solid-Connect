@@ -1,19 +1,24 @@
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCustomerJobsCount } from '../../api/jobs';
-import { useSavedProviders } from '../../api/saved';
+import { useSavedProviders, useToggleSavedProvider } from '../../api/saved';
 import { useSwitchRole } from '../../api/profile';
 import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { colors, fonts, radii } from '../../theme';
 
-const SETTINGS_ROWS = ['Payment methods', 'Notifications', 'Help & support'];
+const SETTINGS_ROWS: { label: string; screen: string }[] = [
+  { label: 'Payment methods', screen: 'PaymentMethods' },
+  { label: 'Notifications', screen: 'Notifications' },
+  { label: 'Help & support', screen: 'HelpSupport' },
+];
 
-export function ProfileScreen() {
+export function ProfileScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: jobsCount = 0 } = useCustomerJobsCount(profile?.id ?? null);
   const { data: saved = [] } = useSavedProviders(profile?.id ?? null);
   const switchRole = useSwitchRole();
+  const toggleSaved = useToggleSavedProvider();
 
   if (!profile) return <Screen />;
 
@@ -51,7 +56,12 @@ export function ProfileScreen() {
                   {p.provider_category} · {p.provider_rating.toFixed(1)} ★ · {p.provider_distance_km} km
                 </Text>
               </View>
-              <Text style={{ fontSize: 16, color: colors.ink }}>♡</Text>
+              <Pressable
+                hitSlop={10}
+                onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: p.id, saved: true })}
+              >
+                <Text style={{ fontSize: 16, color: colors.orange }}>♥</Text>
+              </Pressable>
             </View>
           ))}
         </View>
@@ -60,9 +70,14 @@ export function ProfileScreen() {
 
         <View style={styles.settingsCard}>
           {SETTINGS_ROWS.map((row, i) => (
-            <View key={row} style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}>
-              <Text style={styles.settingsLabel}>{row}</Text>
-            </View>
+            <Pressable
+              key={row.label}
+              onPress={() => navigation.navigate(row.screen)}
+              style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}
+            >
+              <Text style={styles.settingsLabel}>{row.label}</Text>
+              <Text style={styles.chevron}>›</Text>
+            </Pressable>
           ))}
         </View>
       </ScrollView>
@@ -97,7 +112,8 @@ const styles = StyleSheet.create({
   savedMeta: { fontSize: 12, color: colors.textFaint },
   divider: { height: 1, backgroundColor: colors.hairlineSoft },
   settingsCard: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  settingsRow: { paddingVertical: 14, paddingHorizontal: 16 },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16 },
   settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairlineSoft },
   settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
+  chevron: { fontSize: 16, color: colors.textFaint },
 });
