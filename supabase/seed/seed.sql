@@ -39,12 +39,12 @@ insert into public.service_requests
   (id, customer_id, category_id, category_label, description, budget_min, budget_max, location_label, status, created_at)
 values
   ('aaaaaaaa-0001-4000-8000-000000000001', '55555555-5555-4555-8555-555555555555', 'plumbing',
-   'Pipe repair', 'Kitchen sink has been leaking under the cabinet since yesterday.',
+   'Plumbing · Pipe repair', 'Kitchen sink has been leaking under the cabinet since yesterday.',
    300, 600, 'East Legon', 'open', now() - interval '12 minutes'),
   ('aaaaaaaa-0001-4000-8000-000000000002', '66666666-6666-4666-8666-666666666666', 'plumbing',
-   'Water heater installation', 'New water heater needs to be installed in the main bathroom, unit already purchased.',
+   'Plumbing · Water heater installation', 'New water heater needs to be installed in the main bathroom, unit already purchased.',
    800, 1200, 'Trasacco Valley', 'open', now() - interval '20 minutes'),
   ('aaaaaaaa-0001-4000-8000-000000000003', '55555555-5555-4555-8555-555555555555', 'plumbing',
-   'Bathroom pipe leak', 'Slow leak under the bathroom sink, needs inspection and repair.',
+   'Plumbing · Bathroom pipe leak', 'Slow leak under the bathroom sink, needs inspection and repair.',
    200, 350, 'Airport Residential', 'open', now() - interval '1 hour')
 on conflict (id) do nothing;

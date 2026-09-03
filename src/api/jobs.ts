@@ -159,6 +159,48 @@ export function useConfirmCompletion() {
   });
 }
 
+export function useCustomerJobsCount(customerId: string | null) {
+  return useQuery({
+    queryKey: ['jobsCount', 'customer', customerId],
+    queryFn: async (): Promise<number> => {
+      const { count, error } = await supabase
+        .from('jobs')
+        .select('id', { count: 'exact', head: true })
+        .eq('customer_id', customerId as string);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!customerId,
+  });
+}
+
+export function useProviderEarningsThisMonth(providerId: string | null) {
+  return useQuery({
+    queryKey: ['earnings', 'thisMonth', providerId],
+    queryFn: async (): Promise<number> => {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const { data: myJobs, error: jErr } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('provider_id', providerId as string);
+      if (jErr) throw jErr;
+      const jobIds = (myJobs ?? []).map((j) => j.id);
+      if (!jobIds.length) return 0;
+      const { data, error } = await supabase
+        .from('payments')
+        .select('amount')
+        .eq('status', 'released')
+        .gte('released_at', monthStart.toISOString())
+        .in('job_id', jobIds);
+      if (error) throw error;
+      return (data ?? []).reduce((sum, p) => sum + p.amount, 0);
+    },
+    enabled: !!providerId,
+  });
+}
+
 export function useSubmitReview() {
   return useMutation({
     mutationFn: async (input: { jobId: string; providerId: string; customerId: string; rating: number }) => {

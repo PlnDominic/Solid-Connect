@@ -93,6 +93,18 @@ export function useSimulateQuotesArriving() {
   });
 }
 
+export function useServiceRequest(requestId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['serviceRequest', requestId],
+    queryFn: async (): Promise<ServiceRequest | null> => {
+      const { data, error } = await supabase.from('service_requests').select('*').eq('id', requestId as string).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!requestId,
+  });
+}
+
 /** Provider feed: open requests from other customers, with whether I've quoted. */
 export function useFeedRequests(myProviderId: string | null) {
   return useQuery({

@@ -89,6 +89,24 @@ export function useMessages(threadId: string | null | undefined) {
   return query;
 }
 
+export function useLatestMessage(threadId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['latestMessage', threadId],
+    queryFn: async (): Promise<ChatMessage | null> => {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('thread_id', threadId as string)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!threadId,
+  });
+}
+
 export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
