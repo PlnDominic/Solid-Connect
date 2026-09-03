@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { createOrUpdateOwnProfile, fetchProfile } from '../../api/profile';
 import { ensureAnonymousSession } from '../../lib/auth';
+import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts } from '../../theme';
 import type { Role } from '../../types/database';
@@ -26,6 +27,13 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const setBootstrapping = useSessionStore((s) => s.setBootstrapping);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setError(
+        "Supabase isn't configured yet. Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to a .env file at the project root, then fully stop and restart with `npx expo start -c` (a reload alone won't pick up a new .env)."
+      );
+      setPhase('error');
+      return;
+    }
     (async () => {
       try {
         const userId = await ensureAnonymousSession();
