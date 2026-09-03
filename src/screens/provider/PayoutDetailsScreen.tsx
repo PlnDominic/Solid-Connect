@@ -36,7 +36,7 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
         </View>
 
         <Text style={styles.note}>
-          Payments are simulated in this demo — this screen shows real job/payment data from your account, but no
+          Payments are simulated in this demo - this screen shows real job/payment data from your account, but no
           money is actually transferred.
         </Text>
       </ScrollView>

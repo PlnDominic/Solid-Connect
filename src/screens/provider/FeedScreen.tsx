@@ -49,11 +49,11 @@ export function FeedScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  header: { padding: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.hairline, gap: 4, backgroundColor: colors.card },
-  eyebrow: { fontSize: 13, color: colors.textFaint },
-  title: { fontSize: 22, fontFamily: fonts.extrabold, color: colors.ink },
-  body: { padding: 16, gap: 12 },
-  card: { borderRadius: radii.xxl, backgroundColor: colors.card, padding: 16, gap: 10, ...shadow.card },
+  header: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24, gap: 5, backgroundColor: '#101722' },
+  eyebrow: { fontSize: 12, color: 'rgba(255,255,255,0.58)', fontFamily: fonts.medium },
+  title: { fontSize: 28, letterSpacing: -0.9, fontFamily: fonts.extrabold, color: colors.white },
+  body: { padding: 16, paddingTop: 20, gap: 12 },
+  card: { borderRadius: 20, backgroundColor: colors.card, padding: 16, gap: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.hairline, ...shadow.card },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
   cardTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
   cardMeta: { fontSize: 12, color: colors.textFaint },

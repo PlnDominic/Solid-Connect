@@ -43,7 +43,7 @@ export function JobsScreen({ navigation }: { navigation: any }) {
         ) : (
           <EmptyState
             title="No jobs yet"
-            subtitle="Send a quote from Feed — jobs show up here once a customer accepts it."
+            subtitle="Send a quote from Feed - jobs show up here once a customer accepts it."
           />
         )}
       </ScrollView>

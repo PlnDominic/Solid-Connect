@@ -6,13 +6,12 @@ import { colors } from '../theme';
 
 /**
  * Common screen wrapper: safe-area padding, background, and a status-bar
- * style matching the prototype's `statusBarDark` screens (dark header ->
- * light status-bar icons).
+ * style matched to the surface (dark header -> light status-bar icons).
  */
 export function Screen({
   children,
   dark = false,
-  bg = colors.surface,
+  bg = colors.paper,
   edges = ['top'],
   style,
 }: {

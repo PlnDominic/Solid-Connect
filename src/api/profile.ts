@@ -3,8 +3,17 @@ import { supabase } from '../lib/supabase';
 import { useSessionStore } from '../store/useSessionStore';
 import type { Profile, Role } from '../types/database';
 
-const DEMO_FULL_NAME = 'Kwame Adjei';
-const DEMO_INITIALS = 'KA';
+export interface SignUpDetails {
+  fullName: string;
+  phone: string;
+  email: string;
+}
+
+function initialsFrom(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.slice(0, 2).map((p) => p.charAt(0).toUpperCase());
+  return letters.join('') || '?';
+}
 
 export async function fetchProfile(id: string): Promise<Profile | null> {
   const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
@@ -12,23 +21,29 @@ export async function fetchProfile(id: string): Promise<Profile | null> {
   return data;
 }
 
-/** Creates (or promotes) the current device's profile to the chosen role. */
-export async function createOrUpdateOwnProfile(userId: string, role: Role): Promise<Profile> {
+/**
+ * Creates (or promotes) the current device's profile to the chosen role,
+ * using the real details collected in the sign-up flow - no hardcoded demo
+ * name, and no fabricated "already verified with 212 jobs" provider stats.
+ * A brand-new provider profile starts exactly where the schema defaults
+ * say it should: unverified, zero jobs (see supabase/migrations/0001_init.sql).
+ */
+export async function createOrUpdateOwnProfile(
+  userId: string,
+  role: Role,
+  details: SignUpDetails
+): Promise<Profile> {
   const { data, error } = await supabase
     .from('profiles')
     .upsert(
       {
         id: userId,
         role,
-        full_name: DEMO_FULL_NAME,
-        initials: DEMO_INITIALS,
-        area: 'East Legon, Accra',
+        full_name: details.fullName,
+        initials: initialsFrom(details.fullName),
+        phone: details.phone || null,
+        email: details.email || null,
         is_seed: false,
-        provider_category: 'Plumber',
-        provider_rating: 4.9,
-        provider_jobs_count: 212,
-        provider_verified: true,
-        provider_certified: true,
       },
       { onConflict: 'id' }
     )

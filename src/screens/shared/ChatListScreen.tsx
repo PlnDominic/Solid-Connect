@@ -6,7 +6,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, spacing } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 import type { ChatThread } from '../../types/database';
 
 function ThreadRow({ thread, myRole, onPress }: { thread: ChatThread; myRole: 'customer' | 'provider'; onPress: () => void }) {
@@ -67,14 +67,18 @@ function formatTime(iso: string) {
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hairlineSoft,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.hairline,
   },
-  name: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  preview: { fontSize: 13, color: colors.textFaint },
-  time: { fontSize: 12, color: colors.textFaint },
+  name: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.15 },
+  preview: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted },
+  time: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
 });

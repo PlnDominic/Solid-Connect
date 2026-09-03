@@ -8,7 +8,7 @@ import { colors, fonts, radii } from '../../theme';
 const STORAGE_KEY = 'solid-connect:service-areas';
 
 const AREAS = [
-  'East Legon',
+  'Achimota',
   'Trasacco Valley',
   'Airport Residential',
   'Cantonments',
@@ -19,7 +19,7 @@ const AREAS = [
 ];
 
 export function ServiceAreasScreen({ navigation }: { navigation: any }) {
-  const [selected, setSelected] = useState<string[]>(['East Legon', 'Airport Residential']);
+  const [selected, setSelected] = useState<string[]>(['Achimota', 'Airport Residential']);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)

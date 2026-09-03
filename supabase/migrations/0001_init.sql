@@ -1,7 +1,7 @@
--- Solid Connect — initial schema
+-- Solid Connect - initial schema
 -- MVP scope: profiles (customer/provider, role-switchable), categories, service
 -- requests, quotes, jobs, simulated payments, reviews, chat, saved providers.
--- Auth: Supabase anonymous auth (one identity per device install, no OTP) —
+-- Auth: Supabase anonymous auth (one identity per device install, no OTP) -
 -- profiles.id is NOT a hard FK to auth.users so seed/demo rows can exist
 -- alongside real device identities; RLS just compares auth.uid() = id.
 
@@ -13,7 +13,7 @@ create table public.profiles (
   role text not null default 'customer' check (role in ('customer', 'provider')),
   full_name text not null,
   initials text not null,
-  area text not null default 'East Legon, Accra',
+  area text not null default 'Achimota, Accra',
   is_seed boolean not null default false,
   -- provider-facing fields (populated when role = 'provider')
   provider_category text,
@@ -46,7 +46,7 @@ create table public.service_requests (
   photos text[] not null default '{}',
   budget_min integer,
   budget_max integer,
-  location_label text not null default 'East Legon, Accra',
+  location_label text not null default 'Achimota, Accra',
   status text not null default 'open'
     check (status in ('open', 'matching', 'quoted', 'accepted', 'completed', 'cancelled')),
   created_at timestamptz not null default now()
@@ -91,7 +91,7 @@ create table public.jobs (
 create index jobs_customer_idx on public.jobs(customer_id);
 create index jobs_provider_idx on public.jobs(provider_id);
 
--- ── payments (simulated — no real money movement) ─────────────────────
+-- ── payments (simulated - no real money movement) ─────────────────────
 create table public.payments (
   id uuid primary key default gen_random_uuid(),
   job_id uuid not null references public.jobs(id) on delete cascade,
@@ -205,7 +205,7 @@ create policy "quotes are publicly readable" on public.quotes
   for select using (true);
 -- a provider sends their own quote; the client is also allowed to insert a
 -- quote on behalf of a seeded demo provider (mirrors the prototype's
--- "3 quotes just came in" simulate button — no seed device exists to send
+-- "3 quotes just came in" simulate button - no seed device exists to send
 -- these itself).
 create policy "providers or the simulate button can send quotes" on public.quotes
   for insert with check (

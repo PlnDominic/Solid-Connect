@@ -31,7 +31,7 @@ export function useTopProviders() {
   });
 }
 
-/** All providers, optionally filtered by category — backs "See all". */
+/** All providers, optionally filtered by category - backs "See all". */
 export function useAllProviders(categoryName?: string | null) {
   return useQuery({
     queryKey: ['providers', 'all', categoryName ?? null],

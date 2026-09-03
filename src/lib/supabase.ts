@@ -2,7 +2,7 @@ import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
-// Not typed against our Database schema (see src/types/database.ts) — the
+// Not typed against our Database schema (see src/types/database.ts) - the
 // hand-written types don't match supabase-js v2's stricter generic schema
 // shape (Views/Functions/Enums/CompositeTypes, Relationships, etc.), so
 // passing it here as the client generic fights the type-checker everywhere
@@ -16,7 +16,7 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 
 /**
  * False when EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY didn't
- * make it into process.env — most commonly because the app wasn't fully
+ * make it into process.env - most commonly because the app wasn't fully
  * restarted (not just reloaded) after creating/editing .env, since Expo
  * inlines EXPO_PUBLIC_* vars at bundle time. AuthFlowScreen checks this and
  * shows a legible in-app message; without this guard, supabase-js throws

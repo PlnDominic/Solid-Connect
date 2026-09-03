@@ -18,7 +18,7 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
       <ScreenHeader title="Payment methods" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>
-          Payments in this demo are simulated — no money actually moves. This is where a real payout/charge method
+          Payments in this demo are simulated - no money actually moves. This is where a real payout/charge method
           would be managed.
         </Text>
         <View style={styles.card}>

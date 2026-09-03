@@ -1,11 +1,13 @@
+import { ChevronRight, Heart, Star } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCustomerJobsCount } from '../../api/jobs';
 import { useSavedProviders, useToggleSavedProvider } from '../../api/saved';
 import { useSwitchRole } from '../../api/profile';
 import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
+import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 const SETTINGS_ROWS: { label: string; screen: string }[] = [
   { label: 'Payment methods', screen: 'PaymentMethods' },
@@ -19,6 +21,17 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const { data: saved = [] } = useSavedProviders(profile?.id ?? null);
   const switchRole = useSwitchRole();
   const toggleSaved = useToggleSavedProvider();
+
+  // Ends the real Supabase session and returns to the login page. Walks up
+  // to the root stack navigator to reset onto "Auth".
+  async function handleSignOut() {
+    await signOut();
+    useSessionStore.getState().setProfile(null);
+    useSessionStore.getState().setUserId(null);
+    let root = navigation;
+    while (root.getParent()) root = root.getParent();
+    root.reset({ index: 0, routes: [{ name: 'Auth' }] });
+  }
 
   if (!profile) return <Screen />;
 
@@ -45,26 +58,30 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <View style={{ gap: 10 }}>
-          <Text style={styles.sectionTitle}>Saved providers</Text>
-          {saved.map((p) => (
-            <View key={p.id} style={styles.savedRow}>
-              <Avatar initials={p.initials} size={40} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={styles.savedName}>{p.full_name}</Text>
-                <Text style={styles.savedMeta}>
-                  {p.provider_category} · {p.provider_rating.toFixed(1)} ★ · {p.provider_distance_km} km
-                </Text>
+        {saved.length ? (
+          <View style={{ gap: spacing.sm }}>
+            <Text style={styles.sectionTitle}>Saved providers</Text>
+            {saved.map((p) => (
+              <View key={p.id} style={styles.savedRow}>
+                <Avatar initials={p.initials} size={40} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={styles.savedName}>{p.full_name}</Text>
+                  <View style={styles.savedMetaRow}>
+                    <Text style={styles.savedMeta}>{p.provider_category} ·</Text>
+                    <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
+                    <Text style={styles.savedMeta}>{p.provider_rating.toFixed(1)} · {p.provider_distance_km} km</Text>
+                  </View>
+                </View>
+                <Pressable
+                  hitSlop={10}
+                  onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: p.id, saved: true })}
+                >
+                  <Heart size={17} strokeWidth={2} color={colors.active} fill={colors.active} />
+                </Pressable>
               </View>
-              <Pressable
-                hitSlop={10}
-                onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: p.id, saved: true })}
-              >
-                <Text style={{ fontSize: 16, color: colors.orange }}>♥</Text>
-              </Pressable>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        ) : null}
 
         <View style={styles.divider} />
 
@@ -76,44 +93,63 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}
             >
               <Text style={styles.settingsLabel}>{row.label}</Text>
-              <Text style={styles.chevron}>›</Text>
+              <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
             </Pressable>
           ))}
         </View>
+
+        <Pressable onPress={handleSignOut} style={styles.resetRow}>
+          <Text style={styles.resetLabel}>Sign out</Text>
+        </Pressable>
       </ScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { padding: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.hairline, gap: 16, backgroundColor: colors.card },
-  identity: { flexDirection: 'row', gap: 14, alignItems: 'center' },
+  header: {
+    padding: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hairline,
+    gap: spacing.lg,
+    backgroundColor: colors.card,
+  },
+  identity: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
   name: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink },
-  meta: { fontSize: 13, color: colors.textFaint },
-  roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: colors.hairlineSoft },
-  rolePill: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: 'center' },
+  meta: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+  roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: colors.paperDim },
+  rolePill: { flex: 1, paddingVertical: 10, borderRadius: radii.md, alignItems: 'center' },
   rolePillActive: { backgroundColor: colors.white },
-  rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.textFaint },
-  rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.textHeading },
-  body: { padding: 16, gap: 20 },
+  rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.inkFaint },
+  rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+  body: { padding: spacing.lg, gap: spacing.xl },
   sectionTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
   savedRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
     alignItems: 'center',
-    padding: 12,
-    paddingHorizontal: 14,
-    borderRadius: radii.xl,
+    padding: spacing.md,
+    borderRadius: radii.lg,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.hairline,
   },
   savedName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  savedMeta: { fontSize: 12, color: colors.textFaint },
-  divider: { height: 1, backgroundColor: colors.hairlineSoft },
-  settingsCard: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16 },
-  settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairlineSoft },
-  settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
-  chevron: { fontSize: 16, color: colors.textFaint },
+  savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  savedMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+  divider: { height: 1, backgroundColor: colors.hairline },
+  settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+  settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+  settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  resetRow: {
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderStyle: 'dashed',
+    gap: 3,
+  },
+  resetLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
 });

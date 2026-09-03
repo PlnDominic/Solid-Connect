@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { ArrowUp, ChevronLeft } from 'lucide-react-native';
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useMessages, useSendMessage } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
@@ -27,8 +28,8 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   return (
     <Screen>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12}>
-          <Text style={styles.chevron}>‹</Text>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.back}>
+          <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
         </Pressable>
         <Avatar initials={peer?.initials ?? ''} size={36} />
         <Text style={styles.peerName}>{peer?.full_name}</Text>
@@ -39,16 +40,14 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           ref={listRef}
           data={messages}
           keyExtractor={(m) => m.id}
-          contentContainerStyle={{ padding: 16, gap: 10 }}
+          contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
           renderItem={({ item }) => {
             const mine = item.sender_id === profile?.id;
             return (
               <View style={{ flexDirection: 'row', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
-                <View style={[styles.bubble, { backgroundColor: mine ? colors.ink : colors.tile }]}>
-                  <Text style={{ color: mine ? colors.white : colors.textHeading, fontSize: 14, lineHeight: 19 }}>
-                    {item.text}
-                  </Text>
+                <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
+                  <Text style={mine ? styles.bubbleTextMine : styles.bubbleTextTheirs}>{item.text}</Text>
                 </View>
               </View>
             );
@@ -59,12 +58,12 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             value={text}
             onChangeText={setText}
             placeholder="Message"
-            placeholderTextColor={colors.textFaint}
+            placeholderTextColor={colors.inkFaint}
             style={styles.input}
             onSubmitEditing={handleSend}
           />
           <Pressable style={styles.sendBtn} onPress={handleSend}>
-            <Text style={{ color: colors.white, fontSize: 16 }}>↑</Text>
+            <ArrowUp size={18} strokeWidth={2.4} color={colors.white} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -76,24 +75,39 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 14,
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.hairline,
     backgroundColor: colors.card,
   },
-  chevron: { fontSize: 20, color: colors.ink },
+  back: {
+    width: 32,
+    height: 32,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.paperDim,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+  },
   peerName: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
-  bubble: { maxWidth: '76%', paddingVertical: 10, paddingHorizontal: 14, borderRadius: radii.xxl },
+
+  bubble: { maxWidth: '76%', paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radii.xxl },
+  bubbleMine: { backgroundColor: colors.ink },
+  bubbleTheirs: { backgroundColor: colors.paperDim, borderWidth: 1, borderColor: colors.hairline },
+  bubbleTextMine: { color: colors.white, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
+  bubbleTextTheirs: { color: colors.ink, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
+
   inputRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: spacing.sm,
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    paddingBottom: 24,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    paddingBottom: spacing.xl,
     borderTopWidth: 1,
     borderTopColor: colors.hairline,
     backgroundColor: colors.card,
@@ -101,12 +115,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 44,
-    borderRadius: 999,
-    borderWidth: 1.5,
-    borderColor: colors.inputBorder,
-    paddingHorizontal: 16,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.hairlineStrong,
+    paddingHorizontal: spacing.lg,
     fontSize: 15,
+    fontFamily: fonts.regular,
     color: colors.ink,
   },
-  sendBtn: { width: 44, height: 44, borderRadius: 999, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  sendBtn: { width: 44, height: 44, borderRadius: radii.pill, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
 });

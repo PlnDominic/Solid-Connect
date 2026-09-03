@@ -15,6 +15,8 @@ export interface Profile {
   full_name: string;
   initials: string;
   area: string;
+  phone: string | null;
+  email: string | null;
   is_seed: boolean;
   provider_category: string | null;
   provider_rating: number;
