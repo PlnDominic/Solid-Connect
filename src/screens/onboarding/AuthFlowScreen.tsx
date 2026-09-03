@@ -13,9 +13,9 @@ import { SplashScreen } from './SplashScreen';
 type Phase = 'bootstrapping' | 'splash' | 'onboarding' | 'login' | 'error';
 
 /**
- * Orchestrates the cold-start flow: splash always plays, then either drops
- * straight into the app (returning device with a profile already) or walks
- * through onboarding + the customer/provider pick (first run).
+ * Orchestrates the cold-start flow: splash and onboarding always play, then
+ * either drops straight into the app (returning device with a profile
+ * already) or walks through the customer/provider pick (first run).
  */
 export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<Phase>('bootstrapping');
@@ -78,18 +78,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   }
 
   if (phase === 'splash') {
-    return (
-      <SplashScreen
-        onFinish={() => {
-          if (hasExistingProfile) onDone();
-          else setPhase('onboarding');
-        }}
-      />
-    );
+    return <SplashScreen onFinish={() => setPhase('onboarding')} />;
   }
 
   if (phase === 'onboarding') {
-    return <OnboardingScreen onDone={() => setPhase('login')} />;
+    return <OnboardingScreen onDone={() => (hasExistingProfile ? onDone() : setPhase('login'))} />;
   }
 
   return <LoginScreen onSelectRole={handleSelectRole} loading={selecting} />;
