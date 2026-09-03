@@ -110,7 +110,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
 
 const styles = StyleSheet.create({
   fill: { flex: 1, backgroundColor: colors.white },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(10,14,20,0.45)' },
+  overlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(10,14,20,0.45)' },
   skipRow: { alignItems: 'flex-end', paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
   skip: { fontSize: 14, fontFamily: fonts.semibold, color: 'rgba(17,17,19,0.5)' },
   skipOnImage: { color: 'rgba(255,255,255,0.85)' },
