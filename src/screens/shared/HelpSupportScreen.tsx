@@ -1,7 +1,7 @@
 import { Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 const FAQS = [
   { q: 'How does Solid Connect verify providers?', a: 'Providers go through identity checks, and the highest tier earns a Solid Connect certified badge shown on their profile.' },
@@ -27,7 +27,7 @@ export function HelpSupportScreen({ navigation }: { navigation: any }) {
         </View>
 
         <Text style={styles.sectionTitle}>Frequently asked</Text>
-        <View style={{ gap: 12 }}>
+        <View style={{ gap: spacing.md }}>
           {FAQS.map((f) => (
             <View key={f.q} style={styles.faqCard}>
               <Text style={styles.faqQ}>{f.q}</Text>
@@ -41,14 +41,14 @@ export function HelpSupportScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 20 },
-  card: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, paddingHorizontal: 16 },
-  rowBorder: { height: 1, backgroundColor: colors.hairlineSoft },
-  contactLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
-  contactValue: { fontSize: 13, color: colors.orangeDeep, fontFamily: fonts.semibold },
+  body: { padding: spacing.lg, gap: spacing.xl },
+  card: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+  contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
+  rowBorder: { height: 1, backgroundColor: colors.hairline },
+  contactLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  contactValue: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
   sectionTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  faqCard: { borderRadius: radii.lg, backgroundColor: colors.tile, padding: 14, gap: 6 },
+  faqCard: { borderRadius: radii.lg, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.card, padding: spacing.md, gap: 6 },
   faqQ: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  faqA: { fontSize: 13, color: colors.textMuted, lineHeight: 19 },
+  faqA: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
 });

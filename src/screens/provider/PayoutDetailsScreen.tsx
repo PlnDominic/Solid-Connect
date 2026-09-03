@@ -3,7 +3,7 @@ import { useProviderEarningsThisMonth } from '../../api/jobs';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
@@ -45,15 +45,15 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 16 },
-  balanceCard: { borderRadius: radii.xxl, backgroundColor: colors.ink, padding: 18, gap: 6 },
-  balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 13 },
+  body: { padding: spacing.lg, gap: spacing.lg },
+  balanceCard: { borderRadius: radii.xxl, backgroundColor: colors.navy, padding: spacing.xl, gap: 6 },
+  balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 13, fontFamily: fonts.medium },
   balanceValue: { color: colors.white, fontSize: 26, fontFamily: fonts.extrabold, fontVariant: ['tabular-nums'] },
-  balanceNote: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 4 },
-  card: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  row: { padding: 14, paddingHorizontal: 16 },
-  rowBorder: { height: 1, backgroundColor: colors.hairlineSoft },
-  rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
-  rowDetail: { fontSize: 12, color: colors.textFaint, marginTop: 2 },
-  note: { fontSize: 12, color: colors.textFaint, lineHeight: 18 },
+  balanceNote: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontFamily: fonts.medium, marginTop: 4 },
+  card: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+  row: { padding: spacing.md, paddingHorizontal: spacing.lg },
+  rowBorder: { height: 1, backgroundColor: colors.hairline },
+  rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  rowDetail: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 2 },
+  note: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, lineHeight: 18 },
 });

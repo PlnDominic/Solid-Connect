@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useSendQuote, useServiceRequest } from '../../api/requests';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 function timeAgo(iso: string) {
   const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -34,7 +34,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
       providerId: profile.id,
       price: numeric,
       etaLabel: 'Today, 2 hrs',
-      badgeLabel: profile.provider_certified ? '★ Certified' : '✓ Identity verified',
+      badgeLabel: profile.provider_certified ? 'Certified' : 'Identity verified',
       badgeKind: profile.provider_certified ? 'certified' : 'verified',
     });
     navigation.navigate('Feed');
@@ -49,7 +49,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
             {request.location_label} · {timeAgo(request.created_at)}
           </Text>
           <Text style={styles.summarySub}>
-            Budget GHS {request.budget_min}–{request.budget_max}
+            Budget GHS {request.budget_min}-{request.budget_max}
           </Text>
         </View>
         <Text style={styles.desc}>{request.description}</Text>
@@ -62,7 +62,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
               value={price}
               onChangeText={setPrice}
               placeholder="480"
-              placeholderTextColor={colors.textFaint}
+              placeholderTextColor={colors.inkFaint}
               keyboardType="number-pad"
               style={styles.priceInput}
             />
@@ -72,7 +72,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
         <View style={{ gap: 7 }}>
           <Text style={styles.fieldLabel}>You can start</Text>
           <View style={styles.readonlyField}>
-            <Text style={{ fontSize: 15, color: colors.ink }}>Today, 2 hrs</Text>
+            <Text style={styles.readonlyValue}>Today, 2 hrs</Text>
           </View>
         </View>
       </ScrollView>
@@ -84,32 +84,33 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 16 },
-  summary: { borderRadius: radii.xl, backgroundColor: colors.tile, padding: 14, gap: 6 },
+  body: { padding: spacing.lg, gap: spacing.xl },
+  summary: { borderRadius: radii.lg, borderWidth: 1, borderColor: colors.hairline, backgroundColor: colors.card, padding: spacing.md, gap: 3 },
   summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  summarySub: { fontSize: 13, color: colors.textMuted },
-  desc: { fontSize: 14, lineHeight: 22, color: colors.textBody },
-  fieldLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
+  summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
+  desc: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
+  fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
   priceField: {
     height: 52,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     borderWidth: 1.5,
     borderColor: colors.ink,
     backgroundColor: colors.card,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.md,
   },
-  priceCurrency: { color: colors.textFaint, marginRight: 6, fontSize: 16 },
-  priceInput: { flex: 1, fontSize: 16, color: colors.ink },
+  priceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 16, fontFamily: fonts.medium },
+  priceInput: { flex: 1, fontSize: 16, fontFamily: fonts.medium, color: colors.ink },
   readonlyField: {
     height: 52,
-    borderRadius: radii.md,
-    borderWidth: 1.5,
-    borderColor: colors.inputBorder,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
     backgroundColor: colors.card,
     justifyContent: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.md,
   },
-  footer: { padding: 16, paddingBottom: 24, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.hairline },
+  readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
+  footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.hairline },
 });

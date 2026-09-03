@@ -1,3 +1,4 @@
+import { Check, ChevronRight, ShieldCheck, Star } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderEarningsThisMonth } from '../../api/jobs';
 import { useSwitchRole } from '../../api/profile';
@@ -5,7 +6,7 @@ import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 const SETTINGS_ROWS: { label: string; screen: string }[] = [
   { label: 'Payout details', screen: 'PayoutDetails' },
@@ -30,13 +31,15 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               <Text style={styles.name}>{profile.full_name}</Text>
               {profile.provider_verified ? (
                 <View style={styles.verifiedDot}>
-                  <Text style={{ color: colors.white, fontSize: 10, fontFamily: fonts.extrabold }}>✓</Text>
+                  <Check size={10} strokeWidth={3} color={colors.white} />
                 </View>
               ) : null}
             </View>
-            <Text style={styles.meta}>
-              {profile.provider_category} · {profile.provider_rating.toFixed(1)} ★ · {profile.provider_jobs_count} jobs
-            </Text>
+            <View style={styles.metaRow}>
+              <Text style={styles.meta}>{profile.provider_category} ·</Text>
+              <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
+              <Text style={styles.meta}>{profile.provider_rating.toFixed(1)} · {profile.provider_jobs_count} jobs</Text>
+            </View>
           </View>
         </View>
         <View style={styles.roleSwitch}>
@@ -57,14 +60,33 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Rating</Text>
-            <Text style={styles.statValue}>{profile.provider_rating.toFixed(1)} ★</Text>
+            <View style={styles.statRatingRow}>
+              <Text style={styles.statValue}>{profile.provider_rating.toFixed(1)}</Text>
+              <Star color={colors.ink} fill={colors.ink} size={16} strokeWidth={2} />
+            </View>
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
-          {profile.provider_verified ? <Badge label="✓ Identity verified" bg={colors.tile} fg={colors.black} /> : null}
-          {profile.provider_certified ? <Badge label="★ Solid Connect certified" bg={colors.ink} fg={colors.white} /> : null}
-        </View>
+        {profile.provider_verified || profile.provider_certified ? (
+          <View style={{ flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' }}>
+            {profile.provider_verified ? (
+              <Badge
+                label="Identity verified"
+                bg={colors.confirmBg}
+                fg={colors.confirm}
+                icon={<ShieldCheck size={11} strokeWidth={2.8} color={colors.confirm} />}
+              />
+            ) : null}
+            {profile.provider_certified ? (
+              <Badge
+                label="Solid Connect certified"
+                bg={colors.navy}
+                fg={colors.white}
+                icon={<ShieldCheck size={11} strokeWidth={2.8} color={colors.white} />}
+              />
+            ) : null}
+          </View>
+        ) : null}
 
         <View style={styles.settingsCard}>
           {SETTINGS_ROWS.map((row, i) => (
@@ -74,7 +96,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}
             >
               <Text style={styles.settingsLabel}>{row.label}</Text>
-              <Text style={styles.chevron}>›</Text>
+              <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
             </Pressable>
           ))}
         </View>
@@ -84,24 +106,32 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  header: { padding: 16, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: colors.hairline, gap: 16, backgroundColor: colors.card },
-  identity: { flexDirection: 'row', gap: 14, alignItems: 'center' },
+  header: {
+    padding: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hairline,
+    gap: spacing.lg,
+    backgroundColor: colors.card,
+  },
+  identity: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
   name: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink },
-  verifiedDot: { width: 16, height: 16, borderRadius: 999, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  meta: { fontSize: 13, color: colors.textFaint },
-  roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: colors.hairlineSoft },
-  rolePill: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: 'center' },
+  verifiedDot: { width: 16, height: 16, borderRadius: radii.pill, backgroundColor: colors.confirm, alignItems: 'center', justifyContent: 'center' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  meta: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+  roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: colors.paperDim },
+  rolePill: { flex: 1, paddingVertical: 10, borderRadius: radii.md, alignItems: 'center' },
   rolePillActive: { backgroundColor: colors.white },
-  rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.textFaint },
-  rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.textHeading },
-  body: { padding: 16, gap: 16 },
-  statsGrid: { flexDirection: 'row', gap: 12 },
-  statCard: { flex: 1, borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, padding: 16, gap: 4 },
-  statLabel: { fontSize: 12, color: colors.textFaint },
+  rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.inkFaint },
+  rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+  body: { padding: spacing.lg, gap: spacing.lg },
+  statsGrid: { flexDirection: 'row', gap: spacing.md },
+  statCard: { flex: 1, borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, padding: spacing.lg, gap: 4 },
+  statLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
   statValue: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
-  settingsCard: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16 },
-  settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairlineSoft },
-  settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
-  chevron: { fontSize: 16, color: colors.textFaint },
+  statRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+  settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+  settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
 });

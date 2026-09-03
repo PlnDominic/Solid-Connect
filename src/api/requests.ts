@@ -7,9 +7,9 @@ export interface RequestWithQuotes extends ServiceRequest {
 }
 
 const SEED_QUOTES = [
-  { provider_id: '22222222-2222-4222-8222-222222222222', price: 480, eta_label: 'Today, 2 hrs', badge_label: '★ Certified', badge_kind: 'certified' as const },
-  { provider_id: '11111111-1111-4111-8111-111111111111', price: 520, eta_label: 'Tomorrow', badge_label: '✓ Identity verified', badge_kind: 'verified' as const },
-  { provider_id: '44444444-4444-4444-8444-444444444444', price: 390, eta_label: 'Today, 5 hrs', badge_label: '✓ Identity verified', badge_kind: 'verified' as const },
+  { provider_id: '22222222-2222-4222-8222-222222222222', price: 480, eta_label: 'Today, 2 hrs', badge_label: 'Certified', badge_kind: 'certified' as const },
+  { provider_id: '11111111-1111-4111-8111-111111111111', price: 520, eta_label: 'Tomorrow', badge_label: 'Identity verified', badge_kind: 'verified' as const },
+  { provider_id: '44444444-4444-4444-8444-444444444444', price: 390, eta_label: 'Today, 5 hrs', badge_label: 'Identity verified', badge_kind: 'verified' as const },
 ];
 
 /** The customer's single current/most-recent request, with its quotes. */

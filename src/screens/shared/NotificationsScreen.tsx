@@ -3,7 +3,7 @@ import { ScrollView, Switch, Text, View, StyleSheet, Platform } from 'react-nati
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 const STORAGE_KEY = 'solid-connect:notification-prefs';
 
@@ -49,7 +49,7 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
         <View style={styles.card}>
           {ROWS.map((row, i) => (
             <View key={row.key} style={[styles.row, i < ROWS.length - 1 && styles.rowBorder]}>
-              <View style={{ flex: 1, gap: 2, paddingRight: 12 }}>
+              <View style={{ flex: 1, gap: 2, paddingRight: spacing.md }}>
                 <Text style={styles.rowLabel}>{row.label}</Text>
                 <Text style={styles.rowDetail}>{row.detail}</Text>
               </View>
@@ -68,10 +68,10 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16 },
-  card: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', padding: 14, paddingHorizontal: 16 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairlineSoft },
-  rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
-  rowDetail: { fontSize: 12, color: colors.textFaint, marginTop: 2 },
+  body: { padding: spacing.lg },
+  card: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+  rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  rowDetail: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 2 },
 });

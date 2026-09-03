@@ -1,9 +1,10 @@
+import { Check } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useFeedRequests } from '../../api/requests';
 import { Badge } from '../../components/Badge';
 import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, shadow } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 function timeAgo(iso: string) {
   const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -33,13 +34,18 @@ export function FeedScreen({ navigation }: { navigation: any }) {
                 </Text>
               </View>
               <Text style={styles.cardBudget}>
-                GHS {r.budget_min}–{r.budget_max}
+                GHS {r.budget_min}-{r.budget_max}
               </Text>
             </View>
             {r.myQuote ? (
-              <Badge label="✓ Quote sent" bg={colors.successBg} fg={colors.successFg} />
+              <Badge
+                label="Quote sent"
+                bg={colors.confirmBg}
+                fg={colors.confirm}
+                icon={<Check size={11} strokeWidth={3} color={colors.confirm} />}
+              />
             ) : (
-              <Badge label={r.category_label.split('·')[0]?.trim() ?? ''} bg={colors.hairlineSoft} fg={colors.textMuted} />
+              <Badge label={r.category_label.split('·')[0]?.trim() ?? ''} bg={colors.paperDim} fg={colors.inkMuted} />
             )}
           </Pressable>
         ))}
@@ -49,13 +55,20 @@ export function FeedScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 24, gap: 5, backgroundColor: '#101722' },
-  eyebrow: { fontSize: 12, color: 'rgba(255,255,255,0.58)', fontFamily: fonts.medium },
+  header: { paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, paddingBottom: spacing.xxl, gap: 5, backgroundColor: colors.navy },
+  eyebrow: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.medium },
   title: { fontSize: 28, letterSpacing: -0.9, fontFamily: fonts.extrabold, color: colors.white },
-  body: { padding: 16, paddingTop: 20, gap: 12 },
-  card: { borderRadius: 20, backgroundColor: colors.card, padding: 16, gap: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.hairline, ...shadow.card },
+  body: { padding: spacing.lg, paddingTop: spacing.xl, gap: spacing.md },
+  card: {
+    borderRadius: radii.lg,
+    backgroundColor: colors.card,
+    padding: spacing.lg,
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+  },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
   cardTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  cardMeta: { fontSize: 12, color: colors.textFaint },
+  cardMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
   cardBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
 });

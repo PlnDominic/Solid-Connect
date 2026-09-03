@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 const METHODS = [
   { id: 'momo', label: 'MTN Mobile Money', detail: '•••• 4821' },
@@ -39,7 +40,8 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
           ))}
         </View>
         <Pressable style={styles.addRow}>
-          <Text style={styles.addLabel}>+ Add payment method</Text>
+          <Plus size={16} strokeWidth={2.4} color={colors.ink} />
+          <Text style={styles.addLabel}>Add payment method</Text>
         </Pressable>
       </ScrollView>
     </Screen>
@@ -47,16 +49,16 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 16 },
-  note: { fontSize: 13, color: colors.textFaint, lineHeight: 19 },
-  card: { borderRadius: radii.xl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, paddingHorizontal: 16 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairlineSoft },
-  rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
-  rowDetail: { fontSize: 12, color: colors.textFaint },
-  radio: { width: 20, height: 20, borderRadius: 999, borderWidth: 1.5, borderColor: colors.inputBorder, alignItems: 'center', justifyContent: 'center' },
+  body: { padding: spacing.lg, gap: spacing.lg },
+  note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+  card: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, paddingHorizontal: spacing.lg },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+  rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  rowDetail: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+  radio: { width: 20, height: 20, borderRadius: radii.pill, borderWidth: 1.5, borderColor: colors.hairlineStrong, alignItems: 'center', justifyContent: 'center' },
   radioActive: { borderColor: colors.ink },
-  radioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: colors.ink },
-  addRow: { alignItems: 'center', paddingVertical: 14 },
-  addLabel: { fontSize: 14, fontFamily: fonts.bold, color: colors.orangeDeep },
+  radioDot: { width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.ink },
+  addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: spacing.md },
+  addLabel: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
 });

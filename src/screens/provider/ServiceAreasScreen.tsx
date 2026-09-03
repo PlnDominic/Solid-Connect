@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { colors, fonts, radii } from '../../theme';
+import { colors, fonts, radii, spacing } from '../../theme';
 
 const STORAGE_KEY = 'solid-connect:service-areas';
 
@@ -58,18 +58,18 @@ export function ServiceAreasScreen({ navigation }: { navigation: any }) {
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 18 },
-  note: { fontSize: 13, color: colors.textFaint, lineHeight: 19 },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  body: { padding: spacing.lg, gap: spacing.xl },
+  note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: spacing.lg,
     borderRadius: radii.pill,
-    borderWidth: 1.5,
-    borderColor: colors.inputBorder,
+    borderWidth: 1,
+    borderColor: colors.hairline,
     backgroundColor: colors.card,
   },
-  chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.textHeading },
+  chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+  chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
   chipLabelActive: { color: colors.white },
 });

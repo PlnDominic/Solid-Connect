@@ -34,5 +34,5 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  grabber: { width: 40, height: 4, borderRadius: 999, backgroundColor: colors.inputBorder, alignSelf: 'center' },
+  grabber: { width: 40, height: 4, borderRadius: 999, backgroundColor: colors.hairlineStrong, alignSelf: 'center' },
 });
