@@ -901,19 +901,22 @@ cd ..
 
 Expected: install succeeds; `next build` completes (it will report `/login` as a route; `/verifications` doesn't exist yet, which is expected at this point).
 
-- [ ] **Step 8: Manual verification**
-
-1. Copy `admin/.env.local.example` to `admin/.env.local` and fill in the real project URL/anon key/service-role key (from the Supabase dashboard's API settings).
-2. In the Supabase dashboard, create an Auth user (Authentication → Users → Add user) with a real email/password, then run: `psql "$DATABASE_URL" -c "insert into public.admins (id, email) select id, email from auth.users where email = 'your-admin@example.com';"`
-3. `cd admin && npm run dev`, open `http://localhost:3000/login`, sign in with that email/password.
-4. Expected: redirected to `/verifications` (a 404 for now, since that route doesn't exist until Task 5 — a 404 rather than a login loop confirms the sign-in itself succeeded).
-
-- [ ] **Step 9: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add admin
 git commit -m "Scaffold admin Next.js app with Supabase auth and login"
 ```
+
+**This task does not create real credentials or run `npm run dev` against
+the live project.** The implementer has no Supabase credentials in this
+session. Once Task 1's migration is applied, the human owner does this by
+hand:
+
+1. Copy `admin/.env.local.example` to `admin/.env.local` and fill in the real project URL/anon key/service-role key (from the Supabase dashboard's API settings).
+2. In the Supabase dashboard, create an Auth user (Authentication → Users → Add user) with a real email/password, then run: `psql "$DATABASE_URL" -c "insert into public.admins (id, email) select id, email from auth.users where email = 'your-admin@example.com';"`
+3. `cd admin && npm run dev`, open `http://localhost:3000/login`, sign in with that email/password.
+4. Expected: redirected to `/verifications` (a 404 for now, since that route doesn't exist until Task 5 — a 404 rather than a login loop confirms the sign-in itself succeeded).
 
 ---
 
