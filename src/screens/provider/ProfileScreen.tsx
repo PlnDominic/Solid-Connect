@@ -2,6 +2,7 @@ import { Check, ChevronRight, ShieldCheck, Star } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderEarningsThisMonth } from '../../api/jobs';
 import { useSwitchRole } from '../../api/profile';
+import { useLatestVerification } from '../../api/verification';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { Screen } from '../../components/Screen';
@@ -17,6 +18,7 @@ const SETTINGS_ROWS: { label: string; screen: string }[] = [
 export function ProfileScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: earnings = 0 } = useProviderEarningsThisMonth(profile?.id ?? null);
+  const { data: verification } = useLatestVerification(profile?.id ?? null);
   const switchRole = useSwitchRole();
 
   if (!profile) return <Screen />;
@@ -88,6 +90,35 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           </View>
         ) : null}
 
+        <Pressable
+          style={styles.verifyCard}
+          disabled={
+            !!verification && (verification.status === 'pending' || verification.status === 'approved')
+          }
+          onPress={() => {
+            const canSubmit = (!verification && !profile.provider_verified) || verification?.status === 'rejected';
+            if (canSubmit) navigation.navigate('VerifyBusiness');
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={styles.verifyTitle}>Business verification</Text>
+            <Text style={styles.verifySubtitle}>
+              {verification
+                ? verification.status === 'pending'
+                  ? 'Pending review'
+                  : verification.status === 'approved'
+                  ? 'Verified'
+                  : `Rejected — ${verification.note ?? 'see admin note'}`
+                : profile.provider_verified
+                ? 'Verified'
+                : 'Not submitted'}
+            </Text>
+          </View>
+          {(!verification && !profile.provider_verified) || verification?.status === 'rejected' ? (
+            <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
+          ) : null}
+        </Pressable>
+
         <View style={styles.settingsCard}>
           {SETTINGS_ROWS.map((row, i) => (
             <Pressable
@@ -130,6 +161,9 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
   statValue: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
   statRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  verifyCard: { flexDirection: 'row', alignItems: 'center', borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, padding: spacing.lg },
+  verifyTitle: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  verifySubtitle: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 2 },
   settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
   settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
   settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },

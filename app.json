@@ -7,7 +7,16 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "scheme": "solidconnect",
-    "plugins": ["expo-apple-authentication"],
+    "plugins": [
+      "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Solid Connect needs access to your photos so you can submit verification documents.",
+          "microphonePermission": false
+        }
+      ]
+    ],
     "ios": {
       "supportsTablet": true,
       "usesAppleSignIn": true
