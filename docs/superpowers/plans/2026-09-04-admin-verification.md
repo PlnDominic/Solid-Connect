@@ -592,7 +592,6 @@ git commit -m "Add provider verification submission screen"
 - Create: `admin/middleware.ts`
 - Create: `admin/app/login/page.tsx`
 - Create: `admin/app/login/actions.ts`
-- Modify: `.gitignore`
 
 **Interfaces:**
 - Consumes: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` env vars.
@@ -720,16 +719,7 @@ Create `admin/app/globals.css`:
 @tailwind utilities;
 ```
 
-- [ ] **Step 3: Add .next/ to the root .gitignore**
-
-In `.gitignore`, add a `Next.js` section (after the `# Native` section):
-
-```
-# Next.js (admin/)
-.next/
-```
-
-- [ ] **Step 4: Write the Supabase server client**
+- [ ] **Step 3: Write the Supabase server client**
 
 Create `admin/lib/supabase/server.ts`:
 
@@ -765,7 +755,7 @@ export async function createClient() {
 }
 ```
 
-- [ ] **Step 5: Write the session-refresh middleware**
+- [ ] **Step 4: Write the session-refresh middleware**
 
 Create `admin/middleware.ts`:
 
@@ -802,7 +792,7 @@ export const config = {
 };
 ```
 
-- [ ] **Step 6: Write the root layout**
+- [ ] **Step 5: Write the root layout**
 
 Create `admin/app/layout.tsx`:
 
@@ -823,7 +813,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-- [ ] **Step 7: Write the login page and sign-in action**
+- [ ] **Step 6: Write the login page and sign-in action**
 
 Create `admin/app/login/actions.ts`:
 
@@ -875,7 +865,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 }
 ```
 
-- [ ] **Step 8: Install and build**
+- [ ] **Step 7: Install and build**
 
 ```bash
 cd admin
@@ -886,17 +876,17 @@ cd ..
 
 Expected: install succeeds; `next build` completes (it will report `/login` as a route; `/verifications` doesn't exist yet, which is expected at this point).
 
-- [ ] **Step 9: Manual verification**
+- [ ] **Step 8: Manual verification**
 
 1. Copy `admin/.env.local.example` to `admin/.env.local` and fill in the real project URL/anon key/service-role key (from the Supabase dashboard's API settings).
 2. In the Supabase dashboard, create an Auth user (Authentication → Users → Add user) with a real email/password, then run: `psql "$DATABASE_URL" -c "insert into public.admins (id, email) select id, email from auth.users where email = 'your-admin@example.com';"`
 3. `cd admin && npm run dev`, open `http://localhost:3000/login`, sign in with that email/password.
 4. Expected: redirected to `/verifications` (a 404 for now, since that route doesn't exist until Task 5 — a 404 rather than a login loop confirms the sign-in itself succeeded).
 
-- [ ] **Step 10: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add admin .gitignore
+git add admin
 git commit -m "Scaffold admin Next.js app with Supabase auth and login"
 ```
 
@@ -1080,6 +1070,7 @@ git commit -m "Add admin nav shell and provider verification queue"
 
 **Files:**
 - Create: `admin/lib/verification-repo.ts`
+- Create: `admin/lib/types.ts`
 - Create: `admin/lib/review-verification.ts`
 - Create: `admin/lib/review-verification.test.ts`
 - Modify: `admin/package.json`
