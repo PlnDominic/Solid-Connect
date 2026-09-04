@@ -5,12 +5,17 @@ import { useSwitchRole } from '../../api/profile';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { Screen } from '../../components/Screen';
+import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 const SETTINGS_ROWS: { label: string; screen: string }[] = [
+  { label: 'Edit profile', screen: 'EditProfile' },
   { label: 'Payout details', screen: 'PayoutDetails' },
   { label: 'Service areas', screen: 'ServiceAreas' },
+  { label: 'Account & security', screen: 'AccountSecurity' },
+  { label: 'Privacy & data', screen: 'PrivacyData' },
+  { label: 'Legal', screen: 'Legal' },
   { label: 'Help & support', screen: 'HelpSupport' },
 ];
 
@@ -18,6 +23,17 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: earnings = 0 } = useProviderEarningsThisMonth(profile?.id ?? null);
   const switchRole = useSwitchRole();
+
+  // Ends the real Supabase session and returns to the login page. Walks up
+  // to the root stack navigator to reset onto "Auth".
+  async function handleSignOut() {
+    await signOut();
+    useSessionStore.getState().setProfile(null);
+    useSessionStore.getState().setUserId(null);
+    let root = navigation;
+    while (root.getParent()) root = root.getParent();
+    root.reset({ index: 0, routes: [{ name: 'Auth' }] });
+  }
 
   if (!profile) return <Screen />;
 
@@ -100,6 +116,10 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             </Pressable>
           ))}
         </View>
+
+        <Pressable onPress={handleSignOut} style={styles.resetRow}>
+          <Text style={styles.resetLabel}>Sign out</Text>
+        </Pressable>
       </ScrollView>
     </Screen>
   );
@@ -133,5 +153,14 @@ const styles = StyleSheet.create({
   settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
   settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
   settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+  resetRow: {
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderStyle: 'dashed',
+    gap: 3,
+  },
+  resetLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
   settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
 });

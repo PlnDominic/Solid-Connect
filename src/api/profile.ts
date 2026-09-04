@@ -64,6 +64,31 @@ export async function switchOwnRole(userId: string, role: Role): Promise<Profile
   return data;
 }
 
+export interface ProfileEdits {
+  fullName: string;
+  phone: string;
+  email: string;
+  area: string;
+}
+
+/** Saves the Edit profile form - recomputes initials so they stay in sync with the name. */
+export async function updateOwnProfile(userId: string, edits: ProfileEdits): Promise<Profile> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({
+      full_name: edits.fullName,
+      initials: initialsFrom(edits.fullName),
+      phone: edits.phone || null,
+      email: edits.email || null,
+      area: edits.area,
+    })
+    .eq('id', userId)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export function useProfile(userId: string | null) {
   return useQuery({
     queryKey: ['profile', userId],
@@ -80,6 +105,22 @@ export function useSwitchRole() {
       const userId = useSessionStore.getState().userId;
       if (!userId) throw new Error('Not signed in');
       return switchOwnRole(userId, role);
+    },
+    onSuccess: (profile) => {
+      setProfile(profile);
+      queryClient.setQueryData(['profile', profile.id], profile);
+    },
+  });
+}
+
+export function useUpdateOwnProfile() {
+  const queryClient = useQueryClient();
+  const setProfile = useSessionStore((s) => s.setProfile);
+  return useMutation({
+    mutationFn: (edits: ProfileEdits) => {
+      const userId = useSessionStore.getState().userId;
+      if (!userId) throw new Error('Not signed in');
+      return updateOwnProfile(userId, edits);
     },
     onSuccess: (profile) => {
       setProfile(profile);

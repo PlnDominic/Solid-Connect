@@ -10,6 +10,11 @@ import { ServiceAreasScreen } from '../screens/provider/ServiceAreasScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
+import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
+import { AccountSecurityScreen } from '../screens/shared/AccountSecurityScreen';
+import { PrivacyDataScreen } from '../screens/shared/PrivacyDataScreen';
+import { DeleteAccountScreen } from '../screens/shared/DeleteAccountScreen';
+import { LegalScreen } from '../screens/shared/LegalScreen';
 import { TabBar } from './TabBar';
 
 const FeedStackNav = createNativeStackNavigator();
@@ -49,8 +54,13 @@ function ProfileStack() {
   return (
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNav.Screen name="PayoutDetails" component={PayoutDetailsScreen} />
       <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
+      <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
+      <ProfileStackNav.Screen name="PrivacyData" component={PrivacyDataScreen} />
+      <ProfileStackNav.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+      <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
     </ProfileStackNav.Navigator>
   );
