@@ -6,7 +6,7 @@
 
 **Architecture:** A new `admin/` Next.js 15 (App Router) app in this repo, deployed separately from the Expo app, talking directly to the same Supabase project — no new backend/API layer. Admin reads run under RLS as the logged-in admin session; the one privileged write (approve/reject, which touches another user's row) runs through a Next.js Server Action using the Supabase service-role key, never exposed to the browser. The mobile app gets one new screen so providers can submit ID/business-cert photos, which land in a private Storage bucket and a `provider_verifications` row the admin app reviews.
 
-**Tech Stack:** Next.js 15 + React 19 + TypeScript + Tailwind CSS 3 (admin/), `@supabase/ssr` + `@supabase/supabase-js` for admin auth/data, Vitest for the admin app's server-action logic. Expo/React Native + TypeScript (existing `src/`), `expo-image-picker` (already installed) + `expo-file-system` (new) for the mobile submission screen. Postgres/Supabase (existing project) for schema, RLS, and Storage.
+**Tech Stack:** Next.js 15 + React 19 + TypeScript + Tailwind CSS 3 (admin/), `@supabase/ssr` + `@supabase/supabase-js` for admin auth/data, Vitest for the admin app's server-action logic. Expo/React Native + TypeScript (existing `src/`), `expo-image-picker` + `expo-file-system` (both newly installed by this plan) for the mobile submission screen. Postgres/Supabase (existing project) for schema, RLS, and Storage.
 
 **Spec:** `docs/superpowers/specs/2026-09-04-admin-verification-design.md`
 
@@ -302,6 +302,7 @@ git commit -m "Add provider verification types and API layer"
 - Modify: `src/navigation/ProviderTabs.tsx`
 - Modify: `src/screens/provider/ProfileScreen.tsx`
 - Modify: `app.json`
+- Modify: `package.json`, `package-lock.json` (installing `expo-image-picker`)
 
 **Interfaces:**
 - Consumes: `useLatestVerification`, `useSubmitVerification`, `PickedDoc` from Task 2's `src/api/verification.ts`; `Button`, `Screen`, `ScreenHeader` from `src/components/*`; `useSessionStore` from `src/store/useSessionStore.ts`.
@@ -309,12 +310,29 @@ git commit -m "Add provider verification types and API layer"
 
 Note: `ProfileScreen`'s card (Step 4) already keeps a pending/approved provider from tapping through to this screen, but `VerifyBusinessScreen` re-checks the same status itself (Step 2) — it must not silently let a second submission through if it's ever reached another way (a stale back-stack entry, a deep link).
 
+- [ ] **Step 0: Install expo-image-picker**
+
+`expo-image-picker` is not yet a dependency of this project (an earlier
+read of `package.json` that informed this plan's draft was against an
+uncommitted, in-progress copy in another working directory — the actual
+committed baseline this plan builds on doesn't have it). Install it the
+same way Task 2 installed `expo-file-system`:
+
+```bash
+npx expo install expo-image-picker
+```
+
+Expected: adds an SDK-57-compatible version to `package.json`/`package-lock.json`.
+
 - [ ] **Step 1: Add the expo-image-picker config plugin**
 
-In `app.json`, change the `plugins` array from:
+In `app.json`, add the `expo-image-picker` plugin to the existing `plugins`
+array (its exact current contents may differ slightly from what's shown
+below if unrelated plugins have been added elsewhere — preserve whatever
+is already there and only add the `expo-image-picker` entry):
 
 ```json
-    "plugins": ["expo-apple-authentication", "expo-notifications"],
+    "plugins": ["expo-apple-authentication"],
 ```
 
 to:
@@ -567,7 +585,7 @@ Expected: no errors.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add app.json src/screens/provider/VerifyBusinessScreen.tsx src/navigation/ProviderTabs.tsx src/screens/provider/ProfileScreen.tsx
+git add app.json package.json package-lock.json src/screens/provider/VerifyBusinessScreen.tsx src/navigation/ProviderTabs.tsx src/screens/provider/ProfileScreen.tsx
 git commit -m "Add provider verification submission screen"
 ```
 
