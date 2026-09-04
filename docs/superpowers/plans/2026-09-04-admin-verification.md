@@ -749,7 +749,7 @@ Create `admin/app/globals.css`:
 Create `admin/lib/supabase/server.ts`:
 
 ```typescript
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
 /**
@@ -767,7 +767,7 @@ export async function createClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
         try {
           cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
         } catch {
@@ -780,12 +780,17 @@ export async function createClient() {
 }
 ```
 
+`@supabase/ssr`'s `createServerClient` overload resolution doesn't
+contextually type the inline `cookies` object's `setAll` under
+TypeScript `strict: true` — the parameter comes back implicitly `any`
+(`TS7006`) without an explicit annotation. Annotate it exactly as above.
+
 - [ ] **Step 4: Write the session-refresh middleware**
 
 Create `admin/middleware.ts`:
 
 ```typescript
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -796,7 +801,7 @@ export async function middleware(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
         cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
