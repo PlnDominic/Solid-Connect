@@ -112,19 +112,28 @@ create policy "admins read all verification docs" on storage.objects
   );
 ```
 
-- [ ] **Step 2: Apply the migration**
+- [ ] **Step 2: Commit**
 
-Run against the project's Supabase Postgres connection string (same one already used for `0001`-`0004`):
+```bash
+git add supabase/migrations/0005_admin_verification.sql
+git commit -m "Add admin + provider_verifications schema, RLS, storage bucket"
+```
+
+**This task does not apply the migration.** The implementer has no database
+credentials for the live project (no `DATABASE_URL`, no authenticated
+Supabase MCP) — the human owner applies it once ready, using whichever of
+these they have available:
 
 ```bash
 psql "$DATABASE_URL" -f supabase/migrations/0005_admin_verification.sql
 ```
 
-Expected: no errors.
-
-- [ ] **Step 3: Verify the schema structurally**
-
-A direct `psql` connection runs as the Postgres role, which bypasses RLS — this step confirms the objects exist and are named correctly, not that RLS behaves correctly under a real user session. RLS behavior gets proven for real in Task 3 (a real provider submitting) and Task 7 (a real admin approving/rejecting).
+or paste the file's contents into the Supabase dashboard's SQL editor, or
+`supabase db push` if the project is linked via the CLI. Afterward, this
+structural check confirms the objects exist and are named correctly (a
+direct Postgres connection bypasses RLS, so this does not prove RLS
+behavior — that's proven for real in Task 3, a real provider submitting,
+and Task 7, a real admin approving/rejecting):
 
 ```bash
 psql "$DATABASE_URL" -c "select tablename from pg_tables where schemaname = 'public' and tablename in ('admins', 'provider_verifications');"
@@ -134,12 +143,8 @@ psql "$DATABASE_URL" -c "select id, public from storage.buckets where id = 'veri
 
 Expected: both tables listed; policies listed include `admins can read the admin list`, `providers see their own verification submissions`, `admins see all verification submissions`, `providers submit their own verification`, `providers upload their own verification docs`, `providers read their own verification docs`, `admins read all verification docs`; the bucket row shows `public = false`.
 
-- [ ] **Step 4: Commit**
-
-```bash
-git add supabase/migrations/0005_admin_verification.sql
-git commit -m "Add admin + provider_verifications schema, RLS, storage bucket"
-```
+Tasks 3 and 7's manual end-to-end verification steps assume this migration
+is already applied — hold those until it is.
 
 ---
 
