@@ -1084,18 +1084,20 @@ cd admin && npm run build && cd ..
 
 Expected: succeeds, now listing `/verifications` as a route (linking to `/verifications/[id]`, which 404s until Task 7 — expected at this point).
 
-- [ ] **Step 5: Manual verification**
-
-1. `cd admin && npm run dev`, sign in as the admin created in Task 4.
-2. Expected: lands on `/verifications`, shows the nav shell (Verifications active, Disputes/Analytics/Catalog greyed out "(soon)"), and shows the pending row submitted from Task 3's mobile run-through (provider name + category + submitted date).
-3. Click the "approved"/"rejected" tabs — expected: empty state ("No approved submissions." / "No rejected submissions.").
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add admin
 git commit -m "Add admin nav shell and provider verification queue"
 ```
+
+**This task does not run `npm run dev` or sign in.** Once Task 1's
+migration is applied and Task 4's admin account exists, the human owner
+verifies by hand:
+
+1. `cd admin && npm run dev`, sign in as the admin created in Task 4.
+2. Expected: lands on `/verifications`, shows the nav shell (Verifications active, Disputes/Analytics/Catalog greyed out "(soon)"), and shows the pending row submitted from Task 3's mobile run-through (provider name + category + submitted date).
+3. Click the "approved"/"rejected" tabs — expected: empty state ("No approved submissions." / "No rejected submissions.").
 
 ---
 
