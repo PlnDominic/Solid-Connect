@@ -8,6 +8,7 @@ export type QuoteStatus = 'sent' | 'accepted' | 'declined';
 export type BadgeKind = 'certified' | 'verified';
 export type JobStatus = 'in_progress' | 'completed';
 export type PaymentStatus = 'pending' | 'released' | 'refunded';
+export type VerificationStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Profile {
   id: string;
@@ -94,6 +95,17 @@ export interface Review {
   created_at: string;
 }
 
+export interface ProviderVerification {
+  id: string;
+  provider_id: string;
+  status: VerificationStatus;
+  doc_urls: string[];
+  note: string | null;
+  submitted_at: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+}
+
 export interface ChatThread {
   id: string;
   request_id: string | null;
@@ -131,6 +143,7 @@ export interface Database {
       chat_threads: { Row: ChatThread; Insert: Partial<ChatThread> & { customer_id: string; provider_id: string }; Update: Partial<ChatThread> };
       chat_messages: { Row: ChatMessage; Insert: Partial<ChatMessage> & { thread_id: string; sender_id: string; sender_role: Role; text: string }; Update: Partial<ChatMessage> };
       saved_providers: { Row: SavedProvider; Insert: SavedProvider; Update: Partial<SavedProvider> };
+      provider_verifications: { Row: ProviderVerification; Insert: Partial<ProviderVerification> & { provider_id: string }; Update: Partial<ProviderVerification> };
     };
   };
 }
