@@ -40,3 +40,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Next.js (admin/)
+.next/
+
+# git worktrees
+.worktrees/
