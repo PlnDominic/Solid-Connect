@@ -1,4 +1,5 @@
 'use client';
+import './polish.css';
 import { FormEvent, useState } from 'react';
 import { createClient } from '../../lib/supabase-browser';
 
