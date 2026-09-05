@@ -379,6 +379,28 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .login-card form { display: grid; gap: 12px; margin-top: 26px; }
 .login-card input { padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-input); color: var(--text-primary); }
 
+/* ===== Bar Chart ===== */
+.bar-chart {
+  display: flex; align-items: flex-end; gap: 8px;
+  height: 200px; padding-top: 10px;
+}
+.bar-col {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%;
+}
+.bar-track {
+  flex: 1; width: 100%; background: var(--bg-input); border-radius: 6px;
+  position: relative; overflow: hidden;
+  display: flex; align-items: flex-end;
+}
+.bar-fill {
+  width: 100%; background: var(--accent); border-radius: 6px;
+  transition: height .6s cubic-bezier(.4,0,.2,1);
+  min-height: 2px;
+}
+.bar-label {
+  font-size: 10px; color: var(--text-muted); font-weight: 600;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 1100px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
