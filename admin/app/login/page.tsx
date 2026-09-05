@@ -37,8 +37,6 @@ export default function LoginPage() {
           <button className="reference-submit" disabled={pending}>{pending ? 'Signing in...' : 'Get Started'}</button>
           {error && <p className="notice" role="alert">{error}</p>}
         </form>
-        <div className="or-divider"><span>or sign in with</span></div>
-        <div className="social-row"><button type="button" disabled aria-label="Google sign in">G</button><button type="button" disabled aria-label="Facebook sign in">f</button><button type="button" disabled aria-label="Apple sign in">●</button></div>
       </section>
     </main>
   );
