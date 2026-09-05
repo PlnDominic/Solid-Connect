@@ -1517,7 +1517,17 @@ cd admin && npm run build && cd ..
 
 Expected: succeeds, `/verifications/[id]` now a real route.
 
-- [ ] **Step 6: Manual end-to-end verification**
+- [ ] **Step 6: Commit**
+
+```bash
+git add admin
+git commit -m "Wire admin verification review to Supabase with approve/reject actions"
+```
+
+**This task does not run either app or reach the live project.** This is
+the last task, and this is also this plan's real end-to-end proof — once
+Task 1's migration is applied and Task 4's admin account exists, the human
+owner runs this by hand:
 
 1. `cd admin && npm run dev`, sign in as the admin, open `/verifications`, click into the pending submission from Task 3.
 2. Expected: shows the provider's name/category/area/contact info and the uploaded document photo(s) rendered from signed URLs.
@@ -1527,10 +1537,3 @@ Expected: succeeds, `/verifications/[id]` now a real route.
 6. Resubmit from mobile, then in the admin app click into the new pending row and click Approve — expected: redirected to `/verifications`, pending list empty again; in the Supabase dashboard, `profiles.provider_verified` is now `true` for that provider.
 7. On mobile, reload Profile — expected: the status card now reads "Verified".
 8. Re-open the same (now approved) submission's URL directly (`/verifications/<id>`) — expected: shows "Already approved." with no Approve/Reject forms (proves the pending-only guard holds even via a stale link).
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add admin
-git commit -m "Wire admin verification review to Supabase with approve/reject actions"
-```
