@@ -1,53 +1,54 @@
 import { createServerSupabase } from '../../lib/supabase';
 
-/* ── tiny helpers ────────────────────────────────────────────── */
+/* ── helpers ──────────────────────────────────────────────── */
 const fmt = (n: number) => n.toLocaleString('en-US');
-const pct = (n: number) => `${n}%`;
 
-/* ── Donut chart (pure CSS conic-gradient) ───────────────────── */
-function Donut({ segments, size = 64 }: { segments: { color: string; pct: number }[]; size?: number }) {
-  const gradient = segments.reduce((acc, s, i) => {
-    const start = segments.slice(0, i).reduce((a, b) => a + b.pct, 0);
-    return `${acc}${s.color} ${start}% ${start + s.pct}%${i < segments.length - 1 ? ',' : ''}`;
-  }, '');
+/* ── sparkline SVG ────────────────────────────────────────── */
+function Sparkline({ data, color = 'var(--accent)' }: { data: number[]; color?: string }) {
+  const max = Math.max(...data);
+  const pts = data.map((v, i) => `${(i / (data.length - 1)) * 100},${100 - (v / max) * 80}`).join(' ');
   return (
-    <div className="donut-wrap" style={{ width: size, height: size }}>
-      <div className="donut" style={{ width: size, height: size, background: `conic-gradient(${gradient})` }} />
-      <div className="donut-center" style={{ width: size * 0.56, height: size * 0.56 }} />
-    </div>
-  );
-}
-
-/* ── Circular progress ───────────────────────────────────────── */
-function CircularProgress({ value, color }: { value: number; color: string }) {
-  const r = 20, c = 2 * Math.PI * r;
-  return (
-    <div className="circular-progress">
-      <svg viewBox="0 0 48 48">
-        <circle className="track" cx="24" cy="24" r={r} />
-        <circle className="fill" cx="24" cy="24" r={r} stroke={color}
-          strokeDasharray={c} strokeDashoffset={c - (value / 100) * c} />
+    <div className="stat-card-spark">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+        <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
       </svg>
-      <span className="pct" style={{ color }}>+{value}%</span>
     </div>
   );
 }
 
-/* ── Bar chart data ──────────────────────────────────────────── */
-const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const barData = [45, 52, 38, 65, 78, 56, 42, 70, 85, 63, 55, 90];
-const barMax = Math.max(...barData);
+/* ── donut chart ──────────────────────────────────────────── */
+function Donut({ segments, total }: { segments: { color: string; pct: number; label: string; count: number }[]; total: number }) {
+  let acc = 0;
+  const grad = segments.map(s => { const start = acc; acc += s.pct; return `${s.color} ${start}% ${acc}%`; }).join(', ');
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+      <div className="donut-wrap">
+        <div className="donut" style={{ background: `conic-gradient(${grad})` }} />
+        <div className="donut-center">
+          <div className="num">{fmt(total)}</div>
+          <div className="lbl">At Risk</div>
+        </div>
+      </div>
+      <div className="donut-legend">
+        {segments.map(s => (
+          <span key={s.label}>
+            <span className="dot" style={{ background: s.color }} />
+            {s.label}
+            <span className="count">{fmt(s.count)} ({s.pct}%)</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-/* ── Line chart data ─────────────────────────────────────────── */
-const lineData = [20, 28, 25, 35, 32, 45, 38, 52, 48, 60, 55, 68];
-const lineMax = Math.max(...lineData);
-const linePoints = lineData.map((v, i) => {
-  const x = (i / (lineData.length - 1)) * 100;
-  const y = 100 - (v / lineMax) * 80;
-  return `${x},${y}`;
-}).join(' ');
+/* ── retention line chart ─────────────────────────────────── */
+const retentionData = [82, 78, 75, 71, 68, 64, 58, 55, 50, 47, 43, 42];
+const retMax = 100;
+const retPoints = retentionData.map((v, i) => `${(i / (retentionData.length - 1)) * 100},${100 - (v / retMax) * 90}`).join(' ');
+const retLabels = ['May 10', 'May 17', 'May 24', 'May 31', 'Jun 7'];
 
-/* ── Page ────────────────────────────────────────────────────── */
+/* ── page ─────────────────────────────────────────────────── */
 export default async function AnalyticsPage() {
   const supabase = await createServerSupabase();
 
@@ -71,249 +72,249 @@ export default async function AnalyticsPage() {
   const jobs = totalJobs ?? 0;
   const customers = totalCustomers ?? 0;
 
+  const highRisk = Math.round(pending * 0.36);
+  const medRisk = Math.round(pending * 0.40);
+  const lowRisk = pending - highRisk - medRisk;
+
   return (
     <>
       {/* ── Header ── */}
       <div className="page-header">
-        <h1>Analytics</h1>
-        <div className="page-header-meta">
+        <div className="page-header-eyebrow">Platform Health</div>
+        <h1>Predictive Provider Insights</h1>
+        <p className="page-header-sub">AI-powered insights to identify at-risk providers and take proactive action.</p>
+        <div className="page-header-actions">
           <span className="date-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-            01.08.2026 – 31.08.2026
+            Last 30 Days ▾
           </span>
-          <span className="date-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
-          </span>
-        </div>
-      </div>
-
-      {/* ── Stat Cards Row 1 ── */}
-      <div className="stats-grid">
-        {/* Providers */}
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Providers</span>
-            <div className="stat-card-icon" style={{ background: '#eff6ff', color: '#2563eb' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg>
-            </div>
-          </div>
-          <div className="stat-card-value">{fmt(providers)}</div>
-          <div className="stat-card-trend up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17l5-5 5 5M7 7l5 5 5-5" /></svg>
-            12.4% since last month
-          </div>
-        </div>
-
-        {/* Verified */}
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Verified</span>
-            <div className="stat-card-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-            </div>
-          </div>
-          <div className="stat-card-value">{fmt(approved)}</div>
-          <div className="stat-card-trend up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17l5-5 5 5M7 7l5 5 5-5" /></svg>
-            8.1% since last month
-          </div>
-        </div>
-
-        {/* Jobs */}
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Jobs</span>
-          </div>
-          <div className="stat-card-value">{fmt(jobs)}</div>
-          <div className="stat-card-body">
-            <div className="donut-legend">
-              <span><span className="dot" style={{ background: '#2563eb' }} /> Completed</span>
-              <span><span className="dot" style={{ background: '#f59e0b' }} /> Active</span>
-              <span><span className="dot" style={{ background: '#e5e7eb' }} /> Cancelled</span>
-            </div>
-            <Donut segments={[
-              { color: '#2563eb', pct: 62 },
-              { color: '#f59e0b', pct: 26 },
-              { color: '#e5e7eb', pct: 12 },
-            ]} />
-          </div>
-        </div>
-
-        {/* Customers */}
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Customers</span>
-          </div>
-          <div className="stat-card-value">{fmt(customers)}</div>
-          <div className="stat-card-body">
-            <div className="donut-legend">
-              <span><span className="dot" style={{ background: '#2563eb' }} /> Active</span>
-              <span><span className="dot" style={{ background: '#e5e7eb' }} /> Inactive</span>
-            </div>
-            <Donut segments={[
-              { color: '#2563eb', pct: 75 },
-              { color: '#e5e7eb', pct: 25 },
-            ]} />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Stat Cards Row 2 ── */}
-      <div className="stats-wide">
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Pending Reviews</span>
-            <div className="stat-card-icon" style={{ background: '#fffbeb', color: '#d97706' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
-            </div>
-          </div>
-          <div className="stat-card-value">{fmt(pending)}</div>
-          <div className="stat-card-trend down">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 7l-5 5-5-5" /></svg>
-            3.2% since last month
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-header">
-            <span className="stat-card-label">Total Verifications</span>
-            <div className="stat-card-icon" style={{ background: '#f5f3ff', color: '#7c3aed' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4" /><circle cx="12" cy="12" r="10" /></svg>
-            </div>
-          </div>
-          <div className="stat-card-value">{fmt(approved + pending)}</div>
-          <div className="stat-card-trend up">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17l5-5 5 5M7 7l5 5 5-5" /></svg>
-            5.6% since last month
-          </div>
-        </div>
-      </div>
-
-      {/* ── Sales Dynamics (Bar Chart) ── */}
-      <div className="chart-panel">
-        <div className="chart-panel-header">
-          <h3>Jobs Overview</h3>
-          <span className="year-badge">2026 ▾</span>
-        </div>
-        <div className="bar-chart">
-          {months.map((m, i) => (
-            <div className="bar-chart-col" key={m}>
-              <div className="bar" style={{ height: `${(barData[i] / barMax) * 100}%` }} />
-              <span className="bar-chart-label">{m}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Financial Cards ── */}
-      <div className="fin-grid">
-        <div className="fin-card">
-          <div className="fin-card-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>
-          </div>
-          <div className="fin-card-info">
-            <div className="label">Active Providers</div>
-            <div className="value">{fmt(providers)}</div>
-            <div className="sub">Current Period</div>
-          </div>
-          <CircularProgress value={72} color="#7c3aed" />
-        </div>
-        <div className="fin-card">
-          <div className="fin-card-icon" style={{ background: '#f0fdf4', color: '#16a34a' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>
-          </div>
-          <div className="fin-card-info">
-            <div className="label">Completed Jobs</div>
-            <div className="value">{fmt(jobs)}</div>
-            <div className="sub">Current Period</div>
-          </div>
-          <CircularProgress value={58} color="#16a34a" />
-        </div>
-      </div>
-
-      {/* ── Overall User Activity (Line Chart) ── */}
-      <div className="chart-panel">
-        <div className="chart-panel-header">
-          <h3>Overall User Activity</h3>
-          <span className="year-badge">2026 ▾</span>
-        </div>
-        <div className="line-chart">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#7c3aed" stopOpacity=".2" />
-                <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <polygon points={`0,100 ${linePoints} 100,100`} fill="url(#lineGrad)" />
-            <polyline points={linePoints} fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round" />
-          </svg>
-        </div>
-      </div>
-
-      {/* ── Recent Jobs Table ── */}
-      <div className="table-card">
-        <div className="table-card-header">
-          <h3>Recent Jobs</h3>
-          <button aria-label="Refresh">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6" /><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" /></svg>
+          <button className="filter-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" /></svg>
+            Filters
           </button>
         </div>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Provider</th>
-              <th>Category</th>
-              <th>Area</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div className="profile-cell">
-                  <div className="profile-avatar" style={{ background: '#dbeafe', color: '#2563eb' }}>JD</div>
-                  <div><strong>John Doe</strong><br /><span className="mono">Plumbing</span></div>
-                </div>
-              </td>
-              <td>Plumbing</td>
-              <td>Accra</td>
-              <td><span className="status-pill delivered">Completed</span></td>
-            </tr>
-            <tr>
-              <td>
-                <div className="profile-cell">
-                  <div className="profile-avatar" style={{ background: '#fef3c7', color: '#d97706' }}>AA</div>
-                  <div><strong>Ama Asante</strong><br /><span className="mono">Electrical</span></div>
-                </div>
-              </td>
-              <td>Electrical</td>
-              <td>Kumasi</td>
-              <td><span className="status-pill processed">Active</span></td>
-            </tr>
-            <tr>
-              <td>
-                <div className="profile-cell">
-                  <div className="profile-avatar" style={{ background: '#fce7f3', color: '#db2777' }}>KM</div>
-                  <div><strong>Kofi Mensah</strong><br /><span className="mono">Carpentry</span></div>
-                </div>
-              </td>
-              <td>Carpentry</td>
-              <td>Tamale</td>
-              <td><span className="status-pill cancelled">Cancelled</span></td>
-            </tr>
-            <tr>
-              <td>
-                <div className="profile-cell">
-                  <div className="profile-avatar" style={{ background: '#dcfce7', color: '#16a34a' }}>EO</div>
-                  <div><strong>Efua Osei</strong><br /><span className="mono">Painting</span></div>
-                </div>
-              </td>
-              <td>Painting</td>
-              <td>Takoradi</td>
-              <td><span className="status-pill delivered">Completed</span></td>
-            </tr>
-          </tbody>
-        </table>
+      </div>
+
+      {/* ── Stat Cards ── */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-card-label">At Risk Providers</div>
+          <div className="stat-card-value">{fmt(pending)}</div>
+          <div className="stat-card-trend up">↑ 18.6%</div>
+          <div className="stat-card-sub">{providers > 0 ? ((pending / providers) * 100).toFixed(1) : 0}% of total providers</div>
+          <Sparkline data={[32, 38, 35, 42, 40, 45, 48, 44, 50, 52, 48, 55]} />
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">High Risk</div>
+          <div className="stat-card-value">{fmt(highRisk)}</div>
+          <div className="stat-card-trend up">↑ 24.3%</div>
+          <div className="stat-card-sub">{providers > 0 ? ((highRisk / providers) * 100).toFixed(1) : 0}% of total providers</div>
+          <Sparkline data={[20, 24, 22, 28, 30, 26, 32, 35, 33, 38, 36, 40]} />
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Verification Score (Avg)</div>
+          <div className="stat-card-value">72</div>
+          <div className="stat-card-trend up">↑ 6 pts</div>
+          <div className="stat-card-sub">vs prior 30 days</div>
+          <Sparkline data={[60, 62, 65, 63, 68, 70, 67, 72, 74, 71, 73, 72]} />
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Predicted Revenue Impact</div>
+          <div className="stat-card-value">${fmt(142680)}</div>
+          <div className="stat-card-trend up">↑ 12.4%</div>
+          <div className="stat-card-sub">in projected revenue at risk</div>
+          <Sparkline data={[80, 95, 88, 110, 105, 120, 125, 130, 128, 135, 140, 143]} />
+        </div>
+      </div>
+
+      {/* ── Retention Trend + Risk Distribution ── */}
+      <div className="chart-row">
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Retention Trend</h3>
+            <span className="badge">Retention Rate ▾</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ flex: 1 }}>
+              <div className="line-chart">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="retGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--accent)" stopOpacity=".2" />
+                      <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <polygon points={`0,100 ${retPoints} 100,100`} fill="url(#retGrad)" />
+                  <polyline points={retPoints} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinejoin="round" />
+                  {retentionData.map((v, i) => (
+                    <circle key={i} cx={(i / (retentionData.length - 1)) * 100} cy={100 - (v / retMax) * 90} r="1.5" fill="var(--accent)" />
+                  ))}
+                </svg>
+              </div>
+              <div className="line-chart-labels">
+                {retLabels.map(l => <span key={l}>{l}</span>)}
+              </div>
+            </div>
+            <div className="retention-info">
+              <div className="retention-stat">
+                <div className="value">42.1%</div>
+                <div className="label">Current Retention Rate</div>
+              </div>
+              <div className="retention-stat">
+                <div className="value" style={{ color: 'var(--red)' }}>↓ 11.3%</div>
+                <div className="label">vs prior 30 days</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Risk Score Distribution</h3>
+          </div>
+          <Donut
+            total={pending}
+            segments={[
+              { color: '#ef4444', pct: 36.1, label: 'High Risk', count: highRisk },
+              { color: '#f97316', pct: 40.3, label: 'Medium Risk', count: medRisk },
+              { color: '#22c55e', pct: 23.6, label: 'Low Risk', count: lowRisk },
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* ── At Risk Table + Triggers ── */}
+      <div className="bottom-row">
+        <div className="table-card">
+          <div className="table-card-header">
+            <h3>At Risk Providers</h3>
+          </div>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Provider</th>
+                <th>Risk Score</th>
+                <th>Risk Level</th>
+                <th>Top Risk Factor</th>
+                <th>Last Active</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div className="profile-cell">
+                    <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>JD</div>
+                    <div><strong>John Doe</strong><br /><span className="mono">j.doe@email.com</span></div>
+                  </div>
+                </td>
+                <td><div className="risk-score risk-high">92</div></td>
+                <td><span className="status-badge status-high">High</span></td>
+                <td>Payment failed</td>
+                <td>2 days ago</td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="profile-cell">
+                    <div className="profile-avatar" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }}>AA</div>
+                    <div><strong>Ama Asante</strong><br /><span className="mono">a.asante@email.com</span></div>
+                  </div>
+                </td>
+                <td><div className="risk-score risk-high">89</div></td>
+                <td><span className="status-badge status-high">High</span></td>
+                <td>Decreased usage</td>
+                <td>3 days ago</td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="profile-cell">
+                    <div className="profile-avatar" style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}>KM</div>
+                    <div><strong>Kofi Mensah</strong><br /><span className="mono">k.mensah@email.com</span></div>
+                  </div>
+                </td>
+                <td><div className="risk-score risk-high">85</div></td>
+                <td><span className="status-badge status-high">High</span></td>
+                <td>Support ticket</td>
+                <td>5 days ago</td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="profile-cell">
+                    <div className="profile-avatar" style={{ background: 'var(--green-bg)', color: 'var(--green)' }}>EO</div>
+                    <div><strong>Efua Osei</strong><br /><span className="mono">e.osei@email.com</span></div>
+                  </div>
+                </td>
+                <td><div className="risk-score risk-high">78</div></td>
+                <td><span className="status-badge status-high">High</span></td>
+                <td>Feature unused</td>
+                <td>1 week ago</td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="profile-cell">
+                    <div className="profile-avatar" style={{ background: 'var(--red-bg)', color: 'var(--red)' }}>RA</div>
+                    <div><strong>Ralph Ansah</strong><br /><span className="mono">r.ansah@email.com</span></div>
+                  </div>
+                </td>
+                <td><div className="risk-score risk-medium">65</div></td>
+                <td><span className="status-badge status-medium">Medium</span></td>
+                <td>Login frequency</td>
+                <td>1 week ago</td>
+              </tr>
+            </tbody>
+          </table>
+          <a className="table-link" href="/verifications">View All At Risk Providers →</a>
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Automated Intervention Triggers</h3>
+          </div>
+          <div className="trigger-list">
+            <div className="trigger-card">
+              <div className="trigger-icon" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>
+              </div>
+              <div className="trigger-info">
+                <div className="title">Payment Failure <span className="active-badge">Active</span></div>
+                <div className="desc">Trigger win-back flow when payment fails 2+ times.</div>
+              </div>
+              <div className="trigger-count">482</div>
+            </div>
+            <div className="trigger-card">
+              <div className="trigger-icon" style={{ background: 'var(--red-bg)', color: 'var(--red)' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+              </div>
+              <div className="trigger-info">
+                <div className="title">Decreased Usage <span className="active-badge">Active</span></div>
+                <div className="desc">Trigger when usage drops by 40%+ in 7 days.</div>
+              </div>
+              <div className="trigger-count">731</div>
+            </div>
+            <div className="trigger-card">
+              <div className="trigger-icon" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              </div>
+              <div className="trigger-info">
+                <div className="title">Support Interaction <span className="active-badge">Active</span></div>
+                <div className="desc">Trigger when negative sentiment is detected.</div>
+              </div>
+              <div className="trigger-count">215</div>
+            </div>
+          </div>
+          <a className="table-link" href="#" style={{ display: 'inline-flex', margin: '12px 0 0' }}>Manage Triggers →</a>
+        </div>
+      </div>
+
+      {/* ── AI Insight ── */}
+      <div className="insight-banner">
+        <div className="insight-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+        </div>
+        <div className="insight-text">
+          <strong>AI Insight</strong>
+          <p>Providers with decreased usage and payment issues are <strong style={{ color: 'var(--accent)' }}>2.3x more likely</strong> to churn. Consider prioritizing outreach to these segments.</p>
+        </div>
+        <button className="insight-cta">View Recommended Actions →</button>
       </div>
     </>
   );
