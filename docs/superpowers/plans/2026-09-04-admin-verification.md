@@ -592,8 +592,12 @@ git commit -m "Add provider verification submission screen"
 **This task does not run the app.** The implementer has no way to launch
 Expo, sign in, or reach the live Supabase project. Once Task 1's migration
 is applied, the human owner runs this manual verification using the `/run`
-skill (or `npx expo start`) against seed data, signed in as a seeded
-unverified provider profile:
+skill (or `npx expo start`), signed in as a **real, non-seed provider
+account** (one created through the app's own sign-up flow) — a seeded demo
+row's id doesn't match any real `auth.uid()`, so RLS will reject both the
+storage upload and the `provider_verifications` insert if you try to use
+one; that would look like a bug in the code, not a mismatch in the test
+setup:
 
 1. Open provider Profile — confirm the "Business verification" card reads "Not submitted" and is tappable.
 2. Tap it, add 1-2 photos, tap "Submit for review" — confirm it navigates back and the card now reads "Pending review" and is no longer tappable.
