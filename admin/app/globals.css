@@ -133,7 +133,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .theme-toggle svg { width: 18px; height: 18px; }
 
 /* ===== Main ===== */
-.main { padding: 28px clamp(20px, 3vw, 40px); max-width: 1300px; width: 100%; }
+.main { padding: 28px clamp(20px, 3vw, 40px); width: 100%; }
 
 /* ===== Page Header ===== */
 .page-header { margin-bottom: 24px; }
