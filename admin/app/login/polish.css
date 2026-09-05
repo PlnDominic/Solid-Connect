@@ -12,7 +12,7 @@
 .reference-card form { display:grid; gap:10px; text-align:left; }
 .reference-input { display:flex; align-items:center; gap:9px; height:40px; padding:0 12px; border-radius:10px; background:#f9fafb; color:#6b7280; border:1px solid #e5e7eb; transition:border-color .2s; }
 .reference-input:focus-within { outline:2px solid rgba(37,99,235,.25); border-color:#93c5fd; }
-.reference-input > span { width:15px; text-align:center; font-size:15px; }
+.reference-input > svg { flex-shrink:0; color:#9ca3af; }
 .reference-input input { min-width:0; flex:1; border:0; outline:0; background:transparent; color:#111827; font-size:13px; }
 .reference-input input::placeholder { color:#9ca3af; }
 .reference-input button { border:0; background:none; color:#9ca3af; padding:0; font-size:15px; }
