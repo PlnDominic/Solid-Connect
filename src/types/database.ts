@@ -17,6 +17,8 @@ export interface Profile {
   area: string;
   phone: string | null;
   email: string | null;
+  push_token: string | null;
+  push_permission_status: string | null;
   is_seed: boolean;
   provider_category: string | null;
   provider_rating: number;
@@ -91,6 +93,7 @@ export interface Review {
   provider_id: string;
   customer_id: string;
   rating: number;
+  comment: string | null;
   created_at: string;
 }
 

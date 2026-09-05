@@ -9,6 +9,7 @@ import { PayoutDetailsScreen } from '../screens/provider/PayoutDetailsScreen';
 import { ServiceAreasScreen } from '../screens/provider/ServiceAreasScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
+import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
 import { TabBar } from './TabBar';
 
@@ -49,6 +50,7 @@ function ProfileStack() {
   return (
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNav.Screen name="PayoutDetails" component={PayoutDetailsScreen} />
       <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />

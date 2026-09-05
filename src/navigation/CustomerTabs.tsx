@@ -7,9 +7,11 @@ import { AllProvidersScreen } from '../screens/customer/AllProvidersScreen';
 import { RequestsScreen } from '../screens/customer/RequestsScreen';
 import { JobsScreen } from '../screens/customer/JobsScreen';
 import { JobDetailScreen } from '../screens/customer/JobDetailScreen';
+import { RateJobScreen } from '../screens/customer/RateJobScreen';
 import { ProfileScreen } from '../screens/customer/ProfileScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
+import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
 import { NotificationsScreen } from '../screens/shared/NotificationsScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
@@ -42,6 +44,7 @@ function JobsStack() {
     <JobsStackNav.Navigator screenOptions={{ headerShown: false }}>
       <JobsStackNav.Screen name="JobsHome" component={JobsScreen} />
       <JobsStackNav.Screen name="JobDetail" component={JobDetailScreen} />
+      <JobsStackNav.Screen name="RateJob" component={RateJobScreen} />
     </JobsStackNav.Navigator>
   );
 }
@@ -63,6 +66,7 @@ function ProfileStack() {
   return (
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNav.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
       <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />

@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Check, ChevronLeft, MapPin, Star } from 'lucide-react-native';
+import { ChevronLeft, MapPin, Star } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useConfirmCompletion, useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
-import { useSubmitReview } from '../../api/jobs';
+import { useJobReview } from '../../api/reviews';
 import { getOrCreateThread } from '../../api/chat';
 import { Avatar } from '../../components/Avatar';
 import { BottomSheet } from '../../components/BottomSheet';
@@ -17,12 +17,10 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const profile = useSessionStore((s) => s.profile);
   const { data: job } = useJob(jobId);
   const { data: provider } = useProvider(job?.provider_id);
+  const { data: review } = useJobReview(jobId);
   const confirmCompletion = useConfirmCompletion();
-  const submitReview = useSubmitReview();
 
   const [showPayment, setShowPayment] = useState(false);
-  const [showRating, setShowRating] = useState(false);
-  const [rating, setRating] = useState(0);
 
   if (!job) return <Screen edges={['top']} />;
 
@@ -30,16 +28,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     if (!job) return;
     await confirmCompletion.mutateAsync(job);
     setShowPayment(false);
-    setShowRating(true);
-  }
-
-  async function handleFinishRating() {
-    if (!job || !profile) return;
-    if (rating > 0) {
-      await submitReview.mutateAsync({ jobId: job.id, providerId: job.provider_id, customerId: profile.id, rating });
-    }
-    setShowRating(false);
-    navigation.navigate('JobsHome');
+    navigation.navigate('RateJob', { jobId: job.id });
   }
 
   async function handleMessage() {
@@ -99,7 +88,15 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button title="Confirm completion" onPress={() => setShowPayment(true)} disabled={job.status === 'completed'} />
+        {job.status === 'completed' ? (
+          review === undefined ? null : review ? (
+            <Button title="Job rated — thank you" variant="outline" onPress={() => {}} disabled />
+          ) : (
+            <Button title="Rate this job" onPress={() => navigation.navigate('RateJob', { jobId: job.id })} />
+          )
+        ) : (
+          <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
+        )}
       </View>
 
       <BottomSheet visible={showPayment} onClose={() => setShowPayment(false)}>
@@ -110,31 +107,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Button title="Not yet" variant="outline" onPress={() => setShowPayment(false)} style={{ flex: 1, height: 48 }} />
           <Button title="Confirm" onPress={handleConfirm} loading={confirmCompletion.isPending} style={{ flex: 1, height: 48 }} />
-        </View>
-      </BottomSheet>
-
-      <BottomSheet visible={showRating}>
-        <View style={{ alignItems: 'center', gap: 16 }}>
-          <View style={styles.successIcon}>
-            <Check size={22} strokeWidth={3} color={colors.confirm} />
-          </View>
-          <Text style={styles.sheetTitle}>Payment released</Text>
-          <Text style={[styles.sheetBody, { textAlign: 'center' }]}>
-            GHS {job.price} sent to {provider?.full_name}. How was the job?
-          </Text>
-          <View style={{ flexDirection: 'row', gap: 6 }}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <Pressable key={n} onPress={() => setRating(n)} hitSlop={6}>
-                <Star
-                  size={30}
-                  strokeWidth={1.8}
-                  color={n <= rating ? colors.active : colors.hairlineStrong}
-                  fill={n <= rating ? colors.active : 'transparent'}
-                />
-              </Pressable>
-            ))}
-          </View>
-          <Button title="Done" onPress={handleFinishRating} loading={submitReview.isPending} style={{ width: '100%' }} />
         </View>
       </BottomSheet>
     </Screen>
@@ -192,5 +164,4 @@ const styles = StyleSheet.create({
   footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.hairline },
   sheetTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
   sheetBody: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
-  successIcon: { width: 48, height: 48, borderRadius: radii.pill, backgroundColor: colors.confirmBg, alignItems: 'center', justifyContent: 'center' },
 });

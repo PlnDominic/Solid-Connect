@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSyncAuthEmail } from '../hooks/useSyncAuthEmail';
 import { AuthFlowScreen } from '../screens/onboarding/AuthFlowScreen';
 import { useSessionStore } from '../store/useSessionStore';
 import { CustomerTabs } from './CustomerTabs';
@@ -12,6 +13,7 @@ function MainTabs() {
 }
 
 export function RootNavigator() {
+  useSyncAuthEmail();
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
       <Stack.Screen name="Auth">

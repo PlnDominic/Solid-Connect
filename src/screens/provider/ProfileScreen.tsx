@@ -1,14 +1,18 @@
 import { Check, ChevronRight, ShieldCheck, Star } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderEarningsThisMonth } from '../../api/jobs';
+import { useProviderReviews } from '../../api/reviews';
 import { useSwitchRole } from '../../api/profile';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
+import { EmptyState } from '../../components/EmptyState';
+import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 const SETTINGS_ROWS: { label: string; screen: string }[] = [
+  { label: 'Edit profile', screen: 'EditProfile' },
   { label: 'Payout details', screen: 'PayoutDetails' },
   { label: 'Service areas', screen: 'ServiceAreas' },
   { label: 'Help & support', screen: 'HelpSupport' },
@@ -17,6 +21,7 @@ const SETTINGS_ROWS: { label: string; screen: string }[] = [
 export function ProfileScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: earnings = 0 } = useProviderEarningsThisMonth(profile?.id ?? null);
+  const { data: reviews = [] } = useProviderReviews(profile?.id ?? null);
   const switchRole = useSwitchRole();
 
   if (!profile) return <Screen />;
@@ -88,6 +93,15 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           </View>
         ) : null}
 
+        <View style={styles.reviewsSection}>
+          <Text style={styles.reviewsHeading}>Reviews</Text>
+          {reviews.length ? (
+            reviews.slice(0, 5).map((review) => <ReviewCard key={review.id} review={review} />)
+          ) : (
+            <EmptyState title="No reviews yet" subtitle="Complete a job and get rated to build your record." icon={Star} />
+          )}
+        </View>
+
         <View style={styles.settingsCard}>
           {SETTINGS_ROWS.map((row, i) => (
             <Pressable
@@ -131,6 +145,8 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
   statRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+  reviewsSection: { gap: spacing.sm },
+  reviewsHeading: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, textTransform: 'uppercase' },
   settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
   settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
   settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },

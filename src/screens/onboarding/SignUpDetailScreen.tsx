@@ -38,6 +38,8 @@ export function SignUpDetailScreen({
   validate,
   nextLabel = 'Continue',
   footerExtra,
+  loading = false,
+  externalError,
 }: {
   totalSteps: number;
   activeIndex: number;
@@ -53,6 +55,10 @@ export function SignUpDetailScreen({
   validate: (v: string) => boolean;
   nextLabel?: string;
   footerExtra?: ReactNode;
+  /** Shows a spinner on the button and disables input changes from advancing again. */
+  loading?: boolean;
+  /** An error from outside the local format check (e.g. "already registered") - takes priority over it. */
+  externalError?: string | null;
 }) {
   const [touched, setTouched] = useState(false);
   const isValid = validate(value);
@@ -88,14 +94,18 @@ export function SignUpDetailScreen({
             autoCorrect={false}
             autoFocus
             returnKeyType="next"
-            onSubmitEditing={() => isValid && onNext()}
-            style={[styles.input, touched && !isValid && styles.inputError]}
+            onSubmitEditing={() => isValid && !loading && onNext()}
+            style={[styles.input, (touched && !isValid) || externalError ? styles.inputError : null]}
           />
-          {touched && !isValid ? <Text style={styles.errorText}>That doesn't look right yet.</Text> : null}
+          {externalError ? (
+            <Text style={styles.errorText}>{externalError}</Text>
+          ) : touched && !isValid ? (
+            <Text style={styles.errorText}>That doesn't look right yet.</Text>
+          ) : null}
         </View>
 
         <View style={styles.footer}>
-          <Button title={nextLabel} onPress={onNext} disabled={!isValid} />
+          <Button title={nextLabel} onPress={onNext} disabled={!isValid || loading} loading={loading} />
           {footerExtra}
         </View>
       </KeyboardAvoidingView>

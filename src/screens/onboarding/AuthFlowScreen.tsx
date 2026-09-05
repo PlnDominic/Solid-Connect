@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { createOrUpdateOwnProfile, fetchProfile } from '../../api/profile';
+import { createOrUpdateOwnProfile, fetchProfile, savePushSubscription } from '../../api/profile';
 import {
   friendlyAuthError,
   getCurrentUserId,
@@ -9,15 +9,19 @@ import {
   signInWithPassword,
   signUpWithPassword,
 } from '../../lib/auth';
+import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts } from '../../theme';
 import type { Role } from '../../types/database';
 import { OnboardingScreen } from './OnboardingScreen';
 import { SignInScreen } from './SignInScreen';
+import { SignUpCategoryScreen } from './SignUpCategoryScreen';
 import { SignUpConfirmEmailScreen } from './SignUpConfirmEmailScreen';
 import { SignUpEmailScreen } from './SignUpEmailScreen';
+import { SignUpLocationScreen } from './SignUpLocationScreen';
 import { SignUpNameScreen } from './SignUpNameScreen';
+import { SignUpNotificationsScreen } from './SignUpNotificationsScreen';
 import { SignUpPasswordScreen } from './SignUpPasswordScreen';
 import { SignUpPhoneScreen } from './SignUpPhoneScreen';
 import { SignUpScreen } from './SignUpScreen';
@@ -29,24 +33,31 @@ type Phase =
   | 'onboarding'
   | 'signup-name'
   | 'signup-phone'
+  | 'signup-location'
   | 'signup-email'
   | 'signup-password'
   | 'signup-confirm-email'
   | 'signup-role'
+  | 'signup-category'
+  | 'signup-notifications'
   | 'signin'
   | 'error';
 
-// 3 onboarding info slides + name + phone + email + role + password.
-const TOTAL_STEPS = 8;
+// 3 onboarding info slides + name + phone + location + email + role +
+// category (providers only) + password.
+const TOTAL_STEPS = 10;
 
 /**
  * Orchestrates the cold-start flow. Real accounts only - no anonymous
  * session. A device with an already-active Supabase session (a genuine
  * prior login) skips straight past splash/onboarding/auth; everyone else
  * gets splash -> onboarding -> the login page, with "Create an account"
- * leading into name -> phone -> email -> role -> password. Role is chosen
- * before the account exists, so it's just held in state until the password
- * step actually creates the account and the profile row together.
+ * leading into name -> phone -> location -> email -> role -> password.
+ * Choosing "provider" adds one more stop first - which trade - since that
+ * drives the marketplace's category filter; customers skip straight from
+ * role to password. Role (and trade) are chosen before the account exists,
+ * so they're just held in state until the password step actually creates
+ * the account and the profile row together.
  */
 export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<Phase>('bootstrapping');
@@ -57,10 +68,13 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [signInErr, setSignInErr] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
+  const [area, setArea] = useState('');
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [providerCategory, setProviderCategory] = useState('');
   const [roleChoiceLoading, setRoleChoiceLoading] = useState<Role | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
+  const [notifLoading, setNotifLoading] = useState(false);
   const setProfile = useSessionStore((s) => s.setProfile);
   const setBootstrapping = useSessionStore((s) => s.setBootstrapping);
 
@@ -97,6 +111,12 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   async function handleChooseRole(role: Role) {
     setSelectedRole(role);
     setRoleError(null);
+    if (role === 'provider') {
+      // One more stop first - which trade - before finishing the profile
+      // either way (already-authenticated or still headed to password).
+      setPhase('signup-category');
+      return;
+    }
     // The role step is also reached already-authenticated (a first-time
     // Google/Apple sign-in, or someone back after confirming their email) -
     // finish the profile directly rather than sending them through another
@@ -105,9 +125,34 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     try {
       const userId = await getCurrentUserId();
       if (userId) {
-        const profile = await createOrUpdateOwnProfile(userId, role, { fullName, phone, email });
+        const profile = await createOrUpdateOwnProfile(userId, role, { fullName, phone, email, area });
         setProfile(profile);
-        onDone();
+        setPhase('signup-notifications');
+        return;
+      }
+      setPhase('signup-password');
+    } catch (e: any) {
+      setRoleError(friendlyAuthError(e, 'Could not continue. Please try again.'));
+    } finally {
+      setRoleChoiceLoading(null);
+    }
+  }
+
+  async function handleCategoryNext() {
+    setRoleError(null);
+    setRoleChoiceLoading('provider');
+    try {
+      const userId = await getCurrentUserId();
+      if (userId) {
+        const profile = await createOrUpdateOwnProfile(userId, 'provider', {
+          fullName,
+          phone,
+          email,
+          area,
+          providerCategory,
+        });
+        setProfile(profile);
+        setPhase('signup-notifications');
         return;
       }
       setPhase('signup-password');
@@ -135,13 +180,47 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         setPhase('signup-confirm-email');
         return;
       }
-      const profile = await createOrUpdateOwnProfile(result.user.id, selectedRole, { fullName, phone, email });
+      const profile = await createOrUpdateOwnProfile(result.user.id, selectedRole, {
+        fullName,
+        phone,
+        email,
+        area,
+        providerCategory,
+      });
       setProfile(profile);
-      onDone();
+      setPhase('signup-notifications');
     } catch (e: any) {
       setPasswordError(friendlyAuthError(e, 'Could not create your account. Please try again.'));
     } finally {
       setPasswordLoading(false);
+    }
+  }
+
+  async function handleEnableNotifications() {
+    setNotifLoading(true);
+    try {
+      const { status, token } = await registerForPushNotificationsAsync();
+      const userId = await getCurrentUserId();
+      if (userId) await savePushSubscription(userId, status, token);
+    } catch {
+      // Best-effort - the account is already created, so a failure here
+      // shouldn't block finishing sign-up.
+    } finally {
+      setNotifLoading(false);
+      onDone();
+    }
+  }
+
+  async function handleSkipNotifications() {
+    setNotifLoading(true);
+    try {
+      const userId = await getCurrentUserId();
+      if (userId) await savePushSubscription(userId, 'skipped', null);
+    } catch {
+      // Same - don't block on it.
+    } finally {
+      setNotifLoading(false);
+      onDone();
     }
   }
 
@@ -244,6 +323,19 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         value={phone}
         onChangeValue={setPhone}
         onBack={() => setPhase('signup-name')}
+        onNext={() => setPhase('signup-location')}
+      />
+    );
+  }
+
+  if (phase === 'signup-location') {
+    return (
+      <SignUpLocationScreen
+        totalSteps={TOTAL_STEPS}
+        activeIndex={5}
+        value={area}
+        onChangeValue={setArea}
+        onBack={() => setPhase('signup-phone')}
         onNext={() => setPhase('signup-email')}
       />
     );
@@ -253,10 +345,10 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return (
       <SignUpEmailScreen
         totalSteps={TOTAL_STEPS}
-        activeIndex={5}
+        activeIndex={6}
         value={email}
         onChangeValue={setEmail}
-        onBack={() => setPhase('signup-phone')}
+        onBack={() => setPhase('signup-location')}
         onNext={() => setPhase('signup-role')}
       />
     );
@@ -267,10 +359,25 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       <SignUpScreen
         firstName={fullName.trim().split(/\s+/)[0] || 'there'}
         totalSteps={TOTAL_STEPS}
-        activeIndex={6}
+        activeIndex={7}
         onBack={() => setPhase('signup-email')}
         onSelectRole={handleChooseRole}
         loading={roleChoiceLoading}
+        errorMessage={roleError}
+      />
+    );
+  }
+
+  if (phase === 'signup-category') {
+    return (
+      <SignUpCategoryScreen
+        totalSteps={TOTAL_STEPS}
+        activeIndex={8}
+        value={providerCategory}
+        onChangeValue={setProviderCategory}
+        onBack={() => setPhase('signup-role')}
+        onNext={handleCategoryNext}
+        loading={roleChoiceLoading === 'provider'}
         errorMessage={roleError}
       />
     );
@@ -280,8 +387,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return (
       <SignUpPasswordScreen
         totalSteps={TOTAL_STEPS}
-        activeIndex={7}
-        onBack={() => setPhase('signup-role')}
+        activeIndex={9}
+        onBack={() => setPhase(selectedRole === 'provider' ? 'signup-category' : 'signup-role')}
         onSubmit={handlePasswordSubmit}
         loading={passwordLoading}
         errorMessage={passwordError}
@@ -291,6 +398,12 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
 
   if (phase === 'signup-confirm-email') {
     return <SignUpConfirmEmailScreen email={email} onGoToSignIn={() => setPhase('signin')} />;
+  }
+
+  if (phase === 'signup-notifications') {
+    return (
+      <SignUpNotificationsScreen onEnable={handleEnableNotifications} onSkip={handleSkipNotifications} loading={notifLoading} />
+    );
   }
 
   return (

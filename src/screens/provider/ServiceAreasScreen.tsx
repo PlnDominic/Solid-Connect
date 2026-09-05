@@ -3,20 +3,10 @@ import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { AREAS } from '../../constants/areas';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 const STORAGE_KEY = 'solid-connect:service-areas';
-
-const AREAS = [
-  'Achimota',
-  'Trasacco Valley',
-  'Airport Residential',
-  'Cantonments',
-  'Osu',
-  'Spintex',
-  'Tema',
-  'Dansoman',
-];
 
 export function ServiceAreasScreen({ navigation }: { navigation: any }) {
   const [selected, setSelected] = useState<string[]>(['Achimota', 'Airport Residential']);

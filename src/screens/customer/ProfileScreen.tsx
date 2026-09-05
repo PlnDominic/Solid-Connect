@@ -10,6 +10,7 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 const SETTINGS_ROWS: { label: string; screen: string }[] = [
+  { label: 'Edit profile', screen: 'EditProfile' },
   { label: 'Payment methods', screen: 'PaymentMethods' },
   { label: 'Notifications', screen: 'Notifications' },
   { label: 'Help & support', screen: 'HelpSupport' },

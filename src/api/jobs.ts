@@ -201,16 +201,3 @@ export function useProviderEarningsThisMonth(providerId: string | null) {
   });
 }
 
-export function useSubmitReview() {
-  return useMutation({
-    mutationFn: async (input: { jobId: string; providerId: string; customerId: string; rating: number }) => {
-      const { error } = await supabase.from('reviews').insert({
-        job_id: input.jobId,
-        provider_id: input.providerId,
-        customer_id: input.customerId,
-        rating: input.rating,
-      });
-      if (error) throw error;
-    },
-  });
-}
