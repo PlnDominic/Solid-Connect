@@ -8,5 +8,5 @@ export function createClient() { return createBrowserClient(url, key); }
 
 export async function createServerSupabase() {
   const cookieStore = await cookies();
-  return createServerClient(url, key, { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} }, auth: { verifyJWT: false } });
+  return createServerClient(url, key, { cookies: { getAll: () => cookieStore.getAll(), setAll: () => {} } });
 }
