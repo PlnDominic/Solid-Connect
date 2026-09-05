@@ -8,7 +8,7 @@ export interface VerificationRecord {
 
 export interface VerificationRepo {
   getById(id: string): Promise<VerificationRecord | null>;
-  markApproved(id: string, adminId: string): Promise<void>;
-  markRejected(id: string, adminId: string, note: string): Promise<void>;
+  markApproved(id: string, adminId: string): Promise<boolean>;
+  markRejected(id: string, adminId: string, note: string): Promise<boolean>;
   setProviderVerified(providerId: string): Promise<void>;
 }

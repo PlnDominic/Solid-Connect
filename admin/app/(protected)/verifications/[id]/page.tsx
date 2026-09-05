@@ -14,13 +14,19 @@ export default async function VerificationDetailPage({ params }: { params: Promi
   if (error) throw error;
   if (!verification) notFound();
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('full_name, provider_category, area, phone, email')
     .eq('id', verification.provider_id)
     .maybeSingle();
+  if (profileError) throw profileError;
 
-  const { data: signedUrls } = await supabase.storage.from('verification-docs').createSignedUrls(verification.doc_urls, 60 * 10);
+  const { data: signedUrls, error: signedUrlsError } = await supabase.storage
+    .from('verification-docs')
+    .createSignedUrls(verification.doc_urls, 60 * 10);
+  if (signedUrlsError) throw signedUrlsError;
+
+  const docsFailedToLoad = verification.doc_urls.length > 0 && (signedUrls ?? []).every((u) => !u.signedUrl);
 
   return (
     <main className="mx-auto max-w-2xl p-8">
@@ -39,6 +45,12 @@ export default async function VerificationDetailPage({ params }: { params: Promi
           u.signedUrl ? <img key={i} src={u.signedUrl} alt={`Document ${i + 1}`} className="rounded border" /> : null
         )}
       </div>
+
+      {docsFailedToLoad ? (
+        <p className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
+          Documents failed to load — do not approve without reviewing them. Reload the page; if this persists, check the storage bucket.
+        </p>
+      ) : null}
 
       {verification.status === 'pending' ? (
         <div className="mt-8 flex flex-col gap-4">

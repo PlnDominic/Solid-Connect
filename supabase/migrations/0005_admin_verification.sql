@@ -52,7 +52,11 @@ create policy "providers see their own verification submissions" on public.provi
 create policy "admins see all verification submissions" on public.provider_verifications
   for select using (public.is_admin());
 create policy "providers submit their own verification" on public.provider_verifications
-  for insert with check (auth.uid() = provider_id);
+  for insert with check (
+    auth.uid() = provider_id
+    and status = 'pending'
+    and note is null and reviewed_by is null and reviewed_at is null
+  );
 -- deliberately no client-facing update policy: approve/reject runs through
 -- the admin app's service-role server action instead (see design spec).
 

@@ -11,20 +11,26 @@ export class SupabaseVerificationRepo implements VerificationRepo {
     return { id: data.id, providerId: data.provider_id, status: data.status };
   }
 
-  async markApproved(id: string, adminId: string): Promise<void> {
-    const { error } = await this.client
+  async markApproved(id: string, adminId: string): Promise<boolean> {
+    const { data, error } = await this.client
       .from('provider_verifications')
       .update({ status: 'approved', reviewed_by: adminId, reviewed_at: new Date().toISOString() })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('status', 'pending')
+      .select('id');
     if (error) throw error;
+    return (data?.length ?? 0) > 0;
   }
 
-  async markRejected(id: string, adminId: string, note: string): Promise<void> {
-    const { error } = await this.client
+  async markRejected(id: string, adminId: string, note: string): Promise<boolean> {
+    const { data, error } = await this.client
       .from('provider_verifications')
       .update({ status: 'rejected', reviewed_by: adminId, reviewed_at: new Date().toISOString(), note })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('status', 'pending')
+      .select('id');
     if (error) throw error;
+    return (data?.length ?? 0) > 0;
   }
 
   async setProviderVerified(providerId: string): Promise<void> {

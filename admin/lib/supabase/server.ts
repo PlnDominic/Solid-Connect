@@ -5,8 +5,8 @@ import { cookies } from 'next/headers';
  * Request-scoped Supabase client for Server Components, Server Actions and
  * Route Handlers - runs under RLS as whichever admin is signed in via the
  * session cookie. Do not use this for the approve/reject write: that needs
- * the service-role client (see admin/lib/supabase/service.ts, added in
- * Task 7) so it can update a row it doesn't own under RLS.
+ * the service-role client (see admin/lib/supabase/service.ts) so it can
+ * update a row it doesn't own under RLS.
  */
 export async function createClient() {
   const cookieStore = await cookies();

@@ -17,14 +17,18 @@ class FakeVerificationRepo implements VerificationRepo {
 
   async markApproved(id: string, adminId: string) {
     const record = this.records.get(id);
-    if (record) this.records.set(id, { ...record, status: 'approved' });
+    if (!record || record.status !== 'pending') return false;
+    this.records.set(id, { ...record, status: 'approved' });
     this.reviews.push({ id, adminId, status: 'approved' });
+    return true;
   }
 
   async markRejected(id: string, adminId: string, note: string) {
     const record = this.records.get(id);
-    if (record) this.records.set(id, { ...record, status: 'rejected' });
+    if (!record || record.status !== 'pending') return false;
+    this.records.set(id, { ...record, status: 'rejected' });
     this.reviews.push({ id, adminId, status: 'rejected', note });
+    return true;
   }
 
   async setProviderVerified(providerId: string) {
@@ -89,5 +93,18 @@ describe('rejectVerification', () => {
     const result = await rejectVerification(repo, 'v1', 'admin-1', 'reason');
 
     expect(result).toEqual({ ok: false, error: 'already_reviewed' });
+  });
+});
+
+describe('FakeVerificationRepo race guard', () => {
+  it('only allows one markApproved to succeed on a pending record', async () => {
+    const repo = new FakeVerificationRepo();
+    repo.seed({ id: 'v1', providerId: 'p1', status: 'pending' });
+
+    const first = await repo.markApproved('v1', 'admin-1');
+    const second = await repo.markApproved('v1', 'admin-2');
+
+    expect(first).toBe(true);
+    expect(second).toBe(false);
   });
 });

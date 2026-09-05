@@ -12,6 +12,8 @@ async function currentAdminId(): Promise<string> {
   const { data } = await supabase.auth.getClaims();
   const sub = data?.claims?.sub;
   if (!sub) throw new Error('Not signed in');
+  const { data: adminRow } = await supabase.from('admins').select('id').eq('id', sub).maybeSingle();
+  if (!adminRow) throw new Error('Not an admin');
   return sub;
 }
 

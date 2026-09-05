@@ -7,8 +7,16 @@ export async function approveVerification(repo: VerificationRepo, id: string, ad
   const record = await repo.getById(id);
   if (!record) return { ok: false, error: 'not_found' };
   if (record.status !== 'pending') return { ok: false, error: 'already_reviewed' };
-  await repo.markApproved(id, adminId);
+  // Mark the provider verified before flipping the submission's own status:
+  // setProviderVerified is idempotent, so if this succeeds but markApproved
+  // then fails (network blip, transient error), retrying is safe - the
+  // submission is still pending and can be approved again. Doing it in the
+  // other order would leave a permanently-stuck approved-but-not-verified
+  // row, since the pending-only guard blocks any retry once markApproved
+  // has run.
   await repo.setProviderVerified(record.providerId);
+  const updated = await repo.markApproved(id, adminId);
+  if (!updated) return { ok: false, error: 'already_reviewed' };
   return { ok: true };
 }
 
@@ -22,6 +30,7 @@ export async function rejectVerification(
   const record = await repo.getById(id);
   if (!record) return { ok: false, error: 'not_found' };
   if (record.status !== 'pending') return { ok: false, error: 'already_reviewed' };
-  await repo.markRejected(id, adminId, note.trim());
+  const updated = await repo.markRejected(id, adminId, note.trim());
+  if (!updated) return { ok: false, error: 'already_reviewed' };
   return { ok: true };
 }

@@ -18,8 +18,11 @@ export async function middleware(request: NextRequest) {
   });
 
   // Revalidates the session token on every request so it doesn't silently
-  // expire mid-session; the actual admin-or-not check lives in the
-  // protected route group's layout (Task 5), not here.
+  // expire mid-session. This alone is NOT authorization: page access is
+  // gated by the protected route group's layout, and every privileged
+  // Server Action independently re-checks admin status itself (see
+  // currentAdminId in verifications/[id]/actions.ts) - never rely on this
+  // middleware, or the layout alone, to protect a mutation.
   await supabase.auth.getClaims();
 
   return response;
