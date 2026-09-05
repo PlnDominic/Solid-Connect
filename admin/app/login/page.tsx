@@ -1,43 +1,16 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { createClient } from '../../lib/supabase-browser';
 import './polish.css';
 
+function EyeIcon({ off = false }: { off?: boolean }) { return <svg aria-hidden="true" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2.5 12s3.3-5 9.5-5 9.5 5 9.5 5-3.3 5-9.5 5-9.5-5-9.5-5Z" />{!off && <circle cx="12" cy="12" r="2.2" />}{off && <path d="m4 4 16 16" />}</svg>; }
+
 export default function LoginPage() {
-  const [error, setError] = useState('');
-  const [pending, setPending] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  async function signIn(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setPending(true);
-    setError('');
-    const form = new FormData(event.currentTarget);
-    const { error: authError } = await createClient().auth.signInWithPassword({
-      email: String(form.get('email')),
-      password: String(form.get('password')),
-    });
-    if (authError) { setError(authError.message); setPending(false); return; }
-    window.location.assign('/verifications');
-  }
-
-  return (
-    <main className="login reference-login">
-      <div className="sky-glow" aria-hidden="true" />
-      <header className="reference-brand"><span className="brand-symbol">✦</span><strong>Ebolt</strong></header>
-      <section className="reference-card" aria-labelledby="login-title">
-        <div className="reference-icon" aria-hidden="true">↪</div>
-        <h1 id="login-title">Sign in with email</h1>
-        <p className="reference-subtitle">Access your operations workspace<br />and keep every decision moving.</p>
-        <form onSubmit={signIn}>
-          <label className="reference-input"><span aria-hidden="true">✉</span><input name="email" type="email" autoComplete="email" placeholder="Email" aria-label="Email" required /></label>
-          <label className="reference-input"><span aria-hidden="true">▣</span><input name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Password" aria-label="Password" required /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? '◉' : '◌'}</button></label>
-          <a className="forgot-link" href="mailto:support@solidconnect.co?subject=Admin%20password%20reset">Forgot password?</a>
-          <button className="reference-submit" disabled={pending}>{pending ? 'Signing in...' : 'Get Started'}</button>
-          {error && <p className="notice" role="alert">{error}</p>}
-        </form>
-      </section>
-    </main>
-  );
+  const [email, setEmail] = useState(''); const [password, setPassword] = useState('');
+  const [error, setError] = useState(''); const [pending, setPending] = useState(false); const [showPassword, setShowPassword] = useState(false);
+  const checks = useMemo(() => ({ length: password.length >= 8, upper: /[A-Z]/.test(password), number: /\d/.test(password), special: /[^A-Za-z0-9]/.test(password) }), [password]);
+  const passwordReady = Object.values(checks).every(Boolean);
+  async function signIn(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setError(''); if (!passwordReady) { setError('Use the checks below to create a stronger password.'); return; } setPending(true); const { error: authError } = await createClient().auth.signInWithPassword({ email, password }); if (authError) { setError(authError.message); setPending(false); return; } window.location.assign('/verifications'); }
+  return <main className="login reference-login"><div className="sky-glow" aria-hidden="true" /><header className="reference-brand"><span className="brand-symbol">SC</span><strong>Solid Connect</strong></header><section className="reference-card" aria-labelledby="login-title"><div className="reference-icon" aria-hidden="true">↪</div><h1 id="login-title">Sign in with email</h1><p className="reference-subtitle">Access your operations workspace<br />and keep every decision moving.</p><form onSubmit={signIn}><label className="reference-input"><span aria-hidden="true">✉</span><input name="email" value={email} onChange={event => setEmail(event.target.value)} type="email" autoComplete="email" placeholder="Email" aria-label="Email" required /></label><label className="reference-input"><span aria-hidden="true">▣</span><input name="password" value={password} onChange={event => setPassword(event.target.value)} type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Password" aria-label="Password" required /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}><EyeIcon off={!showPassword} /></button></label><div className={`password-checks ${password ? 'visible' : ''}`} aria-live="polite"><span className={checks.length ? 'pass' : ''}>✓ 8+ characters</span><span className={checks.upper ? 'pass' : ''}>✓ Uppercase letter</span><span className={checks.number ? 'pass' : ''}>✓ Number</span><span className={checks.special ? 'pass' : ''}>✓ Special character</span></div><a className="forgot-link" href="mailto:support@solidconnect.co?subject=Admin%20password%20reset">Forgot password?</a><button className="reference-submit" disabled={pending}>{pending ? 'Checking access...' : 'Get Started'}</button>{error && <p className="notice" role="alert">{error}</p>}</form><p className="login-foot">{password ? (passwordReady ? 'Password ready for verification.' : 'Complete the checks to continue.') : 'Access is limited to provisioned administrators.'}</p></section></main>;
 }
