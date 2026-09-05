@@ -1,6 +1,5 @@
 .reference-login { min-height:100dvh; display:grid; place-items:center; overflow:hidden; position:relative; padding:24px; background:#ffffff; color:#111827; }
 
-.reference-brand { position:absolute; z-index:2; top:24px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:8px; font-size:20px; letter-spacing:-.04em; color:#111827; }.brand-logo { width:30px; height:30px; border-radius:8px; object-fit:contain; }
 
 .reference-card { position:relative; z-index:2; width:min(100%,420px); padding:40px 36px 30px; background:#fff; border:1px solid #e5e7eb; border-radius:24px; box-shadow:0 22px 52px rgba(0,0,0,.08); text-align:center; }
 
@@ -51,4 +50,4 @@
 .social-row button { height:40px; border:1px solid #e5e7eb; border-radius:10px; background:#f9fafb; color:#374151; font-weight:800; font-size:17px; }
 .social-row button:disabled { cursor:not-allowed; opacity:.85; }
 
-@media(max-width:560px){.reference-login{padding:18px}.reference-brand{top:18px}.reference-card{padding:32px 24px 25px}}
+@media(max-width:560px){.reference-login{padding:18px}.reference-card{padding:32px 24px 25px}}
