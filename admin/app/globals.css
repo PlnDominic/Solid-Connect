@@ -92,7 +92,11 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   transition: background .15s, color .15s;
 }
 .nav a:hover { background: var(--bg-card); color: var(--text-primary); }
-.nav a.active { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.nav a.active {
+  background: var(--accent-bg); color: var(--accent);
+  border: 1px solid var(--accent-border);
+  font-weight: 700; box-shadow: inset 3px 0 0 var(--accent);
+}
 .nav a svg, .nav span svg { width: 18px; height: 18px; flex-shrink: 0; }
 .nav span { cursor: default; opacity: .45; }
 
