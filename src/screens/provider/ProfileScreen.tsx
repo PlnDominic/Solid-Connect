@@ -29,20 +29,38 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
-const SETTINGS_SECTIONS: { label: string; screen: string; icon: LucideIcon }[][] = [
-  [
-    { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
-    { label: 'Verification', screen: 'Verification', icon: ShieldCheck },
-    { label: 'Payout details', screen: 'PayoutDetails', icon: Wallet },
-    { label: 'Service areas', screen: 'ServiceAreas', icon: MapPin },
-    { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
-  ],
-  [
-    { label: 'Appearance', screen: 'Appearance', icon: Moon },
-    { label: 'Invite friends', screen: 'Referral', icon: Users },
-    { label: 'Terms & privacy', screen: 'Legal', icon: FileText },
-    { label: 'Help & support', screen: 'HelpSupport', icon: LifeBuoy },
-  ],
+type SettingsRow = { label: string; screen: string; icon: LucideIcon };
+
+// Grouped by what the row actually is, not by an arbitrary split - each
+// group has one reason to exist, named so that reason is legible on screen.
+const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
+  {
+    title: 'Account',
+    rows: [
+      { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
+      { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
+      { label: 'Payout details', screen: 'PayoutDetails', icon: Wallet },
+    ],
+  },
+  {
+    title: 'Business',
+    rows: [
+      { label: 'Verification', screen: 'Verification', icon: ShieldCheck },
+      { label: 'Service areas', screen: 'ServiceAreas', icon: MapPin },
+    ],
+  },
+  {
+    title: 'Preferences',
+    rows: [{ label: 'Appearance', screen: 'Appearance', icon: Moon }],
+  },
+  {
+    title: 'More',
+    rows: [
+      { label: 'Invite friends', screen: 'Referral', icon: Users },
+      { label: 'Terms & privacy', screen: 'Legal', icon: FileText },
+      { label: 'Help & support', screen: 'HelpSupport', icon: LifeBuoy },
+    ],
+  },
 ];
 
 function memberSince(iso: string) {
@@ -214,21 +232,24 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             )}
           </View>
 
-          {SETTINGS_SECTIONS.map((section, sectionIndex) => (
-            <View key={sectionIndex} style={styles.settingsCard}>
-              {section.map((row, i) => (
-                <Pressable
-                  key={row.label}
-                  onPress={() => navigation.navigate(row.screen)}
-                  style={[styles.settingsRow, i < section.length - 1 && styles.settingsRowBorder]}
-                >
-                  <View style={styles.settingsIconWrap}>
-                    <row.icon size={16} strokeWidth={2} color={colors.inkMuted} />
-                  </View>
-                  <Text style={styles.settingsLabel}>{row.label}</Text>
-                  <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
-                </Pressable>
-              ))}
+          {SETTINGS_SECTIONS.map((section) => (
+            <View key={section.title} style={{ gap: spacing.sm }}>
+              <Text style={styles.sectionHeading}>{section.title}</Text>
+              <View style={styles.settingsCard}>
+                {section.rows.map((row, i) => (
+                  <Pressable
+                    key={row.label}
+                    onPress={() => navigation.navigate(row.screen)}
+                    style={[styles.settingsRow, i < section.rows.length - 1 && styles.settingsRowBorder]}
+                  >
+                    <View style={styles.settingsIconWrap}>
+                      <row.icon size={16} strokeWidth={2} color={colors.inkMuted} />
+                    </View>
+                    <Text style={styles.settingsLabel}>{row.label}</Text>
+                    <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
+                  </Pressable>
+                ))}
+              </View>
             </View>
           ))}
         </View>
