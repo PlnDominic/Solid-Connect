@@ -86,6 +86,13 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
     root.reset({ index: 0, routes: [{ name: 'Auth' }] });
   }
 
+  function confirmSignOut() {
+    Alert.alert('Sign out?', "You'll need to sign in again to access your account.", [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign out', style: 'destructive', onPress: handleSignOut },
+    ]);
+  }
+
   if (!profile) return <Screen />;
 
   async function handlePickPhoto() {
@@ -122,10 +129,12 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               <Avatar initials={profile.initials} size={72} fg={colors.white} dim />
             )}
             <View style={styles.heroCameraBadge}>
+              {/* Badge sits on the always-dark hero, but its own fill is
+                  `ink` (theme-relative) - icon must flip opposite it. */}
               {uploadPhoto.isPending ? (
-                <ActivityIndicator size="small" color={colors.white} />
+                <ActivityIndicator size="small" color={colors.paper} />
               ) : (
-                <Camera size={12} strokeWidth={2.4} color={colors.white} />
+                <Camera size={12} strokeWidth={2.4} color={colors.paper} />
               )}
             </View>
           </Pressable>
@@ -193,25 +202,22 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           ) : null}
 
           {SETTINGS_SECTIONS.map((section) => (
-            <View key={section.title} style={{ gap: spacing.xs }}>
-              <Text style={styles.groupHeading}>{section.title}</Text>
-              <View>
-                {section.rows.map((row, i) => (
-                  <Pressable
-                    key={row.label}
-                    onPress={() => navigation.navigate(row.screen)}
-                    style={[styles.settingsRow, i < section.rows.length - 1 && styles.settingsRowBorder]}
-                  >
-                    <row.icon size={18} strokeWidth={2} color={colors.inkMuted} />
-                    <Text style={styles.settingsLabel}>{row.label}</Text>
-                    <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
-                  </Pressable>
-                ))}
-              </View>
+            <View key={section.title} style={styles.settingsCard}>
+              {section.rows.map((row, i) => (
+                <Pressable
+                  key={row.label}
+                  onPress={() => navigation.navigate(row.screen)}
+                  style={[styles.settingsRow, i < section.rows.length - 1 && styles.settingsRowBorder]}
+                >
+                  <row.icon size={19} strokeWidth={1.8} color={colors.ink} />
+                  <Text style={styles.settingsLabel}>{row.label}</Text>
+                  <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
+                </Pressable>
+              ))}
             </View>
           ))}
 
-          <Pressable onPress={handleSignOut} style={styles.signOutRow} hitSlop={8}>
+          <Pressable onPress={confirmSignOut} style={styles.signOutRow} hitSlop={8}>
             <Text style={styles.signOutLabel}>Sign out</Text>
           </Pressable>
         </View>
@@ -283,7 +289,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     sectionTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-    groupHeading: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, textTransform: 'uppercase' },
     seeAll: { color: colors.ink, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
     savedRow: {
       flexDirection: 'row',
@@ -298,9 +303,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     savedName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
     savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     savedMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 13 },
+    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: 15, paddingHorizontal: spacing.lg },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    settingsLabel: { flex: 1, fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+    settingsLabel: { flex: 1, fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
 
     signOutRow: { paddingVertical: spacing.lg, alignItems: 'center' },
     signOutLabel: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.danger, letterSpacing: 0.2 },
