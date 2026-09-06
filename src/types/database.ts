@@ -9,6 +9,8 @@ export type BadgeKind = 'certified' | 'verified';
 export type JobStatus = 'in_progress' | 'completed';
 export type PaymentStatus = 'pending' | 'released' | 'refunded';
 export type VerificationStatus = 'pending' | 'approved' | 'rejected';
+export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other';
+export type DisputeStatus = 'open' | 'resolved';
 
 export interface Profile {
   id: string;
@@ -28,6 +30,9 @@ export interface Profile {
   provider_verified: boolean;
   provider_certified: boolean;
   created_at: string;
+  // Added in supabase/migrations/0009_profile_photo.sql.
+  photo_url: string | null;
+  tagline: string | null;
 }
 
 export interface Category {
@@ -137,6 +142,31 @@ export interface ProviderVerification {
   reviewed_at: string | null;
 }
 
+// Added in supabase/migrations/0007_disputes.sql - a customer's report of
+// an issue on a completed/in-progress job. Read-only from the client once
+// filed; resolution is an admin-side action (not built yet).
+export interface Dispute {
+  id: string;
+  job_id: string;
+  customer_id: string;
+  provider_id: string;
+  reason: DisputeReason;
+  description: string;
+  status: DisputeStatus;
+  created_at: string;
+}
+
+// Added in supabase/migrations/0008_provider_portfolio.sql - public photos
+// of a provider's past work, shown on the customer-facing Provider Detail
+// screen. Public bucket/table (unlike verification docs); no per-photo
+// caption or ordering yet.
+export interface ProviderPortfolioPhoto {
+  id: string;
+  provider_id: string;
+  photo_url: string;
+  created_at: string;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -151,6 +181,8 @@ export interface Database {
       chat_messages: { Row: ChatMessage; Insert: Partial<ChatMessage> & { thread_id: string; sender_id: string; sender_role: Role; text: string }; Update: Partial<ChatMessage> };
       saved_providers: { Row: SavedProvider; Insert: SavedProvider; Update: Partial<SavedProvider> };
       provider_verifications: { Row: ProviderVerification; Insert: Partial<ProviderVerification> & { provider_id: string }; Update: Partial<ProviderVerification> };
+      disputes: { Row: Dispute; Insert: Partial<Dispute> & { job_id: string; customer_id: string; provider_id: string; reason: DisputeReason }; Update: Partial<Dispute> };
+      provider_portfolio_photos: { Row: ProviderPortfolioPhoto; Insert: Partial<ProviderPortfolioPhoto> & { provider_id: string; photo_url: string }; Update: Partial<ProviderPortfolioPhoto> };
     };
   };
 }

@@ -105,7 +105,7 @@ export async function createOrUpdateOwnProfile(
 export async function updateOwnProfile(
   userId: string,
   role: Role,
-  updates: { fullName: string; phone: string; area: string; providerCategory?: string }
+  updates: { fullName: string; phone: string; area: string; providerCategory?: string; tagline?: string }
 ): Promise<Profile> {
   const { data, error } = await supabase
     .from('profiles')
@@ -114,12 +114,38 @@ export async function updateOwnProfile(
       initials: initialsFrom(updates.fullName),
       phone: updates.phone || null,
       area: updates.area.trim() || 'Achimota, Accra',
+      tagline: updates.tagline?.trim() || null,
       ...(role === 'provider' ? { provider_category: updates.providerCategory?.trim() || null } : {}),
     })
     .eq('id', userId)
     .select('*')
     .single();
   if (error) rethrowFriendly(error);
+  return data;
+}
+
+/**
+ * Uploads one picked image to the public profile-photos bucket under the
+ * user's own folder, then points profiles.photo_url at it. Path always
+ * includes a fresh timestamp (never overwrites in place) so a stale CDN/
+ * client cache of the old URL can't mask the update.
+ */
+export async function uploadOwnProfilePhoto(userId: string, imageUri: string): Promise<Profile> {
+  const response = await fetch(imageUri);
+  const arrayBuffer = await response.arrayBuffer();
+  const path = `${userId}/${Date.now()}.jpg`;
+  const { error: uploadError } = await supabase.storage
+    .from('profile-photos')
+    .upload(path, arrayBuffer, { contentType: 'image/jpeg' });
+  if (uploadError) throw uploadError;
+  const { data: publicUrl } = supabase.storage.from('profile-photos').getPublicUrl(path);
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ photo_url: publicUrl.publicUrl })
+    .eq('id', userId)
+    .select('*')
+    .single();
+  if (error) throw error;
   return data;
 }
 
@@ -162,6 +188,22 @@ export function useProfile(userId: string | null) {
     queryKey: ['profile', userId],
     queryFn: () => fetchProfile(userId as string),
     enabled: !!userId,
+  });
+}
+
+export function useUploadProfilePhoto() {
+  const queryClient = useQueryClient();
+  const setProfile = useSessionStore((s) => s.setProfile);
+  return useMutation({
+    mutationFn: (imageUri: string) => {
+      const userId = useSessionStore.getState().userId;
+      if (!userId) throw new Error('Not signed in');
+      return uploadOwnProfilePhoto(userId, imageUri);
+    },
+    onSuccess: (profile) => {
+      setProfile(profile);
+      queryClient.setQueryData(['profile', profile.id], profile);
+    },
   });
 }
 

@@ -1,9 +1,24 @@
-import { Check, ChevronRight, ShieldCheck, Star } from 'lucide-react-native';
-import { useMemo } from 'react';
-import { Image, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  ChevronRight,
+  Camera,
+  FileText,
+  KeyRound,
+  LifeBuoy,
+  MapPin,
+  Moon,
+  ShieldCheck,
+  Star,
+  UserCog,
+  Users,
+  Wallet,
+} from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderEarningsThisMonth } from '../../api/jobs';
 import { useProviderReviews } from '../../api/reviews';
-import { useSwitchRole } from '../../api/profile';
+import { useSwitchRole, useUploadProfilePhoto } from '../../api/profile';
 import { usePortfolioPhotos } from '../../api/portfolio';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
@@ -14,16 +29,20 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
-const SETTINGS_ROWS: { label: string; screen: string }[] = [
-  { label: 'Edit profile', screen: 'EditProfile' },
-  { label: 'Verification', screen: 'Verification' },
-  { label: 'Payout details', screen: 'PayoutDetails' },
-  { label: 'Service areas', screen: 'ServiceAreas' },
-  { label: 'Appearance', screen: 'Appearance' },
-  { label: 'Account security', screen: 'AccountSecurity' },
-  { label: 'Invite friends', screen: 'Referral' },
-  { label: 'Terms & privacy', screen: 'Legal' },
-  { label: 'Help & support', screen: 'HelpSupport' },
+const SETTINGS_SECTIONS: { label: string; screen: string; icon: LucideIcon }[][] = [
+  [
+    { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
+    { label: 'Verification', screen: 'Verification', icon: ShieldCheck },
+    { label: 'Payout details', screen: 'PayoutDetails', icon: Wallet },
+    { label: 'Service areas', screen: 'ServiceAreas', icon: MapPin },
+    { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
+  ],
+  [
+    { label: 'Appearance', screen: 'Appearance', icon: Moon },
+    { label: 'Invite friends', screen: 'Referral', icon: Users },
+    { label: 'Terms & privacy', screen: 'Legal', icon: FileText },
+    { label: 'Help & support', screen: 'HelpSupport', icon: LifeBuoy },
+  ],
 ];
 
 function memberSince(iso: string) {
@@ -38,6 +57,8 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const { data: reviews = [] } = useProviderReviews(profile?.id ?? null);
   const { data: portfolio = [] } = usePortfolioPhotos(profile?.id);
   const switchRole = useSwitchRole();
+  const uploadPhoto = useUploadProfilePhoto();
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   if (!profile) return <Screen />;
 
@@ -49,25 +70,71 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   }));
   const maxCount = Math.max(1, ...dist.map((d) => d.count));
 
+  async function handlePickPhoto() {
+    setPhotoError(null);
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Photo access needed', 'Allow photo library access to set a profile photo.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
+    if (result.canceled) return;
+    try {
+      await uploadPhoto.mutateAsync(result.assets[0].uri);
+    } catch (e: any) {
+      setPhotoError(e?.message ?? 'Could not upload your photo. Please try again.');
+    }
+  }
+
   return (
-    <Screen>
+    <Screen edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <View style={styles.identity}>
-            <Avatar initials={profile.initials} size={64} />
-            <View style={{ gap: 4, flex: 1 }}>
-              <View style={styles.nameRow}>
-                <Text style={styles.name}>{profile.full_name}</Text>
-                {profile.provider_verified ? (
-                  <View style={styles.verifiedDot}>
-                    <Check size={10} strokeWidth={3} color={colors.white} />
-                  </View>
-                ) : null}
+        <View style={styles.hero}>
+          {profile.photo_url ? (
+            <Image source={{ uri: profile.photo_url }} style={StyleSheet.absoluteFill} />
+          ) : (
+            <View style={[StyleSheet.absoluteFill, styles.heroPlaceholder]} />
+          )}
+          <View style={[StyleSheet.absoluteFill, styles.heroScrim]} />
+
+          <Pressable onPress={handlePickPhoto} style={styles.heroAvatarWrap} disabled={uploadPhoto.isPending}>
+            {profile.photo_url ? (
+              <Image source={{ uri: profile.photo_url }} style={styles.heroAvatarImage} />
+            ) : (
+              <Avatar initials={profile.initials} size={72} fg={colors.white} dim />
+            )}
+            <View style={styles.heroCameraBadge}>
+              {uploadPhoto.isPending ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Camera size={12} strokeWidth={2.4} color={colors.white} />
+              )}
+            </View>
+          </Pressable>
+
+          <View style={styles.heroNameRow}>
+            <Text style={styles.heroName}>{profile.full_name}</Text>
+            {profile.provider_verified ? (
+              <View style={styles.heroVerifiedDot}>
+                <ShieldCheck size={11} strokeWidth={2.8} color={colors.white} />
               </View>
-              <Text style={styles.meta}>{profile.provider_category} · {profile.area}</Text>
-              <Text style={styles.since}>Provider since {memberSince(profile.created_at)}</Text>
+            ) : null}
+          </View>
+          {profile.tagline ? <Text style={styles.heroTagline}>{profile.tagline}</Text> : null}
+          <Text style={styles.heroMeta}>{profile.provider_category} · {profile.area} · Since {memberSince(profile.created_at)}</Text>
+
+          <View style={styles.roleSwitch}>
+            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate('customer')}>
+              <Text style={styles.rolePillText}>Customer</Text>
+            </Pressable>
+            <View style={[styles.rolePill, styles.rolePillActive]}>
+              <Text style={styles.rolePillTextActive}>Provider</Text>
             </View>
           </View>
+        </View>
+
+        <View style={styles.body}>
+          {photoError ? <Text style={styles.photoErrorText}>{photoError}</Text> : null}
 
           {profile.provider_verified || profile.provider_certified ? (
             <View style={styles.badgeRow}>
@@ -90,17 +157,6 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             </View>
           ) : null}
 
-          <View style={styles.roleSwitch}>
-            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate('customer')}>
-              <Text style={styles.rolePillText}>Customer</Text>
-            </Pressable>
-            <View style={[styles.rolePill, styles.rolePillActive]}>
-              <Text style={styles.rolePillTextActive}>Provider</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.body}>
           {/* Statement card - a receipt's line items, not a dashboard's
               same-size stat boxes: label left, value right, hairlines
               between rows, the month's headline figure set apart by weight. */}
@@ -158,18 +214,23 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             )}
           </View>
 
-          <View style={styles.settingsCard}>
-            {SETTINGS_ROWS.map((row, i) => (
-              <Pressable
-                key={row.label}
-                onPress={() => navigation.navigate(row.screen)}
-                style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}
-              >
-                <Text style={styles.settingsLabel}>{row.label}</Text>
-                <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
-              </Pressable>
-            ))}
-          </View>
+          {SETTINGS_SECTIONS.map((section, sectionIndex) => (
+            <View key={sectionIndex} style={styles.settingsCard}>
+              {section.map((row, i) => (
+                <Pressable
+                  key={row.label}
+                  onPress={() => navigation.navigate(row.screen)}
+                  style={[styles.settingsRow, i < section.length - 1 && styles.settingsRowBorder]}
+                >
+                  <View style={styles.settingsIconWrap}>
+                    <row.icon size={16} strokeWidth={2} color={colors.inkMuted} />
+                  </View>
+                  <Text style={styles.settingsLabel}>{row.label}</Text>
+                  <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
+                </Pressable>
+              ))}
+            </View>
+          ))}
         </View>
       </ScrollView>
     </Screen>
@@ -179,28 +240,63 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     scroll: { flexGrow: 1 },
-    header: {
-      padding: spacing.lg,
+
+    hero: {
+      minHeight: 280,
+      paddingHorizontal: spacing.lg,
       paddingBottom: spacing.lg,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.hairline,
-      gap: spacing.lg,
-      backgroundColor: colors.card,
+      paddingTop: spacing.xxl,
+      justifyContent: 'flex-end',
+      gap: 6,
+      overflow: 'hidden',
     },
-    identity: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    name: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.3 },
-    verifiedDot: { width: 16, height: 16, borderRadius: radii.pill, backgroundColor: colors.confirm, alignItems: 'center', justifyContent: 'center' },
-    meta: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
-    since: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFainter },
-    badgeRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
-    roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: colors.paperDim },
-    rolePill: { flex: 1, paddingVertical: 10, borderRadius: radii.md, alignItems: 'center' },
-    rolePillActive: { backgroundColor: colors.card },
-    rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.inkFaint },
-    rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    heroPlaceholder: { backgroundColor: colors.navy },
+    // Solid scrim (not a true gradient - no gradient dependency in this
+    // project) over the lower two-thirds of the hero, enough contrast for
+    // white text over any photo without needing a new library.
+    heroScrim: { backgroundColor: 'rgba(11,11,10,0.38)' },
+
+    heroAvatarWrap: {
+      width: 72,
+      height: 72,
+      borderRadius: radii.xxl,
+      borderWidth: 2,
+      borderColor: 'rgba(255,255,255,0.85)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.sm,
+      overflow: 'visible',
+    },
+    heroAvatarImage: { width: '100%', height: '100%', borderRadius: radii.xl },
+    heroCameraBadge: {
+      position: 'absolute',
+      bottom: -2,
+      right: -2,
+      width: 24,
+      height: 24,
+      borderRadius: radii.pill,
+      backgroundColor: colors.ink,
+      borderWidth: 2,
+      borderColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    heroNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    heroName: { fontSize: 22, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: -0.4 },
+    heroVerifiedDot: { width: 18, height: 18, borderRadius: radii.pill, backgroundColor: colors.confirm, alignItems: 'center', justifyContent: 'center' },
+    heroTagline: { fontSize: 13.5, fontFamily: fonts.medium, color: 'rgba(255,255,255,0.88)', lineHeight: 19 },
+    heroMeta: { fontSize: 12, fontFamily: fonts.medium, color: 'rgba(255,255,255,0.65)' },
+
+    roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: 'rgba(255,255,255,0.14)', marginTop: spacing.sm, alignSelf: 'flex-start' },
+    rolePill: { paddingVertical: 9, paddingHorizontal: spacing.lg, borderRadius: radii.md, alignItems: 'center' },
+    rolePillActive: { backgroundColor: colors.white },
+    rolePillText: { fontSize: 13, fontFamily: fonts.bold, color: 'rgba(255,255,255,0.8)' },
+    rolePillTextActive: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
 
     body: { padding: spacing.lg, gap: spacing.xl },
+    photoErrorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+    badgeRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
 
     statement: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
     statementRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: spacing.lg },
@@ -223,8 +319,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     distCount: { fontSize: 11, fontFamily: fonts.mono, color: colors.inkFaint, width: 16, textAlign: 'right' },
 
     settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-    settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+    settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    settingsIconWrap: { width: 28, height: 28, borderRadius: radii.md, backgroundColor: colors.paperDim, alignItems: 'center', justifyContent: 'center' },
+    settingsLabel: { flex: 1, fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
   });
 }

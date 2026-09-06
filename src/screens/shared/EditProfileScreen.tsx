@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { isEmailTaken, isPhoneTaken, updateOwnProfile } from '../../api/profile';
 import { AreaPicker, isValidArea } from '../../components/AreaPicker';
@@ -9,9 +9,11 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { friendlyAuthError } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const TAGLINE_MAX = 140;
 
 /**
  * Shared between customer and provider Profile stacks - fields it shows
@@ -22,10 +24,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * until useSyncAuthEmail sees that confirmed.
  */
 export function EditProfileScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const profile = useSessionStore((s) => s.profile);
   const setProfile = useSessionStore((s) => s.setProfile);
 
   const [fullName, setFullName] = useState(profile?.full_name ?? '');
+  const [tagline, setTagline] = useState(profile?.tagline ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
   const [area, setArea] = useState(profile?.area ?? '');
   const [email, setEmail] = useState(profile?.email ?? '');
@@ -78,6 +83,7 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
         phone: trimmedPhone,
         area,
         providerCategory: isProvider ? category : undefined,
+        tagline,
       });
       // Keep showing the old (still-current) email until the confirmation
       // link is actually clicked - updateOwnProfile never touches it.
@@ -104,6 +110,21 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
               autoCapitalize="words"
               autoCorrect={false}
               style={styles.input}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>Tagline</Text>
+              <Text style={styles.labelCount}>{tagline.length}/{TAGLINE_MAX}</Text>
+            </View>
+            <TextInput
+              value={tagline}
+              onChangeText={(t) => setTagline(t.slice(0, TAGLINE_MAX))}
+              placeholder="A short line about you (optional)"
+              placeholderTextColor={colors.inkFainter}
+              multiline
+              style={[styles.input, styles.inputMultiline]}
             />
           </View>
 
@@ -159,11 +180,14 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
   fill: { flex: 1 },
   body: { padding: spacing.lg, gap: spacing.xl },
   field: { gap: spacing.sm },
   label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkFaint },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  labelCount: { fontSize: 11.5, fontFamily: fonts.medium, color: colors.inkFainter },
   input: {
     fontSize: 16,
     fontFamily: fonts.medium,
@@ -175,7 +199,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
   },
+  inputMultiline: { minHeight: 72, textAlignVertical: 'top' },
   notice: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.confirm, lineHeight: 18 },
   errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
   footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.lg },
 });
+}
