@@ -9,6 +9,7 @@ import { JobsScreen } from '../screens/customer/JobsScreen';
 import { JobDetailScreen } from '../screens/customer/JobDetailScreen';
 import { RateJobScreen } from '../screens/customer/RateJobScreen';
 import { ProfileScreen } from '../screens/customer/ProfileScreen';
+import { SavedProvidersScreen } from '../screens/customer/SavedProvidersScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
@@ -66,6 +67,7 @@ function ProfileStack() {
   return (
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
+      <ProfileStackNav.Screen name="SavedProviders" component={SavedProvidersScreen} />
       <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNav.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
       <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />

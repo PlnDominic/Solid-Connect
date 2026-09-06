@@ -9,6 +9,10 @@ import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 
+// Preview count shown inline on Profile; "See all" leads to the full,
+// unlimited SavedProvidersScreen list.
+const SAVED_PREVIEW_COUNT = 3;
+
 const SETTINGS_ROWS: { label: string; screen: string }[] = [
   { label: 'Edit profile', screen: 'EditProfile' },
   { label: 'Payment methods', screen: 'PaymentMethods' },
@@ -61,8 +65,15 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
       <ScrollView contentContainerStyle={styles.body}>
         {saved.length ? (
           <View style={{ gap: spacing.sm }}>
-            <Text style={styles.sectionTitle}>Saved providers</Text>
-            {saved.map((p) => (
+            <View style={styles.sectionHeading}>
+              <Text style={styles.sectionTitle}>Saved providers</Text>
+              {saved.length > SAVED_PREVIEW_COUNT ? (
+                <Pressable onPress={() => navigation.navigate('SavedProviders')} hitSlop={10}>
+                  <Text style={styles.seeAll}>See all</Text>
+                </Pressable>
+              ) : null}
+            </View>
+            {saved.slice(0, SAVED_PREVIEW_COUNT).map((p) => (
               <View key={p.id} style={styles.savedRow}>
                 <Avatar initials={p.initials} size={40} />
                 <View style={{ flex: 1, gap: 2 }}>
@@ -125,7 +136,9 @@ const styles = StyleSheet.create({
   rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.inkFaint },
   rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
   body: { padding: spacing.lg, gap: spacing.xl },
+  sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+  seeAll: { color: colors.ink, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
   savedRow: {
     flexDirection: 'row',
     gap: spacing.md,
