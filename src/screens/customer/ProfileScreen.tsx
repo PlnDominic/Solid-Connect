@@ -112,7 +112,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} bg={colors.paperDim}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           {profile.photo_url ? (
@@ -303,7 +303,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     savedName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
     savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     savedMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, overflow: 'hidden' },
     settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: 15, paddingHorizontal: spacing.lg },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     settingsLabel: { flex: 1, fontSize: 15, fontFamily: fonts.medium, color: colors.ink },

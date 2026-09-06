@@ -124,7 +124,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen edges={['top']}>
+    <Screen edges={['top']} bg={colors.paperDim}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           {profile.photo_url ? (
@@ -359,7 +359,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     distFill: { height: '100%', borderRadius: radii.pill, backgroundColor: colors.ink },
     distCount: { fontSize: 11, fontFamily: fonts.mono, color: colors.inkFaint, width: 16, textAlign: 'right' },
 
-    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, overflow: 'hidden' },
     settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: 15, paddingHorizontal: spacing.lg },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     settingsLabel: { flex: 1, fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
