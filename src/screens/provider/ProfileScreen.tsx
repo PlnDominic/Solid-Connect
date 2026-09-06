@@ -13,6 +13,7 @@ import { colors, fonts, radii, spacing } from '../../theme';
 
 const SETTINGS_ROWS: { label: string; screen: string }[] = [
   { label: 'Edit profile', screen: 'EditProfile' },
+  { label: 'Verification', screen: 'Verification' },
   { label: 'Payout details', screen: 'PayoutDetails' },
   { label: 'Service areas', screen: 'ServiceAreas' },
   { label: 'Help & support', screen: 'HelpSupport' },

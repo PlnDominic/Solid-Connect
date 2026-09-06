@@ -8,6 +8,7 @@ export type QuoteStatus = 'sent' | 'accepted' | 'declined';
 export type BadgeKind = 'certified' | 'verified';
 export type JobStatus = 'in_progress' | 'completed';
 export type PaymentStatus = 'pending' | 'released' | 'refunded';
+export type VerificationStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Profile {
   id: string;
@@ -121,6 +122,21 @@ export interface SavedProvider {
   created_at: string;
 }
 
+// Added in supabase/migrations/0005_admin_verification.sql, after this file
+// was first written. Providers may only insert/select their own row (see
+// that migration's RLS policies) - status transitions to approved/rejected
+// happen only from the admin portal via its service-role client.
+export interface ProviderVerification {
+  id: string;
+  provider_id: string;
+  status: VerificationStatus;
+  doc_urls: string[];
+  note: string | null;
+  submitted_at: string;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -134,6 +150,7 @@ export interface Database {
       chat_threads: { Row: ChatThread; Insert: Partial<ChatThread> & { customer_id: string; provider_id: string }; Update: Partial<ChatThread> };
       chat_messages: { Row: ChatMessage; Insert: Partial<ChatMessage> & { thread_id: string; sender_id: string; sender_role: Role; text: string }; Update: Partial<ChatMessage> };
       saved_providers: { Row: SavedProvider; Insert: SavedProvider; Update: Partial<SavedProvider> };
+      provider_verifications: { Row: ProviderVerification; Insert: Partial<ProviderVerification> & { provider_id: string }; Update: Partial<ProviderVerification> };
     };
   };
 }
