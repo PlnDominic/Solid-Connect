@@ -9,11 +9,15 @@ export default async function CustomersPage({ searchParams }: Props) {
   const { q } = await searchParams;
   const supabase = await createServerSupabase();
 
-  const { data: customers, count: total } = await supabase
-    .from('profiles')
-    .select('id, full_name, initials, area, phone, email, created_at')
-    .eq('role', 'customer')
-    .order('created_at', { ascending: false });
+  const [{ data: customers, count: total }, { count: totalJobs }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, full_name, initials, area, phone, email, created_at', { count: 'exact' })
+      .eq('role', 'customer')
+      .order('created_at', { ascending: false }),
+    // Total jobs across all customers - independent of the query above, so runs in parallel
+    supabase.from('jobs').select('*', { count: 'exact', head: true }),
+  ]);
 
   // Filter by search
   let filtered = customers ?? [];
@@ -26,7 +30,7 @@ export default async function CustomersPage({ searchParams }: Props) {
     );
   }
 
-  // Get job counts per customer
+  // Get job counts per customer (depends on filtered customer ids, so stays sequential)
   const customerIds = filtered.map(c => c.id);
   const { data: jobCounts } = customerIds.length > 0
     ? await supabase.from('jobs').select('customer_id').in('customer_id', customerIds)
@@ -34,9 +38,6 @@ export default async function CustomersPage({ searchParams }: Props) {
 
   const countMap: Record<string, number> = {};
   jobCounts?.forEach(j => { countMap[j.customer_id] = (countMap[j.customer_id] || 0) + 1; });
-
-  // Total jobs across all customers
-  const { count: totalJobs } = await supabase.from('jobs').select('*', { count: 'exact', head: true });
 
   return (
     <>

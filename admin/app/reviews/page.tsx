@@ -10,7 +10,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
 
   const { data: reviews, count: total } = await supabase
     .from('reviews')
-    .select('id, rating, comment, created_at, provider_id, customer_id')
+    .select('id, rating, comment, created_at, provider_id, customer_id', { count: 'exact' })
     .order('created_at', { ascending: false });
 
   let filtered = reviews ?? [];

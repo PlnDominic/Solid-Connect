@@ -75,6 +75,7 @@ export default async function AnalyticsPage() {
     { count: totalReviews },
     { data: recentJobs },
     { data: recentReviews },
+    { data: allReviewRatings },
     { data: providersByCategory },
     { data: paymentsData },
   ] = await Promise.all([
@@ -88,6 +89,8 @@ export default async function AnalyticsPage() {
     supabase.from('reviews').select('*', { count: 'exact', head: true }),
     supabase.from('jobs').select('id, title, price, status, location_label, created_at, provider_id, customer_id').order('created_at', { ascending: false }).limit(5),
     supabase.from('reviews').select('id, rating, comment, created_at, provider_id, customer_id').order('created_at', { ascending: false }).limit(5),
+    // All ratings (not just the 5 most recent) so the platform-wide average is accurate
+    supabase.from('reviews').select('rating'),
     supabase.from('profiles').select('provider_category').eq('role', 'provider'),
     supabase.from('payments').select('amount, status'),
   ]);
@@ -114,9 +117,9 @@ export default async function AnalyticsPage() {
   const catEntries = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
   const totalCat = catEntries.reduce((s, [, c]) => s + c, 0);
 
-  // Avg rating
-  const avgRating = recentReviews && recentReviews.length > 0
-    ? (recentReviews.reduce((s, r) => s + (r.rating ?? 0), 0) / recentReviews.length).toFixed(1)
+  // Avg rating (platform-wide, not just the 5 most recent reviews)
+  const avgRating = allReviewRatings && allReviewRatings.length > 0
+    ? (allReviewRatings.reduce((s, r) => s + (r.rating ?? 0), 0) / allReviewRatings.length).toFixed(1)
     : '—';
 
   return (

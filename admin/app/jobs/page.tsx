@@ -104,6 +104,7 @@ export default async function JobsPage({ searchParams }: Props) {
           ))}
         </nav>
         <form>
+          <input type="hidden" name="status" value={status} />
           <input
             type="text"
             name="q"

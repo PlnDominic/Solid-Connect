@@ -12,7 +12,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
   // Fetch all providers
   let query = supabase
     .from('profiles')
-    .select('id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at')
+    .select('id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at', { count: 'exact' })
     .eq('role', 'provider')
     .order('created_at', { ascending: false });
 
@@ -86,7 +86,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
             }}
           />
         </form>
-        <form>
+        <form style={{ display: 'flex', gap: 8 }}>
           <select
             name="category"
             defaultValue={category ?? ''}
@@ -99,6 +99,16 @@ export default async function ProvidersPage({ searchParams }: Props) {
             <option value="">All Categories</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+          <button
+            type="submit"
+            style={{
+              padding: '10px 16px', borderRadius: 8,
+              border: '1px solid var(--border)', background: 'var(--bg-card)',
+              color: 'var(--text-primary)', fontSize: 13, fontWeight: 600, cursor: 'pointer'
+            }}
+          >
+            Filter
+          </button>
         </form>
       </div>
 

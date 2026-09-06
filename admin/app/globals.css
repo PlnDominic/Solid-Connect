@@ -349,7 +349,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .heading { margin: 8px 0 6px; letter-spacing: -.05em; font-size: clamp(28px, 4vw, 46px); }
 .intro { margin: 0; color: var(--text-secondary); max-width: 650px; line-height: 1.5; }
 .topline { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin-bottom: 30px; }
-.stat { background: var(--bg-card); border: 1px solid var(--line); padding: 18px 20px; min-width: 140px; border-radius: 12px; }
+.stat { background: var(--bg-card); border: 1px solid var(--border); padding: 18px 20px; min-width: 140px; border-radius: 12px; }
 .stat b { display: block; font-size: 28px; font-variant-numeric: tabular-nums; }
 .stat span { color: var(--text-secondary); font-size: 12px; }
 .tabs { display: flex; gap: 6px; margin: 28px 0 14px; }
