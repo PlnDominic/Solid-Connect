@@ -193,18 +193,16 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           ) : null}
 
           {SETTINGS_SECTIONS.map((section) => (
-            <View key={section.title} style={{ gap: spacing.sm }}>
+            <View key={section.title} style={{ gap: spacing.xs }}>
               <Text style={styles.groupHeading}>{section.title}</Text>
-              <View style={styles.settingsCard}>
+              <View>
                 {section.rows.map((row, i) => (
                   <Pressable
                     key={row.label}
                     onPress={() => navigation.navigate(row.screen)}
                     style={[styles.settingsRow, i < section.rows.length - 1 && styles.settingsRowBorder]}
                   >
-                    <View style={styles.settingsIconWrap}>
-                      <row.icon size={16} strokeWidth={2} color={colors.inkMuted} />
-                    </View>
+                    <row.icon size={18} strokeWidth={2} color={colors.inkMuted} />
                     <Text style={styles.settingsLabel}>{row.label}</Text>
                     <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
                   </Pressable>
@@ -213,8 +211,8 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             </View>
           ))}
 
-          <Pressable onPress={handleSignOut} style={styles.resetRow}>
-            <Text style={styles.resetLabel}>Sign out</Text>
+          <Pressable onPress={handleSignOut} style={styles.signOutRow} hitSlop={8}>
+            <Text style={styles.signOutLabel}>Sign out</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -300,19 +298,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     savedName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
     savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     savedMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-    settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+    settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 13 },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    settingsIconWrap: { width: 28, height: 28, borderRadius: radii.md, backgroundColor: colors.paperDim, alignItems: 'center', justifyContent: 'center' },
-    settingsLabel: { flex: 1, fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    resetRow: {
-      padding: spacing.md,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      borderStyle: 'dashed',
-      gap: 3,
-    },
-    resetLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    settingsLabel: { flex: 1, fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+
+    signOutRow: { paddingVertical: spacing.lg, alignItems: 'center' },
+    signOutLabel: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.danger, letterSpacing: 0.2 },
   });
 }

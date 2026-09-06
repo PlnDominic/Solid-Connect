@@ -25,6 +25,7 @@ import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
 import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
+import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -79,6 +80,17 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const [photoError, setPhotoError] = useState<string | null>(null);
 
   if (!profile) return <Screen />;
+
+  // Ends the real Supabase session and returns to the login page. Walks up
+  // to the root stack navigator to reset onto "Auth".
+  async function handleSignOut() {
+    await signOut();
+    useSessionStore.getState().setProfile(null);
+    useSessionStore.getState().setUserId(null);
+    let root = navigation;
+    while (root.getParent()) root = root.getParent();
+    root.reset({ index: 0, routes: [{ name: 'Auth' }] });
+  }
 
   // Real rating distribution from this provider's own reviews - same
   // computation the admin reviews page uses, not a decorative placeholder.
@@ -233,18 +245,16 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           </View>
 
           {SETTINGS_SECTIONS.map((section) => (
-            <View key={section.title} style={{ gap: spacing.sm }}>
+            <View key={section.title} style={{ gap: spacing.xs }}>
               <Text style={styles.sectionHeading}>{section.title}</Text>
-              <View style={styles.settingsCard}>
+              <View>
                 {section.rows.map((row, i) => (
                   <Pressable
                     key={row.label}
                     onPress={() => navigation.navigate(row.screen)}
                     style={[styles.settingsRow, i < section.rows.length - 1 && styles.settingsRowBorder]}
                   >
-                    <View style={styles.settingsIconWrap}>
-                      <row.icon size={16} strokeWidth={2} color={colors.inkMuted} />
-                    </View>
+                    <row.icon size={18} strokeWidth={2} color={colors.inkMuted} />
                     <Text style={styles.settingsLabel}>{row.label}</Text>
                     <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
                   </Pressable>
@@ -252,6 +262,10 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               </View>
             </View>
           ))}
+
+          <Pressable onPress={handleSignOut} style={styles.signOutRow} hitSlop={8}>
+            <Text style={styles.signOutLabel}>Sign out</Text>
+          </Pressable>
         </View>
       </ScrollView>
     </Screen>
@@ -339,10 +353,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     distFill: { height: '100%', borderRadius: radii.pill, backgroundColor: colors.ink },
     distCount: { fontSize: 11, fontFamily: fonts.mono, color: colors.inkFaint, width: 16, textAlign: 'right' },
 
-    settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-    settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+    settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: 13 },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    settingsIconWrap: { width: 28, height: 28, borderRadius: radii.md, backgroundColor: colors.paperDim, alignItems: 'center', justifyContent: 'center' },
-    settingsLabel: { flex: 1, fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    settingsLabel: { flex: 1, fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+
+    signOutRow: { paddingVertical: spacing.lg, alignItems: 'center' },
+    signOutLabel: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.danger, letterSpacing: 0.2 },
   });
 }
