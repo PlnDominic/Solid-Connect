@@ -1,4 +1,5 @@
 import { ChevronRight, Heart, Star } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCustomerJobsCount } from '../../api/jobs';
 import { useSavedProviders, useToggleSavedProvider } from '../../api/saved';
@@ -7,7 +8,8 @@ import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
 import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 // Preview count shown inline on Profile; "See all" leads to the full,
 // unlimited SavedProvidersScreen list.
@@ -17,10 +19,20 @@ const SETTINGS_ROWS: { label: string; screen: string }[] = [
   { label: 'Edit profile', screen: 'EditProfile' },
   { label: 'Payment methods', screen: 'PaymentMethods' },
   { label: 'Notifications', screen: 'Notifications' },
+  { label: 'Appearance', screen: 'Appearance' },
+  { label: 'Account security', screen: 'AccountSecurity' },
+  { label: 'Invite friends', screen: 'Referral' },
+  { label: 'Terms & privacy', screen: 'Legal' },
   { label: 'Help & support', screen: 'HelpSupport' },
 ];
 
+function memberSince(iso: string) {
+  return new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric' }).format(new Date(iso));
+}
+
 export function ProfileScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const profile = useSessionStore((s) => s.profile);
   const { data: jobsCount = 0 } = useCustomerJobsCount(profile?.id ?? null);
   const { data: saved = [] } = useSavedProviders(profile?.id ?? null);
@@ -42,128 +54,152 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <View style={styles.identity}>
-          <Avatar initials={profile.initials} size={56} />
-          <View style={{ gap: 3 }}>
-            <Text style={styles.name}>{profile.full_name}</Text>
-            <Text style={styles.meta}>
-              {profile.area} · {jobsCount} jobs posted
-            </Text>
-          </View>
-        </View>
-        <View style={styles.roleSwitch}>
-          <View style={[styles.rolePill, styles.rolePillActive]}>
-            <Text style={styles.rolePillTextActive}>Customer</Text>
-          </View>
-          <Pressable style={styles.rolePill} onPress={() => switchRole.mutate('provider')}>
-            <Text style={styles.rolePillText}>Provider</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.body}>
-        {saved.length ? (
-          <View style={{ gap: spacing.sm }}>
-            <View style={styles.sectionHeading}>
-              <Text style={styles.sectionTitle}>Saved providers</Text>
-              {saved.length > SAVED_PREVIEW_COUNT ? (
-                <Pressable onPress={() => navigation.navigate('SavedProviders')} hitSlop={10}>
-                  <Text style={styles.seeAll}>See all</Text>
-                </Pressable>
-              ) : null}
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.identity}>
+            <Avatar initials={profile.initials} size={64} />
+            <View style={{ gap: 4, flex: 1 }}>
+              <Text style={styles.name}>{profile.full_name}</Text>
+              <Text style={styles.meta}>{profile.area}</Text>
+              <Text style={styles.since}>Customer since {memberSince(profile.created_at)}</Text>
             </View>
-            {saved.slice(0, SAVED_PREVIEW_COUNT).map((p) => (
-              <View key={p.id} style={styles.savedRow}>
-                <Avatar initials={p.initials} size={40} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={styles.savedName}>{p.full_name}</Text>
-                  <View style={styles.savedMetaRow}>
-                    <Text style={styles.savedMeta}>{p.provider_category} ·</Text>
-                    <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
-                    <Text style={styles.savedMeta}>{p.provider_rating.toFixed(1)} · {p.provider_distance_km} km</Text>
-                  </View>
-                </View>
-                <Pressable
-                  hitSlop={10}
-                  onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: p.id, saved: true })}
-                >
-                  <Heart size={17} strokeWidth={2} color={colors.active} fill={colors.active} />
-                </Pressable>
+          </View>
+          <View style={styles.roleSwitch}>
+            <View style={[styles.rolePill, styles.rolePillActive]}>
+              <Text style={styles.rolePillTextActive}>Customer</Text>
+            </View>
+            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate('provider')}>
+              <Text style={styles.rolePillText}>Provider</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.body}>
+          {/* Statement card - same receipt-line-item treatment as the
+              provider profile, so both sides share one quality bar. */}
+          <View style={styles.statement}>
+            <View style={styles.statementRow}>
+              <Text style={styles.statementLabel}>Jobs posted</Text>
+              <Text style={styles.statementValueLg}>{jobsCount}</Text>
+            </View>
+            <View style={[styles.statementRow, styles.statementRowBorder]}>
+              <Text style={styles.statementLabel}>Saved providers</Text>
+              <Text style={styles.statementValue}>{saved.length}</Text>
+            </View>
+          </View>
+
+          {saved.length ? (
+            <View style={{ gap: spacing.sm }}>
+              <View style={styles.sectionHeading}>
+                <Text style={styles.sectionTitle}>Saved providers</Text>
+                {saved.length > SAVED_PREVIEW_COUNT ? (
+                  <Pressable onPress={() => navigation.navigate('SavedProviders')} hitSlop={10}>
+                    <Text style={styles.seeAll}>See all</Text>
+                  </Pressable>
+                ) : null}
               </View>
+              {saved.slice(0, SAVED_PREVIEW_COUNT).map((p) => (
+                <View key={p.id} style={styles.savedRow}>
+                  <Avatar initials={p.initials} size={40} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={styles.savedName}>{p.full_name}</Text>
+                    <View style={styles.savedMetaRow}>
+                      <Text style={styles.savedMeta}>{p.provider_category} ·</Text>
+                      <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
+                      <Text style={styles.savedMeta}>{p.provider_rating.toFixed(1)} · {p.provider_distance_km} km</Text>
+                    </View>
+                  </View>
+                  <Pressable
+                    hitSlop={10}
+                    onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: p.id, saved: true })}
+                  >
+                    <Heart size={17} strokeWidth={2} color={colors.active} fill={colors.active} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
+
+          <View style={styles.settingsCard}>
+            {SETTINGS_ROWS.map((row, i) => (
+              <Pressable
+                key={row.label}
+                onPress={() => navigation.navigate(row.screen)}
+                style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}
+              >
+                <Text style={styles.settingsLabel}>{row.label}</Text>
+                <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
+              </Pressable>
             ))}
           </View>
-        ) : null}
 
-        <View style={styles.divider} />
-
-        <View style={styles.settingsCard}>
-          {SETTINGS_ROWS.map((row, i) => (
-            <Pressable
-              key={row.label}
-              onPress={() => navigation.navigate(row.screen)}
-              style={[styles.settingsRow, i < SETTINGS_ROWS.length - 1 && styles.settingsRowBorder]}
-            >
-              <Text style={styles.settingsLabel}>{row.label}</Text>
-              <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
-            </Pressable>
-          ))}
+          <Pressable onPress={handleSignOut} style={styles.resetRow}>
+            <Text style={styles.resetLabel}>Sign out</Text>
+          </Pressable>
         </View>
-
-        <Pressable onPress={handleSignOut} style={styles.resetRow}>
-          <Text style={styles.resetLabel}>Sign out</Text>
-        </Pressable>
       </ScrollView>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    padding: spacing.lg,
-    paddingBottom: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hairline,
-    gap: spacing.lg,
-    backgroundColor: colors.card,
-  },
-  identity: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-  name: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink },
-  meta: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
-  roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: colors.paperDim },
-  rolePill: { flex: 1, paddingVertical: 10, borderRadius: radii.md, alignItems: 'center' },
-  rolePillActive: { backgroundColor: colors.white },
-  rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.inkFaint },
-  rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  body: { padding: spacing.lg, gap: spacing.xl },
-  sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  sectionTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  seeAll: { color: colors.ink, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
-  savedRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  savedName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  savedMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  divider: { height: 1, backgroundColor: colors.hairline },
-  settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
-  settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-  settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-  resetRow: {
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    borderStyle: 'dashed',
-    gap: 3,
-  },
-  resetLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    scroll: { flexGrow: 1 },
+    header: {
+      padding: spacing.lg,
+      paddingBottom: spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.hairline,
+      gap: spacing.lg,
+      backgroundColor: colors.card,
+    },
+    identity: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
+    name: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.3 },
+    meta: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    since: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFainter },
+    roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: colors.paperDim },
+    rolePill: { flex: 1, paddingVertical: 10, borderRadius: radii.md, alignItems: 'center' },
+    rolePillActive: { backgroundColor: colors.card },
+    rolePillText: { fontSize: 14, fontFamily: fonts.bold, color: colors.inkFaint },
+    rolePillTextActive: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+
+    body: { padding: spacing.lg, gap: spacing.xl },
+
+    statement: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    statementRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: spacing.lg },
+    statementRowBorder: { borderTopWidth: 1, borderTopColor: colors.hairline },
+    statementLabel: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted },
+    statementValueLg: { fontSize: 20, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
+    statementValue: { fontSize: 16, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
+
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    sectionTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    seeAll: { color: colors.ink, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
+    savedRow: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      alignItems: 'center',
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    savedName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    savedMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    settingsCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    settingsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+    settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+    settingsLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    resetRow: {
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      borderStyle: 'dashed',
+      gap: 3,
+    },
+    resetLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  });
+}
