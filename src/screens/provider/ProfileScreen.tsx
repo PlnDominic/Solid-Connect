@@ -3,6 +3,7 @@ import {
   ChevronRight,
   Camera,
   FileText,
+  Images,
   KeyRound,
   LifeBuoy,
   MapPin,
@@ -47,6 +48,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     title: 'Business',
     rows: [
       { label: 'Verification', screen: 'Verification', icon: ShieldCheck },
+      { label: 'Portfolio', screen: 'Portfolio', icon: Images },
       { label: 'Service areas', screen: 'ServiceAreas', icon: MapPin },
     ],
   },

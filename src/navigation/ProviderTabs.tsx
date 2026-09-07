@@ -8,6 +8,7 @@ import { ProfileScreen } from '../screens/provider/ProfileScreen';
 import { PayoutDetailsScreen } from '../screens/provider/PayoutDetailsScreen';
 import { ServiceAreasScreen } from '../screens/provider/ServiceAreasScreen';
 import { VerificationScreen } from '../screens/provider/VerificationScreen';
+import { PortfolioScreen } from '../screens/provider/PortfolioScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
@@ -53,6 +54,7 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
       <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNav.Screen name="Verification" component={VerificationScreen} />
+      <ProfileStackNav.Screen name="Portfolio" component={PortfolioScreen} />
       <ProfileStackNav.Screen name="PayoutDetails" component={PayoutDetailsScreen} />
       <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
