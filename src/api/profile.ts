@@ -195,11 +195,11 @@ export function useUploadProfilePhoto() {
   const queryClient = useQueryClient();
   const setProfile = useSessionStore((s) => s.setProfile);
   return useMutation({
-    mutationFn: (imageUri: string) => {
-      const userId = useSessionStore.getState().userId;
-      if (!userId) throw new Error('Not signed in');
-      return uploadOwnProfilePhoto(userId, imageUri);
-    },
+    // Takes the caller's own profile.id rather than reading userId from the
+    // session store - that field is only ever cleared to null on sign-out,
+    // never set to a real value anywhere in the app (same latent bug
+    // useSwitchRole has), so relying on it here always threw "Not signed in".
+    mutationFn: ({ userId, imageUri }: { userId: string; imageUri: string }) => uploadOwnProfilePhoto(userId, imageUri),
     onSuccess: (profile) => {
       setProfile(profile);
       queryClient.setQueryData(['profile', profile.id], profile);
@@ -211,11 +211,11 @@ export function useSwitchRole() {
   const queryClient = useQueryClient();
   const setProfile = useSessionStore((s) => s.setProfile);
   return useMutation({
-    mutationFn: (role: Role) => {
-      const userId = useSessionStore.getState().userId;
-      if (!userId) throw new Error('Not signed in');
-      return switchOwnRole(userId, role);
-    },
+    // Same fix as useUploadProfilePhoto: take the caller's profile.id
+    // instead of the session store's userId, which is never actually set
+    // to a real value anywhere in the app - this always threw "Not signed
+    // in" before, meaning role switching has never worked.
+    mutationFn: ({ userId, role }: { userId: string; role: Role }) => switchOwnRole(userId, role),
     onSuccess: (profile) => {
       setProfile(profile);
       queryClient.setQueryData(['profile', profile.id], profile);

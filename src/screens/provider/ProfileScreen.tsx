@@ -110,6 +110,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const maxCount = Math.max(1, ...dist.map((d) => d.count));
 
   async function handlePickPhoto() {
+    if (!profile) return;
     setPhotoError(null);
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -119,7 +120,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (result.canceled) return;
     try {
-      await uploadPhoto.mutateAsync(result.assets[0].uri);
+      await uploadPhoto.mutateAsync({ userId: profile.id, imageUri: result.assets[0].uri });
     } catch (e: any) {
       setPhotoError(e?.message ?? 'Could not upload your photo. Please try again.');
     }
@@ -165,7 +166,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           <Text style={styles.heroMeta}>{profile.provider_category} · {profile.area} · Since {memberSince(profile.created_at)}</Text>
 
           <View style={styles.roleSwitch}>
-            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate('customer')}>
+            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate({ userId: profile.id, role: 'customer' })}>
               <Text style={styles.rolePillText}>Customer</Text>
             </Pressable>
             <View style={[styles.rolePill, styles.rolePillActive]}>

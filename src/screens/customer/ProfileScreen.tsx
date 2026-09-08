@@ -96,6 +96,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   if (!profile) return <Screen />;
 
   async function handlePickPhoto() {
+    if (!profile) return;
     setPhotoError(null);
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -105,7 +106,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (result.canceled) return;
     try {
-      await uploadPhoto.mutateAsync(result.assets[0].uri);
+      await uploadPhoto.mutateAsync({ userId: profile.id, imageUri: result.assets[0].uri });
     } catch (e: any) {
       setPhotoError(e?.message ?? 'Could not upload your photo. Please try again.');
     }
@@ -147,7 +148,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             <View style={[styles.rolePill, styles.rolePillActive]}>
               <Text style={styles.rolePillTextActive}>Customer</Text>
             </View>
-            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate('provider')}>
+            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate({ userId: profile.id, role: 'provider' })}>
               <Text style={styles.rolePillText}>Provider</Text>
             </Pressable>
           </View>
