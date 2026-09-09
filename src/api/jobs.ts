@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
+import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
 import type { Job, Payment } from '../types/database';
 
@@ -77,7 +78,7 @@ export function useAcceptQuote() {
 
 /** The customer's current job (there's at most one active at a time in this MVP). */
 export function useCustomerActiveJob(customerId: string | null) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['activeJob', 'customer', customerId],
     queryFn: async (): Promise<Job | null> => {
       const { data, error } = await supabase
@@ -92,10 +93,20 @@ export function useCustomerActiveJob(customerId: string | null) {
     },
     enabled: !!customerId,
   });
+
+  useRealtimeInvalidate({
+    channel: `active_job_customer:${customerId}`,
+    table: 'jobs',
+    filter: customerId ? `customer_id=eq.${customerId}` : undefined,
+    queryKeys: [['activeJob', 'customer', customerId]],
+    enabled: !!customerId,
+  });
+
+  return query;
 }
 
 export function useProviderJobs(providerId: string | null) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['jobs', 'provider', providerId],
     queryFn: async (): Promise<Job[]> => {
       const { data, error } = await supabase
@@ -108,10 +119,24 @@ export function useProviderJobs(providerId: string | null) {
     },
     enabled: !!providerId,
   });
+
+  useRealtimeInvalidate({
+    channel: `provider_jobs:${providerId}`,
+    table: 'jobs',
+    filter: providerId ? `provider_id=eq.${providerId}` : undefined,
+    queryKeys: [['jobs', 'provider', providerId]],
+    enabled: !!providerId,
+  });
+
+  return query;
 }
 
+/** A single job by id - shared by the customer's and the provider's Job
+ * Detail screens, so realtime here is what makes "provider starts/finishes
+ * work" and "customer confirms completion" show up live on the other
+ * person's screen. */
 export function useJob(jobId: string | null | undefined) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['job', jobId],
     queryFn: async (): Promise<Job | null> => {
       const { data, error } = await supabase.from('jobs').select('*').eq('id', jobId as string).maybeSingle();
@@ -120,6 +145,16 @@ export function useJob(jobId: string | null | undefined) {
     },
     enabled: !!jobId,
   });
+
+  useRealtimeInvalidate({
+    channel: `job:${jobId}`,
+    table: 'jobs',
+    filter: jobId ? `id=eq.${jobId}` : undefined,
+    queryKeys: [['job', jobId]],
+    enabled: !!jobId,
+  });
+
+  return query;
 }
 
 export function useStartJob() {
