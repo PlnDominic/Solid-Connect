@@ -7,12 +7,18 @@ import { JobDetailScreen } from '../screens/provider/JobDetailScreen';
 import { ProfileScreen } from '../screens/provider/ProfileScreen';
 import { PayoutDetailsScreen } from '../screens/provider/PayoutDetailsScreen';
 import { ServiceAreasScreen } from '../screens/provider/ServiceAreasScreen';
+import { AvailabilityScreen } from '../screens/provider/AvailabilityScreen';
 import { VerificationScreen } from '../screens/provider/VerificationScreen';
 import { PortfolioScreen } from '../screens/provider/PortfolioScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
+import { AppearanceScreen } from '../screens/shared/AppearanceScreen';
+import { AccountSecurityScreen } from '../screens/shared/AccountSecurityScreen';
+import { ReferralScreen } from '../screens/shared/ReferralScreen';
+import { LegalScreen } from '../screens/shared/LegalScreen';
+import { DisputeScreen } from '../screens/shared/DisputeScreen';
 import { TabBar } from './TabBar';
 
 const FeedStackNav = createNativeStackNavigator();
@@ -31,6 +37,7 @@ function JobsStack() {
     <JobsStackNav.Navigator screenOptions={{ headerShown: false }}>
       <JobsStackNav.Screen name="JobsHome" component={JobsScreen} />
       <JobsStackNav.Screen name="JobDetail" component={JobDetailScreen} />
+      <JobsStackNav.Screen name="Dispute" component={DisputeScreen} />
     </JobsStackNav.Navigator>
   );
 }
@@ -53,10 +60,15 @@ function ProfileStack() {
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
       <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
+      <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
       <ProfileStackNav.Screen name="Verification" component={VerificationScreen} />
       <ProfileStackNav.Screen name="Portfolio" component={PortfolioScreen} />
       <ProfileStackNav.Screen name="PayoutDetails" component={PayoutDetailsScreen} />
       <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
+      <ProfileStackNav.Screen name="Availability" component={AvailabilityScreen} />
+      <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />
+      <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />
+      <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
     </ProfileStackNav.Navigator>
   );

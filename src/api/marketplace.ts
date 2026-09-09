@@ -1,4 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
+import { AREAS } from '../constants/areas';
+import { coordsForArea, searchProvidersGeo } from './location';
+import { isApiConfigured } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { Category, Profile } from '../types/database';
 
@@ -31,16 +34,68 @@ export function useTopProviders() {
   });
 }
 
-/** All providers, optionally filtered by category - backs "See all". */
-export function useAllProviders(categoryName?: string | null) {
+function matchAreaName(needle: string) {
+  const n = needle.trim().toLowerCase();
+  return AREAS.find((a) => a.toLowerCase().includes(n) || n.includes(a.toLowerCase())) ?? null;
+}
+
+/** All providers, optionally filtered by category and/or area. Uses Nest geo search when API + area coords exist. */
+export function useAllProviders(categoryName?: string | null, areaNeedle?: string | null) {
   return useQuery({
-    queryKey: ['providers', 'all', categoryName ?? null],
+    queryKey: ['providers', 'all', categoryName ?? null, areaNeedle ?? null, isApiConfigured()],
     queryFn: async (): Promise<Profile[]> => {
-      let query = supabase.from('profiles').select('*').eq('role', 'provider').order('provider_rating', { ascending: false });
-      if (categoryName) query = query.eq('provider_category', categoryName);
+      const areaName = areaNeedle?.trim() ? matchAreaName(areaNeedle) : null;
+      const coords = areaName ? coordsForArea(areaName) : null;
+
+      if (coords && isApiConfigured()) {
+        const geo = await searchProvidersGeo({
+          lng: coords.lng,
+          lat: coords.lat,
+          category: categoryName ?? undefined,
+        });
+        if (geo) return geo;
+      }
+
+      let query = supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'provider')
+        .order('provider_rating', { ascending: false });
+
+      if (categoryName) {
+        const { data: cat } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', categoryName)
+          .maybeSingle();
+        if (cat?.id) {
+          const { data: links, error: linkErr } = await supabase
+            .from('provider_categories')
+            .select('provider_id')
+            .eq('category_id', cat.id);
+          if (linkErr) throw linkErr;
+          const ids = [...new Set((links ?? []).map((l) => l.provider_id))];
+          if (!ids.length) return [];
+          query = query.in('id', ids);
+        } else {
+          // Fallback for joined labels like "Plumbing · Electrical"
+          query = query.ilike('provider_category', `%${categoryName}%`);
+        }
+      }
+
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      let rows = data ?? [];
+      if (areaNeedle?.trim()) {
+        const needle = areaNeedle.trim().toLowerCase();
+        rows = [...rows].sort((a, b) => {
+          const aHit = (a.area ?? '').toLowerCase().includes(needle) ? 1 : 0;
+          const bHit = (b.area ?? '').toLowerCase().includes(needle) ? 1 : 0;
+          if (aHit !== bHit) return bHit - aHit;
+          return b.provider_rating - a.provider_rating;
+        });
+      }
+      return rows;
     },
   });
 }

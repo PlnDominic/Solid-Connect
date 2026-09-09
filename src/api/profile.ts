@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { becomeProvider, switchActiveRole, syncIdentity } from './identity';
 import { supabase } from '../lib/supabase';
 import { useSessionStore } from '../store/useSessionStore';
 import type { Profile, Role } from '../types/database';
+import { isApiConfigured } from '../lib/api';
 
 export interface SignUpDetails {
   fullName: string;
@@ -9,6 +11,8 @@ export interface SignUpDetails {
   email: string;
   area?: string;
   providerCategory?: string;
+  /** Category ids for multi-service providers. */
+  providerCategoryIds?: string[];
 }
 
 function initialsFrom(fullName: string): string {
@@ -83,7 +87,8 @@ export async function createOrUpdateOwnProfile(
         phone: details.phone || null,
         email: details.email || null,
         area: details.area?.trim() || 'Achimota, Accra',
-        provider_category: role === 'provider' ? details.providerCategory?.trim() || null : null,
+        provider_category:
+          role === 'provider' ? details.providerCategory?.trim() || null : null,
         is_seed: false,
       },
       { onConflict: 'id' }
@@ -91,6 +96,23 @@ export async function createOrUpdateOwnProfile(
     .select('*')
     .single();
   if (error) rethrowFriendly(error);
+  if (isApiConfigured()) {
+    await syncIdentity(details.fullName, details.phone).catch(() => null);
+    if (role === 'provider') {
+      await becomeProvider(
+        details.providerCategory,
+        undefined,
+        details.providerCategoryIds,
+      ).catch(() => null);
+    }
+  } else if (role === 'provider' && details.providerCategoryIds?.length) {
+    const { setMyProviderCategories } = await import('./identity');
+    await setMyProviderCategories(details.providerCategoryIds);
+  }
+  if (role === 'provider' && details.providerCategoryIds?.length) {
+    const refreshed = await fetchProfile(userId);
+    if (refreshed) return refreshed;
+  }
   return data;
 }
 
@@ -105,7 +127,14 @@ export async function createOrUpdateOwnProfile(
 export async function updateOwnProfile(
   userId: string,
   role: Role,
-  updates: { fullName: string; phone: string; area: string; providerCategory?: string; tagline?: string }
+  updates: {
+    fullName: string;
+    phone: string;
+    area: string;
+    providerCategory?: string;
+    providerCategoryIds?: string[];
+    tagline?: string;
+  },
 ): Promise<Profile> {
   const { data, error } = await supabase
     .from('profiles')
@@ -115,12 +144,21 @@ export async function updateOwnProfile(
       phone: updates.phone || null,
       area: updates.area.trim() || 'Achimota, Accra',
       tagline: updates.tagline?.trim() || null,
-      ...(role === 'provider' ? { provider_category: updates.providerCategory?.trim() || null } : {}),
+      ...(role === 'provider' && !updates.providerCategoryIds?.length
+        ? { provider_category: updates.providerCategory?.trim() || null }
+        : {}),
     })
     .eq('id', userId)
     .select('*')
     .single();
   if (error) rethrowFriendly(error);
+
+  if (role === 'provider' && updates.providerCategoryIds?.length) {
+    const { setMyProviderCategories } = await import('./identity');
+    await setMyProviderCategories(updates.providerCategoryIds);
+    const refreshed = await fetchProfile(userId);
+    if (refreshed) return refreshed;
+  }
   return data;
 }
 
@@ -173,6 +211,21 @@ export async function savePushSubscription(
 }
 
 export async function switchOwnRole(userId: string, role: Role): Promise<Profile> {
+  // Prefer NestJS ownership of role grants / active mode when API is configured.
+  if (isApiConfigured()) {
+    if (role === 'provider') {
+      const me = await switchActiveRole('provider').catch(async () => {
+        // First-time provider: grant role then switch.
+        await becomeProvider();
+        return switchActiveRole('provider');
+      });
+      if (me?.data.profile) return me.data.profile;
+    } else {
+      const me = await switchActiveRole('customer');
+      if (me?.data.profile) return me.data.profile;
+    }
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .update({ role })

@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AreaPicker, isValidArea } from '../../components/AreaPicker';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 /**
  * Same chip picker as ServiceAreasScreen (a provider's own screen for the
@@ -28,6 +29,8 @@ export function SignUpLocationScreen({
   onBack: () => void;
   onNext: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const isValid = isValidArea(value);
 
   return (
@@ -60,32 +63,34 @@ export function SignUpLocationScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  back: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.paperDim,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  backSpacer: { width: 32 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.paper },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.sm,
+    },
+    back: {
+      width: 32,
+      height: 32,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.paperDim,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    backSpacer: { width: 32 },
 
-  body: { paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
-  textWrap: { gap: 8 },
-  title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-  subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+    body: { paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
+    textWrap: { gap: 8 },
+    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
+    subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
 
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
-});
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
+  });
+}

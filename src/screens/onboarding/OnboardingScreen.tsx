@@ -5,7 +5,8 @@ import { ShieldCheck } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface Slide {
   title: string;
@@ -39,6 +40,8 @@ const SLIDES: Slide[] = [
 ];
 
 export function OnboardingScreen({ onDone }: { onDone: () => void }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [step, setStep] = useState(0);
   const fade = useRef(new Animated.Value(0)).current;
   const slideY = useRef(new Animated.Value(10)).current;
@@ -97,57 +100,59 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  skipRow: { alignItems: 'flex-end', paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
-  skip: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint, letterSpacing: 0.1 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.paper },
+    skipRow: { alignItems: 'flex-end', paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
+    skip: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint, letterSpacing: 0.1 },
 
-  body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.md, gap: spacing.xxl },
+    body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.md, gap: spacing.xxl },
 
-  photoFrame: {
-    flex: 1,
-    borderRadius: radii.xxl,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    overflow: 'hidden',
-  },
-  photo: { width: '100%', height: '100%' },
-  stamp: {
-    position: 'absolute',
-    left: spacing.md,
-    bottom: spacing.md,
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.navy,
-    borderRadius: radii.pill,
-  },
+    photoFrame: {
+      flex: 1,
+      borderRadius: radii.xxl,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      overflow: 'hidden',
+    },
+    photo: { width: '100%', height: '100%' },
+    stamp: {
+      position: 'absolute',
+      left: spacing.md,
+      bottom: spacing.md,
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.navy,
+      borderRadius: radii.pill,
+    },
 
-  textWrap: { gap: 8 },
-  title: {
-    fontSize: 25,
-    fontFamily: fonts.extrabold,
-    color: colors.ink,
-    letterSpacing: -0.4,
-    lineHeight: 31,
-  },
-  copy: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.inkMuted,
-    fontFamily: fonts.regular,
-  },
+    textWrap: { gap: 8 },
+    title: {
+      fontSize: 25,
+      fontFamily: fonts.extrabold,
+      color: colors.ink,
+      letterSpacing: -0.4,
+      lineHeight: 31,
+    },
+    copy: {
+      fontSize: 15,
+      lineHeight: 22,
+      color: colors.inkMuted,
+      fontFamily: fonts.regular,
+    },
 
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg, gap: spacing.lg },
-  notNow: {
-    textAlign: 'center',
-    fontSize: 14.5,
-    fontFamily: fonts.medium,
-    color: colors.inkFaint,
-    letterSpacing: 0.1,
-  },
-});
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg, gap: spacing.lg },
+    notNow: {
+      textAlign: 'center',
+      fontSize: 14.5,
+      fontFamily: fonts.medium,
+      color: colors.inkFaint,
+      letterSpacing: 0.1,
+    },
+  });
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { createOrUpdateOwnProfile, fetchProfile, savePushSubscription } from '../../api/profile';
+import { useCategories } from '../../api/marketplace';
 import {
   friendlyAuthError,
   getCurrentUserId,
@@ -12,7 +13,8 @@ import {
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts } from '../../theme';
+import { fonts } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import type { Role } from '../../types/database';
 import { OnboardingScreen } from './OnboardingScreen';
 import { SignInScreen } from './SignInScreen';
@@ -60,6 +62,9 @@ const TOTAL_STEPS = 10;
  * the account and the profile row together.
  */
 export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const { data: categories = [] } = useCategories();
   const [phase, setPhase] = useState<Phase>('bootstrapping');
   const [error, setError] = useState<string | null>(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -71,12 +76,22 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [area, setArea] = useState('');
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [providerCategory, setProviderCategory] = useState('');
+  const [providerCategoryIds, setProviderCategoryIds] = useState<string[]>([]);
   const [roleChoiceLoading, setRoleChoiceLoading] = useState<Role | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
   const [notifLoading, setNotifLoading] = useState(false);
   const setProfile = useSessionStore((s) => s.setProfile);
   const setBootstrapping = useSessionStore((s) => s.setBootstrapping);
+
+  function providerDetails() {
+    const names = categories
+      .filter((c) => providerCategoryIds.includes(c.id))
+      .map((c) => c.name);
+    return {
+      providerCategory: names.join(' · ') || undefined,
+      providerCategoryIds: providerCategoryIds.length ? providerCategoryIds : undefined,
+    };
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -149,7 +164,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
           phone,
           email,
           area,
-          providerCategory,
+          ...providerDetails(),
         });
         setProfile(profile);
         setPhase('signup-notifications');
@@ -185,7 +200,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         phone,
         email,
         area,
-        providerCategory,
+        ...(selectedRole === 'provider' ? providerDetails() : {}),
       });
       setProfile(profile);
       setPhase('signup-notifications');
@@ -373,8 +388,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       <SignUpCategoryScreen
         totalSteps={TOTAL_STEPS}
         activeIndex={8}
-        value={providerCategory}
-        onChangeValue={setProviderCategory}
+        values={providerCategoryIds}
+        onChangeValues={setProviderCategoryIds}
         onBack={() => setPhase('signup-role')}
         onNext={handleCategoryNext}
         loading={roleChoiceLoading === 'provider'}
@@ -418,8 +433,10 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
-  blank: { flex: 1, backgroundColor: colors.white },
-  errorWrap: { flex: 1, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  errorText: { fontFamily: fonts.medium, fontSize: 15, color: colors.ink, textAlign: 'center' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    blank: { flex: 1, backgroundColor: colors.white },
+    errorWrap: { flex: 1, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', padding: 32 },
+    errorText: { fontFamily: fonts.medium, fontSize: 15, color: colors.ink, textAlign: 'center' },
+  });
+}

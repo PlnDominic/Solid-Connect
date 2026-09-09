@@ -14,7 +14,8 @@ import { ChevronLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 /**
  * Shared layout for the sign-up detail-entry steps (name, phone, email) -
@@ -60,6 +61,8 @@ export function SignUpDetailScreen({
   /** An error from outside the local format check (e.g. "already registered") - takes priority over it. */
   externalError?: string | null;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [touched, setTouched] = useState(false);
   const isValid = validate(value);
 
@@ -113,43 +116,45 @@ export function SignUpDetailScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  back: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.paperDim,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  backSpacer: { width: 32 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.paper },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.sm,
+    },
+    back: {
+      width: 32,
+      height: 32,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.paperDim,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    backSpacer: { width: 32 },
 
-  body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
-  textWrap: { gap: 8 },
-  title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-  subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+    body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
+    textWrap: { gap: 8 },
+    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
+    subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
 
-  input: {
-    fontSize: 22,
-    fontFamily: fonts.bold,
-    color: colors.ink,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.hairlineStrong,
-    paddingVertical: spacing.md,
-  },
-  inputError: { borderBottomColor: colors.danger },
-  errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger, marginTop: -spacing.md },
+    input: {
+      fontSize: 22,
+      fontFamily: fonts.bold,
+      color: colors.ink,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.hairlineStrong,
+      paddingVertical: spacing.md,
+    },
+    inputError: { borderBottomColor: colors.danger },
+    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger, marginTop: -spacing.md },
 
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
-});
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
+  });
+}

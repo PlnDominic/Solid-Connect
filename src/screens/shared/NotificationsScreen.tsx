@@ -3,7 +3,8 @@ import { ScrollView, Switch, Text, View, StyleSheet, Platform } from 'react-nati
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const STORAGE_KEY = 'solid-connect:notification-prefs';
 
@@ -24,6 +25,8 @@ const ROWS: { key: keyof Prefs; label: string; detail: string }[] = [
 ];
 
 export function NotificationsScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
 
   useEffect(() => {
@@ -67,11 +70,13 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg },
-  card: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
-  row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-  rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-  rowDetail: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 2 },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg },
+    card: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
+    rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+    rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    rowDetail: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 2 },
+  });
+}

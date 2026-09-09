@@ -4,19 +4,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CategoryPicker } from '../../components/CategoryPicker';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 /**
- * Provider-only sign-up step - which trade shows up on their profile and
- * feeds the marketplace's category filter (useAllProviders matches on this
- * exact name, see src/api/marketplace.ts). CategoryPicker sources it live
- * from the real `categories` table rather than a hardcoded list.
+ * Provider sign-up: pick every service you offer. Category ids are stored in
+ * provider_categories so browse/search can match any of them.
  */
 export function SignUpCategoryScreen({
   totalSteps,
   activeIndex,
-  value,
-  onChangeValue,
+  values,
+  onChangeValues,
   onBack,
   onNext,
   loading = false,
@@ -24,14 +23,16 @@ export function SignUpCategoryScreen({
 }: {
   totalSteps: number;
   activeIndex: number;
-  value: string;
-  onChangeValue: (v: string) => void;
+  values: string[];
+  onChangeValues: (ids: string[]) => void;
   onBack: () => void;
   onNext: () => void;
   loading?: boolean;
   errorMessage?: string | null;
 }) {
-  const isValid = value.trim().length > 0;
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const isValid = values.length > 0;
 
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
@@ -45,13 +46,13 @@ export function SignUpCategoryScreen({
 
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.textWrap}>
-          <Text style={styles.title}>What's your trade?</Text>
+          <Text style={styles.title}>What services do you offer?</Text>
           <Text style={styles.subtitle}>
-            This is how customers will find you when they're looking for help.
+            Pick every trade you do. Customers can find you when they search for any of them.
           </Text>
         </View>
 
-        <CategoryPicker value={value} onChangeValue={onChangeValue} />
+        <CategoryPicker multi values={values} onChangeValues={onChangeValues} />
       </ScrollView>
 
       <View style={styles.footer}>
@@ -62,33 +63,35 @@ export function SignUpCategoryScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  back: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.paperDim,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  backSpacer: { width: 32 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.paper },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.sm,
+    },
+    back: {
+      width: 32,
+      height: 32,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.paperDim,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    backSpacer: { width: 32 },
 
-  body: { paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
-  textWrap: { gap: 8 },
-  title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-  subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
-  errorText: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 20 },
+    body: { paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
+    textWrap: { gap: 8 },
+    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
+    subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+    errorText: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 20 },
 
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
-});
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
+  });
+}

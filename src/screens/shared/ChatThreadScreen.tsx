@@ -6,9 +6,12 @@ import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 export function ChatThreadScreen({ navigation, route }: { navigation: any; route: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { threadId, peerId } = route.params;
   const profile = useSessionStore((s) => s.profile);
   const { data: peer } = useProvider(peerId);
@@ -71,57 +74,59 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  back: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.paperDim,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  peerName: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    back: {
+      width: 32,
+      height: 32,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.paperDim,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    peerName: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
 
-  bubble: { maxWidth: '76%', paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radii.xxl },
-  bubbleMine: { backgroundColor: colors.ink },
-  bubbleTheirs: { backgroundColor: colors.paperDim, borderWidth: 1, borderColor: colors.hairline },
-  bubbleTextMine: { color: colors.white, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
-  bubbleTextTheirs: { color: colors.ink, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
+    bubble: { maxWidth: '76%', paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radii.xxl },
+    bubbleMine: { backgroundColor: colors.ink },
+    bubbleTheirs: { backgroundColor: colors.paperDim, borderWidth: 1, borderColor: colors.hairline },
+    bubbleTextMine: { color: colors.white, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
+    bubbleTextTheirs: { color: colors.ink, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
 
-  inputRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    paddingBottom: spacing.xl,
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  input: {
-    flex: 1,
-    height: 44,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairlineStrong,
-    paddingHorizontal: spacing.lg,
-    fontSize: 15,
-    fontFamily: fonts.regular,
-    color: colors.ink,
-  },
-  sendBtn: { width: 44, height: 44, borderRadius: radii.pill, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-});
+    inputRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      paddingBottom: spacing.xl,
+      borderTopWidth: 1,
+      borderTopColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    input: {
+      flex: 1,
+      height: 44,
+      borderRadius: radii.pill,
+      borderWidth: 1,
+      borderColor: colors.hairlineStrong,
+      paddingHorizontal: spacing.lg,
+      fontSize: 15,
+      fontFamily: fonts.regular,
+      color: colors.ink,
+    },
+    sendBtn: { width: 44, height: 44, borderRadius: radii.pill, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+  });
+}

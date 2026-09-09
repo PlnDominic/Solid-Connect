@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch, isApiConfigured } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { ChatMessage, ChatThread, Role } from '../types/database';
 
@@ -8,7 +9,23 @@ export async function getOrCreateThread(input: {
   jobId?: string | null;
   customerId: string;
   providerId: string;
+  /** Whose perspective is the signed-in user. Required for Nest path. */
+  asRole: Role;
 }): Promise<ChatThread> {
+  if (isApiConfigured()) {
+    const peerId = input.asRole === 'customer' ? input.providerId : input.customerId;
+    const res = await apiFetch<{ data: ChatThread }>('/api/v1/chat/threads', {
+      method: 'POST',
+      body: JSON.stringify({
+        requestId: input.requestId ?? undefined,
+        jobId: input.jobId ?? undefined,
+        peerId,
+        asRole: input.asRole,
+      }),
+    });
+    return res.data;
+  }
+
   if (input.requestId) {
     const { data: existing } = await supabase
       .from('chat_threads')
@@ -35,8 +52,12 @@ export async function getOrCreateThread(input: {
 export function useThreadsForRole(userId: string | null, role: Role) {
   const column = role === 'customer' ? 'customer_id' : 'provider_id';
   return useQuery({
-    queryKey: ['chatThreads', role, userId],
+    queryKey: ['chatThreads', role, userId, isApiConfigured()],
     queryFn: async (): Promise<ChatThread[]> => {
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: ChatThread[] }>(`/api/v1/chat/threads?role=${role}`);
+        return res.data ?? [];
+      }
       const { data, error } = await supabase
         .from('chat_threads')
         .select('*')
@@ -52,8 +73,12 @@ export function useThreadsForRole(userId: string | null, role: Role) {
 export function useMessages(threadId: string | null | undefined) {
   const queryClient = useQueryClient();
   const query = useQuery({
-    queryKey: ['messages', threadId],
+    queryKey: ['messages', threadId, isApiConfigured()],
     queryFn: async (): Promise<ChatMessage[]> => {
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: ChatMessage[] }>(`/api/v1/chat/threads/${threadId}/messages`);
+        return res.data ?? [];
+      }
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
@@ -73,12 +98,12 @@ export function useMessages(threadId: string | null | undefined) {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `thread_id=eq.${threadId}` },
         (payload) => {
-          queryClient.setQueryData<ChatMessage[]>(['messages', threadId], (prev) => {
+          queryClient.setQueryData<ChatMessage[]>(['messages', threadId, isApiConfigured()], (prev) => {
             const next = payload.new as ChatMessage;
             if (prev?.some((m) => m.id === next.id)) return prev;
             return [...(prev ?? []), next];
           });
-        }
+        },
       )
       .subscribe();
     return () => {
@@ -111,6 +136,13 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { threadId: string; senderId: string; senderRole: Role; text: string }) => {
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: ChatMessage }>(`/api/v1/chat/threads/${input.threadId}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({ text: input.text }),
+        });
+        return res.data;
+      }
       const { data, error } = await supabase
         .from('chat_messages')
         .insert({
@@ -125,7 +157,7 @@ export function useSendMessage() {
       return data as ChatMessage;
     },
     onSuccess: (message) => {
-      queryClient.setQueryData<ChatMessage[]>(['messages', message.thread_id], (prev) => {
+      queryClient.setQueryData<ChatMessage[]>(['messages', message.thread_id, isApiConfigured()], (prev) => {
         if (prev?.some((m) => m.id === message.id)) return prev;
         return [...(prev ?? []), message];
       });

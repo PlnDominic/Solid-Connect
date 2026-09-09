@@ -2,13 +2,16 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Avatar } from './Avatar';
 import { StarRating } from './StarRating';
 import type { ProviderReview } from '../api/reviews';
-import { colors, fonts, radii, spacing } from '../theme';
+import { fonts, radii, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
 }
 
 export function ReviewCard({ review }: { review: ProviderReview }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.card}>
       <View style={styles.headRow}>
@@ -26,18 +29,20 @@ export function ReviewCard({ review }: { review: ProviderReview }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  headRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-  name: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  date: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  comment: { fontSize: 13.5, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    card: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    headRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
+    name: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    date: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    comment: { fontSize: 13.5, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+  });
+}

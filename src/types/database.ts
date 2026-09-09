@@ -3,10 +3,23 @@
 // (`supabase gen types typescript`) and this file becomes redundant.
 
 export type Role = 'customer' | 'provider';
-export type RequestStatus = 'open' | 'matching' | 'quoted' | 'accepted' | 'completed' | 'cancelled';
+export type RequestStatus =
+  | 'open'
+  | 'matching'
+  | 'awaiting_provider'
+  | 'quoted'
+  | 'accepted'
+  | 'completed'
+  | 'cancelled'
+  | 'rejected';
+export type RequestMode = 'GENERAL' | 'DIRECT';
 export type QuoteStatus = 'sent' | 'accepted' | 'declined';
 export type BadgeKind = 'certified' | 'verified';
-export type JobStatus = 'in_progress' | 'completed';
+export type JobStatus =
+  | 'accepted'
+  | 'in_progress'
+  | 'awaiting_completion_confirmation'
+  | 'completed';
 export type PaymentStatus = 'pending' | 'released' | 'refunded';
 export type VerificationStatus = 'pending' | 'approved' | 'rejected';
 export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other';
@@ -29,6 +42,14 @@ export interface Profile {
   provider_distance_km: number | null;
   provider_verified: boolean;
   provider_certified: boolean;
+  /** Phase C trust ladder; defaults REGISTERED when column missing on old clients. */
+  verification_level?:
+    | 'REGISTERED'
+    | 'IDENTITY_VERIFIED'
+    | 'PROFESSION_VERIFIED'
+    | 'EXPERIENCE_VERIFIED'
+    | 'SOLID_CONNECT_VERIFIED';
+  availability_mode?: 'AVAILABLE_NOW' | 'UNAVAILABLE' | 'SCHEDULE' | 'PAUSED';
   created_at: string;
   // Added in supabase/migrations/0009_profile_photo.sql.
   photo_url: string | null;
@@ -41,6 +62,9 @@ export interface Category {
   abbr: string;
   default_label: string;
   sort_order: number;
+  /** Catalog budget band (GHS) for this service. */
+  budget_min?: number;
+  budget_max?: number;
 }
 
 export interface ServiceRequest {
@@ -55,6 +79,22 @@ export interface ServiceRequest {
   location_label: string;
   status: RequestStatus;
   created_at: string;
+  /** When set, only this provider was invited (direct request). */
+  preferred_provider_id?: string | null;
+  request_mode?: RequestMode;
+  customer_budget?: number | null;
+  rejection_reason?: string | null;
+}
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown>;
+  read_at: string | null;
+  created_at: string;
 }
 
 export interface Quote {
@@ -67,6 +107,9 @@ export interface Quote {
   badge_kind: BadgeKind;
   status: QuoteStatus;
   created_at: string;
+  note?: string;
+  revision?: number;
+  updated_at?: string;
 }
 
 export interface Job {
@@ -82,6 +125,8 @@ export interface Job {
   status: JobStatus;
   started_at: string;
   completed_at: string | null;
+  provider_completed_at?: string | null;
+  customer_confirmed_at?: string | null;
 }
 
 export interface Payment {
@@ -144,7 +189,7 @@ export interface ProviderVerification {
 
 // Added in supabase/migrations/0007_disputes.sql - a customer's report of
 // an issue on a completed/in-progress job. Read-only from the client once
-// filed; resolution is an admin-side action (not built yet).
+// filed; resolution is an admin-side action.
 export interface Dispute {
   id: string;
   job_id: string;
@@ -153,6 +198,8 @@ export interface Dispute {
   reason: DisputeReason;
   description: string;
   status: DisputeStatus;
+  resolution_note: string | null;
+  resolved_at: string | null;
   created_at: string;
 }
 

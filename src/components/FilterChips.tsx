@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { colors, fonts, radii, spacing } from '../theme';
+import { fonts, radii, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 export interface FilterOption {
   id: string;
@@ -23,6 +24,8 @@ export function FilterChips({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <ScrollView
       horizontal
@@ -50,21 +53,23 @@ export function FilterChips({
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { marginHorizontal: -spacing.lg },
-  row: { paddingHorizontal: spacing.lg, gap: spacing.sm },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    height: 36,
-    paddingHorizontal: 14,
-    borderRadius: radii.pill,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-  label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
-  labelActive: { color: colors.white },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    scroll: { marginHorizontal: -spacing.lg },
+    row: { paddingHorizontal: spacing.lg, gap: spacing.sm },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      height: 36,
+      paddingHorizontal: 14,
+      borderRadius: radii.pill,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
+    labelActive: { color: colors.white },
+  });
+}

@@ -1,6 +1,6 @@
 import { MapPin, ShieldCheck, Star } from 'lucide-react-native';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useMyActiveRequest } from '../../api/requests';
+import { RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { useMyActiveRequest, useNotifications } from '../../api/requests';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
@@ -9,8 +9,10 @@ import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote, ServiceRequest } from '../../types/database';
 
 function QuoteCard({
@@ -24,6 +26,8 @@ function QuoteCard({
   onAccepted: (jobId: string) => void;
   onChat: (threadId: string, peerId: string) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data: provider } = useProvider(quote.provider_id);
   const acceptQuote = useAcceptQuote();
   const profile = useSessionStore((s) => s.profile);
@@ -38,7 +42,12 @@ function QuoteCard({
 
   async function handleChat() {
     if (!profile) return;
-    const thread = await getOrCreateThread({ requestId: request.id, customerId: profile.id, providerId: quote.provider_id });
+    const thread = await getOrCreateThread({
+      requestId: request.id,
+      customerId: profile.id,
+      providerId: quote.provider_id,
+      asRole: 'customer',
+    });
     onChat(thread.id, quote.provider_id);
   }
 
@@ -87,90 +96,167 @@ function QuoteCard({
 }
 
 export function RequestsScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: request } = useMyActiveRequest(profile?.id ?? null);
+  const { data: request, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
+  const { data: notifications = [], refetch: refetchNotifs } = useNotifications(profile?.id ?? null);
+  const { refreshing, onRefresh } = usePullToRefresh(async () => {
+    await Promise.all([refetchRequest(), refetchNotifs()]);
+  });
 
-  const hasQuotes = request && (request.status === 'quoted' || request.status === 'accepted') && request.quotes.length > 0;
+  const hasQuotes = request && request.status === 'quoted' && request.quotes.length > 0;
+  const isAwaiting = request?.status === 'awaiting_provider';
+  const isRejected = request?.status === 'rejected';
+  const isMatching = request?.status === 'matching' || request?.status === 'open';
+  const unreadReject = notifications.filter((n) => n.type === 'DIRECT_REJECTED' && !n.read_at);
+  const budget = request?.customer_budget ?? request?.budget_min;
+
+  const showFeed =
+    unreadReject.length > 0 || isRejected || isAwaiting || isMatching || hasQuotes;
 
   return (
     <Screen>
       <ScreenHeader title="Requests" large />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {hasQuotes && request ? (
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
+      >
+        {showFeed ? (
           <View style={styles.body}>
-            <View style={styles.summary}>
-              <Text style={styles.summaryTitle}>
-                {request.category_label} · {request.location_label}
-              </Text>
-              <Text style={styles.summarySub}>
-                Requested today · Budget GHS {request.budget_min}-{request.budget_max} · {request.quotes.length} quotes received
-              </Text>
-            </View>
-            {request.quotes.map((q) => (
-              <QuoteCard
-                key={q.id}
-                quote={q}
-                request={request}
-                onAccepted={(jobId) => navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId } })}
-                onChat={(threadId, peerId) => navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })}
-              />
+            {unreadReject.slice(0, 3).map((n) => (
+              <View key={n.id} style={styles.rejectBanner}>
+                <Text style={styles.rejectTitle}>{n.title}</Text>
+                <Text style={styles.rejectBody}>{n.body}</Text>
+              </View>
             ))}
+
+            {request && (isAwaiting || isRejected || isMatching) ? (
+              <View style={styles.summary}>
+                <Text style={styles.summaryTitle}>
+                  {request.category_label} · {request.location_label}
+                </Text>
+                <Text style={styles.summarySub}>
+                  Budget GHS {budget}
+                  {isAwaiting
+                    ? ' · Waiting for provider response'
+                    : isRejected
+                      ? ' · Declined by provider'
+                      : ' · Matching providers'}
+                </Text>
+                {isRejected && request.rejection_reason ? (
+                  <Text style={styles.rejectInline}>Reason: {request.rejection_reason}</Text>
+                ) : null}
+              </View>
+            ) : null}
+
+            {hasQuotes && request ? (
+              <>
+                <View style={styles.summary}>
+                  <Text style={styles.summaryTitle}>
+                    {request.category_label} · {request.location_label}
+                  </Text>
+                  <Text style={styles.summarySub}>
+                    Budget GHS {budget} · {request.quotes.length} quote
+                    {request.quotes.length === 1 ? '' : 's'} received
+                  </Text>
+                </View>
+                {request.quotes.map((q) => (
+                  <QuoteCard
+                    key={q.id}
+                    quote={q}
+                    request={request}
+                    onAccepted={(jobId) =>
+                      navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId } })
+                    }
+                    onChat={(threadId, peerId) =>
+                      navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })
+                    }
+                  />
+                ))}
+              </>
+            ) : null}
           </View>
         ) : (
-          <EmptyState title="No requests yet" subtitle="Post a request from Home to get quotes from verified providers nearby." />
+          <EmptyState
+            title="No requests yet"
+            subtitle="Post a general request from Home, or pick a provider and send a direct request."
+          />
         )}
       </ScrollView>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.md },
-  summary: {
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    gap: 3,
-  },
-  summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.md },
+    summary: {
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      gap: 3,
+    },
+    summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
+    rejectInline: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
+    rejectBanner: {
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.danger,
+      backgroundColor: colors.card,
+      gap: 4,
+    },
+    rejectTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    rejectBody: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 18 },
 
-  quoteCard: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  quoteTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  quoteIdentity: { flexDirection: 'row', gap: spacing.md, flexShrink: 1 },
-  quoteNameWrap: { gap: 4, flexShrink: 1 },
-  quoteNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  quoteName: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    quoteCard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    quoteTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+    quoteIdentity: { flexDirection: 'row', gap: spacing.md, flexShrink: 1 },
+    quoteNameWrap: { gap: 4, flexShrink: 1 },
+    quoteNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+    quoteName: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
 
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: radii.sm, paddingVertical: 2, paddingHorizontal: 6 },
-  badgeVerified: { backgroundColor: colors.confirmBg },
-  badgeCertified: { backgroundColor: colors.navy },
-  badgeTextVerified: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
-  badgeTextOnDark: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
+    badge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      borderRadius: radii.sm,
+      paddingVertical: 2,
+      paddingHorizontal: 6,
+    },
+    badgeVerified: { backgroundColor: colors.confirmBg },
+    badgeCertified: { backgroundColor: colors.navy },
+    badgeTextVerified: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
+    badgeTextOnDark: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
 
-  quoteMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  quoteMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
-  quoteMetaDim: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  quotePrice: { fontSize: 19, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    quoteMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    quoteMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
+    quoteMetaDim: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    quotePrice: { fontSize: 19, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
 
-  quoteEta: {
-    alignSelf: 'flex-start',
-    borderRadius: radii.sm,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: colors.paperDim,
-  },
-  quoteEtaText: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.inkMuted },
+    quoteEta: {
+      alignSelf: 'flex-start',
+      borderRadius: radii.sm,
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      backgroundColor: colors.paperDim,
+    },
+    quoteEtaText: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.inkMuted },
 
-  quoteActions: { flexDirection: 'row', gap: spacing.sm },
-  halfBtn: { flex: 1, height: 46 },
-});
+    quoteActions: { flexDirection: 'row', gap: spacing.sm },
+    halfBtn: { flex: 1, height: 46 },
+  });
+}

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   ChevronRight,
   Camera,
+  Clock,
   FileText,
   Images,
   KeyRound,
@@ -30,6 +31,7 @@ import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
+import { isIdentityVerified, verificationLevelLabel } from '../../lib/verification';
 
 type SettingsRow = { label: string; screen: string; icon: LucideIcon };
 
@@ -50,6 +52,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
       { label: 'Verification', screen: 'Verification', icon: ShieldCheck },
       { label: 'Portfolio', screen: 'Portfolio', icon: Images },
       { label: 'Service areas', screen: 'ServiceAreas', icon: MapPin },
+      { label: 'Availability', screen: 'Availability', icon: Clock },
     ],
   },
   {
@@ -156,7 +159,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
 
           <View style={styles.heroNameRow}>
             <Text style={styles.heroName}>{profile.full_name}</Text>
-            {profile.provider_verified ? (
+            {isIdentityVerified(profile) ? (
               <View style={styles.heroVerifiedDot}>
                 <ShieldCheck size={11} strokeWidth={2.8} color={colors.white} />
               </View>
@@ -178,17 +181,17 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
         <View style={styles.body}>
           {photoError ? <Text style={styles.photoErrorText}>{photoError}</Text> : null}
 
-          {profile.provider_verified || profile.provider_certified ? (
+          {isIdentityVerified(profile) || profile.provider_certified ? (
             <View style={styles.badgeRow}>
-              {profile.provider_verified ? (
+              {isIdentityVerified(profile) ? (
                 <Badge
-                  label="Identity verified"
+                  label={verificationLevelLabel(profile)}
                   bg={colors.confirmBg}
                   fg={colors.confirm}
                   icon={<ShieldCheck size={11} strokeWidth={2.8} color={colors.confirm} />}
                 />
               ) : null}
-              {profile.provider_certified ? (
+              {profile.provider_certified || profile.verification_level === 'SOLID_CONNECT_VERIFIED' ? (
                 <Badge
                   label="Solid Connect certified"
                   bg={colors.navy}

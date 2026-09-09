@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AREAS } from '../constants/areas';
-import { colors, fonts, radii, spacing } from '../theme';
+import { fonts, radii, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 const OTHER = 'Other';
 
@@ -11,6 +12,8 @@ const OTHER = 'Other';
  * one place that knows what a valid area looks like.
  */
 export function AreaPicker({ value, onChangeValue }: { value: string; onChangeValue: (v: string) => void }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const isKnownArea = AREAS.includes(value);
   const [showOther, setShowOther] = useState(!isKnownArea && value.trim().length > 0);
   const selected = showOther ? OTHER : value;
@@ -59,26 +62,28 @@ export function isValidArea(value: string): boolean {
   return AREAS.includes(value) || value.trim().length >= 2;
 }
 
-const styles = StyleSheet.create({
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-  chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-  chipLabelActive: { color: colors.white },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    chip: {
+      paddingVertical: 10,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.pill,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabelActive: { color: colors.white },
 
-  input: {
-    fontSize: 18,
-    fontFamily: fonts.bold,
-    color: colors.ink,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.hairlineStrong,
-    paddingVertical: spacing.md,
-  },
-});
+    input: {
+      fontSize: 18,
+      fontFamily: fonts.bold,
+      color: colors.ink,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.hairlineStrong,
+      paddingVertical: spacing.md,
+    },
+  });
+}
