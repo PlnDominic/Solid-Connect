@@ -332,11 +332,12 @@ export class RequestsService {
   }
 
   async providerFeed(providerId: string) {
-    // Late category / area changes: attach this provider to still-open matches.
-    await this.supabase.client.rpc('sync_provider_opportunities', {
-      p_provider_id: providerId,
-    });
-
+    // Opportunities are synced when a provider's categories/areas/availability
+    // actually change (see setProviderCategories, replaceServiceAreas,
+    // setAvailabilityMode) rather than on every feed read - re-running the
+    // full match_providers_for_request scan here on each load/pull-to-refresh
+    // multiplied cost for no benefit, since nothing relevant changes between
+    // reads.
     const { data, error } = await this.supabase.client
       .from('request_opportunities')
       .select(

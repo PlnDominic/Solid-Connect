@@ -30,6 +30,12 @@ export class ProvidersLocationService {
       p_areas: areas,
     });
     if (error) throw new BadRequestException({ code: 'AREAS_SAVE_FAILED', message: error.message });
+
+    // Pick up open requests that are now in range with the new coverage.
+    await this.supabase.client.rpc('sync_provider_opportunities', {
+      p_provider_id: providerId,
+    });
+
     return data ?? [];
   }
 
@@ -65,6 +71,16 @@ export class ProvidersLocationService {
       .select('id, availability_mode')
       .single();
     if (error) throw new BadRequestException({ code: 'AVAIL_MODE_SAVE_FAILED', message: error.message });
+
+    // Only sync when the provider just became eligible again - match_providers_for_request
+    // already excludes UNAVAILABLE/PAUSED providers, so there's nothing new to pick up
+    // when switching into one of those.
+    if (mode === 'AVAILABLE_NOW' || mode === 'SCHEDULE') {
+      await this.supabase.client.rpc('sync_provider_opportunities', {
+        p_provider_id: providerId,
+      });
+    }
+
     return data;
   }
 
