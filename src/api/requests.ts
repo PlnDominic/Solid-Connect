@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
+import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
 import type { Quote, ServiceRequest } from '../types/database';
 
@@ -30,7 +31,7 @@ const ACTIVE_REQUEST_STATUSES = [
 
 /** The customer's current open request (excludes accepted/completed jobs). */
 export function useMyActiveRequest(customerId: string | null) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['myActiveRequest', customerId],
     queryFn: async (): Promise<RequestWithQuotes | null> => {
       const { data: request, error } = await supabase
@@ -54,6 +55,26 @@ export function useMyActiveRequest(customerId: string | null) {
     },
     enabled: !!customerId,
   });
+
+  // A provider accepting/rejecting/quoting updates this request row directly.
+  useRealtimeInvalidate({
+    channel: `my_active_request:${customerId}`,
+    table: 'service_requests',
+    filter: customerId ? `customer_id=eq.${customerId}` : undefined,
+    queryKeys: [['myActiveRequest', customerId]],
+    enabled: !!customerId,
+  });
+  // New/changed quotes on the active request also need to show up live.
+  const activeRequestId = query.data?.id ?? null;
+  useRealtimeInvalidate({
+    channel: `my_active_request_quotes:${activeRequestId}`,
+    table: 'quotes',
+    filter: activeRequestId ? `request_id=eq.${activeRequestId}` : undefined,
+    queryKeys: [['myActiveRequest', customerId]],
+    enabled: !!activeRequestId,
+  });
+
+  return query;
 }
 
 async function uploadRequestPhoto(customerId: string, imageUri: string): Promise<string> {
@@ -152,7 +173,7 @@ export function useCreateRequest() {
 }
 
 export function useRequestOpportunities(requestId: string | null) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['requestOpportunities', requestId],
     enabled: !!requestId && isApiConfigured(),
     queryFn: async () => {
@@ -162,6 +183,16 @@ export function useRequestOpportunities(requestId: string | null) {
       return { items: res.data, count: res.meta.count ?? res.data.length };
     },
   });
+
+  useRealtimeInvalidate({
+    channel: `request_opportunities:${requestId}`,
+    table: 'request_opportunities',
+    filter: requestId ? `request_id=eq.${requestId}` : undefined,
+    queryKeys: [['requestOpportunities', requestId]],
+    enabled: !!requestId,
+  });
+
+  return query;
 }
 
 /**
@@ -266,8 +297,12 @@ export function useSimulateQuotesArriving() {
   });
 }
 
+/** A single request by id - shared by the customer's Matching screen and the
+ * provider's Request Detail screen, so realtime here is what keeps a direct
+ * request's status (awaiting_provider/accepted/rejected) in sync between
+ * the two of them without either side polling or manually refreshing. */
 export function useServiceRequest(requestId: string | null | undefined) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['serviceRequest', requestId],
     queryFn: async (): Promise<ServiceRequest | null> => {
       const { data, error } = await supabase
@@ -280,11 +315,21 @@ export function useServiceRequest(requestId: string | null | undefined) {
     },
     enabled: !!requestId,
   });
+
+  useRealtimeInvalidate({
+    channel: `service_request:${requestId}`,
+    table: 'service_requests',
+    filter: requestId ? `id=eq.${requestId}` : undefined,
+    queryKeys: [['serviceRequest', requestId]],
+    enabled: !!requestId,
+  });
+
+  return query;
 }
 
 /** Provider feed: Nest opportunities when API configured; else legacy open-request list. */
 export function useFeedRequests(myProviderId: string | null) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['feedRequests', myProviderId, isApiConfigured()],
     queryFn: async (): Promise<FeedItem[]> => {
       if (isApiConfigured()) {
@@ -358,6 +403,16 @@ export function useFeedRequests(myProviderId: string | null) {
     },
     enabled: !!myProviderId,
   });
+
+  useRealtimeInvalidate({
+    channel: `feed_requests:${myProviderId}`,
+    table: 'request_opportunities',
+    filter: myProviderId ? `provider_id=eq.${myProviderId}` : undefined,
+    queryKeys: [['feedRequests', myProviderId]],
+    enabled: !!myProviderId,
+  });
+
+  return query;
 }
 
 export function useSendQuote() {

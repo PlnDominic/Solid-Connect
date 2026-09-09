@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Apple, Mail, Phone } from 'lucide-react-native';
+import { Apple, Eye, EyeOff, Mail, Phone } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { GoogleMark } from '../../components/GoogleMark';
@@ -43,6 +43,7 @@ export function SignInScreen({
   const [method, setMethod] = useState<IdentifierMethod>('email');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const busy = !!loading;
 
   const canSubmit = identifier.trim().length > 0 && password.length > 0 && !busy;
@@ -86,19 +87,34 @@ export function SignInScreen({
               editable={!busy}
               style={styles.input}
             />
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-              placeholderTextColor={colors.inkFainter}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!busy}
-              returnKeyType="go"
-              onSubmitEditing={() => canSubmit && onSubmit(identifier.trim(), password, method)}
-              style={styles.input}
-            />
+            <View style={styles.inputRow}>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor={colors.inkFainter}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!busy}
+                returnKeyType="go"
+                onSubmitEditing={() => canSubmit && onSubmit(identifier.trim(), password, method)}
+                style={[styles.input, styles.inputWithIcon]}
+              />
+              <Pressable
+                onPress={() => setShowPassword((v) => !v)}
+                disabled={busy}
+                hitSlop={12}
+                style={styles.eyeButton}
+                accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <EyeOff size={19} strokeWidth={2} color={colors.inkFaint} />
+                ) : (
+                  <Eye size={19} strokeWidth={2} color={colors.inkFaint} />
+                )}
+              </Pressable>
+            </View>
           </View>
 
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
@@ -186,7 +202,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     methodLabelActive: { color: colors.white },
 
     fields: { gap: spacing.lg, marginTop: spacing.xs },
+    inputRow: { flexDirection: 'row', alignItems: 'center' },
     input: {
+      flex: 1,
       fontSize: 17,
       fontFamily: fonts.medium,
       color: colors.ink,
@@ -194,6 +212,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderBottomColor: colors.hairlineStrong,
       paddingVertical: spacing.md,
     },
+    inputWithIcon: { paddingRight: spacing.xxl },
+    eyeButton: { position: 'absolute', right: 0, height: '100%', justifyContent: 'center', paddingHorizontal: 2 },
     errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
 
     divider: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.xs },
