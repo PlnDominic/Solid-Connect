@@ -1,5 +1,5 @@
 import { MapPin, ShieldCheck, Star } from 'lucide-react-native';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useMyActiveRequest, useNotifications } from '../../api/requests';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
@@ -9,6 +9,7 @@ import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 import type { Quote, ServiceRequest } from '../../types/database';
@@ -93,8 +94,11 @@ function QuoteCard({
 
 export function RequestsScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
-  const { data: request } = useMyActiveRequest(profile?.id ?? null);
-  const { data: notifications = [] } = useNotifications(profile?.id ?? null);
+  const { data: request, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
+  const { data: notifications = [], refetch: refetchNotifs } = useNotifications(profile?.id ?? null);
+  const { refreshing, onRefresh } = usePullToRefresh(async () => {
+    await Promise.all([refetchRequest(), refetchNotifs()]);
+  });
 
   const hasQuotes = request && request.status === 'quoted' && request.quotes.length > 0;
   const isAwaiting = request?.status === 'awaiting_provider';
@@ -109,7 +113,12 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
   return (
     <Screen>
       <ScreenHeader title="Requests" large />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
+      >
         {showFeed ? (
           <View style={styles.body}>
             {unreadReject.slice(0, 3).map((n) => (

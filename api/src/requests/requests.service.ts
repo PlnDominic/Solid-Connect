@@ -332,6 +332,11 @@ export class RequestsService {
   }
 
   async providerFeed(providerId: string) {
+    // Late category / area changes: attach this provider to still-open matches.
+    await this.supabase.client.rpc('sync_provider_opportunities', {
+      p_provider_id: providerId,
+    });
+
     const { data, error } = await this.supabase.client
       .from('request_opportunities')
       .select(

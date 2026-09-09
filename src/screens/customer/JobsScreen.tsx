@@ -1,5 +1,5 @@
 import { ChevronRight, Star } from 'lucide-react-native';
-import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCustomerActiveJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
@@ -7,20 +7,28 @@ import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 export function JobsScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
-  const { data: job } = useCustomerActiveJob(profile?.id ?? null);
+  const { data: job, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
   const { data: provider } = useProvider(job?.provider_id);
-  const { data: review } = useJobReview(job?.id ?? null);
+  const { data: review, refetch: refetchReview } = useJobReview(job?.id ?? null);
   const needsRating = !!job && job.status === 'completed' && review === null;
+  const { refreshing, onRefresh } = usePullToRefresh(async () => {
+    await Promise.all([refetchJob(), refetchReview()]);
+  });
 
   return (
     <Screen>
       <ScreenHeader title="Jobs" large />
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
+      >
         {job ? (
           <View style={{ padding: spacing.lg }}>
             <Pressable style={styles.card} onPress={() => navigation.navigate(needsRating ? 'RateJob' : 'JobDetail', { jobId: job.id })}>

@@ -10,7 +10,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
 
   const { data: reviews, count: total } = await supabase
     .from('reviews')
-    .select('id, rating, comment, created_at, provider_id, customer_id', { count: 'exact' })
+    .select('id, rating, created_at, provider_id, customer_id, job_id', { count: 'exact' })
     .order('created_at', { ascending: false });
 
   let filtered = reviews ?? [];
@@ -145,7 +145,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
               <th>Rating</th>
               <th>Provider</th>
               <th>Customer</th>
-              <th>Comment</th>
+              <th>Job</th>
               <th>Date</th>
             </tr>
           </thead>
@@ -180,8 +180,8 @@ export default async function ReviewsPage({ searchParams }: Props) {
                       </div>
                     ) : '—'}
                   </td>
-                  <td style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {r.comment || <span style={{ color: 'var(--text-muted)' }}>No comment</span>}
+                  <td style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: 12 }}>
+                    {r.job_id ? String(r.job_id).slice(0, 8) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
                   </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(r.created_at)}</td>
                 </tr>

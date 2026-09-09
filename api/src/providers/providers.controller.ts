@@ -12,6 +12,7 @@ import {
   ReplaceServiceAreasDto,
   ReplaceWeeklyAvailabilityDto,
   SearchProvidersQueryDto,
+  SetCategoriesDto,
   SetSkillsDto,
 } from './dto/providers.dto';
 import { ProvidersLocationService } from './providers-location.service';
@@ -50,6 +51,21 @@ export class ProvidersController {
   async setMySkills(@CurrentUser() user: RequestUser, @Body() body: SetSkillsDto) {
     await this.users.setProviderSkills(user.id, body.skillIds, body.yearsExperience ?? 0);
     return this.mySkills(user);
+  }
+
+  @Get('me/categories')
+  @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
+  async myCategories(@CurrentUser() user: RequestUser) {
+    const data = await this.users.listProviderCategories(user.id);
+    return { data, meta: { count: data.length } };
+  }
+
+  @Put('me/categories')
+  @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
+  async setMyCategories(@CurrentUser() user: RequestUser, @Body() body: SetCategoriesDto) {
+    const result = await this.users.setProviderCategories(user.id, body.categoryIds);
+    const data = await this.users.listProviderCategories(user.id);
+    return { data, meta: result };
   }
 
   @Get('me/service-areas')
@@ -106,6 +122,13 @@ export class ProvidersController {
       .eq('provider_id', id);
     if (error) throw error;
     return { data: data ?? [], meta: {} };
+  }
+
+  @Get(':id/categories')
+  @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
+  async providerCategories(@Param('id') id: string) {
+    const data = await this.users.listProviderCategories(id);
+    return { data, meta: { count: data.length } };
   }
 
   @Get(':id/verification')

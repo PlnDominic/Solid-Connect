@@ -1,10 +1,11 @@
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Check } from 'lucide-react-native';
-import { ActivityIndicator, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useFeedRequests } from '../../api/requests';
 import { isApiConfigured } from '../../lib/api';
 import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 
@@ -20,6 +21,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
   const { data: requests = [], isLoading, isError, refetch, isFetching } = useFeedRequests(
     profile?.id ?? null,
   );
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
     <Screen>
@@ -33,6 +35,9 @@ export function FeedScreen({ navigation }: { navigation: any }) {
       <ScrollView
         contentContainerStyle={[styles.body, requests.length === 0 && styles.bodyEmpty]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
       >
         {isLoading ? (
           <View style={styles.loading}>

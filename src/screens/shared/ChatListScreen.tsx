@@ -1,10 +1,11 @@
-import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useLatestMessage, useThreadsForRole } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 import type { ChatThread } from '../../types/database';
@@ -32,12 +33,17 @@ function ThreadRow({ thread, myRole, onPress }: { thread: ChatThread; myRole: 'c
 
 export function ChatListScreen({ navigation, role }: { navigation: any; role: 'customer' | 'provider' }) {
   const profile = useSessionStore((s) => s.profile);
-  const { data: threads = [] } = useThreadsForRole(profile?.id ?? null, role);
+  const { data: threads = [], refetch } = useThreadsForRole(profile?.id ?? null, role);
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
     <Screen>
       <ScreenHeader title="Chat" large />
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
+      >
         {threads.length ? (
           threads.map((t) => (
             <ThreadRow

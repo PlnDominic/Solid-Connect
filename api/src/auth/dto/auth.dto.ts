@@ -18,6 +18,12 @@ export class BecomeProviderDto {
   @MaxLength(80)
   category?: string;
 
+  /** One or more category ids (e.g. plumbing, electrical). */
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  categoryIds?: string[];
+
   @IsOptional()
   @IsArray()
   @IsUUID('4', { each: true })

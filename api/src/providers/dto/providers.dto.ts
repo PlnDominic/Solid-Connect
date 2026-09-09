@@ -84,6 +84,13 @@ export class SetSkillsDto {
   yearsExperience?: number;
 }
 
+export class SetCategoriesDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  categoryIds!: string[];
+}
+
 export class SearchProvidersQueryDto {
   @Type(() => Number)
   @IsNumber()

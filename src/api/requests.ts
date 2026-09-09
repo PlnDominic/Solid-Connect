@@ -225,8 +225,11 @@ export function useSimulateQuotesArriving() {
         .map((p) => {
           const cat = (p.provider_category ?? '').toLowerCase();
           const area = (p.area ?? '').toLowerCase();
+          const parts = cat.split('·').map((t) => t.trim()).filter(Boolean);
           let score = p.provider_rating * 10;
-          if (trade && cat.includes(trade)) score += 30;
+          if (trade && (parts.some((t) => t.includes(trade) || trade.includes(t)) || cat.includes(trade))) {
+            score += 30;
+          }
           if (areaNeedle && area.includes(areaNeedle)) score += 20;
           if (p.provider_certified) score += 5;
           if (p.provider_distance_km != null) score += Math.max(0, 10 - p.provider_distance_km);
@@ -330,6 +333,10 @@ export function useFeedRequests(myProviderId: string | null) {
 
       const trade = (me?.provider_category ?? '').toLowerCase();
       const areaNeedle = (me?.area ?? '').split(',')[0]?.trim().toLowerCase() ?? '';
+      const trades = trade
+        .split('·')
+        .map((t) => t.trim())
+        .filter(Boolean);
 
       return requests
         .filter((r) => !r.preferred_provider_id || r.preferred_provider_id === myProviderId)
@@ -339,7 +346,8 @@ export function useFeedRequests(myProviderId: string | null) {
             let s = 0;
             const label = (r.category_label ?? '').toLowerCase();
             const loc = (r.location_label ?? '').toLowerCase();
-            if (trade && label.includes(trade)) s += 30;
+            if (trades.length && trades.some((t) => label.includes(t))) s += 30;
+            else if (trade && label.includes(trade)) s += 30;
             if (areaNeedle && loc.includes(areaNeedle)) s += 20;
             s += new Date(r.created_at).getTime() / 1e12;
             return s;

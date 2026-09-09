@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { ArrowUpRight, ChevronRight, ListFilter, MapPin, Search, ShieldCheck, Star, Wifi } from 'lucide-react-native';
 import { useAllProviders, useCategories } from '../../api/marketplace';
 import { useMyActiveRequest } from '../../api/requests';
@@ -9,6 +9,7 @@ import { CategoryGridTile } from '../../components/CategoryTile';
 import { FilterChips } from '../../components/FilterChips';
 import type { FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 
@@ -26,15 +27,18 @@ const LOGO_IMAGE = require('../../../assets/images/logo.jpeg');
 
 export function HomeScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [], refetch: refetchCategories } = useCategories();
   // The full, unfiltered set - useTopProviders() caps at 3, which made the
   // filter chips look broken (filtering 3 items rarely leaves anything).
-  const { data: providers = [] } = useAllProviders(null, profile?.area ?? null);
-  const { data: activeRequest } = useMyActiveRequest(profile?.id ?? null);
-  const { data: activeJob } = useCustomerActiveJob(profile?.id ?? null);
+  const { data: providers = [], refetch: refetchProviders } = useAllProviders(null, profile?.area ?? null);
+  const { data: activeRequest, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
+  const { data: activeJob, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
   const [providerFilter, setProviderFilter] = useState('all');
   const [searchText, setSearchText] = useState('');
   const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
+  const { refreshing, onRefresh } = usePullToRefresh(async () => {
+    await Promise.all([refetchCategories(), refetchProviders(), refetchRequest(), refetchJob()]);
+  });
 
   const filteredProviders = useMemo(() => {
     const filtered = (() => {
@@ -100,7 +104,14 @@ export function HomeScreen({ navigation }: { navigation: any }) {
 
   return (
     <Screen edges={['top']}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.body}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
+      >
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
             <Text style={styles.heroWordmark}>SOLID CONNECT</Text>

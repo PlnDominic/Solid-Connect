@@ -56,8 +56,33 @@ export function useAllProviders(categoryName?: string | null, areaNeedle?: strin
         if (geo) return geo;
       }
 
-      let query = supabase.from('profiles').select('*').eq('role', 'provider').order('provider_rating', { ascending: false });
-      if (categoryName) query = query.eq('provider_category', categoryName);
+      let query = supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'provider')
+        .order('provider_rating', { ascending: false });
+
+      if (categoryName) {
+        const { data: cat } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', categoryName)
+          .maybeSingle();
+        if (cat?.id) {
+          const { data: links, error: linkErr } = await supabase
+            .from('provider_categories')
+            .select('provider_id')
+            .eq('category_id', cat.id);
+          if (linkErr) throw linkErr;
+          const ids = [...new Set((links ?? []).map((l) => l.provider_id))];
+          if (!ids.length) return [];
+          query = query.in('id', ids);
+        } else {
+          // Fallback for joined labels like "Plumbing · Electrical"
+          query = query.ilike('provider_category', `%${categoryName}%`);
+        }
+      }
+
       const { data, error } = await query;
       if (error) throw error;
       let rows = data ?? [];

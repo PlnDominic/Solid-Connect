@@ -1,11 +1,12 @@
 import { ChevronRight } from 'lucide-react-native';
-import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderJobs } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 import type { Job } from '../../types/database';
@@ -38,12 +39,17 @@ function JobRow({ job, onPress }: { job: Job; onPress: () => void }) {
 
 export function JobsScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
-  const { data: jobs = [] } = useProviderJobs(profile?.id ?? null);
+  const { data: jobs = [], refetch } = useProviderJobs(profile?.id ?? null);
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
     <Screen>
       <ScreenHeader title="Jobs" large />
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
+      >
         {jobs.length ? (
           <View style={{ padding: spacing.lg, gap: spacing.md }}>
             {jobs.map((job) => (

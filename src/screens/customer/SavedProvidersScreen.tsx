@@ -1,10 +1,11 @@
 import { Heart, Star } from 'lucide-react-native';
-import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useSavedProviders, useToggleSavedProvider } from '../../api/saved';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 import type { Profile } from '../../types/database';
@@ -43,12 +44,18 @@ function SavedProviderRow({
 
 export function SavedProvidersScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
-  const { data: saved = [] } = useSavedProviders(profile?.id ?? null);
+  const { data: saved = [], refetch } = useSavedProviders(profile?.id ?? null);
+  const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
     <Screen>
       <ScreenHeader title="Saved providers" onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView
+        contentContainerStyle={styles.body}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
+        }
+      >
         {saved.length ? (
           saved.map((p) =>
             profile ? (

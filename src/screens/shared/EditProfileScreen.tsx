@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { fetchProviderCategories } from '../../api/identity';
 import { isEmailTaken, isPhoneTaken, updateOwnProfile } from '../../api/profile';
 import { AreaPicker, isValidArea } from '../../components/AreaPicker';
 import { Button } from '../../components/Button';
@@ -17,8 +18,8 @@ const TAGLINE_MAX = 140;
 
 /**
  * Shared between customer and provider Profile stacks - fields it shows
- * differ (trade only for providers), not the screen itself. Name/phone/
- * location/trade save straight to the profiles row; email is the odd one
+ * differ (services only for providers), not the screen itself. Name/phone/
+ * location/services save straight to the profiles row; email is the odd one
  * out (see updateOwnProfile's doc comment) - it goes through Supabase
  * auth's own confirmation flow instead, and doesn't touch profiles.email
  * until useSyncAuthEmail sees that confirmed.
@@ -34,10 +35,34 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
   const [phone, setPhone] = useState(profile?.phone ?? '');
   const [area, setArea] = useState(profile?.area ?? '');
   const [email, setEmail] = useState(profile?.email ?? '');
-  const [category, setCategory] = useState(profile?.provider_category ?? '');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingEmailNotice, setPendingEmailNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!profile || profile.role !== 'provider') {
+      setCategoriesLoaded(true);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await fetchProviderCategories(profile.id);
+        if (cancelled) return;
+        const ids = rows.map((r) => r.category_id).filter(Boolean);
+        if (ids.length) setCategoryIds(ids);
+      } catch {
+        // Fall back to empty selection; user can re-pick.
+      } finally {
+        if (!cancelled) setCategoriesLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id, profile?.role]);
 
   if (!profile) return <Screen />;
   const p = profile;
@@ -48,7 +73,7 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
     fullName.trim().length >= 2 &&
     isValidArea(area) &&
     EMAIL_RE.test(email.trim()) &&
-    (!isProvider || category.trim().length > 0);
+    (!isProvider || categoryIds.length > 0);
 
   async function handleSave() {
     setError(null);
@@ -82,7 +107,7 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
         fullName: fullName.trim(),
         phone: trimmedPhone,
         area,
-        providerCategory: isProvider ? category : undefined,
+        providerCategoryIds: isProvider ? categoryIds : undefined,
         tagline,
       });
       // Keep showing the old (still-current) email until the confirmation
@@ -162,10 +187,10 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
             <AreaPicker value={area} onChangeValue={setArea} />
           </View>
 
-          {isProvider ? (
+          {isProvider && categoriesLoaded ? (
             <View style={styles.field}>
-              <Text style={styles.label}>Trade</Text>
-              <CategoryPicker value={category} onChangeValue={setCategory} />
+              <Text style={styles.label}>Services you offer</Text>
+              <CategoryPicker multi values={categoryIds} onChangeValues={setCategoryIds} />
             </View>
           ) : null}
 

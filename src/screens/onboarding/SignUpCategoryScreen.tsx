@@ -7,16 +7,14 @@ import { StepDots } from '../../components/StepDots';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 /**
- * Provider-only sign-up step - which trade shows up on their profile and
- * feeds the marketplace's category filter (useAllProviders matches on this
- * exact name, see src/api/marketplace.ts). CategoryPicker sources it live
- * from the real `categories` table rather than a hardcoded list.
+ * Provider sign-up: pick every service you offer. Category ids are stored in
+ * provider_categories so browse/search can match any of them.
  */
 export function SignUpCategoryScreen({
   totalSteps,
   activeIndex,
-  value,
-  onChangeValue,
+  values,
+  onChangeValues,
   onBack,
   onNext,
   loading = false,
@@ -24,14 +22,14 @@ export function SignUpCategoryScreen({
 }: {
   totalSteps: number;
   activeIndex: number;
-  value: string;
-  onChangeValue: (v: string) => void;
+  values: string[];
+  onChangeValues: (ids: string[]) => void;
   onBack: () => void;
   onNext: () => void;
   loading?: boolean;
   errorMessage?: string | null;
 }) {
-  const isValid = value.trim().length > 0;
+  const isValid = values.length > 0;
 
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
@@ -45,13 +43,13 @@ export function SignUpCategoryScreen({
 
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.textWrap}>
-          <Text style={styles.title}>What's your trade?</Text>
+          <Text style={styles.title}>What services do you offer?</Text>
           <Text style={styles.subtitle}>
-            This is how customers will find you when they're looking for help.
+            Pick every trade you do. Customers can find you when they search for any of them.
           </Text>
         </View>
 
-        <CategoryPicker value={value} onChangeValue={onChangeValue} />
+        <CategoryPicker multi values={values} onChangeValues={onChangeValues} />
       </ScrollView>
 
       <View style={styles.footer}>

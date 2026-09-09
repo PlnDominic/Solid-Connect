@@ -112,7 +112,10 @@ export class UsersService {
     if (error) throw new BadRequestException({ code: 'ROLE_GRANT_FAILED', message: error.message });
   }
 
-  async becomeProvider(authUserId: string, input: { category?: string; skillIds?: string[] }) {
+  async becomeProvider(
+    authUserId: string,
+    input: { category?: string; categoryIds?: string[]; skillIds?: string[] },
+  ) {
     const ensured = await this.ensureUser({ authUserId });
     if (ensured.user.status === 'SUSPENDED' || ensured.user.status === 'DISABLED') {
       throw new ForbiddenException({
@@ -122,6 +125,16 @@ export class UsersService {
     }
 
     await this.grantRole(ensured.user.id, 'PROVIDER');
+
+    let categoryIds = input.categoryIds?.filter(Boolean) ?? [];
+    if (!categoryIds.length && input.category?.trim()) {
+      const { data: cat } = await this.supabase.client
+        .from('categories')
+        .select('id')
+        .ilike('name', input.category.trim())
+        .maybeSingle();
+      if (cat?.id) categoryIds = [cat.id];
+    }
 
     const { data: profile, error: profileError } = await this.supabase.client
       .from('profiles')
@@ -142,12 +155,25 @@ export class UsersService {
       });
     }
 
-    if (input.skillIds?.length) {
+    if (categoryIds.length) {
+      await this.setProviderCategories(authUserId, categoryIds);
+    } else if (input.skillIds?.length) {
       await this.setProviderSkills(authUserId, input.skillIds);
     }
 
+    const { data: refreshed } = await this.supabase.client
+      .from('profiles')
+      .select('*')
+      .eq('id', authUserId)
+      .maybeSingle();
+
     const roles = await this.getRoleCodes(ensured.user.id);
-    return { user: ensured.user, roles, profile, event: 'provider.profile_completed' as const };
+    return {
+      user: ensured.user,
+      roles,
+      profile: refreshed ?? profile,
+      event: 'provider.profile_completed' as const,
+    };
   }
 
   async switchActiveRole(authUserId: string, role: 'customer' | 'provider') {
@@ -192,6 +218,46 @@ export class UsersService {
       onConflict: 'provider_id,skill_id',
     });
     if (error) throw new BadRequestException({ code: 'SKILLS_SAVE_FAILED', message: error.message });
+  }
+
+  /** Replace the provider's offered services (1+ categories) and sync skills + display label. */
+  async setProviderCategories(providerId: string, categoryIds: string[]) {
+    const { data, error } = await this.supabase.client.rpc('replace_provider_categories', {
+      p_provider_id: providerId,
+      p_category_ids: categoryIds,
+    });
+    if (error) {
+      const msg = error.message ?? '';
+      if (msg.includes('CATEGORIES_REQUIRED')) {
+        throw new BadRequestException({
+          code: 'CATEGORIES_REQUIRED',
+          message: 'Select at least one service.',
+        });
+      }
+      if (msg.includes('UNKNOWN_CATEGORY')) {
+        throw new BadRequestException({ code: 'UNKNOWN_CATEGORY', message: 'Unknown service category.' });
+      }
+      throw new BadRequestException({ code: 'CATEGORIES_SAVE_FAILED', message: error.message });
+    }
+
+    // Pick up open requests posted before these services were added.
+    await this.supabase.client.rpc('sync_provider_opportunities', {
+      p_provider_id: providerId,
+    });
+
+    return data as { categoryIds: string[]; label: string; skillCount: number };
+  }
+
+  async listProviderCategories(providerId: string) {
+    const { data, error } = await this.supabase.client
+      .from('provider_categories')
+      .select('category_id, is_primary, categories(id, name, abbr, default_label)')
+      .eq('provider_id', providerId)
+      .order('is_primary', { ascending: false });
+    if (error) {
+      throw new BadRequestException({ code: 'CATEGORIES_LIST_FAILED', message: error.message });
+    }
+    return data ?? [];
   }
 
   private async roleId(code: RoleCode): Promise<string> {
