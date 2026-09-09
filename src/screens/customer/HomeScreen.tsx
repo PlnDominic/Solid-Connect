@@ -29,7 +29,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   const { data: categories = [] } = useCategories();
   // The full, unfiltered set - useTopProviders() caps at 3, which made the
   // filter chips look broken (filtering 3 items rarely leaves anything).
-  const { data: providers = [] } = useAllProviders();
+  const { data: providers = [] } = useAllProviders(null, profile?.area ?? null);
   const { data: activeRequest } = useMyActiveRequest(profile?.id ?? null);
   const { data: activeJob } = useCustomerActiveJob(profile?.id ?? null);
   const [providerFilter, setProviderFilter] = useState('all');
@@ -55,14 +55,47 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   function handleSearchSubmit() {
     navigation.navigate('NewRequest', searchText.trim() ? { initialDescription: searchText.trim() } : undefined);
   }
-  const activeJobIsInProgress = activeJob?.status === 'in_progress';
-  const hasActiveRequest = !activeJobIsInProgress && activeRequest && !['completed', 'cancelled'].includes(activeRequest.status);
+  const activeJobIsLive =
+    !!activeJob &&
+    (activeJob.status === 'accepted' ||
+      activeJob.status === 'in_progress' ||
+      activeJob.status === 'awaiting_completion_confirmation');
+  const hasActiveRequest =
+    !activeJobIsLive &&
+    !!activeRequest &&
+    !['completed', 'cancelled', 'accepted'].includes(activeRequest.status);
   const requestStatus = (() => {
-    if (!activeRequest) return null;
+    if (!activeRequest || !hasActiveRequest) return null;
     if (activeRequest.status === 'quoted' && activeRequest.quotes.length) {
-      return { eyebrow: 'QUOTES READY', title: `${activeRequest.quotes.length} ${activeRequest.quotes.length === 1 ? 'quote' : 'quotes'} for ${activeRequest.category_label}`, detail: 'Compare verified providers and choose who to hire.', action: 'Review quotes' };
+      return {
+        eyebrow: 'QUOTES READY',
+        title: `${activeRequest.quotes.length} ${activeRequest.quotes.length === 1 ? 'quote' : 'quotes'} for ${activeRequest.category_label}`,
+        detail: 'Compare verified providers and choose who to hire.',
+        action: 'Review quotes',
+      };
     }
-    return { eyebrow: 'REQUEST IN PROGRESS', title: activeRequest.category_label, detail: activeRequest.status === 'accepted' ? 'A provider has been selected. Your job is being set up.' : 'We’re matching you with verified providers nearby.', action: 'View request' };
+    if (activeRequest.status === 'awaiting_provider') {
+      return {
+        eyebrow: 'DIRECT REQUEST SENT',
+        title: activeRequest.category_label,
+        detail: 'Waiting for your selected provider to accept or decline.',
+        action: 'View request',
+      };
+    }
+    if (activeRequest.status === 'rejected') {
+      return {
+        eyebrow: 'REQUEST DECLINED',
+        title: activeRequest.category_label,
+        detail: activeRequest.rejection_reason ?? 'The provider declined this request.',
+        action: 'View details',
+      };
+    }
+    return {
+      eyebrow: 'REQUEST IN PROGRESS',
+      title: activeRequest.category_label,
+      detail: 'We’re matching you with verified providers nearby.',
+      action: 'View request',
+    };
   })();
 
   return (
@@ -111,7 +144,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             <ArrowUpRight color={colors.ink} size={18} strokeWidth={2.4} />
           </Pressable>
 
-          {activeJobIsInProgress ? (
+          {activeJobIsLive ? (
             <Pressable
               style={({ pressed }) => [styles.heroActivity, pressed && styles.heroActivityPressed]}
               onPress={() => navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId: activeJob.id } })}
@@ -119,17 +152,26 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               accessibilityLabel={`View active job: ${activeJob.title}`}
             >
               <View style={styles.heroActivityTopRow}>
-                <Text style={styles.heroActivityEyebrow}>JOB IN PROGRESS</Text>
+                <Text style={styles.heroActivityEyebrow}>
+                  {activeJob.status === 'awaiting_completion_confirmation'
+                    ? 'CONFIRM COMPLETION'
+                    : activeJob.status === 'accepted'
+                      ? 'JOB READY'
+                      : 'JOB IN PROGRESS'}
+                </Text>
                 <View style={styles.heroActivityAction}>
                   <Text style={styles.heroActivityActionText}>Track job</Text>
                   <ChevronRight color={colors.white} size={13} strokeWidth={2.5} />
                 </View>
               </View>
               <Text style={styles.heroActivityTitle}>{activeJob.title}</Text>
-              <Text style={styles.heroActivityDetail}>Step {activeJob.step} of 5 · {activeJob.location_label}</Text>
-              <View style={styles.heroProgressTrack}>
-                <View style={[styles.heroProgressFill, { width: `${(activeJob.step / 5) * 100}%` }]} />
-              </View>
+              <Text style={styles.heroActivityDetail}>
+                {activeJob.status === 'awaiting_completion_confirmation'
+                  ? 'Provider finished · confirm to release payment'
+                  : activeJob.status === 'accepted'
+                    ? 'Waiting for provider to start'
+                    : `In progress · ${activeJob.location_label}`}
+              </Text>
             </Pressable>
           ) : hasActiveRequest && requestStatus ? (
             <Pressable
@@ -170,7 +212,12 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               name={category.name}
               description={category.default_label}
               selected={false}
-              onPress={() => navigation.navigate('NewRequest')}
+              onPress={() =>
+                navigation.navigate('NewRequest', {
+                  initialCategoryId: category.id,
+                  initialCategoryName: category.name,
+                })
+              }
             />
           ))}
         </ScrollView>
@@ -194,7 +241,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             <Pressable
               key={provider.id}
               style={({ pressed }) => [styles.providerRow, pressed && styles.providerRowPressed]}
-              onPress={() => navigation.navigate('NewRequest')}
+              onPress={() => navigation.navigate('ProviderDetail', { providerId: provider.id })}
             >
               <Avatar initials={provider.initials} size={46} />
               <View style={styles.providerInfo}>

@@ -33,7 +33,13 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
 
   async function handleMessage() {
     if (!profile || !job) return;
-    const thread = await getOrCreateThread({ jobId: job.id, requestId: job.request_id, customerId: profile.id, providerId: job.provider_id });
+    const thread = await getOrCreateThread({
+      jobId: job.id,
+      requestId: job.request_id,
+      customerId: profile.id,
+      providerId: job.provider_id,
+      asRole: 'customer',
+    });
     navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId: thread.id, peerId: job.provider_id } });
   }
 
@@ -64,13 +70,26 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
         <View style={styles.progressCard}>
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>Job in progress</Text>
-            <Text style={styles.progressStep}>Step {job.step} of 5</Text>
+            <Text style={styles.progressLabel}>
+              {job.status === 'accepted'
+                ? 'Waiting for provider to start'
+                : job.status === 'in_progress'
+                  ? 'IN_PROGRESS'
+                  : job.status === 'awaiting_completion_confirmation'
+                    ? 'AWAITING_COMPLETION_CONFIRMATION'
+                    : 'COMPLETED'}
+            </Text>
+            <Text style={styles.progressStep}>GHS {job.price}</Text>
           </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${(job.step / 5) * 100}%` }]} />
-          </View>
-          <Text style={styles.progressNote}>Provider on site · started {formatTime(job.started_at)}</Text>
+          <Text style={styles.progressNote}>
+            {job.status === 'accepted'
+              ? 'Your provider hasn’t started yet.'
+              : job.status === 'in_progress'
+                ? `Provider on site · started ${formatTime(job.started_at)}`
+                : job.status === 'awaiting_completion_confirmation'
+                  ? 'Provider marked the job finished. Confirm to release payment.'
+                  : 'Job completed.'}
+          </Text>
         </View>
 
         <View style={styles.detailsCard}>
@@ -85,6 +104,11 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         </View>
 
         <Button title="Message provider" variant="outline" onPress={handleMessage} />
+        <Button
+          title="Open a dispute"
+          variant="outline"
+          onPress={() => navigation.navigate('Dispute', { jobId: job.id })}
+        />
       </ScrollView>
 
       <View style={styles.footer}>
@@ -94,8 +118,14 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           ) : (
             <Button title="Rate this job" onPress={() => navigation.navigate('RateJob', { jobId: job.id })} />
           )
-        ) : (
+        ) : job.status === 'awaiting_completion_confirmation' ? (
           <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
+        ) : (
+          <Button
+            title={job.status === 'in_progress' ? 'Work in progress' : 'Waiting for provider to start'}
+            disabled
+            onPress={() => {}}
+          />
         )}
       </View>
 

@@ -33,8 +33,12 @@ export function JobsScreen({ navigation }: { navigation: any }) {
                   {needsRating
                     ? 'Completed · tap to rate this job'
                     : job.status === 'completed'
-                      ? 'Completed'
-                      : `Step ${job.step} of 5 · on site`}
+                      ? 'COMPLETED'
+                      : job.status === 'awaiting_completion_confirmation'
+                        ? 'AWAITING_COMPLETION_CONFIRMATION · confirm'
+                        : job.status === 'in_progress'
+                          ? 'IN_PROGRESS'
+                          : 'Waiting for provider to start'}
                 </Text>
               </View>
               {needsRating ? (

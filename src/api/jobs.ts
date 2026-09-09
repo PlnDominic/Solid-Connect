@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch, isApiConfigured } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { Job, Payment } from '../types/database';
 
@@ -11,6 +12,14 @@ export function useAcceptQuote() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { requestId: string; quoteId: string; customerId: string }) => {
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: { job: Job; quote: unknown } }>('/api/v1/quotes/accept', {
+          method: 'POST',
+          body: JSON.stringify({ quoteId: input.quoteId }),
+        });
+        return res.data.job as Job;
+      }
+
       const { data: quote, error: qErr } = await supabase
         .from('quotes')
         .select('*')
@@ -42,8 +51,8 @@ export function useAcceptQuote() {
           title: jobTitleFromCategoryLabel(request.category_label),
           price: quote.price,
           location_label: request.location_label,
-          step: 3,
-          status: 'in_progress',
+          step: 1,
+          status: 'accepted',
         })
         .select('*')
         .single();
@@ -54,7 +63,7 @@ export function useAcceptQuote() {
         .from('chat_threads')
         .upsert(
           { request_id: input.requestId, provider_id: quote.provider_id, customer_id: input.customerId, job_id: job.id },
-          { onConflict: 'request_id,provider_id' }
+          { onConflict: 'request_id,provider_id' },
         );
 
       return job as Job;
@@ -113,18 +122,65 @@ export function useJob(jobId: string | null | undefined) {
   });
 }
 
+export function useStartJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (job: Job) => {
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: Job }>(`/api/v1/jobs/${job.id}/start`, { method: 'POST' });
+        return res.data;
+      }
+      const { data, error } = await supabase.rpc('start_job', {
+        p_job_id: job.id,
+        p_provider_id: job.provider_id,
+      });
+      if (error) throw error;
+      return data as Job;
+    },
+    onSuccess: (job) => {
+      queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+      queryClient.invalidateQueries({ queryKey: ['jobs', 'provider', job.provider_id] });
+      queryClient.invalidateQueries({ queryKey: ['activeJob', 'customer', job.customer_id] });
+    },
+  });
+}
+
+export function useFinishJob() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (job: Job) => {
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: Job }>(`/api/v1/jobs/${job.id}/finish`, { method: 'POST' });
+        return res.data;
+      }
+      const { data, error } = await supabase.rpc('finish_job', {
+        p_job_id: job.id,
+        p_provider_id: job.provider_id,
+      });
+      if (error) throw error;
+      return data as Job;
+    },
+    onSuccess: (job) => {
+      queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+      queryClient.invalidateQueries({ queryKey: ['jobs', 'provider', job.provider_id] });
+      queryClient.invalidateQueries({ queryKey: ['activeJob', 'customer', job.customer_id] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+}
+
 export function useAdvanceJobStep() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (job: Job) => {
-      const step = Math.min(5, job.step + 1);
-      const status = step >= 5 ? 'completed' : 'in_progress';
-      const { data, error } = await supabase
-        .from('jobs')
-        .update({ step, status, completed_at: step >= 5 ? new Date().toISOString() : null })
-        .eq('id', job.id)
-        .select('*')
-        .single();
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: Job }>(`/api/v1/jobs/${job.id}/advance`, { method: 'POST' });
+        return res.data;
+      }
+      const { data, error } = await supabase.rpc('advance_job', {
+        p_job_id: job.id,
+        p_provider_id: job.provider_id,
+      });
       if (error) throw error;
       return data as Job;
     },
@@ -139,9 +195,20 @@ export function useConfirmCompletion() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (job: Job) => {
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: { job: Job; payment: Payment } }>(`/api/v1/jobs/${job.id}/confirm`, {
+          method: 'POST',
+        });
+        return res.data.payment;
+      }
       await supabase
         .from('jobs')
-        .update({ status: 'completed', step: 5, completed_at: new Date().toISOString() })
+        .update({
+          status: 'completed',
+          step: 5,
+          completed_at: new Date().toISOString(),
+          customer_confirmed_at: new Date().toISOString(),
+        })
         .eq('id', job.id);
       const { data: payment, error } = await supabase
         .from('payments')
@@ -155,6 +222,8 @@ export function useConfirmCompletion() {
     onSuccess: (_payment, job) => {
       queryClient.invalidateQueries({ queryKey: ['activeJob', 'customer', job.customer_id] });
       queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+      queryClient.invalidateQueries({ queryKey: ['myActiveRequest', job.customer_id] });
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     },
   });
 }

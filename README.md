@@ -29,8 +29,20 @@ see `.env.example`).
 
 ## Stack
 
-Expo (React Native + TypeScript), React Navigation, Zustand, TanStack Query,
-Supabase (Postgres, Auth, Realtime).
+- **Mobile:** Expo (React Native + TypeScript) at repo root
+- **Admin:** Next.js in `admin/`
+- **API (Phase A+):** NestJS in `api/` — owns marketplace business rules
+- **Data:** Supabase (Postgres, Auth, Storage, Realtime)
+- **Queues (foundation):** Redis via `docker-compose.yml`
+
+## Phase reports
+
+- [Phase A acceptance](./docs/phase-a-acceptance.md) — NestJS foundation, health, JWT guard, CI
+- [Phase B gap](./docs/phase-b-gap.md) / [acceptance](./docs/phase-b-acceptance.md) — users, roles, skills
+- [Phase C gap](./docs/phase-c-gap.md) / [acceptance](./docs/phase-c-acceptance.md) — PostGIS areas, availability, geo search, verification levels
+- [Phase D gap](./docs/phase-d-gap.md) / [acceptance](./docs/phase-d-acceptance.md) — requests, matching, provider opportunity feed
+- [Phase E gap](./docs/phase-e-gap.md) / [acceptance](./docs/phase-e-acceptance.md) — quotes create/revise/accept → job
+- [Phase F gap](./docs/phase-f-gap.md) / [acceptance](./docs/phase-f-acceptance.md) — jobs, events, chat, completion
 
 ## Docs
 
@@ -44,8 +56,25 @@ Supabase (Postgres, Auth, Realtime).
 
 ## Getting started
 
+### Mobile
+
 ```bash
 npm install
-cp .env.example .env   # fill in your Supabase project URL + anon key
+cp .env.example .env   # fill in your Supabase project URL + anon/publishable key
 npm start
+```
+
+### API
+
+```bash
+docker compose up -d redis   # optional; health reports degraded without it
+cd api && cp .env.example .env && npm install && npm run start:dev
+# http://localhost:3001/api/v1/health
+# http://localhost:3001/docs
+```
+
+### Admin
+
+```bash
+cd admin && cp .env.example .env && npm install && npm run dev
 ```

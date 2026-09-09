@@ -10,12 +10,20 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 import type { Profile } from '../../types/database';
 
-function ProviderRow({ provider, customerId }: { provider: Profile; customerId: string }) {
+function ProviderRow({
+  provider,
+  customerId,
+  onOpen,
+}: {
+  provider: Profile;
+  customerId: string;
+  onOpen: () => void;
+}) {
   const { data: saved = false } = useIsProviderSaved(customerId, provider.id);
   const toggleSaved = useToggleSavedProvider();
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onOpen}>
       <Avatar initials={provider.initials} />
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={styles.name}>{provider.full_name}</Text>
@@ -33,7 +41,7 @@ function ProviderRow({ provider, customerId }: { provider: Profile; customerId: 
           fill={saved ? colors.active : 'transparent'}
         />
       </Pressable>
-    </View>
+    </Pressable>
   );
 }
 
@@ -46,7 +54,16 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
       <ScreenHeader title="All providers" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         {providers.length ? (
-          providers.map((p) => (profile ? <ProviderRow key={p.id} provider={p} customerId={profile.id} /> : null))
+          providers.map((p) =>
+            profile ? (
+              <ProviderRow
+                key={p.id}
+                provider={p}
+                customerId={profile.id}
+                onOpen={() => navigation.navigate('ProviderDetail', { providerId: p.id })}
+              />
+            ) : null
+          )
         ) : (
           <EmptyState title="No providers yet" subtitle="Check back soon - new providers are joining Solid Connect." />
         )}

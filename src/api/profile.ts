@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { becomeProvider, switchActiveRole, syncIdentity } from './identity';
 import { supabase } from '../lib/supabase';
 import { useSessionStore } from '../store/useSessionStore';
 import type { Profile, Role } from '../types/database';
+import { isApiConfigured } from '../lib/api';
 
 export interface SignUpDetails {
   fullName: string;
@@ -91,6 +93,12 @@ export async function createOrUpdateOwnProfile(
     .select('*')
     .single();
   if (error) rethrowFriendly(error);
+  if (isApiConfigured()) {
+    await syncIdentity(details.fullName, details.phone).catch(() => null);
+    if (role === 'provider') {
+      await becomeProvider(details.providerCategory).catch(() => null);
+    }
+  }
   return data;
 }
 
@@ -173,6 +181,21 @@ export async function savePushSubscription(
 }
 
 export async function switchOwnRole(userId: string, role: Role): Promise<Profile> {
+  // Prefer NestJS ownership of role grants / active mode when API is configured.
+  if (isApiConfigured()) {
+    if (role === 'provider') {
+      const me = await switchActiveRole('provider').catch(async () => {
+        // First-time provider: grant role then switch.
+        await becomeProvider();
+        return switchActiveRole('provider');
+      });
+      if (me?.data.profile) return me.data.profile;
+    } else {
+      const me = await switchActiveRole('customer');
+      if (me?.data.profile) return me.data.profile;
+    }
+  }
+
   const { data, error } = await supabase
     .from('profiles')
     .update({ role })

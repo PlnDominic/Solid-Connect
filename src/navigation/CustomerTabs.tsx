@@ -4,6 +4,7 @@ import { HomeScreen } from '../screens/customer/HomeScreen';
 import { NewRequestScreen } from '../screens/customer/NewRequestScreen';
 import { MatchingScreen } from '../screens/customer/MatchingScreen';
 import { AllProvidersScreen } from '../screens/customer/AllProvidersScreen';
+import { ProviderDetailScreen } from '../screens/customer/ProviderDetailScreen';
 import { RequestsScreen } from '../screens/customer/RequestsScreen';
 import { JobsScreen } from '../screens/customer/JobsScreen';
 import { JobDetailScreen } from '../screens/customer/JobDetailScreen';
@@ -16,6 +17,11 @@ import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
 import { NotificationsScreen } from '../screens/shared/NotificationsScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
+import { AppearanceScreen } from '../screens/shared/AppearanceScreen';
+import { AccountSecurityScreen } from '../screens/shared/AccountSecurityScreen';
+import { ReferralScreen } from '../screens/shared/ReferralScreen';
+import { LegalScreen } from '../screens/shared/LegalScreen';
+import { DisputeScreen } from '../screens/shared/DisputeScreen';
 import { TabBar } from './TabBar';
 
 const HomeStackNav = createNativeStackNavigator();
@@ -26,6 +32,7 @@ function HomeStack() {
       <HomeStackNav.Screen name="NewRequest" component={NewRequestScreen} />
       <HomeStackNav.Screen name="Matching" component={MatchingScreen} />
       <HomeStackNav.Screen name="AllProviders" component={AllProvidersScreen} />
+      <HomeStackNav.Screen name="ProviderDetail" component={ProviderDetailScreen} />
     </HomeStackNav.Navigator>
   );
 }
@@ -46,6 +53,7 @@ function JobsStack() {
       <JobsStackNav.Screen name="JobsHome" component={JobsScreen} />
       <JobsStackNav.Screen name="JobDetail" component={JobDetailScreen} />
       <JobsStackNav.Screen name="RateJob" component={RateJobScreen} />
+      <JobsStackNav.Screen name="Dispute" component={DisputeScreen} />
     </JobsStackNav.Navigator>
   );
 }
@@ -68,9 +76,14 @@ function ProfileStack() {
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
       <ProfileStackNav.Screen name="SavedProviders" component={SavedProvidersScreen} />
+      <ProfileStackNav.Screen name="ProviderDetail" component={ProviderDetailScreen} />
       <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
+      <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
       <ProfileStackNav.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
       <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
+      <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />
+      <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />
+      <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
     </ProfileStackNav.Navigator>
   );

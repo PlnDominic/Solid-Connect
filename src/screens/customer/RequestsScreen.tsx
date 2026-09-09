@@ -1,6 +1,6 @@
 import { MapPin, ShieldCheck, Star } from 'lucide-react-native';
 import { ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useMyActiveRequest } from '../../api/requests';
+import { useMyActiveRequest, useNotifications } from '../../api/requests';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
@@ -38,7 +38,12 @@ function QuoteCard({
 
   async function handleChat() {
     if (!profile) return;
-    const thread = await getOrCreateThread({ requestId: request.id, customerId: profile.id, providerId: quote.provider_id });
+    const thread = await getOrCreateThread({
+      requestId: request.id,
+      customerId: profile.id,
+      providerId: quote.provider_id,
+      asRole: 'customer',
+    });
     onChat(thread.id, quote.provider_id);
   }
 
@@ -89,35 +94,82 @@ function QuoteCard({
 export function RequestsScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: request } = useMyActiveRequest(profile?.id ?? null);
+  const { data: notifications = [] } = useNotifications(profile?.id ?? null);
 
-  const hasQuotes = request && (request.status === 'quoted' || request.status === 'accepted') && request.quotes.length > 0;
+  const hasQuotes = request && request.status === 'quoted' && request.quotes.length > 0;
+  const isAwaiting = request?.status === 'awaiting_provider';
+  const isRejected = request?.status === 'rejected';
+  const isMatching = request?.status === 'matching' || request?.status === 'open';
+  const unreadReject = notifications.filter((n) => n.type === 'DIRECT_REJECTED' && !n.read_at);
+  const budget = request?.customer_budget ?? request?.budget_min;
+
+  const showFeed =
+    unreadReject.length > 0 || isRejected || isAwaiting || isMatching || hasQuotes;
 
   return (
     <Screen>
       <ScreenHeader title="Requests" large />
       <ScrollView showsVerticalScrollIndicator={false}>
-        {hasQuotes && request ? (
+        {showFeed ? (
           <View style={styles.body}>
-            <View style={styles.summary}>
-              <Text style={styles.summaryTitle}>
-                {request.category_label} · {request.location_label}
-              </Text>
-              <Text style={styles.summarySub}>
-                Requested today · Budget GHS {request.budget_min}-{request.budget_max} · {request.quotes.length} quotes received
-              </Text>
-            </View>
-            {request.quotes.map((q) => (
-              <QuoteCard
-                key={q.id}
-                quote={q}
-                request={request}
-                onAccepted={(jobId) => navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId } })}
-                onChat={(threadId, peerId) => navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })}
-              />
+            {unreadReject.slice(0, 3).map((n) => (
+              <View key={n.id} style={styles.rejectBanner}>
+                <Text style={styles.rejectTitle}>{n.title}</Text>
+                <Text style={styles.rejectBody}>{n.body}</Text>
+              </View>
             ))}
+
+            {request && (isAwaiting || isRejected || isMatching) ? (
+              <View style={styles.summary}>
+                <Text style={styles.summaryTitle}>
+                  {request.category_label} · {request.location_label}
+                </Text>
+                <Text style={styles.summarySub}>
+                  Budget GHS {budget}
+                  {isAwaiting
+                    ? ' · Waiting for provider response'
+                    : isRejected
+                      ? ' · Declined by provider'
+                      : ' · Matching providers'}
+                </Text>
+                {isRejected && request.rejection_reason ? (
+                  <Text style={styles.rejectInline}>Reason: {request.rejection_reason}</Text>
+                ) : null}
+              </View>
+            ) : null}
+
+            {hasQuotes && request ? (
+              <>
+                <View style={styles.summary}>
+                  <Text style={styles.summaryTitle}>
+                    {request.category_label} · {request.location_label}
+                  </Text>
+                  <Text style={styles.summarySub}>
+                    Budget GHS {budget} · {request.quotes.length} quote
+                    {request.quotes.length === 1 ? '' : 's'} received
+                  </Text>
+                </View>
+                {request.quotes.map((q) => (
+                  <QuoteCard
+                    key={q.id}
+                    quote={q}
+                    request={request}
+                    onAccepted={(jobId) =>
+                      navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId } })
+                    }
+                    onChat={(threadId, peerId) =>
+                      navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })
+                    }
+                  />
+                ))}
+              </>
+            ) : null}
           </View>
         ) : (
-          <EmptyState title="No requests yet" subtitle="Post a request from Home to get quotes from verified providers nearby." />
+          <EmptyState
+            title="No requests yet"
+            subtitle="Post a general request from Home, or pick a provider and send a direct request."
+          />
         )}
       </ScrollView>
     </Screen>
@@ -136,6 +188,17 @@ const styles = StyleSheet.create({
   },
   summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
   summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
+  rejectInline: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
+  rejectBanner: {
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.danger,
+    backgroundColor: colors.card,
+    gap: 4,
+  },
+  rejectTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+  rejectBody: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 18 },
 
   quoteCard: {
     borderRadius: radii.lg,
@@ -151,7 +214,14 @@ const styles = StyleSheet.create({
   quoteNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   quoteName: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
 
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 3, borderRadius: radii.sm, paddingVertical: 2, paddingHorizontal: 6 },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: radii.sm,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+  },
   badgeVerified: { backgroundColor: colors.confirmBg },
   badgeCertified: { backgroundColor: colors.navy },
   badgeTextVerified: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },

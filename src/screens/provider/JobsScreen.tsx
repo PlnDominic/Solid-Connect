@@ -12,15 +12,24 @@ import type { Job } from '../../types/database';
 
 function JobRow({ job, onPress }: { job: Job; onPress: () => void }) {
   const { data: customer } = useProvider(job.customer_id);
-  if (!customer) return null;
+  const name = customer?.full_name ?? 'Customer';
+  const initials = customer?.initials ?? 'CU';
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      <Avatar initials={customer.initials} />
+      <Avatar initials={initials} />
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={styles.title}>
-          {job.title} · {customer.full_name}
+          {job.title} · {name}
         </Text>
-        <Text style={styles.subtitle}>{job.status === 'completed' ? 'Completed' : `Step ${job.step} of 5 · on site`}</Text>
+        <Text style={styles.subtitle}>
+          {job.status === 'completed'
+            ? 'COMPLETED'
+            : job.status === 'awaiting_completion_confirmation'
+              ? 'AWAITING_COMPLETION_CONFIRMATION'
+              : job.status === 'in_progress'
+                ? 'IN_PROGRESS'
+                : 'Ready to start'}
+        </Text>
       </View>
       <ChevronRight size={18} strokeWidth={2} color={colors.inkFaint} />
     </Pressable>

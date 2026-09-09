@@ -9,6 +9,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
+import { isIdentityVerified, verificationLevelLabel } from '../../lib/verification';
 
 const MAX_DOCS = 3;
 
@@ -121,14 +122,14 @@ export function VerificationScreen({ navigation }: { navigation: any }) {
     <Screen>
       <ScreenHeader title="Verification" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
-        {profile.provider_verified ? (
+        {isIdentityVerified(profile) ? (
           <StatusPanel
             icon={<ShieldCheck size={11} strokeWidth={2.8} color={colors.confirm} />}
             bg={colors.confirmBg}
             fg={colors.confirm}
-            label="Verified"
+            label={verificationLevelLabel(profile)}
             title="You're a verified provider"
-            detail="Customers see your verification badge across the app. No further action needed."
+            detail={`Trust level: ${verificationLevelLabel(profile)}. Customers see your badge across the app.`}
           />
         ) : isLoading ? null : latest?.status === 'pending' ? (
           <StatusPanel

@@ -9,11 +9,19 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { colors, fonts, radii, spacing } from '../../theme';
 import type { Profile } from '../../types/database';
 
-function SavedProviderRow({ provider, customerId }: { provider: Profile; customerId: string }) {
+function SavedProviderRow({
+  provider,
+  customerId,
+  onOpen,
+}: {
+  provider: Profile;
+  customerId: string;
+  onOpen: () => void;
+}) {
   const toggleSaved = useToggleSavedProvider();
 
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onOpen}>
       <Avatar initials={provider.initials} />
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={styles.name}>{provider.full_name}</Text>
@@ -23,14 +31,13 @@ function SavedProviderRow({ provider, customerId }: { provider: Profile; custome
           <Text style={styles.meta}>{provider.provider_rating.toFixed(1)} · {provider.provider_distance_km} km</Text>
         </View>
       </View>
-      {/* Every row here is already saved, so the heart is always active - tapping it unsaves. */}
       <Pressable
         hitSlop={10}
         onPress={() => toggleSaved.mutate({ customerId, providerId: provider.id, saved: true })}
       >
         <Heart size={18} strokeWidth={2} color={colors.active} fill={colors.active} />
       </Pressable>
-    </View>
+    </Pressable>
   );
 }
 
@@ -43,7 +50,16 @@ export function SavedProvidersScreen({ navigation }: { navigation: any }) {
       <ScreenHeader title="Saved providers" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         {saved.length ? (
-          saved.map((p) => (profile ? <SavedProviderRow key={p.id} provider={p} customerId={profile.id} /> : null))
+          saved.map((p) =>
+            profile ? (
+              <SavedProviderRow
+                key={p.id}
+                provider={p}
+                customerId={profile.id}
+                onOpen={() => navigation.navigate('ProviderDetail', { providerId: p.id })}
+              />
+            ) : null
+          )
         ) : (
           <EmptyState title="No saved providers" subtitle="Tap the heart on a provider to save them here." />
         )}
