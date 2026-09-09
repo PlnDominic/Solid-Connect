@@ -63,7 +63,10 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const [category, setCategory] = useState<Category | null>(null);
   const [description, setDescription] = useState(params.initialDescription ?? '');
   const [budgetText, setBudgetText] = useState('');
-  const [location, setLocation] = useState(profile?.area?.split(',')[0]?.trim() || 'Achimota');
+  const [location, setLocation] = useState(() => {
+    const fromProfile = profile?.area?.split(',')[0]?.trim();
+    return fromProfile && isValidArea(fromProfile) ? fromProfile : 'Achimota';
+  });
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -133,7 +136,11 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   }
 
   async function handlePost() {
-    if (!profile || !category || !isValidArea(location)) return;
+    if (!profile || !category) return;
+    if (!isValidArea(location)) {
+      setError('Enter a valid location for this request.');
+      return;
+    }
     const budgetError = validateBudget();
     if (budgetError) {
       setError(budgetError);
@@ -252,6 +259,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
               </View>
             </View>
           ) : null}
+          {isDirect ? (
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Location</Text>
+              <AreaPicker value={location} onChangeValue={setLocation} />
+            </View>
+          ) : null}
           {budgetField}
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Describe the work</Text>
@@ -329,7 +342,11 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         {step < 3 || isDirect ? (
           <Button
             title={isDirect && step === 2 ? 'Send to provider' : 'Continue'}
-            disabled={(step === 1 && !category) || (step === 2 && !category)}
+            disabled={
+              (step === 1 && !category) ||
+              (step === 2 && !category) ||
+              (isDirect && step === 2 && !isValidArea(location))
+            }
             loading={isDirect && step === 2 && createRequest.isPending}
             onPress={handleContinue}
           />
