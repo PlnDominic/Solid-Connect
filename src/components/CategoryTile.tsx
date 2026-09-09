@@ -11,7 +11,8 @@ import {
   Wind,
   type LucideIcon,
 } from 'lucide-react-native';
-import { colors, fonts, radii, spacing } from '../theme';
+import { fonts, radii, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   plumbing: Wrench,
@@ -47,6 +48,8 @@ export function CategoryGridTile({
   onPress: () => void;
   bare?: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const Icon = CATEGORY_ICONS[id] ?? Wrench;
   return (
     <Pressable
@@ -87,6 +90,8 @@ export function CategoryTile({
   selected?: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <Pressable onPress={onPress} style={styles.tile}>
       <View style={styles.badge}>
@@ -111,6 +116,8 @@ export function CategoryRow({
   selected: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <Pressable
       onPress={onPress}
@@ -129,70 +136,72 @@ export function CategoryRow({
   );
 }
 
-const styles = StyleSheet.create({
-  tile: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-    borderRadius: radii.lg,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  badge: { width: 36, height: 36, borderRadius: radii.md, backgroundColor: colors.paperDim, alignItems: 'center', justifyContent: 'center' },
-  abbr: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink },
-  name: { fontSize: 11, fontFamily: fonts.semibold, color: colors.inkMuted, textAlign: 'center' },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-    borderRadius: radii.lg,
-    backgroundColor: colors.card,
-    borderWidth: 1.5,
-  },
-  rowName: { flex: 1, fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
-  check: { width: 20, height: 20, borderRadius: radii.sm, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
-  gridTile: {
-    width: 136,
-    alignItems: 'center',
-    gap: 3,
-    paddingVertical: spacing.xl,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.xl,
-    backgroundColor: colors.card,
-  },
-  gridTileSelected: {},
-  gridTileBare: {
-    width: 84,
-    alignItems: 'center',
-    gap: 3,
-  },
-  gridBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: radii.pill,
-    backgroundColor: colors.paperDim,
-    borderWidth: 1.5,
-    borderColor: colors.hairlineStrong,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-  },
-  gridBadgeSelected: { backgroundColor: colors.active, borderColor: colors.active },
-  gridCheck: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 20,
-    height: 20,
-    borderRadius: radii.sm,
-    backgroundColor: colors.active,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gridName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
-  gridDesc: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    tile: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 12,
+      paddingHorizontal: 6,
+      borderRadius: radii.lg,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    badge: { width: 36, height: 36, borderRadius: radii.md, backgroundColor: colors.paperDim, alignItems: 'center', justifyContent: 'center' },
+    abbr: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink },
+    name: { fontSize: 11, fontFamily: fonts.semibold, color: colors.inkMuted, textAlign: 'center' },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+      borderRadius: radii.lg,
+      backgroundColor: colors.card,
+      borderWidth: 1.5,
+    },
+    rowName: { flex: 1, fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
+    check: { width: 20, height: 20, borderRadius: radii.sm, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
+    gridTile: {
+      width: 136,
+      alignItems: 'center',
+      gap: 3,
+      paddingVertical: spacing.xl,
+      paddingHorizontal: spacing.md,
+      borderRadius: radii.xl,
+      backgroundColor: colors.card,
+    },
+    gridTileSelected: {},
+    gridTileBare: {
+      width: 84,
+      alignItems: 'center',
+      gap: 3,
+    },
+    gridBadge: {
+      width: 52,
+      height: 52,
+      borderRadius: radii.pill,
+      backgroundColor: colors.paperDim,
+      borderWidth: 1.5,
+      borderColor: colors.hairlineStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 6,
+    },
+    gridBadgeSelected: { backgroundColor: colors.active, borderColor: colors.active },
+    gridCheck: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      width: 20,
+      height: 20,
+      borderRadius: radii.sm,
+      backgroundColor: colors.active,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    gridName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
+    gridDesc: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
+  });
+}

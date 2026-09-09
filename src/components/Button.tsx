@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
-import { colors, fonts, radii } from '../theme';
+import { fonts, radii } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 type Variant = 'primary' | 'navy' | 'outline' | 'ghost';
 
@@ -24,6 +25,8 @@ export function Button({
   loading?: boolean;
   style?: ViewStyle;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const isPrimary = variant === 'primary';
   const isNavy = variant === 'navy';
   const isOutline = variant === 'outline';
@@ -52,33 +55,35 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    height: 52,
-    borderRadius: radii.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  primary: {
-    backgroundColor: colors.ink,
-    shadowColor: colors.black,
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-  navy: {
-    backgroundColor: colors.navy,
-    shadowColor: colors.black,
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-  outline: { borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.card },
-  ghost: { backgroundColor: 'transparent' },
-  disabled: { opacity: 0.4 },
-  pressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
-  label: { fontFamily: fonts.bold, fontSize: 15.5, letterSpacing: -0.1 },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    base: {
+      height: 52,
+      borderRadius: radii.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 20,
+    },
+    primary: {
+      backgroundColor: colors.ink,
+      shadowColor: colors.black,
+      shadowOpacity: 0.16,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
+    },
+    navy: {
+      backgroundColor: colors.navy,
+      shadowColor: colors.black,
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
+    },
+    outline: { borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.card },
+    ghost: { backgroundColor: 'transparent' },
+    disabled: { opacity: 0.4 },
+    pressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
+    label: { fontFamily: fonts.bold, fontSize: 15.5, letterSpacing: -0.1 },
+  });
+}

@@ -2,7 +2,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronLeft, MailCheck } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 /**
  * Shown only when the Supabase project has "Confirm email" enabled, so
@@ -12,6 +13,8 @@ import { colors, fonts, radii, spacing } from '../../theme';
  * title/copy, footer button) - no centered/icon-hero treatment.
  */
 export function SignUpConfirmEmailScreen({ email, onGoToSignIn }: { email: string; onGoToSignIn: () => void }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.header}>
@@ -41,44 +44,46 @@ export function SignUpConfirmEmailScreen({ email, onGoToSignIn }: { email: strin
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-  },
-  back: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.paperDim,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.paper },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.sm,
+    },
+    back: {
+      width: 32,
+      height: 32,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.paperDim,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
 
-  body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
+    body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
 
-  stamp: {
-    alignSelf: 'flex-start',
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.navyBg,
-    borderWidth: 1,
-    borderColor: colors.navy,
-    borderRadius: radii.pill,
-  },
+    stamp: {
+      alignSelf: 'flex-start',
+      width: 30,
+      height: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.navyBg,
+      borderWidth: 1,
+      borderColor: colors.navy,
+      borderRadius: radii.pill,
+    },
 
-  textWrap: { gap: 8 },
-  title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-  copy: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
-  email: { fontFamily: fonts.bold, color: colors.ink },
+    textWrap: { gap: 8 },
+    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
+    copy: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+    email: { fontFamily: fonts.bold, color: colors.ink },
 
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg },
-});
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg },
+  });
+}

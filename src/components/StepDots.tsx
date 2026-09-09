@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
-import { colors, radii } from '../theme';
+import { radii } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 /**
  * Onboarding progress: small ruled ticks, not soft pill dots - the active
@@ -15,6 +16,8 @@ export function StepDots({
   activeIndex: number;
   dark?: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.row}>
       {Array.from({ length: count }).map((_, i) => (
@@ -34,6 +37,8 @@ export function StepDots({
 
 /** New-request wizard style progress (N equal bars, filled up to step). */
 export function StepBars({ count, step }: { count: number; step: number }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.barsRow}>
       {Array.from({ length: count }).map((_, i) => (
@@ -46,13 +51,15 @@ export function StepBars({ count, step }: { count: number; step: number }) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
-  tick: { height: 4, borderRadius: radii.sm, borderWidth: 1 },
-  tickActive: { width: 22, backgroundColor: colors.ink, borderColor: colors.ink },
-  tickActiveDark: { backgroundColor: colors.white, borderColor: colors.white },
-  tickInactive: { width: 4, backgroundColor: 'transparent', borderColor: colors.hairlineStrong },
-  tickInactiveDark: { borderColor: 'rgba(255,255,255,0.4)' },
-  barsRow: { flexDirection: 'row', gap: 6 },
-  bar: { flex: 1, height: 4, borderRadius: 999 },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    row: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+    tick: { height: 4, borderRadius: radii.sm, borderWidth: 1 },
+    tickActive: { width: 22, backgroundColor: colors.ink, borderColor: colors.ink },
+    tickActiveDark: { backgroundColor: colors.white, borderColor: colors.white },
+    tickInactive: { width: 4, backgroundColor: 'transparent', borderColor: colors.hairlineStrong },
+    tickInactiveDark: { borderColor: 'rgba(255,255,255,0.4)' },
+    barsRow: { flexDirection: 'row', gap: 6 },
+    bar: { flex: 1, height: 4, borderRadius: 999 },
+  });
+}

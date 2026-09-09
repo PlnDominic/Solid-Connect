@@ -10,7 +10,8 @@ import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 function timeAgo(iso: string) {
   const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -20,6 +21,8 @@ function timeAgo(iso: string) {
 }
 
 export function RequestDetailScreen({ navigation, route }: { navigation: any; route: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const requestId: string = route.params.requestId;
   const profile = useSessionStore((s) => s.profile);
   const { data: request } = useServiceRequest(requestId);
@@ -180,64 +183,66 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.xl },
-  summary: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    padding: spacing.md,
-    gap: 3,
-  },
-  summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
-  directHint: { fontSize: 12, fontFamily: fonts.medium, color: colors.ink, marginTop: 4 },
-  desc: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
-  photoRow: { gap: spacing.sm },
-  photo: { width: 96, height: 96, borderRadius: radii.md, backgroundColor: colors.paperDim },
-  fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
-  priceField: {
-    height: 52,
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    borderColor: colors.ink,
-    backgroundColor: colors.card,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  priceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 16, fontFamily: fonts.medium },
-  priceInput: { flex: 1, fontSize: 16, fontFamily: fonts.medium, color: colors.ink },
-  reasonInput: {
-    minHeight: 88,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    padding: spacing.md,
-    fontSize: 14,
-    lineHeight: 20,
-    fontFamily: fonts.regular,
-    color: colors.ink,
-    textAlignVertical: 'top',
-  },
-  readonlyField: {
-    height: 52,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
-  footer: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-    backgroundColor: colors.card,
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
-    gap: spacing.sm,
-  },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.xl },
+    summary: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      padding: spacing.md,
+      gap: 3,
+    },
+    summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
+    directHint: { fontSize: 12, fontFamily: fonts.medium, color: colors.ink, marginTop: 4 },
+    desc: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
+    photoRow: { gap: spacing.sm },
+    photo: { width: 96, height: 96, borderRadius: radii.md, backgroundColor: colors.paperDim },
+    fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
+    priceField: {
+      height: 52,
+      borderRadius: radii.lg,
+      borderWidth: 1.5,
+      borderColor: colors.ink,
+      backgroundColor: colors.card,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+    },
+    priceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 16, fontFamily: fonts.medium },
+    priceInput: { flex: 1, fontSize: 16, fontFamily: fonts.medium, color: colors.ink },
+    reasonInput: {
+      minHeight: 88,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      padding: spacing.md,
+      fontSize: 14,
+      lineHeight: 20,
+      fontFamily: fonts.regular,
+      color: colors.ink,
+      textAlignVertical: 'top',
+    },
+    readonlyField: {
+      height: 52,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      justifyContent: 'center',
+      paddingHorizontal: spacing.md,
+    },
+    readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
+    footer: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xl,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.hairline,
+      gap: spacing.sm,
+    },
+  });
+}

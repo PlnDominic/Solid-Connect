@@ -7,12 +7,15 @@ import { Button } from '../../components/Button';
 import { AREAS } from '../../constants/areas';
 import { coordsForArea, saveProviderCoverage, useMyServiceAreas } from '../../api/location';
 import { isApiConfigured } from '../../lib/api';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const STORAGE_KEY = 'solid-connect:service-areas';
 const RADIUS_OPTIONS_KM = [5, 10, 15, 25] as const;
 
 export function ServiceAreasScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [selected, setSelected] = useState<string[]>(['Achimota', 'Airport Residential']);
   const [radiusKm, setRadiusKm] = useState<number | null>(10);
   const [primaryArea, setPrimaryArea] = useState<string | null>(null);
@@ -150,22 +153,24 @@ export function ServiceAreasScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.lg },
-  note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-  section: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-  hint: { fontSize: 12, fontFamily: fonts.regular, color: colors.inkFaint },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-  chipPrimary: { borderWidth: 2, borderColor: colors.navy },
-  chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-  chipLabelActive: { color: colors.white },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.lg },
+    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    section: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    hint: { fontSize: 12, fontFamily: fonts.regular, color: colors.inkFaint },
+    chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    chip: {
+      paddingVertical: 10,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.pill,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipPrimary: { borderWidth: 2, borderColor: colors.navy },
+    chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabelActive: { color: colors.white },
+  });
+}

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { colors, fonts } from '../../theme';
+import { fonts } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const logo = require('../../../assets/images/logo.jpeg');
 
@@ -16,6 +17,8 @@ const FADE_OUT_MS = 400;
 const TOTAL_MS = 6200;
 
 export function SplashScreen({ onFinish }: { onFinish: () => void }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const scale = useRef(new Animated.Value(1.9)).current;
   const captionOpacity = useRef(new Animated.Value(0)).current;
   const screenOpacity = useRef(new Animated.Value(1)).current;
@@ -56,9 +59,11 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.white },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18 },
-  logo: { width: 150, height: 84 },
-  caption: { fontSize: 13, letterSpacing: 0.6, color: 'rgba(17,17,19,0.45)', fontFamily: fonts.medium },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.white },
+    content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18 },
+    logo: { width: 150, height: 84 },
+    caption: { fontSize: 13, letterSpacing: 0.6, color: 'rgba(17,17,19,0.45)', fontFamily: fonts.medium },
+  });
+}

@@ -8,10 +8,13 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import type { Job } from '../../types/database';
 
 function JobRow({ job, onPress }: { job: Job; onPress: () => void }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data: customer } = useProvider(job.customer_id);
   const name = customer?.full_name ?? 'Customer';
   const initials = customer?.initials ?? 'CU';
@@ -38,6 +41,8 @@ function JobRow({ job, onPress }: { job: Job; onPress: () => void }) {
 }
 
 export function JobsScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: jobs = [], refetch } = useProviderJobs(profile?.id ?? null);
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
@@ -67,17 +72,19 @@ export function JobsScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  title: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  subtitle: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      alignItems: 'center',
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    title: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    subtitle: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+  });
+}

@@ -2,7 +2,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Bell } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 /**
  * Last stop right after the account (and profile row) actually exist - not
@@ -19,6 +20,8 @@ export function SignUpNotificationsScreen({
   onSkip: () => void;
   loading?: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.body}>
@@ -42,25 +45,27 @@ export function SignUpNotificationsScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxxl, gap: spacing.xl },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.paper },
+    body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxxl, gap: spacing.xl },
 
-  stamp: {
-    alignSelf: 'flex-start',
-    width: 30,
-    height: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.navyBg,
-    borderWidth: 1,
-    borderColor: colors.navy,
-    borderRadius: radii.pill,
-  },
+    stamp: {
+      alignSelf: 'flex-start',
+      width: 30,
+      height: 30,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.navyBg,
+      borderWidth: 1,
+      borderColor: colors.navy,
+      borderRadius: radii.pill,
+    },
 
-  textWrap: { gap: 8 },
-  title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-  copy: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+    textWrap: { gap: 8 },
+    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
+    copy: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
 
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
-});
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
+  });
+}

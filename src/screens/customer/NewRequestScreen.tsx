@@ -11,7 +11,8 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { StepBars } from '../../components/StepDots';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import type { Category } from '../../types/database';
 
 const MAX_PHOTOS = 4;
@@ -44,6 +45,8 @@ function matchCategory(
 }
 
 export function NewRequestScreen({ navigation, route }: { navigation: any; route?: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: categories = [] } = useCategories();
   const { data: allProviders = [] } = useAllProviders(null, profile?.area ?? null);
@@ -348,97 +351,99 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   );
 }
 
-const styles = StyleSheet.create({
-  progressWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, backgroundColor: colors.paper },
-  body: { padding: spacing.lg, gap: spacing.xl },
-  sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  sectionTitle: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
-  sectionCount: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  categoryScroll: { marginHorizontal: -spacing.lg },
-  categoryRow: { paddingHorizontal: spacing.lg, gap: spacing.md },
-  field: { gap: 7 },
-  fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
-  readonlyField: {
-    height: 52,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
-  readonlyValueMono: { fontSize: 15, fontFamily: fonts.mono, color: colors.ink },
-  budgetField: {
-    height: 52,
-    borderRadius: radii.lg,
-    borderWidth: 1.5,
-    borderColor: colors.ink,
-    backgroundColor: colors.card,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 16, fontFamily: fonts.medium },
-  budgetInput: { flex: 1, fontSize: 16, fontFamily: fonts.medium, color: colors.ink },
-  budgetHint: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  textarea: {
-    minHeight: 100,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    padding: spacing.md,
-    fontSize: 15,
-    lineHeight: 22,
-    fontFamily: fonts.regular,
-    color: colors.ink,
-    textAlignVertical: 'top',
-  },
-  photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  photoWrap: { width: 72, height: 72 },
-  photo: { width: 72, height: 72, borderRadius: radii.lg, backgroundColor: colors.paperDim },
-  photoRemove: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  photoAdd: {
-    width: 72,
-    height: 72,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.hairlineStrong,
-    backgroundColor: colors.paperDim,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  reviewCard: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    padding: spacing.lg,
-    gap: 6,
-  },
-  reviewLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-  reviewCategory: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  reviewDesc: { fontSize: 13, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
-  errorText: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
-  footer: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-    backgroundColor: colors.paper,
-    borderTopWidth: 1,
-    borderTopColor: colors.hairline,
-    gap: spacing.sm,
-  },
-  footerNote: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    progressWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, backgroundColor: colors.paper },
+    body: { padding: spacing.lg, gap: spacing.xl },
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+    sectionTitle: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
+    sectionCount: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    categoryScroll: { marginHorizontal: -spacing.lg },
+    categoryRow: { paddingHorizontal: spacing.lg, gap: spacing.md },
+    field: { gap: 7 },
+    fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
+    readonlyField: {
+      height: 52,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      justifyContent: 'center',
+      paddingHorizontal: spacing.md,
+    },
+    readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
+    readonlyValueMono: { fontSize: 15, fontFamily: fonts.mono, color: colors.ink },
+    budgetField: {
+      height: 52,
+      borderRadius: radii.lg,
+      borderWidth: 1.5,
+      borderColor: colors.ink,
+      backgroundColor: colors.card,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+    },
+    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 16, fontFamily: fonts.medium },
+    budgetInput: { flex: 1, fontSize: 16, fontFamily: fonts.medium, color: colors.ink },
+    budgetHint: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    textarea: {
+      minHeight: 100,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      padding: spacing.md,
+      fontSize: 15,
+      lineHeight: 22,
+      fontFamily: fonts.regular,
+      color: colors.ink,
+      textAlignVertical: 'top',
+    },
+    photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+    photoWrap: { width: 72, height: 72 },
+    photo: { width: 72, height: 72, borderRadius: radii.lg, backgroundColor: colors.paperDim },
+    photoRemove: {
+      position: 'absolute',
+      top: -6,
+      right: -6,
+      width: 22,
+      height: 22,
+      borderRadius: radii.pill,
+      backgroundColor: colors.ink,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    photoAdd: {
+      width: 72,
+      height: 72,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: colors.hairlineStrong,
+      backgroundColor: colors.paperDim,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    reviewCard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      padding: spacing.lg,
+      gap: 6,
+    },
+    reviewLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    reviewCategory: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    reviewDesc: { fontSize: 13, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
+    errorText: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    footer: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xl,
+      backgroundColor: colors.paper,
+      borderTopWidth: 1,
+      borderTopColor: colors.hairline,
+      gap: spacing.sm,
+    },
+    footerNote: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
+  });
+}

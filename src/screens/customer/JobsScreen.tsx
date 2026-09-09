@@ -9,9 +9,12 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 export function JobsScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: job, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
   const { data: provider } = useProvider(job?.provider_id);
@@ -67,27 +70,29 @@ export function JobsScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  title: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  subtitle: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  ratePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: radii.pill,
-    backgroundColor: colors.ink,
-  },
-  ratePillText: { fontSize: 12, fontFamily: fonts.bold, color: colors.white },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    card: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      alignItems: 'center',
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    title: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    subtitle: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    ratePill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: radii.pill,
+      backgroundColor: colors.ink,
+    },
+    ratePillText: { fontSize: 12, fontFamily: fonts.bold, color: colors.white },
+  });
+}

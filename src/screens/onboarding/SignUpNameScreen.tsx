@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, fonts } from '../../theme';
+import { fonts } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import { SignUpDetailScreen } from './SignUpDetailScreen';
 
 export function SignUpNameScreen({
@@ -19,6 +20,8 @@ export function SignUpNameScreen({
   onNext: () => void;
   onGoToSignIn: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <SignUpDetailScreen
       totalSteps={totalSteps}
@@ -43,7 +46,9 @@ export function SignUpNameScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  link: { textAlign: 'center', fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
-  linkStrong: { fontFamily: fonts.bold, color: colors.ink },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    link: { textAlign: 'center', fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
+    linkStrong: { fontFamily: fonts.bold, color: colors.ink },
+  });
+}

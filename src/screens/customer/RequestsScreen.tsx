@@ -11,7 +11,8 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote, ServiceRequest } from '../../types/database';
 
 function QuoteCard({
@@ -25,6 +26,8 @@ function QuoteCard({
   onAccepted: (jobId: string) => void;
   onChat: (threadId: string, peerId: string) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data: provider } = useProvider(quote.provider_id);
   const acceptQuote = useAcceptQuote();
   const profile = useSessionStore((s) => s.profile);
@@ -93,6 +96,8 @@ function QuoteCard({
 }
 
 export function RequestsScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: request, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
   const { data: notifications = [], refetch: refetchNotifs } = useNotifications(profile?.id ?? null);
@@ -185,71 +190,73 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.md },
-  summary: {
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    gap: 3,
-  },
-  summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
-  rejectInline: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
-  rejectBanner: {
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.danger,
-    backgroundColor: colors.card,
-    gap: 4,
-  },
-  rejectTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-  rejectBody: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 18 },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.md },
+    summary: {
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      gap: 3,
+    },
+    summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
+    rejectInline: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
+    rejectBanner: {
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.danger,
+      backgroundColor: colors.card,
+      gap: 4,
+    },
+    rejectTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    rejectBody: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 18 },
 
-  quoteCard: {
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  quoteTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  quoteIdentity: { flexDirection: 'row', gap: spacing.md, flexShrink: 1 },
-  quoteNameWrap: { gap: 4, flexShrink: 1 },
-  quoteNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  quoteName: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    quoteCard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    quoteTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+    quoteIdentity: { flexDirection: 'row', gap: spacing.md, flexShrink: 1 },
+    quoteNameWrap: { gap: 4, flexShrink: 1 },
+    quoteNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+    quoteName: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
 
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    borderRadius: radii.sm,
-    paddingVertical: 2,
-    paddingHorizontal: 6,
-  },
-  badgeVerified: { backgroundColor: colors.confirmBg },
-  badgeCertified: { backgroundColor: colors.navy },
-  badgeTextVerified: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
-  badgeTextOnDark: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
+    badge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      borderRadius: radii.sm,
+      paddingVertical: 2,
+      paddingHorizontal: 6,
+    },
+    badgeVerified: { backgroundColor: colors.confirmBg },
+    badgeCertified: { backgroundColor: colors.navy },
+    badgeTextVerified: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
+    badgeTextOnDark: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
 
-  quoteMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  quoteMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
-  quoteMetaDim: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  quotePrice: { fontSize: 19, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    quoteMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    quoteMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
+    quoteMetaDim: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    quotePrice: { fontSize: 19, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
 
-  quoteEta: {
-    alignSelf: 'flex-start',
-    borderRadius: radii.sm,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: colors.paperDim,
-  },
-  quoteEtaText: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.inkMuted },
+    quoteEta: {
+      alignSelf: 'flex-start',
+      borderRadius: radii.sm,
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      backgroundColor: colors.paperDim,
+    },
+    quoteEtaText: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.inkMuted },
 
-  quoteActions: { flexDirection: 'row', gap: spacing.sm },
-  halfBtn: { flex: 1, height: 46 },
-});
+    quoteActions: { flexDirection: 'row', gap: spacing.sm },
+    halfBtn: { flex: 1, height: 46 },
+  });
+}

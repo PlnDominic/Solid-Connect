@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts } from '../theme';
+import { fonts } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 /**
  * Rounded-square, not circular - reads as an ID-badge photo frame, a
@@ -9,8 +10,8 @@ import { colors, fonts } from '../theme';
 export function Avatar({
   initials,
   size = 48,
-  bg = colors.paperDim,
-  fg = colors.ink,
+  bg,
+  fg,
   dim = false,
 }: {
   initials: string;
@@ -19,6 +20,10 @@ export function Avatar({
   fg?: string;
   dim?: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const resolvedBg = bg ?? colors.paperDim;
+  const resolvedFg = fg ?? colors.ink;
   return (
     <View
       style={[
@@ -27,16 +32,18 @@ export function Avatar({
           width: size,
           height: size,
           borderRadius: Math.max(6, size * 0.22),
-          backgroundColor: dim ? 'rgba(255,255,255,0.15)' : bg,
+          backgroundColor: dim ? 'rgba(255,255,255,0.15)' : resolvedBg,
           borderColor: dim ? 'rgba(255,255,255,0.2)' : colors.hairline,
         },
       ]}
     >
-      <Text style={{ color: fg, fontFamily: fonts.extrabold, fontSize: size * 0.32 }}>{initials}</Text>
+      <Text style={{ color: resolvedFg, fontFamily: fonts.extrabold, fontSize: size * 0.32 }}>{initials}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
   frame: { alignItems: 'center', justifyContent: 'center', flexShrink: 0, borderWidth: 1 },
 });
+}

@@ -8,7 +8,8 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import type { Profile } from '../../types/database';
 
 function ProviderRow({
@@ -20,6 +21,8 @@ function ProviderRow({
   customerId: string;
   onOpen: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data: saved = false } = useIsProviderSaved(customerId, provider.id);
   const toggleSaved = useToggleSavedProvider();
 
@@ -47,6 +50,8 @@ function ProviderRow({
 }
 
 export function AllProvidersScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: providers = [], refetch } = useAllProviders();
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
@@ -79,19 +84,21 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.md },
-  card: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  name: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  meta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.md },
+    card: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      alignItems: 'center',
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    name: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    meta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+  });
+}

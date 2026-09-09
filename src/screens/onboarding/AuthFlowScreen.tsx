@@ -13,7 +13,8 @@ import {
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts } from '../../theme';
+import { fonts } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import type { Role } from '../../types/database';
 import { OnboardingScreen } from './OnboardingScreen';
 import { SignInScreen } from './SignInScreen';
@@ -61,6 +62,8 @@ const TOTAL_STEPS = 10;
  * the account and the profile row together.
  */
 export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data: categories = [] } = useCategories();
   const [phase, setPhase] = useState<Phase>('bootstrapping');
   const [error, setError] = useState<string | null>(null);
@@ -430,8 +433,10 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
-  blank: { flex: 1, backgroundColor: colors.white },
-  errorWrap: { flex: 1, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  errorText: { fontFamily: fonts.medium, fontSize: 15, color: colors.ink, textAlign: 'center' },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    blank: { flex: 1, backgroundColor: colors.white },
+    errorWrap: { flex: 1, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', padding: 32 },
+    errorText: { fontFamily: fonts.medium, fontSize: 15, color: colors.ink, textAlign: 'center' },
+  });
+}

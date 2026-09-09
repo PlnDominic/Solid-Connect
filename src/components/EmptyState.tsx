@@ -1,7 +1,8 @@
 import { Text, View, StyleSheet } from 'react-native';
 import { Inbox } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { colors, fonts, radii, spacing } from '../theme';
+import { fonts, radii, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 export function EmptyState({
   title,
@@ -12,6 +13,8 @@ export function EmptyState({
   subtitle?: string;
   icon?: LucideIcon;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.wrap}>
       <View style={styles.icon}>
@@ -23,19 +26,21 @@ export function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: { paddingVertical: 76, paddingHorizontal: spacing.xxl, alignItems: 'center', gap: spacing.sm },
-  icon: {
-    width: 56,
-    height: 56,
-    borderRadius: radii.lg,
-    backgroundColor: colors.paperDim,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  title: { fontSize: 16, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
-  subtitle: { fontSize: 13, color: colors.inkMuted, lineHeight: 20, textAlign: 'center', maxWidth: 260, fontFamily: fonts.regular },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    wrap: { paddingVertical: 76, paddingHorizontal: spacing.xxl, alignItems: 'center', gap: spacing.sm },
+    icon: {
+      width: 56,
+      height: 56,
+      borderRadius: radii.lg,
+      backgroundColor: colors.paperDim,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 4,
+    },
+    title: { fontSize: 16, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
+    subtitle: { fontSize: 13, color: colors.inkMuted, lineHeight: 20, textAlign: 'center', maxWidth: 260, fontFamily: fonts.regular },
+  });
+}

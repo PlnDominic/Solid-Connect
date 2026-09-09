@@ -7,7 +7,8 @@ import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 function timeAgo(iso: string) {
   const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -17,6 +18,8 @@ function timeAgo(iso: string) {
 }
 
 export function FeedScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: requests = [], isLoading, isError, refetch, isFetching } = useFeedRequests(
     profile?.id ?? null,
@@ -102,36 +105,38 @@ export function FeedScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.xxl,
-    gap: 5,
-    backgroundColor: colors.navy,
-  },
-  eyebrow: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.medium },
-  title: { fontSize: 28, letterSpacing: -0.9, fontFamily: fonts.extrabold, color: colors.white },
-  body: { padding: spacing.lg, paddingTop: spacing.xl, gap: spacing.md, flexGrow: 1 },
-  bodyEmpty: { justifyContent: 'center' },
-  loading: { alignItems: 'center', gap: spacing.md, paddingVertical: 64 },
-  loadingText: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
-  card: {
-    borderRadius: radii.lg,
-    backgroundColor: colors.card,
-    padding: spacing.lg,
-    gap: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  cardTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-  cardMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-  cardBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
-  retry: {
-    alignSelf: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  retryLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    header: {
+      paddingHorizontal: spacing.xl,
+      paddingTop: spacing.xxl,
+      paddingBottom: spacing.xxl,
+      gap: 5,
+      backgroundColor: colors.navy,
+    },
+    eyebrow: { fontSize: 12, color: 'rgba(255,255,255,0.6)', fontFamily: fonts.medium },
+    title: { fontSize: 28, letterSpacing: -0.9, fontFamily: fonts.extrabold, color: colors.white },
+    body: { padding: spacing.lg, paddingTop: spacing.xl, gap: spacing.md, flexGrow: 1 },
+    bodyEmpty: { justifyContent: 'center' },
+    loading: { alignItems: 'center', gap: spacing.md, paddingVertical: 64 },
+    loadingText: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    card: {
+      borderRadius: radii.lg,
+      backgroundColor: colors.card,
+      padding: spacing.lg,
+      gap: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
+    cardTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    cardMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    cardBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    retry: {
+      alignSelf: 'center',
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.lg,
+    },
+    retryLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+  });
+}

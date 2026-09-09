@@ -1,6 +1,7 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useCategories } from '../api/marketplace';
-import { colors, fonts, radii, spacing } from '../theme';
+import { fonts, radii, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 type SingleProps = {
   multi?: false;
@@ -22,6 +23,8 @@ type MultiProps = {
  * Chip grid of service categories. Single-select (name) or multi-select (category ids).
  */
 export function CategoryPicker(props: SingleProps | MultiProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data: categories, isLoading, isError } = useCategories();
   const multi = props.multi === true;
 
@@ -67,26 +70,28 @@ export function CategoryPicker(props: SingleProps | MultiProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  errorText: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 20 },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-  chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-  chipLabelActive: { color: colors.white },
-  hint: {
-    width: '100%',
-    marginTop: spacing.sm,
-    fontSize: 12.5,
-    lineHeight: 18,
-    fontFamily: fonts.medium,
-    color: colors.inkFaint,
-  },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    errorText: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 20 },
+    chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    chip: {
+      paddingVertical: 10,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.pill,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabelActive: { color: colors.white },
+    hint: {
+      width: '100%',
+      marginTop: spacing.sm,
+      fontSize: 12.5,
+      lineHeight: 18,
+      fontFamily: fonts.medium,
+      color: colors.inkFaint,
+    },
+  });
+}

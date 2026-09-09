@@ -7,11 +7,14 @@ import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const MAX_PHOTOS = 12;
 
 export function PortfolioScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: photos = [] } = usePortfolioPhotos(profile?.id);
   const upload = useUploadPortfolioPhoto();
@@ -103,32 +106,34 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
 
 const CELL_SIZE = 104;
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.lg },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  cell: { width: CELL_SIZE, height: CELL_SIZE },
-  photo: { width: CELL_SIZE, height: CELL_SIZE, borderRadius: radii.md, backgroundColor: colors.paperDim },
-  removeBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addCell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.card,
-  },
-  errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.lg },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    cell: { width: CELL_SIZE, height: CELL_SIZE },
+    photo: { width: CELL_SIZE, height: CELL_SIZE, borderRadius: radii.md, backgroundColor: colors.paperDim },
+    removeBadge: {
+      position: 'absolute',
+      top: -6,
+      right: -6,
+      width: 22,
+      height: 22,
+      borderRadius: radii.pill,
+      backgroundColor: colors.ink,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addCell: {
+      width: CELL_SIZE,
+      height: CELL_SIZE,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      borderStyle: 'dashed',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+    },
+    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+  });
+}

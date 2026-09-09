@@ -8,7 +8,8 @@ import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified, verificationLevelLabel } from '../../lib/verification';
 
 const MAX_DOCS = 3;
@@ -21,6 +22,8 @@ function StatusPanel({ icon, bg, fg, label, title, detail }: {
   title: string;
   detail: string;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <View style={styles.statusPanel}>
       <Badge label={label} bg={bg} fg={fg} icon={icon} />
@@ -31,6 +34,8 @@ function StatusPanel({ icon, bg, fg, label, title, detail }: {
 }
 
 function SubmissionForm({ providerId, rejectionNote }: { providerId: string; rejectionNote?: string | null }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [images, setImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const submit = useSubmitVerification();
@@ -113,6 +118,8 @@ function SubmissionForm({ providerId, rejectionNote }: { providerId: string; rej
 }
 
 export function VerificationScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: latest, isLoading } = useLatestVerification(profile?.id ?? null);
 
@@ -148,54 +155,56 @@ export function VerificationScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.lg },
-  statusPanel: {
-    padding: spacing.lg,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-    gap: spacing.sm,
-    alignItems: 'flex-start',
-  },
-  statusTitle: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
-  statusDetail: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-  label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkFaint },
-  note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-  rejectionNote: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: colors.dangerBg,
-  },
-  rejectionNoteTitle: { fontSize: 13, fontFamily: fonts.bold, color: colors.danger },
-  rejectionNoteText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 18 },
-  thumbRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  thumbWrap: { width: 84, height: 84 },
-  thumb: { width: 84, height: 84, borderRadius: radii.md, backgroundColor: colors.paperDim },
-  thumbRemove: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: radii.pill,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  thumbAdd: {
-    width: 84,
-    height: 84,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.card,
-  },
-  errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.lg },
+    statusPanel: {
+      padding: spacing.lg,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      gap: spacing.sm,
+      alignItems: 'flex-start',
+    },
+    statusTitle: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
+    statusDetail: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkFaint },
+    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    rejectionNote: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      padding: spacing.md,
+      borderRadius: radii.lg,
+      backgroundColor: colors.dangerBg,
+    },
+    rejectionNoteTitle: { fontSize: 13, fontFamily: fonts.bold, color: colors.danger },
+    rejectionNoteText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 18 },
+    thumbRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    thumbWrap: { width: 84, height: 84 },
+    thumb: { width: 84, height: 84, borderRadius: radii.md, backgroundColor: colors.paperDim },
+    thumbRemove: {
+      position: 'absolute',
+      top: -6,
+      right: -6,
+      width: 22,
+      height: 22,
+      borderRadius: radii.pill,
+      backgroundColor: colors.ink,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    thumbAdd: {
+      width: 84,
+      height: 84,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      borderStyle: 'dashed',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+    },
+    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+  });
+}

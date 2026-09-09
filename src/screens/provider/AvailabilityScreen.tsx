@@ -4,7 +4,8 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useMyAvailability, useSaveWeeklyAvailability, useSetAvailabilityMode } from '../../api/location';
 import { isApiConfigured } from '../../lib/api';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const MODES = [
   { id: 'AVAILABLE_NOW' as const, label: 'Available now' },
@@ -22,6 +23,8 @@ const DEFAULT_WEEK = [1, 2, 3, 4, 5].map((dayOfWeek) => ({
 }));
 
 export function AvailabilityScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const { data, isLoading } = useMyAvailability();
   const setMode = useSetAvailabilityMode();
   const saveWeekly = useSaveWeeklyAvailability();
@@ -97,30 +100,32 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  body: { padding: spacing.lg, gap: spacing.lg },
-  note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-  section: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink, marginTop: spacing.sm },
-  chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  chip: {
-    paddingVertical: 10,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  day: {
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    backgroundColor: colors.card,
-  },
-  chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-  chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
-  chipLabelActive: { color: colors.white },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    body: { padding: spacing.lg, gap: spacing.lg },
+    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    section: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink, marginTop: spacing.sm },
+    chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    chip: {
+      paddingVertical: 10,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.pill,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    day: {
+      width: 48,
+      height: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: radii.pill,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabelActive: { color: colors.white },
+  });
+}

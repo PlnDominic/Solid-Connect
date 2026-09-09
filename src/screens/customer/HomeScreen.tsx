@@ -11,7 +11,8 @@ import type { FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 const PROVIDER_FILTERS: FilterOption[] = [
   { id: 'all', label: 'All', icon: ListFilter },
@@ -26,6 +27,8 @@ const PROVIDER_PREVIEW_COUNT = 6;
 const LOGO_IMAGE = require('../../../assets/images/logo.jpeg');
 
 export function HomeScreen({ navigation }: { navigation: any }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: categories = [], refetch: refetchCategories } = useCategories();
   // The full, unfiltered set - useTopProviders() caps at 3, which made the
@@ -283,117 +286,119 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.paper },
-  body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 112, gap: spacing.xl },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    scroll: { flex: 1, backgroundColor: colors.paper },
+    body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 112, gap: spacing.xl },
 
-  // Hero "card" - greeting, search, primary action and job/request status
-  // all live on one dark, rounded-rect surface styled like a payment card
-  // (chip + contactless mark, wordmark, embossed-feel white CTA). Ties the
-  // "trust it like your bank card" mechanism directly to the home screen.
-  heroCard: {
-    backgroundColor: colors.navy,
-    borderRadius: radii.xxxl,
-    padding: spacing.lg,
-    gap: spacing.lg,
-    shadowColor: colors.black,
-    shadowOpacity: 0.22,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
-  },
-  heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  heroWordmark: { color: 'rgba(255,255,255,0.85)', fontSize: 12, fontFamily: fonts.extrabold, letterSpacing: 1.4 },
-  heroCardMarks: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  heroLogoChip: {
-    width: 40,
-    height: 26,
-    borderRadius: 4,
-    backgroundColor: colors.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 3,
-    paddingVertical: 3,
-  },
-  heroLogo: { width: '100%', height: '100%' },
-  contactless: { transform: [{ rotate: '90deg' }] },
+    // Hero "card" - greeting, search, primary action and job/request status
+    // all live on one dark, rounded-rect surface styled like a payment card
+    // (chip + contactless mark, wordmark, embossed-feel white CTA). Ties the
+    // "trust it like your bank card" mechanism directly to the home screen.
+    heroCard: {
+      backgroundColor: colors.navy,
+      borderRadius: radii.xxxl,
+      padding: spacing.lg,
+      gap: spacing.lg,
+      shadowColor: colors.black,
+      shadowOpacity: 0.22,
+      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 10 },
+      elevation: 6,
+    },
+    heroTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    heroWordmark: { color: 'rgba(255,255,255,0.85)', fontSize: 12, fontFamily: fonts.extrabold, letterSpacing: 1.4 },
+    heroCardMarks: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    heroLogoChip: {
+      width: 40,
+      height: 26,
+      borderRadius: 4,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 3,
+      paddingVertical: 3,
+    },
+    heroLogo: { width: '100%', height: '100%' },
+    contactless: { transform: [{ rotate: '90deg' }] },
 
-  heroGreetRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  heroGreetText: { flex: 1, gap: 3 },
-  heroGreeting: { color: colors.white, fontSize: 19, letterSpacing: -0.4, fontFamily: fonts.extrabold },
-  heroLocation: { color: 'rgba(255,255,255,0.6)', fontSize: 12.5, fontFamily: fonts.medium },
+    heroGreetRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    heroGreetText: { flex: 1, gap: 3 },
+    heroGreeting: { color: colors.white, fontSize: 19, letterSpacing: -0.4, fontFamily: fonts.extrabold },
+    heroLocation: { color: 'rgba(255,255,255,0.6)', fontSize: 12.5, fontFamily: fonts.medium },
 
-  heroSearch: {
-    height: 48,
-    borderRadius: radii.lg,
-    paddingHorizontal: spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-  },
-  heroSearchInput: { flex: 1, color: colors.white, fontSize: 14, fontFamily: fonts.medium, padding: 0 },
+    heroSearch: {
+      height: 48,
+      borderRadius: radii.lg,
+      paddingHorizontal: spacing.lg,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.14)',
+    },
+    heroSearchInput: { flex: 1, color: colors.white, fontSize: 14, fontFamily: fonts.medium, padding: 0 },
 
-  heroCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: colors.white,
-    borderRadius: radii.lg,
-    height: 50,
-  },
-  heroCtaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-  heroCtaLabel: { color: colors.ink, fontSize: 15, fontFamily: fonts.bold },
+    heroCta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: colors.white,
+      borderRadius: radii.lg,
+      height: 50,
+    },
+    heroCtaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+    heroCtaLabel: { color: colors.ink, fontSize: 15, fontFamily: fonts.bold },
 
-  heroActivity: {
-    padding: spacing.md,
-    gap: 6,
-    borderRadius: radii.lg,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-  },
-  heroActivityPressed: { backgroundColor: 'rgba(255,255,255,0.14)' },
-  heroActivityTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md },
-  heroActivityEyebrow: { color: colors.pendingOnDark, fontSize: 10, letterSpacing: 0.7, fontFamily: fonts.extrabold },
-  heroActivityAction: { flexDirection: 'row', alignItems: 'center', gap: 1 },
-  heroActivityActionText: { color: colors.white, fontSize: 12.5, fontFamily: fonts.bold },
-  heroActivityTitle: { color: colors.white, fontSize: 14.5, letterSpacing: -0.2, fontFamily: fonts.bold },
-  heroActivityDetail: { color: 'rgba(255,255,255,0.65)', fontSize: 12.5, lineHeight: 18, fontFamily: fonts.medium },
-  heroProgressTrack: { height: 3, marginTop: 3, borderRadius: radii.pill, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.16)' },
-  heroProgressFill: { height: '100%', borderRadius: radii.pill, backgroundColor: colors.confirmOnDark },
+    heroActivity: {
+      padding: spacing.md,
+      gap: 6,
+      borderRadius: radii.lg,
+      backgroundColor: 'rgba(255,255,255,0.08)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.14)',
+    },
+    heroActivityPressed: { backgroundColor: 'rgba(255,255,255,0.14)' },
+    heroActivityTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md },
+    heroActivityEyebrow: { color: colors.pendingOnDark, fontSize: 10, letterSpacing: 0.7, fontFamily: fonts.extrabold },
+    heroActivityAction: { flexDirection: 'row', alignItems: 'center', gap: 1 },
+    heroActivityActionText: { color: colors.white, fontSize: 12.5, fontFamily: fonts.bold },
+    heroActivityTitle: { color: colors.white, fontSize: 14.5, letterSpacing: -0.2, fontFamily: fonts.bold },
+    heroActivityDetail: { color: 'rgba(255,255,255,0.65)', fontSize: 12.5, lineHeight: 18, fontFamily: fonts.medium },
+    heroProgressTrack: { height: 3, marginTop: 3, borderRadius: radii.pill, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.16)' },
+    heroProgressFill: { height: '100%', borderRadius: radii.pill, backgroundColor: colors.confirmOnDark },
 
-  sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  sectionTitle: { color: colors.ink, fontSize: 16.5, letterSpacing: -0.3, fontFamily: fonts.bold },
-  sectionCount: { color: colors.inkFaint, fontSize: 12, fontFamily: fonts.medium },
-  providerHeading: { marginTop: 4 },
-  seeAll: { color: colors.ink, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
+    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+    sectionTitle: { color: colors.ink, fontSize: 16.5, letterSpacing: -0.3, fontFamily: fonts.bold },
+    sectionCount: { color: colors.inkFaint, fontSize: 12, fontFamily: fonts.medium },
+    providerHeading: { marginTop: 4 },
+    seeAll: { color: colors.ink, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
 
-  categoryScroll: { marginHorizontal: -spacing.lg },
-  categoryRow: { paddingHorizontal: spacing.lg, gap: spacing.md },
+    categoryScroll: { marginHorizontal: -spacing.lg },
+    categoryRow: { paddingHorizontal: spacing.lg, gap: spacing.md },
 
-  filterEmpty: {
-    backgroundColor: colors.card,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    paddingVertical: spacing.xxl,
-    alignItems: 'center',
-  },
-  filterEmptyText: { color: colors.inkMuted, fontSize: 13.5, fontFamily: fonts.medium },
+    filterEmpty: {
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      paddingVertical: spacing.xxl,
+      alignItems: 'center',
+    },
+    filterEmptyText: { color: colors.inkMuted, fontSize: 13.5, fontFamily: fonts.medium },
 
-  providerList: { backgroundColor: colors.card, borderRadius: radii.lg, overflow: 'hidden', borderWidth: 1, borderColor: colors.hairline },
-  providerRow: { minHeight: 78, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
-  providerRowPressed: { backgroundColor: colors.paperDim },
-  providerInfo: { flex: 1, gap: 2 },
-  providerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  providerName: { color: colors.ink, fontSize: 14, fontFamily: fonts.bold },
-  verifiedStamp: { alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: radii.pill, backgroundColor: colors.confirmBg },
-  providerTrade: { color: colors.inkMuted, fontSize: 11.5, fontFamily: fonts.medium },
-  providerMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
-  providerMeta: { color: colors.inkFaint, fontSize: 11, fontFamily: fonts.medium, marginRight: 4 },
-  metaDot: { width: 2.5, height: 2.5, borderRadius: 2, backgroundColor: colors.inkFainter, marginHorizontal: 1 },
-});
+    providerList: { backgroundColor: colors.card, borderRadius: radii.lg, overflow: 'hidden', borderWidth: 1, borderColor: colors.hairline },
+    providerRow: { minHeight: 78, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+    providerRowPressed: { backgroundColor: colors.paperDim },
+    providerInfo: { flex: 1, gap: 2 },
+    providerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    providerName: { color: colors.ink, fontSize: 14, fontFamily: fonts.bold },
+    verifiedStamp: { alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: radii.pill, backgroundColor: colors.confirmBg },
+    providerTrade: { color: colors.inkMuted, fontSize: 11.5, fontFamily: fonts.medium },
+    providerMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
+    providerMeta: { color: colors.inkFaint, fontSize: 11, fontFamily: fonts.medium, marginRight: 4 },
+    metaDot: { width: 2.5, height: 2.5, borderRadius: 2, backgroundColor: colors.inkFainter, marginHorizontal: 1 },
+  });
+}

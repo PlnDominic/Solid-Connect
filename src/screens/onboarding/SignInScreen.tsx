@@ -12,7 +12,8 @@ import { Apple, Mail, Phone } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { GoogleMark } from '../../components/GoogleMark';
-import { colors, fonts, radii, spacing } from '../../theme';
+import { fonts, radii, spacing } from '../../theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 type IdentifierMethod = 'email' | 'phone';
 
@@ -37,6 +38,8 @@ export function SignInScreen({
   loading?: 'password' | 'google' | 'apple' | null;
   errorMessage?: string | null;
 }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [method, setMethod] = useState<IdentifierMethod>('email');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -157,58 +160,60 @@ export function SignInScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  fill: { flex: 1, backgroundColor: colors.paper },
-  body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.lg },
-  wordmark: { fontSize: 14, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },
-  textWrap: { gap: 8 },
-  title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-  copy: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    fill: { flex: 1, backgroundColor: colors.paper },
+    body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.lg },
+    wordmark: { fontSize: 14, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },
+    textWrap: { gap: 8 },
+    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
+    copy: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
 
-  methodRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  methodTab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    height: 34,
-    paddingHorizontal: 14,
-    borderRadius: radii.pill,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-  },
-  methodTabActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-  methodLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted },
-  methodLabelActive: { color: colors.white },
+    methodRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    methodTab: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      height: 34,
+      paddingHorizontal: 14,
+      borderRadius: radii.pill,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    methodTabActive: { backgroundColor: colors.ink, borderColor: colors.ink },
+    methodLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted },
+    methodLabelActive: { color: colors.white },
 
-  fields: { gap: spacing.lg, marginTop: spacing.xs },
-  input: {
-    fontSize: 17,
-    fontFamily: fonts.medium,
-    color: colors.ink,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.hairlineStrong,
-    paddingVertical: spacing.md,
-  },
-  errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+    fields: { gap: spacing.lg, marginTop: spacing.xs },
+    input: {
+      fontSize: 17,
+      fontFamily: fonts.medium,
+      color: colors.ink,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.hairlineStrong,
+      paddingVertical: spacing.md,
+    },
+    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
 
-  divider: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.xs },
-  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.hairlineStrong },
-  dividerLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    divider: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.xs },
+    dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.hairlineStrong },
+    dividerLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
 
-  socialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    height: 52,
-    borderRadius: radii.pill,
-    backgroundColor: colors.ink,
-  },
-  socialButtonPressed: { opacity: 0.88 },
-  socialLabel: { fontSize: 15, fontFamily: fonts.bold, color: colors.white },
+    socialButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      height: 52,
+      borderRadius: radii.pill,
+      backgroundColor: colors.ink,
+    },
+    socialButtonPressed: { opacity: 0.88 },
+    socialLabel: { fontSize: 15, fontFamily: fonts.bold, color: colors.white },
 
-  footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, alignItems: 'center' },
-  link: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
-  linkStrong: { fontFamily: fonts.bold, color: colors.ink },
-});
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, alignItems: 'center' },
+    link: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
+    linkStrong: { fontFamily: fonts.bold, color: colors.ink },
+  });
+}
