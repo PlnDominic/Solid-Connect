@@ -38,7 +38,7 @@ img { display: block; }
 
 /* ===== Light Theme ===== */
 [data-theme="light"] {
-  --bg-primary: #f5f5f5;
+  --bg-primary: #fcfcfc;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
   --bg-card-hover: #fafafa;

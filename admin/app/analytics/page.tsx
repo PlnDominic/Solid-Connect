@@ -117,19 +117,14 @@ export default async function AnalyticsPage() {
     providersRes,
     verifiedRes,
     pendingRes,
-    rejectedRes,
-    customersRes,
     jobsRes,
     completedRes,
-    reviewsRes,
     recentJobsRes,
     recentReviewsRes,
-    allReviewRatingsRes,
     categoryLinksRes,
     paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
-    customersTimelineRes,
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'provider'),
     supabase
@@ -138,11 +133,8 @@ export default async function AnalyticsPage() {
       .eq('role', 'provider')
       .eq('provider_verified', true),
     supabase.from('provider_verifications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('provider_verifications').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
     supabase.from('jobs').select('*', { count: 'exact', head: true }),
     supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-    supabase.from('reviews').select('*', { count: 'exact', head: true }),
     // jobs has started_at / completed_at — not created_at
     supabase
       .from('jobs')
@@ -154,31 +146,24 @@ export default async function AnalyticsPage() {
       .select('id, rating, created_at, provider_id, customer_id, job_id')
       .order('created_at', { ascending: false })
       .limit(5),
-    supabase.from('reviews').select('rating'),
     supabase.from('provider_categories').select('category_id, categories(name)'),
     supabase.from('payments').select('amount, status'),
     supabase.from('jobs').select('started_at'),
     supabase.from('profiles').select('created_at').eq('role', 'provider'),
-    supabase.from('profiles').select('created_at').eq('role', 'customer'),
   ]);
 
   const queryErrors = [
     providersRes,
     verifiedRes,
     pendingRes,
-    rejectedRes,
-    customersRes,
     jobsRes,
     completedRes,
-    reviewsRes,
     recentJobsRes,
     recentReviewsRes,
-    allReviewRatingsRes,
     categoryLinksRes,
     paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
-    customersTimelineRes,
   ]
     .map((r) => r.error?.message)
     .filter(Boolean);
@@ -186,15 +171,11 @@ export default async function AnalyticsPage() {
   const providers = providersRes.count ?? 0;
   const verified = verifiedRes.count ?? 0;
   const pending = pendingRes.count ?? 0;
-  const rejected = rejectedRes.count ?? 0;
-  const customers = customersRes.count ?? 0;
   const jobs = jobsRes.count ?? 0;
   const completed = completedRes.count ?? 0;
-  const reviews = reviewsRes.count ?? 0;
   const recentJobs = recentJobsRes.data ?? [];
   const recentReviews = recentReviewsRes.data ?? [];
   const paymentsData = paymentsRes.data ?? [];
-  const allReviewRatings = allReviewRatingsRes.data ?? [];
 
   const totalRevenue = paymentsData
     .filter((p) => p.status === 'released' || p.status === 'completed' || p.status === 'paid')
@@ -230,14 +211,8 @@ export default async function AnalyticsPage() {
   const catEntries = Object.entries(catCounts).sort((a, b) => b[1] - a[1]);
   const totalCat = catEntries.reduce((s, [, c]) => s + c, 0);
 
-  const avgRating =
-    allReviewRatings.length > 0
-      ? (allReviewRatings.reduce((s, r) => s + (r.rating ?? 0), 0) / allReviewRatings.length).toFixed(1)
-      : '—';
-
   const jobsByMonth = countByMonth((jobsTimelineRes.data ?? []).map((j) => j.started_at));
   const providersByMonth = countByMonth((providersTimelineRes.data ?? []).map((p) => p.created_at));
-  const customersByMonth = countByMonth((customersTimelineRes.data ?? []).map((p) => p.created_at));
   const monthLabels = months.map((m) => m.label);
 
   // Cumulative sparkline series from monthly signups / jobs
@@ -276,20 +251,11 @@ export default async function AnalyticsPage() {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-card-label">Total Providers</div>
-          <div className="stat-card-value">{fmt(providers)}</div>
-          <div className="stat-card-trend up">{verificationRate}% verified</div>
-          <div className="stat-card-sub">
-            {verified} verified, {pending} pending
+          <div className="stat-card-label">Pending Verifications</div>
+          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>
+            {fmt(pending)}
           </div>
-          <Sparkline data={cumulative(providersByMonth)} />
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Customers</div>
-          <div className="stat-card-value">{fmt(customers)}</div>
-          <div className="stat-card-trend up">Active users</div>
-          <div className="stat-card-sub">Registered on the platform</div>
-          <Sparkline data={cumulative(customersByMonth)} />
+          <div className="stat-card-sub">Awaiting admin review</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Total Jobs</div>
@@ -307,38 +273,14 @@ export default async function AnalyticsPage() {
           <div className="stat-card-sub">{currency(pendingPayments)} pending</div>
           <Sparkline data={jobsByMonth.map((n) => n * Math.max(1, Math.round(totalRevenue / Math.max(jobs, 1))))} />
         </div>
-      </div>
-
-      <div className="stats-grid" style={{ marginBottom: 16 }}>
         <div className="stat-card">
-          <div className="stat-card-label">Pending Verifications</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>
-            {fmt(pending)}
-          </div>
-          <div className="stat-card-sub">Awaiting admin review</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Rejected Verifications</div>
-          <div className="stat-card-value" style={{ color: 'var(--red)' }}>
-            {fmt(rejected)}
-          </div>
-          <div className="stat-card-sub">Did not meet requirements</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Reviews</div>
-          <div className="stat-card-value" style={{ color: 'var(--blue)' }}>
-            {fmt(reviews)}
-          </div>
-          <div className="stat-card-sub">Avg rating: {avgRating} ★</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Completion Rate</div>
-          <div className="stat-card-value" style={{ color: 'var(--green)' }}>
-            {completionRate}%
-          </div>
+          <div className="stat-card-label">Total Providers</div>
+          <div className="stat-card-value">{fmt(providers)}</div>
+          <div className="stat-card-trend up">{verificationRate}% verified</div>
           <div className="stat-card-sub">
-            {completed} of {jobs} jobs finished
+            {verified} verified, {pending} pending
           </div>
+          <Sparkline data={cumulative(providersByMonth)} />
         </div>
       </div>
 
