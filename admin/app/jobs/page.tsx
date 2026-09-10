@@ -1,46 +1,83 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../lib/supabase';
+import { ErrorBanner } from '../components/ErrorBanner';
+import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../components/Pagination';
 
-type Props = { searchParams: Promise<{ status?: string; q?: string }> };
+type Props = { searchParams: Promise<{ status?: string; q?: string; page?: string }> };
 const statuses = ['all', 'in_progress', 'completed'];
 const statusLabels: Record<string, string> = { all: 'All', in_progress: 'In Progress', completed: 'Completed' };
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 const currency = (n: number) => `$${n.toLocaleString('en-US')}`;
 
+/** Strips characters that would break a PostgREST .or()/.ilike() filter string. */
+const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
+
 export default async function JobsPage({ searchParams }: Props) {
-  const { status: requested, q } = await searchParams;
+  const { status: requested, q, page: pageRaw } = await searchParams;
   const status = statuses.includes(requested ?? '') ? requested! : 'all';
+  const requestedPage = parsePage(pageRaw);
   const supabase = await createServerSupabase();
+  const term = q ? sanitizeForFilter(q) : '';
 
-  // Base query
-  let query = supabase
-    .from('jobs')
-    .select('id, title, price, location_label, status, started_at, completed_at, customer_id, provider_id')
-    .order('started_at', { ascending: false });
+  // Two separate builders rather than one branching on a flag: a ternary
+  // between two differently-selected queries collapses TS's inferred row
+  // type to their common subset ({id}), breaking property access below.
+  const countQuery = () => {
+    let q2 = supabase.from('jobs').select('id', { count: 'exact', head: true });
+    if (status !== 'all') q2 = q2.eq('status', status);
+    if (term) q2 = q2.or(`title.ilike.%${term}%,location_label.ilike.%${term}%`);
+    return q2;
+  };
+  const dataQuery = () => {
+    let q2 = supabase.from('jobs').select('id, title, price, location_label, status, started_at, completed_at, customer_id, provider_id');
+    if (status !== 'all') q2 = q2.eq('status', status);
+    if (term) q2 = q2.or(`title.ilike.%${term}%,location_label.ilike.%${term}%`);
+    return q2;
+  };
 
-  if (status !== 'all') {
-    query = query.eq('status', status);
-  }
+  // Stat cards reflect the selected status tab (matching the tabs
+  // themselves) but not the search box - counted independently of the
+  // current page so they stay correct once the table is paginated.
+  const withTab = () => {
+    let q2 = supabase.from('jobs').select('*', { count: 'exact', head: true });
+    if (status !== 'all') q2 = q2.eq('status', status);
+    return q2;
+  };
+  // Completed jobs within the current tab (narrow single-column fetch, just
+  // to sum price client-side - PostgREST has no server-side SUM here).
+  const revenueQuery = () => {
+    let q2 = supabase.from('jobs').select('price');
+    if (status !== 'all') q2 = q2.eq('status', status);
+    return q2.eq('status', 'completed');
+  };
 
-  const { data: jobs } = await query;
+  const [
+    { count: filteredTotal, error: countError },
+    { count: totalCount, error: totalError },
+    { count: completedCount, error: completedError },
+    { count: inProgressCount, error: inProgressError },
+    { data: completedPrices, error: revenueError },
+  ] = await Promise.all([
+    countQuery(),
+    withTab(),
+    withTab().eq('status', 'completed'),
+    withTab().eq('status', 'in_progress'),
+    revenueQuery(),
+  ]);
 
-  // Filter by search
-  let filtered = jobs ?? [];
-  if (q) {
-    const lower = q.toLowerCase();
-    filtered = filtered.filter(j =>
-      j.title?.toLowerCase().includes(lower) ||
-      j.location_label?.toLowerCase().includes(lower)
-    );
-  }
+  const total = filteredTotal ?? 0;
+  const page = clampPage(requestedPage, total, PAGE_SIZE);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
-  // Stats
-  const allJobs = jobs ?? [];
-  const completedJobs = allJobs.filter(j => j.status === 'completed');
-  const inProgressJobs = allJobs.filter(j => j.status === 'in_progress');
-  const totalRevenue = completedJobs.reduce((s, j) => s + (j.price ?? 0), 0);
-  const avgPrice = completedJobs.length > 0 ? totalRevenue / completedJobs.length : 0;
+  const { data: jobs, error: listError } = await dataQuery().order('started_at', { ascending: false }).range(from, to);
+
+  const errors = [countError?.message, listError?.message, totalError?.message, completedError?.message, inProgressError?.message, revenueError?.message];
+
+  const filtered = jobs ?? [];
+  const totalRevenue = (completedPrices ?? []).reduce((s, j) => s + (j.price ?? 0), 0);
+  const avgPrice = (completedCount ?? 0) > 0 ? totalRevenue / (completedCount ?? 1) : 0;
 
   // Get provider and customer names for display
   const providerIds = [...new Set(filtered.map(j => j.provider_id).filter(Boolean))];
@@ -69,19 +106,21 @@ export default async function JobsPage({ searchParams }: Props) {
         <p className="page-header-sub">Track all service jobs across the Solid Connect marketplace.</p>
       </div>
 
+      <ErrorBanner errors={errors} />
+
       {/* Stats */}
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Total Jobs</div>
-          <div className="stat-card-value">{allJobs.length}</div>
+          <div className="stat-card-value">{totalCount ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Completed</div>
-          <div className="stat-card-value" style={{ color: 'var(--green)' }}>{completedJobs.length}</div>
+          <div className="stat-card-value" style={{ color: 'var(--green)' }}>{completedCount ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">In Progress</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{inProgressJobs.length}</div>
+          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{inProgressCount ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Revenue</div>
@@ -178,6 +217,7 @@ export default async function JobsPage({ searchParams }: Props) {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total ?? 0} basePath="/jobs" params={{ status, q }} />
     </>
   );
 }

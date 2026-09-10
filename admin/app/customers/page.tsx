@@ -1,40 +1,61 @@
-import Link from 'next/link';
 import { createServerSupabase } from '../../lib/supabase';
+import { ErrorBanner } from '../components/ErrorBanner';
+import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../components/Pagination';
 
-type Props = { searchParams: Promise<{ q?: string }> };
+type Props = { searchParams: Promise<{ q?: string; page?: string }> };
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 
-export default async function CustomersPage({ searchParams }: Props) {
-  const { q } = await searchParams;
-  const supabase = await createServerSupabase();
+/** Strips characters that would break a PostgREST .or()/.ilike() filter string. */
+const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
 
-  const [{ data: customers, count: total }, { count: totalJobs }] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('id, full_name, initials, area, phone, email, created_at', { count: 'exact' })
-      .eq('role', 'customer')
-      .order('created_at', { ascending: false }),
-    // Total jobs across all customers - independent of the query above, so runs in parallel
+export default async function CustomersPage({ searchParams }: Props) {
+  const { q, page: pageRaw } = await searchParams;
+  const requestedPage = parsePage(pageRaw);
+  const supabase = await createServerSupabase();
+  const term = q ? sanitizeForFilter(q) : '';
+
+  // Two separate builders rather than one branching on a flag: a ternary
+  // between two differently-selected queries collapses TS's inferred row
+  // type to their common subset ({id}), breaking property access below.
+  const countQuery = () => {
+    let q2 = supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'customer');
+    if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,area.ilike.%${term}%`);
+    return q2;
+  };
+  const dataQuery = () => {
+    let q2 = supabase.from('profiles').select('id, full_name, initials, area, phone, email, created_at').eq('role', 'customer');
+    if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,area.ilike.%${term}%`);
+    return q2;
+  };
+
+  const [
+    { count: filteredTotal, error: countError },
+    // Total Customers stat reflects the whole table, independent of search.
+    { count: allCustomers, error: totalError },
+    { count: totalJobs, error: jobsError },
+  ] = await Promise.all([
+    countQuery(),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
     supabase.from('jobs').select('*', { count: 'exact', head: true }),
   ]);
 
-  // Filter by search
-  let filtered = customers ?? [];
-  if (q) {
-    const lower = q.toLowerCase();
-    filtered = filtered.filter(c =>
-      c.full_name?.toLowerCase().includes(lower) ||
-      c.email?.toLowerCase().includes(lower) ||
-      c.area?.toLowerCase().includes(lower)
-    );
-  }
+  const total = filteredTotal ?? 0;
+  const page = clampPage(requestedPage, total, PAGE_SIZE);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
-  // Get job counts per customer (depends on filtered customer ids, so stays sequential)
-  const customerIds = filtered.map(c => c.id);
-  const { data: jobCounts } = customerIds.length > 0
+  const { data: customers, error: listError } = await dataQuery().order('created_at', { ascending: false }).range(from, to);
+
+  const rows = customers ?? [];
+
+  // Job counts for just the rows on this page.
+  const customerIds = rows.map(c => c.id);
+  const { data: jobCounts, error: jobCountsError } = customerIds.length > 0
     ? await supabase.from('jobs').select('customer_id').in('customer_id', customerIds)
-    : { data: [] };
+    : { data: [], error: null };
+
+  const errors = [countError?.message, listError?.message, totalError?.message, jobsError?.message, jobCountsError?.message];
 
   const countMap: Record<string, number> = {};
   jobCounts?.forEach(j => { countMap[j.customer_id] = (countMap[j.customer_id] || 0) + 1; });
@@ -48,11 +69,13 @@ export default async function CustomersPage({ searchParams }: Props) {
         <p className="page-header-sub">All customers who have signed up on the Solid Connect platform.</p>
       </div>
 
+      <ErrorBanner errors={errors} />
+
       {/* Stats */}
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Total Customers</div>
-          <div className="stat-card-value">{total ?? 0}</div>
+          <div className="stat-card-value">{allCustomers ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Total Jobs Posted</div>
@@ -60,7 +83,9 @@ export default async function CustomersPage({ searchParams }: Props) {
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Avg Jobs per Customer</div>
-          <div className="stat-card-value">{total && total > 0 ? ((totalJobs ?? 0) / total).toFixed(1) : '0'}</div>
+          <div className="stat-card-value">
+            {allCustomers && allCustomers > 0 ? ((totalJobs ?? 0) / allCustomers).toFixed(1) : '0'}
+          </div>
         </div>
       </div>
 
@@ -94,7 +119,7 @@ export default async function CustomersPage({ searchParams }: Props) {
             </tr>
           </thead>
           <tbody>
-            {filtered.length > 0 ? filtered.map(c => (
+            {rows.length > 0 ? rows.map(c => (
               <tr key={c.id}>
                 <td>
                   <div className="profile-cell">
@@ -119,6 +144,7 @@ export default async function CustomersPage({ searchParams }: Props) {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total ?? 0} basePath="/customers" params={{ q }} />
     </>
   );
 }

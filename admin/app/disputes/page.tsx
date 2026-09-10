@@ -1,7 +1,9 @@
 import { createServerSupabase } from '../../lib/supabase';
 import { resolveDispute } from './actions';
+import { ErrorBanner } from '../components/ErrorBanner';
+import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../components/Pagination';
 
-type Props = { searchParams: Promise<{ status?: string }> };
+type Props = { searchParams: Promise<{ status?: string; page?: string }> };
 
 const stamp = (date: string) =>
   new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
@@ -15,29 +17,47 @@ const reasonLabel: Record<string, string> = {
 };
 
 export default async function DisputesPage({ searchParams }: Props) {
-  const { status: requested } = await searchParams;
+  const { status: requested, page: pageRaw } = await searchParams;
   const status = requested === 'resolved' || requested === 'open' ? requested : 'open';
+  const requestedPage = parsePage(pageRaw);
   const supabase = await createServerSupabase();
 
-  let query = supabase
+  const [
+    { count: filteredTotal, error: countError },
+    // "Open" stat is a standing queue signal - always the true global open
+    // count, not scoped to whichever tab you happen to be viewing.
+    { count: openCount, error: openError },
+  ] = await Promise.all([
+    supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', status),
+    supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+  ]);
+
+  const total = filteredTotal ?? 0;
+  const page = clampPage(requestedPage, total, PAGE_SIZE);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  const { data: disputes, error: listError } = await supabase
     .from('disputes')
     .select('id, job_id, customer_id, provider_id, reason, description, status, resolution_note, created_at, resolved_at')
     .eq('status', status)
-    .order('created_at', { ascending: false });
-  const { data: disputes } = await query;
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   const rows = disputes ?? [];
   const ids = [...new Set(rows.flatMap((d) => [d.customer_id, d.provider_id].filter(Boolean)))];
   const jobIds = [...new Set(rows.map((d) => d.job_id).filter(Boolean))];
 
-  const [{ data: people }, { data: jobs }] = await Promise.all([
+  const [{ data: people, error: peopleError }, { data: jobs, error: jobsError }] = await Promise.all([
     ids.length
       ? supabase.from('profiles').select('id, full_name').in('id', ids)
-      : Promise.resolve({ data: [] as { id: string; full_name: string }[] }),
+      : Promise.resolve({ data: [] as { id: string; full_name: string }[], error: null }),
     jobIds.length
       ? supabase.from('jobs').select('id, title').in('id', jobIds)
-      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+      : Promise.resolve({ data: [] as { id: string; title: string }[], error: null }),
   ]);
+
+  const errors = [countError?.message, listError?.message, openError?.message, peopleError?.message, jobsError?.message];
 
   const nameMap: Record<string, string> = {};
   people?.forEach((p) => {
@@ -48,8 +68,6 @@ export default async function DisputesPage({ searchParams }: Props) {
     jobMap[j.id] = j.title;
   });
 
-  const openCount = rows.filter((d) => d.status === 'open').length;
-
   return (
     <>
       <div className="page-header">
@@ -58,16 +76,18 @@ export default async function DisputesPage({ searchParams }: Props) {
         <p className="page-header-sub">Customer-filed complaints on jobs. Resolve with a clear note for both sides.</p>
       </div>
 
+      <ErrorBanner errors={errors} />
+
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Open</div>
           <div className="stat-card-value" style={{ color: 'var(--accent)' }}>
-            {openCount}
+            {openCount ?? 0}
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Listed</div>
-          <div className="stat-card-value">{rows.length}</div>
+          <div className="stat-card-value">{total ?? 0}</div>
         </div>
       </div>
 
@@ -141,6 +161,7 @@ export default async function DisputesPage({ searchParams }: Props) {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageSize={PAGE_SIZE} total={total ?? 0} basePath="/disputes" params={{ status }} />
     </>
   );
 }

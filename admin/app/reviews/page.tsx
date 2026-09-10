@@ -1,34 +1,74 @@
 import { createServerSupabase } from '../../lib/supabase';
+import { ErrorBanner } from '../components/ErrorBanner';
+import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../components/Pagination';
 
-type Props = { searchParams: Promise<{ rating?: string }> };
+type Props = { searchParams: Promise<{ rating?: string; page?: string }> };
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 
 export default async function ReviewsPage({ searchParams }: Props) {
-  const { rating } = await searchParams;
+  const { rating, page: pageRaw } = await searchParams;
+  const requestedPage = parsePage(pageRaw);
   const supabase = await createServerSupabase();
 
-  const { data: reviews, count: total } = await supabase
-    .from('reviews')
-    .select('id, rating, created_at, provider_id, customer_id, job_id', { count: 'exact' })
-    .order('created_at', { ascending: false });
+  // Two separate builders rather than one branching on a flag: a ternary
+  // between two differently-selected queries collapses TS's inferred row
+  // type to their common subset ({id}), breaking property access below.
+  const countQuery = () => {
+    let q2 = supabase.from('reviews').select('id', { count: 'exact', head: true });
+    if (rating) q2 = q2.eq('rating', Number(rating));
+    return q2;
+  };
+  const dataQuery = () => {
+    let q2 = supabase.from('reviews').select('id, rating, created_at, provider_id, customer_id, job_id');
+    if (rating) q2 = q2.eq('rating', Number(rating));
+    return q2;
+  };
 
-  let filtered = reviews ?? [];
-  if (rating) {
-    filtered = filtered.filter(r => r.rating === Number(rating));
-  }
+  // Rating distribution as 5 independent counts rather than fetching every
+  // review row - stays cheap and exact regardless of table size, and gives
+  // an exact average (sum(stars*count)/total) without a row fetch either.
+  const starCount = (stars: number) =>
+    supabase.from('reviews').select('*', { count: 'exact', head: true }).eq('rating', stars);
 
-  // Rating distribution
-  const allReviews = reviews ?? [];
-  const dist = [5, 4, 3, 2, 1].map(r => ({
-    stars: r,
-    count: allReviews.filter(rev => rev.rating === r).length,
-  }));
-  const avgRating = allReviews.length > 0
-    ? (allReviews.reduce((s, r) => s + (r.rating ?? 0), 0) / allReviews.length)
-    : 0;
+  const [
+    { count: filteredTotal, error: countError },
+    { count: c5, error: e5 },
+    { count: c4, error: e4 },
+    { count: c3, error: e3 },
+    { count: c2, error: e2 },
+    { count: c1, error: e1 },
+  ] = await Promise.all([
+    countQuery(),
+    starCount(5),
+    starCount(4),
+    starCount(3),
+    starCount(2),
+    starCount(1),
+  ]);
 
-  // Get provider/customer names
+  const filteredCount = filteredTotal ?? 0;
+  const page = clampPage(requestedPage, filteredCount, PAGE_SIZE);
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+
+  const { data: reviews, error: listError } = await dataQuery().order('created_at', { ascending: false }).range(from, to);
+
+  const errors = [countError?.message, listError?.message, e5?.message, e4?.message, e3?.message, e2?.message, e1?.message];
+
+  const dist = [
+    { stars: 5, count: c5 ?? 0 },
+    { stars: 4, count: c4 ?? 0 },
+    { stars: 3, count: c3 ?? 0 },
+    { stars: 2, count: c2 ?? 0 },
+    { stars: 1, count: c1 ?? 0 },
+  ];
+  const total = dist.reduce((s, d) => s + d.count, 0);
+  const avgRating = total > 0 ? dist.reduce((s, d) => s + d.stars * d.count, 0) / total : 0;
+
+  const filtered = reviews ?? [];
+
+  // Get provider/customer names for the rows on this page
   const providerIds = [...new Set(filtered.map(r => r.provider_id).filter(Boolean))];
   const customerIds = [...new Set(filtered.map(r => r.customer_id).filter(Boolean))];
 
@@ -55,11 +95,13 @@ export default async function ReviewsPage({ searchParams }: Props) {
         <p className="page-header-sub">Customer reviews and ratings for service providers on Solid Connect.</p>
       </div>
 
+      <ErrorBanner errors={errors} />
+
       {/* Stats */}
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Total Reviews</div>
-          <div className="stat-card-value">{total ?? 0}</div>
+          <div className="stat-card-value">{total}</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Average Rating</div>
@@ -73,7 +115,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
             {dist[0].count}
           </div>
           <div className="stat-card-sub">
-            {total && total > 0 ? ((dist[0].count / total) * 100).toFixed(0) : 0}% of all reviews
+            {total > 0 ? ((dist[0].count / total) * 100).toFixed(0) : 0}% of all reviews
           </div>
         </div>
       </div>
@@ -86,7 +128,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {dist.map(d => {
-              const pct = total && total > 0 ? (d.count / total) * 100 : 0;
+              const pct = total > 0 ? (d.count / total) * 100 : 0;
               return (
                 <div key={d.stars} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, width: 20, textAlign: 'right', color: 'var(--text-secondary)' }}>
@@ -192,6 +234,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageSize={PAGE_SIZE} total={filteredTotal ?? 0} basePath="/reviews" params={{ rating }} />
     </>
   );
 }
