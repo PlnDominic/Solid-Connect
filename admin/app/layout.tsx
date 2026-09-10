@@ -6,6 +6,7 @@ import { GeistMono } from 'geist/font/mono';
 import { createServerSupabase } from '../lib/supabase';
 import ThemeToggle from './components/ThemeToggle';
 import NavLinks from './components/NavLinks';
+import LogoutButton from './components/LogoutButton';
 
 export const metadata = { title: 'Solid Connect Admin', description: 'Solid Connect operational administration' };
 
@@ -32,7 +33,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           </div>
           <div className="side-footer">
             <div className="avatar">{initials}</div>
-            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{admin.email}</div>
+            <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{admin.email}</div>
+            <LogoutButton />
           </div>
         </aside>
         <main className="main">

@@ -116,6 +116,15 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   background: var(--accent-bg); color: var(--accent);
   display: grid; place-items: center; font-weight: 700; font-size: 12px; flex-shrink: 0;
 }
+.logout-btn {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); display: grid; place-items: center;
+  transition: color .15s, border-color .15s;
+}
+.logout-btn svg { width: 16px; height: 16px; }
+.logout-btn:hover { color: var(--red); border-color: var(--red-bg); }
+.logout-btn:disabled { opacity: .6; cursor: wait; }
 
 .help-card {
   margin: 12px 4px; padding: 14px; border-radius: 10px;
