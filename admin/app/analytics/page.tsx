@@ -364,7 +364,7 @@ export default async function AnalyticsPage() {
               total={providers}
               centerLabel="Providers"
               segments={catEntries.slice(0, 5).map(([cat, count], i) => ({
-                color: ['#f97316', '#3b82f6', '#22c55e', '#a855f7', '#ef4444'][i],
+                color: ['#3459d4', '#3b82f6', '#22c55e', '#a855f7', '#ef4444'][i],
                 pct: totalCat > 0 ? (count / totalCat) * 100 : 0,
                 label: cat,
                 count,
