@@ -34,16 +34,48 @@ function countByMonth(dates: (string | null | undefined)[]) {
 }
 
 /* ── sparkline SVG ────────────────────────────────────────── */
-function Sparkline({ data, color = 'var(--accent)' }: { data: number[]; color?: string }) {
+/** Cardinal-spline-style smoothing: bends the line through every point
+ * instead of connecting them with straight segments. */
+function smoothPath(points: [number, number][]) {
+  if (points.length < 2) return '';
+  if (points.length === 2) return `M${points[0][0]},${points[0][1]} L${points[1][0]},${points[1][1]}`;
+  const smoothing = 0.2;
+  const d = [`M${points[0][0]},${points[0][1]}`];
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i === 0 ? 0 : i - 1];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+    const cp1x = p1[0] + (p2[0] - p0[0]) * smoothing;
+    const cp1y = p1[1] + (p2[1] - p0[1]) * smoothing;
+    const cp2x = p2[0] - (p3[0] - p1[0]) * smoothing;
+    const cp2y = p2[1] - (p3[1] - p1[1]) * smoothing;
+    d.push(`C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2[0]},${p2[1]}`);
+  }
+  return d.join(' ');
+}
+
+function Sparkline({ data, color = 'var(--accent)', id }: { data: number[]; color?: string; id: string }) {
   if (!data.length) return null;
   const max = Math.max(...data, 1);
-  const pts = data
-    .map((v, i) => `${data.length === 1 ? 0 : (i / (data.length - 1)) * 100},${100 - (v / max) * 80}`)
-    .join(' ');
+  const points: [number, number][] = data.map((v, i) => [
+    data.length === 1 ? 0 : (i / (data.length - 1)) * 100,
+    100 - (v / max) * 80,
+  ]);
+  const linePath = smoothPath(points);
+  const areaPath = `${linePath} L${points[points.length - 1][0]},100 L${points[0][0]},100 Z`;
+  const gradientId = `spark-fill-${id}`;
   return (
     <div className="stat-card-spark">
       <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={color} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill={`url(#${gradientId})`} stroke="none" />
+        <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </div>
   );
@@ -264,14 +296,14 @@ export default async function AnalyticsPage() {
           <div className="stat-card-sub">
             {completed} completed, {Math.max(0, jobs - completed)} open
           </div>
-          <Sparkline data={jobsByMonth} />
+          <Sparkline data={jobsByMonth} id="jobs" />
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Revenue</div>
           <div className="stat-card-value">{currency(totalRevenue)}</div>
           <div className="stat-card-trend up">From released payments</div>
           <div className="stat-card-sub">{currency(pendingPayments)} pending</div>
-          <Sparkline data={jobsByMonth.map((n) => n * Math.max(1, Math.round(totalRevenue / Math.max(jobs, 1))))} />
+          <Sparkline data={jobsByMonth.map((n) => n * Math.max(1, Math.round(totalRevenue / Math.max(jobs, 1))))} id="revenue" />
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Total Providers</div>
@@ -280,7 +312,7 @@ export default async function AnalyticsPage() {
           <div className="stat-card-sub">
             {verified} verified, {pending} pending
           </div>
-          <Sparkline data={cumulative(providersByMonth)} />
+          <Sparkline data={cumulative(providersByMonth)} id="providers" />
         </div>
       </div>
 
