@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useId } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
+import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
 import type { ChatMessage, ChatThread, Role } from '../types/database';
 
@@ -51,7 +52,7 @@ export async function getOrCreateThread(input: {
 
 export function useThreadsForRole(userId: string | null, role: Role) {
   const column = role === 'customer' ? 'customer_id' : 'provider_id';
-  return useQuery({
+  const query = useQuery({
     queryKey: ['chatThreads', role, userId, isApiConfigured()],
     queryFn: async (): Promise<ChatThread[]> => {
       if (isApiConfigured()) {
@@ -68,6 +69,19 @@ export function useThreadsForRole(userId: string | null, role: Role) {
     },
     enabled: !!userId,
   });
+
+  // A new thread (e.g. created when a quote is accepted) should appear on
+  // the chat list without a manual pull-to-refresh.
+  useRealtimeInvalidate({
+    channel: `chat_threads:${role}:${userId}`,
+    table: 'chat_threads',
+    filter: userId ? `${column}=eq.${userId}` : undefined,
+    events: ['INSERT'],
+    queryKeys: [['chatThreads', role, userId]],
+    enabled: !!userId,
+  });
+
+  return query;
 }
 
 export function useMessages(threadId: string | null | undefined) {
@@ -90,10 +104,16 @@ export function useMessages(threadId: string | null | undefined) {
     enabled: !!threadId,
   });
 
+  // Suffixed with a per-instance id: supabase.channel() reuses an existing
+  // channel object for the same topic string, and calling .on() on one
+  // that's already subscribed throws - see useRealtimeInvalidate for the
+  // same fix applied to its callers.
+  const instanceId = useId();
+
   useEffect(() => {
     if (!threadId) return;
     const channel = supabase
-      .channel(`chat_messages:${threadId}`)
+      .channel(`chat_messages:${threadId}:${instanceId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `thread_id=eq.${threadId}` },
@@ -114,8 +134,11 @@ export function useMessages(threadId: string | null | undefined) {
   return query;
 }
 
+/** One thread's most recent message - used for the chat list's preview text
+ * and timestamp, so realtime here is what makes a new message update that
+ * preview live while its sender is still sitting on the list. */
 export function useLatestMessage(threadId: string | null | undefined) {
-  return useQuery({
+  const query = useQuery({
     queryKey: ['latestMessage', threadId],
     queryFn: async (): Promise<ChatMessage | null> => {
       const { data, error } = await supabase
@@ -130,6 +153,16 @@ export function useLatestMessage(threadId: string | null | undefined) {
     },
     enabled: !!threadId,
   });
+
+  useRealtimeInvalidate({
+    channel: `latest_message:${threadId}`,
+    table: 'chat_messages',
+    filter: threadId ? `thread_id=eq.${threadId}` : undefined,
+    queryKeys: [['latestMessage', threadId]],
+    enabled: !!threadId,
+  });
+
+  return query;
 }
 
 export function useSendMessage() {
