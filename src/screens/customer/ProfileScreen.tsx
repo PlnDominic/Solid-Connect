@@ -123,12 +123,14 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           )}
           <View style={[StyleSheet.absoluteFill, styles.heroScrim]} />
 
-          <Pressable onPress={handlePickPhoto} style={styles.heroAvatarWrap} disabled={uploadPhoto.isPending}>
-            {profile.photo_url ? (
-              <Image source={{ uri: profile.photo_url }} style={styles.heroAvatarImage} />
-            ) : (
-              <Avatar initials={profile.initials} size={72} fg={colors.white} dim />
-            )}
+          <View style={{ position: 'relative' }}>
+            <Pressable onPress={handlePickPhoto} style={styles.heroAvatarWrap} disabled={uploadPhoto.isPending}>
+              {profile.photo_url ? (
+                <Image source={{ uri: profile.photo_url }} style={styles.heroAvatarImage} />
+              ) : (
+                <Avatar initials={profile.initials} size={72} fg={colors.white} dim />
+              )}
+            </Pressable>
             <View style={styles.heroCameraBadge}>
               {/* Badge sits on the always-dark hero, but its own fill is
                   `ink` (theme-relative) - icon must flip opposite it. */}
@@ -138,7 +140,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                 <Camera size={12} strokeWidth={2.4} color={colors.paper} />
               )}
             </View>
-          </Pressable>
+          </View>
 
           <Text style={styles.heroName}>{profile.full_name}</Text>
           {profile.tagline ? <Text style={styles.heroTagline}>{profile.tagline}</Text> : null}
@@ -195,7 +197,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                     hitSlop={10}
                     onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: p.id, saved: true })}
                   >
-                    <Heart size={17} strokeWidth={2} color={colors.active} fill={colors.active} />
+                    <Heart size={17} strokeWidth={2} color={colors.ink} fill={colors.ink} />
                   </Pressable>
                 </View>
               ))}
@@ -246,14 +248,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     heroAvatarWrap: {
       width: 72,
       height: 72,
-      borderRadius: radii.xxl,
+      borderRadius: 36,
       borderWidth: 2,
       borderColor: 'rgba(255,255,255,0.85)',
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: spacing.sm,
+      overflow: 'hidden',
     },
-    heroAvatarImage: { width: '100%', height: '100%', borderRadius: radii.xl },
+    heroAvatarImage: { width: '100%', height: '100%', borderRadius: 36 },
     heroCameraBadge: {
       position: 'absolute',
       bottom: -2,
