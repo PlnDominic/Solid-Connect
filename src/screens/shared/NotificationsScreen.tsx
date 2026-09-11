@@ -3,7 +3,7 @@ import { ScrollView, Switch, Text, View, StyleSheet, Platform } from 'react-nati
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const STORAGE_KEY = 'solid-connect:notification-prefs';
@@ -49,6 +49,7 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
     <Screen>
       <ScreenHeader title="Notifications" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
+        <View style={styles.cardShadow}>
         <View style={styles.card}>
           {ROWS.map((row, i) => (
             <View key={row.key} style={[styles.row, i < ROWS.length - 1 && styles.rowBorder]}>
@@ -65,6 +66,7 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
             </View>
           ))}
         </View>
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -73,7 +75,8 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg },
-    card: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
+    card: { borderRadius: radii.lg, overflow: 'hidden' },
     row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },

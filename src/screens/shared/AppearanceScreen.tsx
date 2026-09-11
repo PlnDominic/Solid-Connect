@@ -2,7 +2,7 @@ import { Moon, Sun } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme, type ThemeScheme } from '../../theme/ThemeProvider';
 
 const OPTIONS: { id: ThemeScheme; label: string; detail: string; Icon: typeof Sun }[] = [
@@ -19,6 +19,7 @@ export function AppearanceScreen({ navigation }: { navigation: any }) {
       <ScreenHeader title="Appearance" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>Choose how Solid Connect looks on this device. Your choice is saved here only.</Text>
+        <View style={styles.cardShadow}>
         <View style={styles.card}>
           {OPTIONS.map((opt, i) => {
             const active = scheme === opt.id;
@@ -40,6 +41,7 @@ export function AppearanceScreen({ navigation }: { navigation: any }) {
             );
           })}
         </View>
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -49,11 +51,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
     note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-    card: {
+    cardShadow: {
       borderRadius: radii.lg,
       backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.hairline,
+      ...shadow.card,
+    },
+    card: {
+      borderRadius: radii.lg,
       overflow: 'hidden',
     },
     row: {

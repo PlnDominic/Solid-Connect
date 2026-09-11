@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Avatar } from './Avatar';
 import { StarRating } from './StarRating';
 import type { ProviderReview } from '../api/reviews';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 function formatDate(iso: string) {
@@ -36,6 +36,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.sm,
+      ...shadow.card,
     },
     headRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
     name: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },

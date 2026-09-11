@@ -23,7 +23,7 @@ import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
 import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 // Preview count shown inline on Profile; "See all" leads to the full,
@@ -161,6 +161,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
 
           {/* Statement card - same receipt-line-item treatment as the
               provider profile, so both sides share one quality bar. */}
+          <View style={styles.statementShadow}>
           <View style={styles.statement}>
             <View style={styles.statementRow}>
               <Text style={styles.statementLabel}>Jobs posted</Text>
@@ -170,6 +171,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               <Text style={styles.statementLabel}>Saved providers</Text>
               <Text style={styles.statementValue}>{saved.length}</Text>
             </View>
+          </View>
           </View>
 
           {saved.length ? (
@@ -289,7 +291,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     body: { padding: spacing.lg, gap: spacing.xl },
     photoErrorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
 
-    statement: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    statementShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
+    statement: { borderRadius: radii.lg, overflow: 'hidden' },
     statementRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: spacing.lg },
     statementRowBorder: { borderTopWidth: 1, borderTopColor: colors.hairline },
     statementLabel: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted },

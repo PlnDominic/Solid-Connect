@@ -369,10 +369,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     filterEmpty: {
       backgroundColor: colors.card,
       borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
       paddingVertical: spacing.xxl,
       alignItems: 'center',
+      ...shadow.card,
     },
     filterEmptyText: { color: colors.inkMuted, fontSize: 13.5, fontFamily: fonts.medium },
 

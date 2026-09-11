@@ -29,7 +29,7 @@ import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
 import { signOut } from '../../lib/auth';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified, verificationLevelLabel } from '../../lib/verification';
 
@@ -207,6 +207,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           {/* Statement card - a receipt's line items, not a dashboard's
               same-size stat boxes: label left, value right, hairlines
               between rows, the month's headline figure set apart by weight. */}
+          <View style={styles.statementShadow}>
           <View style={styles.statement}>
             <View style={styles.statementRow}>
               <Text style={styles.statementLabel}>This month</Text>
@@ -223,6 +224,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               <Text style={styles.statementLabel}>Jobs completed</Text>
               <Text style={styles.statementValue}>{profile.provider_jobs_count}</Text>
             </View>
+          </View>
           </View>
 
           {portfolio.length ? (
@@ -352,7 +354,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     photoErrorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
     badgeRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
 
-    statement: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, overflow: 'hidden' },
+    statementShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
+    statement: { borderRadius: radii.lg, overflow: 'hidden' },
     statementRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: spacing.lg },
     statementRowBorder: { borderTopWidth: 1, borderTopColor: colors.hairline },
     statementLabel: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted },
@@ -365,7 +368,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     portfolioThumb: { width: 84, height: 84, borderRadius: radii.md, backgroundColor: colors.paperDim },
 
     reviewsSection: { gap: spacing.sm },
-    distCard: { borderRadius: radii.lg, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.hairline, padding: spacing.md, gap: 7 },
+    distCard: { borderRadius: radii.lg, backgroundColor: colors.card, padding: spacing.md, gap: 7, ...shadow.card },
     distRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     distLabel: { fontSize: 11, fontFamily: fonts.semibold, color: colors.inkMuted, width: 8, textAlign: 'right' },
     distTrack: { flex: 1, height: 5, borderRadius: radii.pill, backgroundColor: colors.paperDim, overflow: 'hidden' },

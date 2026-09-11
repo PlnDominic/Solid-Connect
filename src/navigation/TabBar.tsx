@@ -75,8 +75,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       height: 64,
       borderRadius: 32,
       backgroundColor: colors.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.hairline,
       shadowColor: colors.black,
       shadowOpacity: 0.07,
       shadowRadius: 16,
