@@ -17,7 +17,7 @@ const FADE_OUT_MS = 400;
 const TOTAL_MS = 6200;
 
 export function SplashScreen({ onFinish }: { onFinish: () => void }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
   const scale = useRef(new Animated.Value(1.9)).current;
   const captionOpacity = useRef(new Animated.Value(0)).current;
@@ -50,7 +50,7 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
   return (
     <Animated.View style={[styles.fill, { opacity: screenOpacity }]}>
-      <StatusBar style="dark" />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <View style={styles.content}>
         <Animated.Image source={logo} style={[styles.logo, { transform: [{ scale }] }]} resizeMode="contain" />
         <Animated.Text style={[styles.caption, { opacity: captionOpacity }]}>Accra, Ghana</Animated.Text>
@@ -61,9 +61,9 @@ export function SplashScreen({ onFinish }: { onFinish: () => void }) {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    fill: { flex: 1, backgroundColor: colors.white },
+    fill: { flex: 1, backgroundColor: colors.paper },
     content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18 },
     logo: { width: 150, height: 84 },
-    caption: { fontSize: 13, letterSpacing: 0.6, color: 'rgba(17,17,19,0.45)', fontFamily: fonts.medium },
+    caption: { fontSize: 13, letterSpacing: 0.6, color: colors.inkFaint, fontFamily: fonts.medium },
   });
 }

@@ -435,8 +435,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    blank: { flex: 1, backgroundColor: colors.white },
-    errorWrap: { flex: 1, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', padding: 32 },
+    blank: { flex: 1, backgroundColor: colors.paper },
+    errorWrap: { flex: 1, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center', padding: 32 },
     errorText: { fontFamily: fonts.medium, fontSize: 15, color: colors.ink, textAlign: 'center' },
   });
 }
