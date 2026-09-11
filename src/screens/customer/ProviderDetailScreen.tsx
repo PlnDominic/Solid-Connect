@@ -95,7 +95,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
             <Avatar initials={provider.initials} size={88} />
           )}
           <View style={{ flex: 1, gap: 6 }}>
-            <Text style={styles.name}>{provider.full_name}</Text>
+            <Text style={styles.name} numberOfLines={1}>{provider.full_name}</Text>
             {provider.tagline ? <Text style={styles.tagline}>{provider.tagline}</Text> : null}
             <Text style={styles.meta}>{servicesLabel}</Text>
             <View style={styles.metaRow}>

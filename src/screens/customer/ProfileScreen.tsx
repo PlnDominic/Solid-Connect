@@ -142,7 +142,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             </View>
           </View>
 
-          <Text style={styles.heroName}>{profile.full_name}</Text>
+          <Text style={styles.heroName} numberOfLines={1}>{profile.full_name}</Text>
           {profile.tagline ? <Text style={styles.heroTagline}>{profile.tagline}</Text> : null}
           <Text style={styles.heroMeta}>{profile.area} · Customer since {memberSince(profile.created_at)}</Text>
 
@@ -188,7 +188,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                 <View key={p.id} style={styles.savedRow}>
                   <Avatar initials={p.initials} size={40} />
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={styles.savedName}>{p.full_name}</Text>
+                    <Text style={styles.savedName} numberOfLines={1}>{p.full_name}</Text>
                     <View style={styles.savedMetaRow}>
                       <Text style={styles.savedMeta}>{p.provider_category} ·</Text>
                       <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />

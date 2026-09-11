@@ -28,7 +28,7 @@ function SavedProviderRow({
     <Pressable style={styles.card} onPress={onOpen}>
       <Avatar initials={provider.initials} />
       <View style={{ flex: 1, gap: 3 }}>
-        <Text style={styles.name}>{provider.full_name}</Text>
+        <Text style={styles.name} numberOfLines={1}>{provider.full_name}</Text>
         <View style={styles.metaRow}>
           <Text style={styles.meta}>{provider.provider_category} ·</Text>
           <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />

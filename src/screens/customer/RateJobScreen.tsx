@@ -41,7 +41,7 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
         <View style={styles.peerCard}>
           <Avatar initials={provider?.initials ?? ''} size={44} />
           <View style={{ gap: 3 }}>
-            <Text style={styles.peerName}>{provider?.full_name}</Text>
+            <Text style={styles.peerName} numberOfLines={1}>{provider?.full_name}</Text>
             <Text style={styles.peerMeta}>{job.title} · GHS {job.price}</Text>
           </View>
         </View>

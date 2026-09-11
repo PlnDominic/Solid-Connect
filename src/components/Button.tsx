@@ -49,7 +49,10 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={isPrimary ? colors.paper : isFilled ? colors.white : colors.ink} />
       ) : (
-        <Text style={[styles.label, { color: isPrimary ? colors.paper : isFilled ? colors.white : colors.ink }]}>
+        <Text
+          style={[styles.label, { color: isPrimary ? colors.paper : isFilled ? colors.white : colors.ink }]}
+          numberOfLines={1}
+        >
           {title}
         </Text>
       )}

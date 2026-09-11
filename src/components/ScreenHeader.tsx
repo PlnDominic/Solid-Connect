@@ -41,10 +41,10 @@ export function ScreenHeader({
           >
             <ChevronLeft size={20} strokeWidth={2.4} color={foreground} />
           </Pressable>
-          <Text style={[styles.title, { color: foreground }]}>{title}</Text>
+          <Text style={[styles.title, { color: foreground, flex: 1 }]} numberOfLines={1}>{title}</Text>
         </View>
       ) : (
-        <Text style={[large ? styles.titleLarge : styles.title, { color: foreground }]}>{title}</Text>
+        <Text style={[large ? styles.titleLarge : styles.title, { color: foreground }]} numberOfLines={1}>{title}</Text>
       )}
     </View>
   );

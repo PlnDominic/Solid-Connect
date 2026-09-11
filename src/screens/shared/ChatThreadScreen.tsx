@@ -35,7 +35,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
         </Pressable>
         <Avatar initials={peer?.initials ?? ''} size={36} />
-        <Text style={styles.peerName}>{peer?.full_name}</Text>
+        <Text style={[styles.peerName, { flex: 1 }]} numberOfLines={1}>{peer?.full_name}</Text>
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>

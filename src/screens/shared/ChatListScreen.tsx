@@ -24,7 +24,7 @@ function ThreadRow({ thread, myRole, onPress }: { thread: ChatThread; myRole: 'c
     <Pressable style={styles.row} onPress={onPress}>
       <Avatar initials={peer.initials} />
       <View style={{ flex: 1, gap: 3 }}>
-        <Text style={styles.name}>{peer.full_name}</Text>
+        <Text style={styles.name} numberOfLines={1}>{peer.full_name}</Text>
         <Text style={styles.preview} numberOfLines={1}>
           {latest?.text ?? 'Say hello 👋'}
         </Text>

@@ -160,7 +160,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           </View>
 
           <View style={styles.heroNameRow}>
-            <Text style={styles.heroName}>{profile.full_name}</Text>
+            <Text style={styles.heroName} numberOfLines={1}>{profile.full_name}</Text>
             {isIdentityVerified(profile) ? (
               <View style={styles.heroVerifiedDot}>
                 <ShieldCheck size={11} strokeWidth={2.8} color={colors.white} />
