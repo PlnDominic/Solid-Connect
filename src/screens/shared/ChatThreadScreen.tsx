@@ -31,7 +31,13 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   return (
     <Screen>
       <View style={styles.header}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.back}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          hitSlop={12}
+          style={styles.back}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
         </Pressable>
         <Avatar initials={peer?.initials ?? ''} size={36} />

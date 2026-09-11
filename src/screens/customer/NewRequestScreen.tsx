@@ -298,7 +298,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
                 </View>
               ))}
               {photoUris.length < MAX_PHOTOS ? (
-                <Pressable style={styles.photoAdd} onPress={pickPhoto}>
+                <Pressable style={styles.photoAdd} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel="Add a photo">
                   {photoUris.length ? (
                     <Plus size={20} strokeWidth={1.8} color={colors.inkFaint} />
                   ) : (

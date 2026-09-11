@@ -90,7 +90,13 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
           ))}
 
           {photos.length < MAX_PHOTOS ? (
-            <Pressable style={styles.addCell} onPress={pickAndUpload} disabled={upload.isPending}>
+            <Pressable
+              style={styles.addCell}
+              onPress={pickAndUpload}
+              disabled={upload.isPending}
+              accessibilityRole="button"
+              accessibilityLabel="Add a portfolio photo"
+            >
               {upload.isPending ? (
                 <ActivityIndicator size="small" color={colors.inkFaint} />
               ) : (
