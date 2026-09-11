@@ -11,7 +11,7 @@ import type { FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const PROVIDER_FILTERS: FilterOption[] = [
@@ -362,11 +362,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.lg,
       backgroundColor: colors.card,
       padding: spacing.md,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 3,
+      ...shadow.card,
     },
     categoryRow: { gap: spacing.md },
 
@@ -383,11 +379,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     providerListShadow: {
       borderRadius: radii.lg,
       backgroundColor: colors.card,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 3,
+      ...shadow.card,
     },
     providerList: { borderRadius: radii.lg, overflow: 'hidden' },
     providerRow: { minHeight: 78, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },

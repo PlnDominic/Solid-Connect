@@ -10,7 +10,7 @@ import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 function timeAgo(iso: string) {
@@ -191,11 +191,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.md,
       gap: 3,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 3,
+      ...shadow.card,
     },
     summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
     summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },

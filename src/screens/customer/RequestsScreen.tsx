@@ -11,7 +11,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote, ServiceRequest } from '../../types/database';
 
@@ -198,11 +198,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.lg,
       backgroundColor: colors.card,
       gap: 3,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 3,
+      ...shadow.card,
     },
     summaryTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
     summarySub: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted },

@@ -152,12 +152,13 @@ export const shadow = {
     shadowOffset: { width: 0, height: 12 },
     elevation: 10,
   },
-  // Legacy alias for screens outside this pass's scope.
+  // Standard elevated-card shadow: no border, shadow does the separating.
+  // Used for any passive content card sitting directly on `paper`/`card`.
   card: {
     shadowColor: '#0B0B0A',
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 0,
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
   },
 };

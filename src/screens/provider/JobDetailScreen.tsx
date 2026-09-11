@@ -7,7 +7,7 @@ import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { JobStatus } from '../../types/database';
 
@@ -221,11 +221,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.md,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 3,
+      ...shadow.card,
     },
     progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     progressLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },

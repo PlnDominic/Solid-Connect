@@ -10,7 +10,7 @@ import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function JobDetailScreen({ navigation, route }: { navigation: any; route: any }) {
@@ -179,11 +179,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.sm,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 3,
+      ...shadow.card,
     },
     progressRow: { flexDirection: 'row', justifyContent: 'space-between' },
     progressLabel: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
@@ -197,11 +193,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: 6,
-      shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 14,
-      shadowOffset: { width: 0, height: 5 },
-      elevation: 3,
+      ...shadow.card,
     },
     detailsLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     detailsValue: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
