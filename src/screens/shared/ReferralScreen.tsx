@@ -39,7 +39,7 @@ export function ReferralScreen({ navigation }: { navigation: any }) {
           <Text style={styles.codeLabel}>YOUR INVITE CODE</Text>
           <Text style={styles.codeValue}>{code}</Text>
         </View>
-        <Pressable style={styles.shareBtn} onPress={handleShare}>
+        <Pressable style={styles.shareBtn} onPress={handleShare} accessibilityRole="button" accessibilityLabel="Share invite code">
           <Share2 size={16} strokeWidth={2.2} color={colors.white} />
           <Text style={styles.shareLabel}>Share invite</Text>
         </Pressable>

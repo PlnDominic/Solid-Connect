@@ -29,6 +29,8 @@ export function ScreenHeader({
           <Pressable
             onPress={onBack}
             hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
             style={[
               styles.back,
               {

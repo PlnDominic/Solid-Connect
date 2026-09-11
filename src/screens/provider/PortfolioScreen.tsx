@@ -73,10 +73,12 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
             <View key={photo.id} style={styles.cell}>
               <Image source={{ uri: photo.photo_url }} style={styles.photo} />
               <Pressable
-                hitSlop={8}
+                hitSlop={10}
                 style={styles.removeBadge}
                 onPress={() => handleDelete(photo.id, photo.photo_url)}
                 disabled={deletingId === photo.id}
+                accessibilityRole="button"
+                accessibilityLabel="Delete this photo"
               >
                 {deletingId === photo.id ? (
                   <ActivityIndicator size="small" color={colors.white} />

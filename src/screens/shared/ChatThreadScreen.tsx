@@ -78,7 +78,13 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             style={styles.input}
             onSubmitEditing={handleSend}
           />
-          <Pressable style={styles.sendBtn} onPress={handleSend}>
+          <Pressable
+            style={styles.sendBtn}
+            onPress={handleSend}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Send message"
+          >
             <ArrowUp size={18} strokeWidth={2.4} color={colors.white} />
           </Pressable>
         </View>

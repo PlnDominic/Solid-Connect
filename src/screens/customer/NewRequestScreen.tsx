@@ -287,9 +287,11 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
                 <View key={uri} style={styles.photoWrap}>
                   <Image source={{ uri }} style={styles.photo} />
                   <Pressable
-                    hitSlop={8}
+                    hitSlop={10}
                     style={styles.photoRemove}
                     onPress={() => setPhotoUris((prev) => prev.filter((u) => u !== uri))}
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove this photo"
                   >
                     <X size={12} strokeWidth={3} color={colors.white} />
                   </Pressable>
