@@ -7,7 +7,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { ChatThread } from '../../types/database';
 
@@ -91,6 +91,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingVertical: spacing.md,
       borderRadius: radii.lg,
       backgroundColor: colors.card,
+      ...shadow.card,
     },
     name: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.15 },
     preview: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted },

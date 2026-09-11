@@ -223,6 +223,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.md,
+      ...shadow.card,
     },
     quoteTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
     quoteIdentity: { flexDirection: 'row', gap: spacing.md, flexShrink: 1 },

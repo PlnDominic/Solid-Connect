@@ -9,7 +9,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function JobsScreen({ navigation }: { navigation: any }) {
@@ -83,6 +83,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.md,
       borderRadius: radii.lg,
       backgroundColor: colors.card,
+      ...shadow.card,
     },
     title: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink },
     subtitle: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFaint },
