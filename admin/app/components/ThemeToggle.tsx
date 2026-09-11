@@ -1,9 +1,9 @@
 'use client';
 
-import { useAdminTheme } from '../hooks/useAdminTheme';
+import { useAdminTheme, type AdminTheme } from '../hooks/useAdminTheme';
 
-export default function ThemeToggle() {
-  const { theme, setTheme } = useAdminTheme();
+export default function ThemeToggle({ initialTheme }: { initialTheme: AdminTheme }) {
+  const { theme, setTheme } = useAdminTheme(initialTheme);
 
   function toggle() {
     setTheme(theme === 'dark' ? 'light' : 'dark');

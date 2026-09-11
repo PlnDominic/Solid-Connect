@@ -42,7 +42,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         </aside>
         <main className="main">
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-            <ThemeToggle />
+            <ThemeToggle initialTheme={theme} />
           </div>
           {children}
         </main>
