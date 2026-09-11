@@ -123,14 +123,20 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           )}
           <View style={[StyleSheet.absoluteFill, styles.heroScrim]} />
 
-          <View style={styles.heroAvatarBadgeWrap}>
-            <Pressable onPress={handlePickPhoto} style={styles.heroAvatarWrap} disabled={uploadPhoto.isPending}>
+          <Pressable
+            style={styles.heroAvatarBadgeWrap}
+            onPress={handlePickPhoto}
+            disabled={uploadPhoto.isPending}
+            accessibilityRole="button"
+            accessibilityLabel="Change profile photo"
+          >
+            <View style={styles.heroAvatarWrap}>
               {profile.photo_url ? (
                 <Image source={{ uri: profile.photo_url }} style={styles.heroAvatarImage} />
               ) : (
                 <Avatar initials={profile.initials} size={72} fg={colors.white} dim />
               )}
-            </Pressable>
+            </View>
             <View style={styles.heroCameraBadge}>
               {/* Badge sits on the always-dark hero, but its own fill is
                   `ink` (theme-relative) - icon must flip opposite it. */}
@@ -140,7 +146,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                 <Camera size={12} strokeWidth={2.4} color={colors.paper} />
               )}
             </View>
-          </View>
+          </Pressable>
 
           <Text style={styles.heroName} numberOfLines={1}>{profile.full_name}</Text>
           {profile.tagline ? <Text style={styles.heroTagline}>{profile.tagline}</Text> : null}
