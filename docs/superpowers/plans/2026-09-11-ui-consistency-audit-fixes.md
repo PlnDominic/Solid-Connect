@@ -302,7 +302,7 @@ git commit -m "fix(profile): clip hero avatar photo to a true circle instead of 
 
 ### Task 4: Introduce a shared `shadow.card` token and retrofit duplicated inline shadows to use it
 
-**Finding (self-identified during planning, DRY violation):** Six style blocks across five files hand-roll the exact same five-property shadow recipe (`shadowOpacity: 0.1, shadowRadius: 14, shadowOffset: {width:0,height:5}, elevation: 3`, plus `shadowColor: colors.black`) instead of using the `shadow.card` token that already exists in `src/theme/index.ts` (currently zeroed out at `shadowOpacity: 0`, a leftover from before this session's card-elevation work started). This task makes the token real and removes the duplication; it changes no visual output.
+**Finding (self-identified during planning, DRY violation):** Seven style blocks across five files hand-roll the exact same five-property shadow recipe (`shadowOpacity: 0.1, shadowRadius: 14, shadowOffset: {width:0,height:5}, elevation: 3`, plus `shadowColor: colors.black`) instead of using the `shadow.card` token that already exists in `src/theme/index.ts` (currently zeroed out at `shadowOpacity: 0`, a leftover from before this session's card-elevation work started). This task makes the token real and removes the duplication; it changes no visual output.
 
 **Files:**
 - Modify: `src/theme/index.ts`
@@ -553,7 +553,7 @@ Expected: **no matches** (all six inline blocks are gone, replaced by `...shadow
 ```bash
 grep -rn "\.\.\.shadow\.card" src/screens/customer/HomeScreen.tsx src/screens/customer/RequestsScreen.tsx src/screens/customer/JobDetailScreen.tsx src/screens/provider/JobDetailScreen.tsx src/screens/provider/RequestDetailScreen.tsx
 ```
-Expected: exactly 6 matches (2 in `HomeScreen.tsx`, 1 each in the other four).
+Expected: exactly 7 matches (2 in `HomeScreen.tsx`, 1 each in the other four).
 
 - [ ] **Step 8: Manually verify in the running app**
 
@@ -1690,3 +1690,4 @@ git commit -m "fix(admin): make login page theme-aware, fix ring token mismatch,
 - The audit's "magic numbers" finding was explicitly a representative sample, not an exhaustive list — sweeping every raw pixel value in the codebase to a spacing/radii token is a much larger, lower-value mechanical change better done opportunistically as files are touched for other reasons, not as a dedicated task.
 - `NotificationsScreen` not being reachable from `ProviderTabs.tsx` is a product/feature-parity question (should providers get notification preferences?), not a bug — needs a decision before it becomes a task.
 - The `/access` vs `/login` admin duplication (Task 11, Step 7) is flagged but not resolved by deletion in this plan, for the same reason.
+- The final whole-branch review found additional border-only cards that Task 5's original file list (an audit taken before an interstitial checkpoint commit landed) didn't cover: `AllProvidersScreen.tsx` (`card`), `SavedProvidersScreen.tsx`, `provider/JobsScreen.tsx`, `provider/FeedScreen.tsx`, `RateJobScreen.tsx` (peerCard/rateCard/commentCard), `MatchingScreen.tsx`, `NewRequestScreen.tsx`, `AccountSecurityScreen.tsx`, `DisputeScreen.tsx`, `VerificationScreen.tsx`. These remain border-only (not yet migrated to the `shadow.card` pattern); migrating them is out of scope for this plan — a future pass, not silently forgotten.
