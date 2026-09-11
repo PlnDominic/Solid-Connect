@@ -1,19 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useAdminTheme } from '../hooks/useAdminTheme';
 
 export default function SettingsPage() {
-  const [theme, setTheme] = useState<string>(
-    typeof document !== 'undefined'
-      ? document.documentElement.getAttribute('data-theme') ?? 'dark'
-      : 'dark'
-  );
-
-  const switchTheme = (t: string) => {
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('theme', t);
-    setTheme(t);
-  };
+  const { theme, setTheme: switchTheme } = useAdminTheme();
 
   return (
     <>

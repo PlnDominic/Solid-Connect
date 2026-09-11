@@ -1,6 +1,7 @@
 import './globals.css';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { createServerSupabase } from '../lib/supabase';
@@ -11,15 +12,17 @@ import LogoutButton from './components/LogoutButton';
 export const metadata = { title: 'Solid Connect Admin', description: 'Solid Connect operational administration' };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const theme = cookieStore.get('admin-theme')?.value === 'light' ? 'light' : 'dark';
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return <html data-theme="dark" className={`${GeistSans.variable} ${GeistMono.variable}`}><body>{children}</body></html>;
+  if (!user) return <html data-theme={theme} className={`${GeistSans.variable} ${GeistMono.variable}`}><body>{children}</body></html>;
   const { data: admin } = await supabase.from('admins').select('id, email').eq('id', user.id).maybeSingle();
   if (!admin) { await supabase.auth.signOut(); redirect('/login?error=not-admin'); }
   const initials = (admin.email ?? 'A').slice(0, 2).toUpperCase();
 
   return (
-    <html data-theme="dark" className={`${GeistSans.variable} ${GeistMono.variable}`}><body>
+    <html data-theme={theme} className={`${GeistSans.variable} ${GeistMono.variable}`}><body>
       <div className="shell">
         <aside className="side">
           <div className="brand">
