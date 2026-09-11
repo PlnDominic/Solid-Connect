@@ -47,9 +47,11 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isFilled ? colors.white : colors.ink} />
+        <ActivityIndicator color={isPrimary ? colors.paper : isFilled ? colors.white : colors.ink} />
       ) : (
-        <Text style={[styles.label, { color: isFilled ? colors.white : colors.ink }]}>{title}</Text>
+        <Text style={[styles.label, { color: isPrimary ? colors.paper : isFilled ? colors.white : colors.ink }]}>
+          {title}
+        </Text>
       )}
     </Pressable>
   );
