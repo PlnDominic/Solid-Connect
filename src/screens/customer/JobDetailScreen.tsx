@@ -184,8 +184,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     progressRow: { flexDirection: 'row', justifyContent: 'space-between' },
     progressLabel: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
     progressStep: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
-    progressTrack: { height: 6, borderRadius: radii.pill, backgroundColor: colors.paperDim, overflow: 'hidden' },
-    progressFill: { height: '100%', backgroundColor: colors.ink, borderRadius: radii.pill },
     progressNote: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted },
 
     detailsCard: {

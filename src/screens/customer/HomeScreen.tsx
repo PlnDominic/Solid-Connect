@@ -353,8 +353,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     heroActivityActionText: { color: colors.ink, fontSize: 12.5, fontFamily: fonts.bold },
     heroActivityTitle: { color: colors.ink, fontSize: 14.5, letterSpacing: -0.2, fontFamily: fonts.bold },
     heroActivityDetail: { color: colors.inkMuted, fontSize: 12.5, lineHeight: 18, fontFamily: fonts.medium },
-    heroProgressTrack: { height: 3, marginTop: 3, borderRadius: radii.pill, overflow: 'hidden', backgroundColor: colors.hairline },
-    heroProgressFill: { height: '100%', borderRadius: radii.pill, backgroundColor: colors.confirm },
 
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
     sectionTitle: { color: colors.ink, fontSize: 16.5, letterSpacing: -0.3, fontFamily: fonts.bold },
