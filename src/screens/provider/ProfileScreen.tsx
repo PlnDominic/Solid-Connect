@@ -140,7 +140,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           )}
           <View style={[StyleSheet.absoluteFill, styles.heroScrim]} />
 
-          <View style={{ position: 'relative' }}>
+          <View style={styles.heroAvatarBadgeWrap}>
             <Pressable onPress={handlePickPhoto} style={styles.heroAvatarWrap} disabled={uploadPhoto.isPending}>
               {profile.photo_url ? (
                 <Image source={{ uri: profile.photo_url }} style={styles.heroAvatarImage} />
@@ -305,6 +305,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     // white text over any photo without needing a new library.
     heroScrim: { backgroundColor: 'rgba(11,11,10,0.38)' },
 
+    heroAvatarBadgeWrap: {
+      position: 'relative',
+      width: 72,
+      height: 72,
+      marginBottom: spacing.sm,
+    },
     heroAvatarWrap: {
       width: 72,
       height: 72,
@@ -313,7 +319,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: 'rgba(255,255,255,0.85)',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: spacing.sm,
       overflow: 'hidden',
     },
     heroAvatarImage: { width: '100%', height: '100%', borderRadius: 36 },
