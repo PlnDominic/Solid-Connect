@@ -1,5 +1,5 @@
 import { Heart, Star } from 'lucide-react-native';
-import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useAllProviders } from '../../api/marketplace';
 import { useIsProviderSaved, useToggleSavedProvider } from '../../api/saved';
 import { Avatar } from '../../components/Avatar';
@@ -53,7 +53,7 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: providers = [], refetch } = useAllProviders();
+  const { data: providers = [], isLoading: providersLoading, refetch } = useAllProviders();
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
@@ -65,7 +65,11 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }
       >
-        {providers.length ? (
+        {providersLoading ? (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : providers.length ? (
           providers.map((p) =>
             profile ? (
               <ProviderRow
@@ -87,6 +91,7 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md },
+    loadingWrap: { paddingVertical: spacing.xxl, alignItems: 'center' },
     card: {
       flexDirection: 'row',
       gap: spacing.md,

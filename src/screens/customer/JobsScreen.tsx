@@ -1,5 +1,5 @@
 import { ChevronRight, Star } from 'lucide-react-native';
-import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCustomerActiveJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
@@ -16,7 +16,7 @@ export function JobsScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: job, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
+  const { data: job, isLoading: jobLoading, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
   const { data: provider } = useProvider(job?.provider_id);
   const { data: review, refetch: refetchReview } = useJobReview(job?.id ?? null);
   const needsRating = !!job && job.status === 'completed' && review === null;
@@ -32,7 +32,11 @@ export function JobsScreen({ navigation }: { navigation: any }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }
       >
-        {job ? (
+        {jobLoading ? (
+          <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+            <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : job ? (
           <View style={{ padding: spacing.lg }}>
             <Pressable style={styles.card} onPress={() => navigation.navigate(needsRating ? 'RateJob' : 'JobDetail', { jobId: job.id })}>
               <Avatar initials={provider?.initials ?? ''} />

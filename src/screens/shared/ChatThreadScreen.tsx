@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { ArrowUp, ChevronLeft } from 'lucide-react-native';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useMessages, useSendMessage } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
@@ -15,7 +15,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   const { threadId, peerId } = route.params;
   const profile = useSessionStore((s) => s.profile);
   const { data: peer } = useProvider(peerId);
-  const { data: messages = [] } = useMessages(threadId);
+  const { data: messages = [], isLoading: messagesLoading } = useMessages(threadId);
   const sendMessage = useSendMessage();
   const [text, setText] = useState('');
   const listRef = useRef<FlatList>(null);
@@ -43,8 +43,21 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           ref={listRef}
           data={messages}
           keyExtractor={(m) => m.id}
-          contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm }}
+          contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm, flexGrow: 1 }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+          ListEmptyComponent={
+            messagesLoading ? (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator color={colors.ink} />
+              </View>
+            ) : (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: colors.inkFaint, fontFamily: fonts.medium, fontSize: 13.5 }}>
+                  Say hello 👋
+                </Text>
+              </View>
+            )
+          }
           renderItem={({ item }) => {
             const mine = item.sender_id === profile?.id;
             return (

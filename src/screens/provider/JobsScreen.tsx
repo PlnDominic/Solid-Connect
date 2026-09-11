@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react-native';
-import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderJobs } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
@@ -44,7 +44,7 @@ export function JobsScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: jobs = [], refetch } = useProviderJobs(profile?.id ?? null);
+  const { data: jobs = [], isLoading: jobsLoading, refetch } = useProviderJobs(profile?.id ?? null);
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
@@ -55,7 +55,11 @@ export function JobsScreen({ navigation }: { navigation: any }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }
       >
-        {jobs.length ? (
+        {jobsLoading ? (
+          <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+            <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : jobs.length ? (
           <View style={{ padding: spacing.lg, gap: spacing.md }}>
             {jobs.map((job) => (
               <JobRow key={job.id} job={job} onPress={() => navigation.navigate('JobDetail', { jobId: job.id })} />

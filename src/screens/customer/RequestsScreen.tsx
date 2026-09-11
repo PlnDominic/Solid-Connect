@@ -1,5 +1,5 @@
 import { MapPin, ShieldCheck, Star } from 'lucide-react-native';
-import { RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useMyActiveRequest, useNotifications } from '../../api/requests';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
@@ -99,7 +99,7 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: request, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
+  const { data: request, isLoading: requestLoading, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
   const { data: notifications = [], refetch: refetchNotifs } = useNotifications(profile?.id ?? null);
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
     await Promise.all([refetchRequest(), refetchNotifs()]);
@@ -124,7 +124,11 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }
       >
-        {showFeed ? (
+        {requestLoading ? (
+          <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+            <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : showFeed ? (
           <View style={styles.body}>
             {unreadReject.slice(0, 3).map((n) => (
               <View key={n.id} style={styles.rejectBanner}>

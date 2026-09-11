@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { ArrowUpRight, ChevronRight, ListFilter, MapPin, Search, ShieldCheck, Star } from 'lucide-react-native';
 import { useAllProviders, useCategories } from '../../api/marketplace';
 import { useMyActiveRequest } from '../../api/requests';
@@ -33,7 +33,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   const { data: categories = [], refetch: refetchCategories } = useCategories();
   // The full, unfiltered set - useTopProviders() caps at 3, which made the
   // filter chips look broken (filtering 3 items rarely leaves anything).
-  const { data: providers = [], refetch: refetchProviders } = useAllProviders(null, profile?.area ?? null);
+  const { data: providers = [], isLoading: providersLoading, refetch: refetchProviders } = useAllProviders(null, profile?.area ?? null);
   const { data: activeRequest, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
   const { data: activeJob, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
   const [providerFilter, setProviderFilter] = useState('all');
@@ -233,7 +233,11 @@ export function HomeScreen({ navigation }: { navigation: any }) {
 
         <FilterChips options={PROVIDER_FILTERS} value={providerFilter} onChange={setProviderFilter} />
 
-        {filteredProviders.length === 0 ? (
+        {providersLoading ? (
+          <View style={styles.filterEmpty}>
+            <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : filteredProviders.length === 0 ? (
           <View style={styles.filterEmpty}>
             <Text style={styles.filterEmptyText}>No providers match this filter right now.</Text>
           </View>

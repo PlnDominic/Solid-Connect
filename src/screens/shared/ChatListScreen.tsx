@@ -1,4 +1,4 @@
-import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useLatestMessage, useThreadsForRole } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
@@ -38,7 +38,7 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: threads = [], refetch } = useThreadsForRole(profile?.id ?? null, role);
+  const { data: threads = [], isLoading: threadsLoading, refetch } = useThreadsForRole(profile?.id ?? null, role);
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
@@ -49,7 +49,11 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }
       >
-        {threads.length ? (
+        {threadsLoading ? (
+          <View style={{ padding: spacing.xl, alignItems: 'center' }}>
+            <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : threads.length ? (
           threads.map((t) => (
             <ThreadRow
               key={t.id}
