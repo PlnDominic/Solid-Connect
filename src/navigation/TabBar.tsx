@@ -3,7 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { LucideIcon } from 'lucide-react-native';
 import { House, LayoutGrid, ClipboardList, Briefcase, MessageCircle, User } from 'lucide-react-native';
-import { colors, fonts } from '../theme';
+import { fonts } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 const routeIcons: Record<string, LucideIcon> = {
   HomeTab: House,
@@ -17,6 +18,8 @@ const routeIcons: Record<string, LucideIcon> = {
 const ICON_SIZE = 22;
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   return (
     <SafeAreaView edges={['bottom']} style={styles.wrap} pointerEvents="box-none">
       <View style={styles.bar}>
@@ -42,10 +45,10 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               <Icon
                 size={ICON_SIZE}
                 strokeWidth={focused ? 2.4 : 1.8}
-                color={focused ? colors.white : colors.textDim}
+                color={focused ? colors.paper : colors.textDim}
               />
               <Text
-                style={[styles.label, { color: focused ? colors.white : colors.textDim }]}
+                style={[styles.label, { color: focused ? colors.paper : colors.textDim }]}
                 numberOfLines={1}
               >
                 {label}
@@ -58,49 +61,51 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    backgroundColor: 'transparent',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 2,
-  },
-  bar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.white,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(0,0,0,0.06)',
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 12,
-  },
-  item: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100%',
-    gap: 1,
-  },
-  itemPressed: {
-    opacity: 0.5,
-  },
-  activePill: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: colors.active,
-    borderRadius: 28,
-    margin: 4,
-  },
-  label: {
-    fontSize: 10,
-    lineHeight: 13,
-    fontFamily: fonts.semibold,
-    letterSpacing: 0.2,
-    zIndex: 1,
-    textAlign: 'center',
-  },
-});
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    wrap: {
+      backgroundColor: colors.paper,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      paddingBottom: 2,
+    },
+    bar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.hairline,
+      shadowColor: colors.black,
+      shadowOpacity: 0.07,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 12,
+    },
+    item: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      gap: 1,
+    },
+    itemPressed: {
+      opacity: 0.5,
+    },
+    activePill: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: colors.active,
+      borderRadius: 28,
+      margin: 4,
+    },
+    label: {
+      fontSize: 10,
+      lineHeight: 13,
+      fontFamily: fonts.semibold,
+      letterSpacing: 0.2,
+      zIndex: 1,
+      textAlign: 'center',
+    },
+  });
+}

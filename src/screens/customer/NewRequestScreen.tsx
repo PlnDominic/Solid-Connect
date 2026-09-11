@@ -236,6 +236,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
                 name={c.name}
                 description={c.default_label.split('·')[1]?.trim()}
                 selected={category?.id === c.id}
+                compact
                 onPress={() => selectCategory(c)}
               />
             ))}

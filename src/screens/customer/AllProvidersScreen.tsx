@@ -41,8 +41,8 @@ function ProviderRow({
         <Heart
           size={18}
           strokeWidth={2}
-          color={saved ? colors.active : colors.inkFaint}
-          fill={saved ? colors.active : 'transparent'}
+          color={saved ? colors.ink : colors.inkFaint}
+          fill={saved ? colors.ink : 'transparent'}
         />
       </Pressable>
     </Pressable>

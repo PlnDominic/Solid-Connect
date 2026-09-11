@@ -87,11 +87,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingVertical: spacing.md,
       borderRadius: radii.lg,
       backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.hairline,
     },
-    name: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.15 },
-    preview: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted },
-    time: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
+    name: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.15 },
+    preview: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted },
+    time: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
   });
 }

@@ -39,6 +39,7 @@ export function CategoryGridTile({
   selected,
   onPress,
   bare = false,
+  compact = false,
 }: {
   id: string;
   abbr: string;
@@ -47,6 +48,7 @@ export function CategoryGridTile({
   selected: boolean;
   onPress: () => void;
   bare?: boolean;
+  compact?: boolean;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -55,23 +57,28 @@ export function CategoryGridTile({
     <Pressable
       onPress={onPress}
       style={[
-        bare ? styles.gridTileBare : styles.gridTile,
+        bare ? styles.gridTileBare : compact ? styles.gridTileCompact : styles.gridTile,
         !bare && selected ? styles.gridTileSelected : null,
       ]}
     >
       {selected ? (
         <View style={styles.gridCheck}>
-          <Check size={11} strokeWidth={3} color={colors.white} />
+          <Check size={11} strokeWidth={3} color={colors.paper} />
         </View>
       ) : null}
-      <View style={[styles.gridBadge, selected ? styles.gridBadgeSelected : null]}>
-        <Icon size={21} strokeWidth={1.75} color={selected ? colors.white : colors.ink} />
+      <View
+        style={[
+          compact ? styles.gridBadgeCompact : styles.gridBadge,
+          selected ? styles.gridBadgeSelected : null,
+        ]}
+      >
+        <Icon size={compact ? 17 : 21} strokeWidth={1.75} color={selected ? colors.paper : colors.ink} />
       </View>
-      <Text style={styles.gridName} numberOfLines={1}>
+      <Text style={[styles.gridName, compact && styles.gridNameCompact]} numberOfLines={1}>
         {name}
       </Text>
       {description ? (
-        <Text style={styles.gridDesc} numberOfLines={1}>
+        <Text style={[styles.gridDesc, compact && styles.gridDescCompact]} numberOfLines={1}>
           {description}
         </Text>
       ) : null}
@@ -121,7 +128,7 @@ export function CategoryRow({
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.row, { borderColor: selected ? colors.active : colors.hairline }]}
+      style={[styles.row, { borderColor: selected ? colors.ink : colors.hairline }]}
     >
       <View style={styles.badge}>
         <Text style={styles.abbr}>{abbr}</Text>
@@ -129,7 +136,7 @@ export function CategoryRow({
       <Text style={styles.rowName}>{name}</Text>
       {selected ? (
         <View style={styles.check}>
-          <Check size={12} strokeWidth={3} color={colors.white} />
+          <Check size={12} strokeWidth={3} color={colors.paper} />
         </View>
       ) : null}
     </Pressable>
@@ -178,6 +185,14 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       gap: 3,
     },
+    gridTileCompact: {
+      width: 92,
+      alignItems: 'center',
+      gap: 2,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: 6,
+      borderRadius: radii.lg,
+    },
     gridBadge: {
       width: 52,
       height: 52,
@@ -189,7 +204,18 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       marginBottom: 6,
     },
-    gridBadgeSelected: { backgroundColor: colors.active, borderColor: colors.active },
+    gridBadgeCompact: {
+      width: 40,
+      height: 40,
+      borderRadius: radii.pill,
+      backgroundColor: colors.paperDim,
+      borderWidth: 1.5,
+      borderColor: colors.hairlineStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 4,
+    },
+    gridBadgeSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
     gridCheck: {
       position: 'absolute',
       top: 10,
@@ -197,11 +223,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       width: 20,
       height: 20,
       borderRadius: radii.sm,
-      backgroundColor: colors.active,
+      backgroundColor: colors.ink,
       alignItems: 'center',
       justifyContent: 'center',
     },
     gridName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
+    gridNameCompact: { fontSize: 12, fontFamily: fonts.semibold },
     gridDesc: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
+    gridDescCompact: { fontSize: 10, fontFamily: fonts.regular },
   });
 }

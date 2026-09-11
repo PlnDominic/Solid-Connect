@@ -97,13 +97,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
     },
-    peerName: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
+    peerName: { fontSize: 17.5, fontFamily: fonts.bold, color: colors.ink },
 
     bubble: { maxWidth: '76%', paddingVertical: 10, paddingHorizontal: spacing.md, borderRadius: radii.xxl },
     bubbleMine: { backgroundColor: colors.ink },
-    bubbleTheirs: { backgroundColor: colors.paperDim, borderWidth: 1, borderColor: colors.hairline },
-    bubbleTextMine: { color: colors.white, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
-    bubbleTextTheirs: { color: colors.ink, fontSize: 14, lineHeight: 19, fontFamily: fonts.regular },
+    bubbleTheirs: { backgroundColor: colors.paperDim },
+    bubbleTextMine: { color: colors.white, fontSize: 15.5, lineHeight: 20.5, fontFamily: fonts.regular },
+    bubbleTextTheirs: { color: colors.ink, fontSize: 15.5, lineHeight: 20.5, fontFamily: fonts.regular },
 
     inputRow: {
       flexDirection: 'row',

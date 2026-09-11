@@ -78,12 +78,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       padding: spacing.md,
       borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    title: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-    subtitle: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    title: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink },
+    subtitle: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFaint },
     ratePill: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -93,6 +91,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.pill,
       backgroundColor: colors.ink,
     },
-    ratePillText: { fontSize: 12, fontFamily: fonts.bold, color: colors.white },
+    ratePillText: { fontSize: 13, fontFamily: fonts.bold, color: colors.white },
   });
 }

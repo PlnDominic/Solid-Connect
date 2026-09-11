@@ -126,8 +126,8 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
               <Heart
                 size={22}
                 strokeWidth={2}
-                color={saved ? colors.active : colors.inkFaint}
-                fill={saved ? colors.active : 'transparent'}
+                color={saved ? colors.ink : colors.inkFaint}
+                fill={saved ? colors.ink : 'transparent'}
               />
             </Pressable>
           ) : null}
@@ -153,6 +153,24 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           </View>
         ) : null}
 
+        <Pressable
+          style={styles.cta}
+          onPress={() =>
+            navigation.navigate('NewRequest', {
+              initialCategoryName: requestTrade ?? undefined,
+              preferredProviderId: provider.id,
+              preferredProviderName: provider.full_name,
+              initialDescription: `Looking for help from ${provider.full_name}${
+                requestTrade ? ` (${requestTrade})` : ''
+              }.`,
+            })
+          }
+        >
+          <Text style={styles.ctaLabel}>
+            Request {requestTrade ?? 'this trade'}
+          </Text>
+        </Pressable>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Portfolio</Text>
           {portfolio.length ? (
@@ -175,26 +193,6 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           )}
         </View>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Pressable
-          style={styles.cta}
-          onPress={() =>
-            navigation.navigate('NewRequest', {
-              initialCategoryName: requestTrade ?? undefined,
-              preferredProviderId: provider.id,
-              preferredProviderName: provider.full_name,
-              initialDescription: `Looking for help from ${provider.full_name}${
-                requestTrade ? ` (${requestTrade})` : ''
-              }.`,
-            })
-          }
-        >
-          <Text style={styles.ctaLabel}>
-            Request {requestTrade ?? 'this trade'}
-          </Text>
-        </Pressable>
-      </View>
     </Screen>
   );
 }
@@ -205,13 +203,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     body: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxxl },
     hero: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
     heroPhoto: { width: 88, height: 88, borderRadius: radii.lg, backgroundColor: colors.paperDim },
-    name: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
-    tagline: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 18 },
+    name: { fontSize: 19.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
+    tagline: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19.5 },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
-    meta: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
-    metaStrong: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    meta: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
+    metaStrong: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
     section: { gap: spacing.sm },
-    sectionTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    sectionTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 8,
@@ -221,25 +219,24 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-    chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.white },
+    chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
+    chipLabel: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabelActive: { color: colors.paper },
     portfolioRow: { gap: spacing.sm },
     portfolioThumb: { width: 96, height: 96, borderRadius: radii.md, backgroundColor: colors.paperDim },
-    emptyHint: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
-    footer: {
-      padding: spacing.lg,
-      borderTopWidth: 1,
-      borderTopColor: colors.hairline,
-      backgroundColor: colors.card,
-    },
+    emptyHint: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
     cta: {
-      height: 52,
+      height: 54,
       borderRadius: radii.lg,
       backgroundColor: colors.ink,
       alignItems: 'center',
       justifyContent: 'center',
+      shadowColor: colors.black,
+      shadowOpacity: 0.16,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 4,
     },
-    ctaLabel: { fontSize: 15, fontFamily: fonts.bold, color: colors.paper },
+    ctaLabel: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.paper },
   });
 }

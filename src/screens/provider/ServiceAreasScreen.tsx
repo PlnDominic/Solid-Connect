@@ -94,7 +94,7 @@ export function ServiceAreasScreen({ navigation }: { navigation: any }) {
           Pick Accra neighborhoods you cover. Optionally add a radius from your primary area so customers nearby can find you (Phase C exit: 10 km).
         </Text>
         {isLoading && isApiConfigured() ? (
-          <ActivityIndicator color={colors.active} />
+          <ActivityIndicator color={colors.ink} />
         ) : (
           <>
             <Text style={styles.section}>Neighborhoods</Text>
@@ -168,9 +168,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
     chipPrimary: { borderWidth: 2, borderColor: colors.navy },
     chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.white },
+    chipLabelActive: { color: colors.paper },
   });
 }

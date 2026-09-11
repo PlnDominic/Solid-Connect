@@ -3,9 +3,7 @@ import { fonts } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 /**
- * Rounded-square, not circular - reads as an ID-badge photo frame, a
- * deliberate detail that keeps "verified identity" legible even in a plain
- * initials avatar, consistent with the confirmation/verification world.
+ * Circular frame for initials/photo avatars.
  */
 export function Avatar({
   initials,
@@ -31,7 +29,7 @@ export function Avatar({
         {
           width: size,
           height: size,
-          borderRadius: Math.max(6, size * 0.22),
+          borderRadius: size / 2,
           backgroundColor: dim ? 'rgba(255,255,255,0.15)' : resolvedBg,
           borderColor: dim ? 'rgba(255,255,255,0.2)' : colors.hairline,
         },

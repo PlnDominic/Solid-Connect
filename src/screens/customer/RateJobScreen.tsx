@@ -54,8 +54,8 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
                 <Star
                   size={34}
                   strokeWidth={1.8}
-                  color={n <= rating ? colors.active : colors.hairlineStrong}
-                  fill={n <= rating ? colors.active : 'transparent'}
+                  color={n <= rating ? colors.ink : colors.hairlineStrong}
+                  fill={n <= rating ? colors.ink : 'transparent'}
                 />
               </Pressable>
             ))}

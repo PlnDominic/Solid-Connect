@@ -33,16 +33,14 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     card: {
       borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.sm,
     },
     headRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-    name: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    name: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    date: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    comment: { fontSize: 13.5, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    date: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    comment: { fontSize: 15, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
   });
 }

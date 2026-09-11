@@ -196,14 +196,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     summary: {
       padding: spacing.md,
       borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
       backgroundColor: colors.card,
       gap: 3,
+      shadowColor: colors.black,
+      shadowOpacity: 0.1,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 5 },
+      elevation: 3,
     },
-    summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
-    rejectInline: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
+    summaryTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
+    summarySub: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted },
+    rejectInline: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
     rejectBanner: {
       padding: spacing.md,
       borderRadius: radii.lg,
@@ -212,13 +215,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       gap: 4,
     },
-    rejectTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    rejectBody: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 18 },
+    rejectTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
+    rejectBody: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19.5 },
 
     quoteCard: {
       borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.md,
@@ -227,7 +228,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     quoteIdentity: { flexDirection: 'row', gap: spacing.md, flexShrink: 1 },
     quoteNameWrap: { gap: 4, flexShrink: 1 },
     quoteNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-    quoteName: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    quoteName: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink },
 
     badge: {
       flexDirection: 'row',
@@ -243,9 +244,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     badgeTextOnDark: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
 
     quoteMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    quoteMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
-    quoteMetaDim: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    quotePrice: { fontSize: 19, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    quoteMeta: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
+    quoteMetaDim: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    quotePrice: { fontSize: 20.5, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
 
     quoteEta: {
       alignSelf: 'flex-start',
@@ -254,7 +255,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: 8,
       backgroundColor: colors.paperDim,
     },
-    quoteEtaText: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.inkMuted },
+    quoteEtaText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted },
 
     quoteActions: { flexDirection: 'row', gap: spacing.sm },
     halfBtn: { flex: 1, height: 46 },

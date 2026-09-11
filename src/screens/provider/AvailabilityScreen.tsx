@@ -52,7 +52,7 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>Control whether you appear in customer search and matching right now.</Text>
         {isLoading ? (
-          <ActivityIndicator color={colors.active} />
+          <ActivityIndicator color={colors.ink} />
         ) : (
           <>
             <View style={styles.chipsWrap}>
@@ -92,7 +92,7 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
                 );
               })}
             </View>
-            {(setMode.isPending || saveWeekly.isPending) && <ActivityIndicator color={colors.active} />}
+            {(setMode.isPending || saveWeekly.isPending) && <ActivityIndicator color={colors.ink} />}
           </>
         )}
       </ScrollView>
@@ -124,8 +124,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
     chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.white },
+    chipLabelActive: { color: colors.paper },
   });
 }

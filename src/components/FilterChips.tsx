@@ -11,9 +11,8 @@ export interface FilterOption {
 
 /**
  * Single-select horizontal filter row. Active state uses the brand-orange
- * "active" accent (also used for the picked category) - never the
- * confirm-green accent, which stays reserved for actual verified/confirmed
- * moments, not generic selection chrome.
+ * "active" accent - never the confirm-green accent, which stays reserved
+ * for actual verified/confirmed moments, not generic selection chrome.
  */
 export function FilterChips({
   options,
@@ -69,7 +68,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
     },
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-    label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
+    label: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
     labelActive: { color: colors.white },
   });
 }

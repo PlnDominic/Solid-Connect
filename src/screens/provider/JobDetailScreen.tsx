@@ -218,11 +218,14 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     progressCard: {
       borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.md,
+      shadowColor: colors.black,
+      shadowOpacity: 0.1,
+      shadowRadius: 14,
+      shadowOffset: { width: 0, height: 5 },
+      elevation: 3,
     },
     progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     progressLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },

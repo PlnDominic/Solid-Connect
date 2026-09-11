@@ -39,7 +39,7 @@ function SavedProviderRow({
         hitSlop={10}
         onPress={() => toggleSaved.mutate({ customerId, providerId: provider.id, saved: true })}
       >
-        <Heart size={18} strokeWidth={2} color={colors.active} fill={colors.active} />
+        <Heart size={18} strokeWidth={2} color={colors.ink} fill={colors.ink} />
       </Pressable>
     </Pressable>
   );
