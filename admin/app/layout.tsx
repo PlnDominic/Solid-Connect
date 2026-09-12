@@ -16,7 +16,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const theme = cookieStore.get('admin-theme')?.value === 'light' ? 'light' : 'dark';
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return <html data-theme={theme} className={`${GeistSans.variable} ${GeistMono.variable}`}><body>{children}</body></html>;
+  if (!user) redirect('/login');
   const { data: admin } = await supabase.from('admins').select('id, email').eq('id', user.id).maybeSingle();
   if (!admin) { await supabase.auth.signOut(); redirect('/login?error=not-admin'); }
   const initials = (admin.email ?? 'A').slice(0, 2).toUpperCase();
