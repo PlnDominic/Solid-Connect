@@ -62,12 +62,19 @@ export default async function PaymentsPage({ searchParams }: Props) {
     ? await supabase.from('profiles').select('id, full_name').in('id', peopleIds)
     : { data: [], error: null };
 
-  const errors = [countError?.message, releasedError?.message, pendingError?.message, refundedError?.message, listError?.message, jobsError?.message, peopleError?.message];
+  const paymentIds = rows.map((p) => p.id);
+  const { data: payouts, error: payoutsError } = paymentIds.length
+    ? await supabase.from('provider_payouts').select('payment_id, status, net_amount').in('payment_id', paymentIds)
+    : { data: [], error: null };
+
+  const errors = [countError?.message, releasedError?.message, pendingError?.message, refundedError?.message, listError?.message, jobsError?.message, peopleError?.message, payoutsError?.message];
 
   const jobMap: Record<string, any> = {};
   (jobs ?? []).forEach((j) => { jobMap[j.id] = j; });
   const nameMap: Record<string, string> = {};
   (people ?? []).forEach((p) => { nameMap[p.id] = p.full_name; });
+  const payoutMap: Record<string, any> = {};
+  (payouts ?? []).forEach((p) => { payoutMap[p.payment_id] = p; });
 
   return (
     <>
@@ -115,12 +122,14 @@ export default async function PaymentsPage({ searchParams }: Props) {
               <SortHeader label="Amount" field="amount" currentSort={sort} currentDir={dir} basePath="/payments" params={{ status }} />
               <SortHeader label="Status" field="status" currentSort={sort} currentDir={dir} basePath="/payments" params={{ status }} />
               <SortHeader label="Created" field="created_at" currentSort={sort} currentDir={dir} basePath="/payments" params={{ status }} />
+              <th>Payout</th>
               <th>Override</th>
             </tr>
           </thead>
           <tbody>
             {rows.length > 0 ? rows.map((p) => {
               const job = jobMap[p.job_id];
+              const payout = payoutMap[p.id];
               return (
                 <tr key={p.id}>
                   <td>
@@ -134,6 +143,15 @@ export default async function PaymentsPage({ searchParams }: Props) {
                     <span className={`pill ${p.status === 'released' ? 'approved' : p.status === 'refunded' ? 'rejected' : 'pending'}`}>{p.status}</span>
                   </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(p.created_at)}</td>
+                  <td>
+                    {payout ? (
+                      <Link href="/payouts" className={`pill ${payout.status === 'paid' ? 'approved' : 'pending'}`}>
+                        {payout.status} · {currency(payout.net_amount)}
+                      </Link>
+                    ) : (
+                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+                    )}
+                  </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {p.status !== 'released' && (
@@ -156,7 +174,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
                 </tr>
               );
             }) : (
-              <tr><td colSpan={7} className="empty">No payments found.</td></tr>
+              <tr><td colSpan={8} className="empty">No payments found.</td></tr>
             )}
           </tbody>
         </table>
