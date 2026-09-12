@@ -5,7 +5,9 @@ import { useProvider } from '../../api/marketplace';
 import { getOrCreateThread } from '../../api/chat';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
+import { LiveLocationCard } from '../../components/LiveLocationCard';
 import { Screen } from '../../components/Screen';
+import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -50,6 +52,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: customer } = useProvider(job?.customer_id);
   const startJob = useStartJob();
   const finishJob = useFinishJob();
+  useReportJobLocation(job);
 
   if (!job) return <Screen edges={['top']} />;
 
@@ -150,6 +153,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </View>
           <Text style={styles.progressNote}>{statusHint(job.status)}</Text>
         </View>
+
+        <LiveLocationCard job={job} viewerRole="provider" />
 
         <Button
           title={primaryCta.title}

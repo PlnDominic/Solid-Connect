@@ -8,7 +8,9 @@ import { getOrCreateThread } from '../../api/chat';
 import { Avatar } from '../../components/Avatar';
 import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
+import { LiveLocationCard } from '../../components/LiveLocationCard';
 import { Screen } from '../../components/Screen';
+import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -22,6 +24,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: provider } = useProvider(job?.provider_id);
   const { data: review } = useJobReview(jobId);
   const confirmCompletion = useConfirmCompletion();
+  useReportJobLocation(job);
 
   const [showPayment, setShowPayment] = useState(false);
 
@@ -94,6 +97,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
                   : 'Job completed.'}
           </Text>
         </View>
+
+        <LiveLocationCard job={job} viewerRole="customer" />
 
         <View style={styles.detailsCard}>
           <Text style={styles.detailsLabel}>DETAILS</Text>
