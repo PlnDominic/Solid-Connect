@@ -203,6 +203,21 @@ export interface Dispute {
   created_at: string;
 }
 
+// Added in supabase/migrations/0024_job_live_location.sql - one upserted row
+// per active job, holding each party's latest foreground GPS fix. Deleted
+// the moment the job completes (see confirm_job_completion); no history is
+// kept, so this is a live "where are they now", never a trail.
+export interface JobLocation {
+  job_id: string;
+  provider_lat: number | null;
+  provider_lng: number | null;
+  provider_updated_at: string | null;
+  customer_lat: number | null;
+  customer_lng: number | null;
+  customer_updated_at: string | null;
+  created_at: string;
+}
+
 // Added in supabase/migrations/0008_provider_portfolio.sql - public photos
 // of a provider's past work, shown on the customer-facing Provider Detail
 // screen. Public bucket/table (unlike verification docs); no per-photo
@@ -230,6 +245,7 @@ export interface Database {
       provider_verifications: { Row: ProviderVerification; Insert: Partial<ProviderVerification> & { provider_id: string }; Update: Partial<ProviderVerification> };
       disputes: { Row: Dispute; Insert: Partial<Dispute> & { job_id: string; customer_id: string; provider_id: string; reason: DisputeReason }; Update: Partial<Dispute> };
       provider_portfolio_photos: { Row: ProviderPortfolioPhoto; Insert: Partial<ProviderPortfolioPhoto> & { provider_id: string; photo_url: string }; Update: Partial<ProviderPortfolioPhoto> };
+      job_locations: { Row: JobLocation; Insert: Partial<JobLocation> & { job_id: string }; Update: Partial<JobLocation> };
     };
   };
 }
