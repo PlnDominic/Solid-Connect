@@ -157,6 +157,9 @@ export default async function AnalyticsPage() {
     paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
+    areaCentroidsRes,
+    providerAreasRes,
+    requestAreasRes,
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'provider'),
     supabase
@@ -182,6 +185,9 @@ export default async function AnalyticsPage() {
     supabase.from('payments').select('amount, status'),
     supabase.from('jobs').select('started_at'),
     supabase.from('profiles').select('created_at').eq('role', 'provider'),
+    supabase.from('area_centroids').select('name'),
+    supabase.from('profiles').select('area').eq('role', 'provider'),
+    supabase.from('service_requests').select('location_label'),
   ]);
 
   const queryErrors = [
@@ -196,6 +202,9 @@ export default async function AnalyticsPage() {
     paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
+    areaCentroidsRes,
+    providerAreasRes,
+    requestAreasRes,
   ]
     .map((r) => r.error?.message)
     .filter(Boolean);
@@ -255,6 +264,23 @@ export default async function AnalyticsPage() {
       return sum;
     });
   };
+
+  // Coverage by area: bucket free-text area/location_label strings against
+  // the known area_centroids names (the same list used for matching) by
+  // whether the area name leads the string - "Achimota, Accra" matches
+  // "Achimota". Areas with high demand and low supply are the actionable
+  // signal here, so the table sorts by that ratio, worst first.
+  const areaNames = (areaCentroidsRes.data ?? []).map((a) => a.name);
+  const providerAreaValues = (providerAreasRes.data ?? []).map((p) => p.area ?? '');
+  const requestAreaValues = (requestAreasRes.data ?? []).map((r) => r.location_label ?? '');
+  const coverage = areaNames
+    .map((area) => {
+      const needle = area.toLowerCase();
+      const supply = providerAreaValues.filter((v) => v.toLowerCase().startsWith(needle)).length;
+      const demand = requestAreaValues.filter((v) => v.toLowerCase().startsWith(needle)).length;
+      return { area, supply, demand, ratio: demand / Math.max(supply, 1) };
+    })
+    .sort((a, b) => b.ratio - a.ratio);
 
   return (
     <>
@@ -425,6 +451,41 @@ export default async function AnalyticsPage() {
             <div className="empty">No reviews yet</div>
           )}
         </div>
+      </div>
+
+      <div className="table-card">
+        <div className="table-card-header">
+          <h3>Coverage by Area</h3>
+          <span className="badge">Requests per provider</span>
+        </div>
+        {coverage.length > 0 ? (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Providers</th>
+                <th>Requests</th>
+                <th>Coverage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {coverage.map((row) => (
+                <tr key={row.area}>
+                  <td><strong>{row.area}</strong></td>
+                  <td>{row.supply}</td>
+                  <td>{row.demand}</td>
+                  <td>
+                    <span className={`pill ${row.supply === 0 && row.demand > 0 ? 'rejected' : row.ratio > 3 ? 'pending' : 'approved'}`}>
+                      {row.supply === 0 && row.demand > 0 ? 'No coverage' : `${row.ratio.toFixed(1)}x`}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <div className="empty">No area data yet</div>
+        )}
       </div>
 
       <div className="insight-banner">
