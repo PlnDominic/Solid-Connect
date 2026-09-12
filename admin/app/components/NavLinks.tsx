@@ -27,6 +27,11 @@ const links = [
 export default function NavLinks() {
   const pathname = usePathname();
 
+  const closeMobileSidebar = () => {
+    const toggle = document.getElementById('sidebar-toggle') as HTMLInputElement | null;
+    if (toggle) toggle.checked = false;
+  };
+
   return (
     <nav className="nav">
       {links.map(link => {
@@ -36,6 +41,7 @@ export default function NavLinks() {
             key={link.href}
             href={link.href}
             className={isActive ? 'active' : ''}
+            onClick={closeMobileSidebar}
           >
             <NavIcon d={link.d} />
             {link.label}

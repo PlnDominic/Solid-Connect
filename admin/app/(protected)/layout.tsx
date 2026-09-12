@@ -17,10 +17,14 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
 
   return (
     <div className="shell">
-      <aside className="side">
+      <input type="checkbox" id="sidebar-toggle" className="sidebar-toggle-checkbox" />
+      <aside className="side" id="mobile-sidebar">
         <div className="brand">
           <img src="/logo.jpeg" alt="" width={26} height={26} />
           Solid Connect
+          <label htmlFor="sidebar-toggle" className="sidebar-close" aria-label="Close menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </label>
         </div>
         <NavLinks />
         <div className="help-card">
@@ -33,11 +37,17 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
           <LogoutButton />
         </div>
       </aside>
+      <label htmlFor="sidebar-toggle" className="sidebar-overlay" aria-hidden="true" />
       <main className="main">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 12 }}>
-          <form action="/search" style={{ flex: 1, maxWidth: 360 }}>
-            <input type="text" name="q" placeholder="Search customers, providers, jobs…" className="search-input" />
-          </form>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
+            <label htmlFor="sidebar-toggle" className="hamburger-btn" aria-label="Open menu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </label>
+            <form action="/search" style={{ flex: 1, maxWidth: 360 }}>
+              <input type="text" name="q" placeholder="Search customers, providers, jobs…" className="search-input" />
+            </form>
+          </div>
           <ThemeToggle initialTheme={theme} />
         </div>
         {children}

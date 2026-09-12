@@ -112,6 +112,11 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 }
 .brand img { width: 26px; height: 26px; border-radius: 6px; }
 
+/* ===== Mobile sidebar (hamburger drawer) ===== */
+.sidebar-toggle-checkbox { display: none; }
+.hamburger-btn, .sidebar-close { display: none; }
+.sidebar-overlay { display: none; }
+
 .nav { display: flex; flex-direction: column; gap: 2px; }
 .nav a, .nav span {
   display: flex; align-items: center; gap: 10px;
@@ -473,8 +478,42 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 }
 @media (max-width: 760px) {
   .shell { grid-template-columns: 1fr; }
-  .side { position: static; height: auto; }
-  .nav { flex-direction: row; overflow: auto; }
+
+  /* Sidebar becomes an off-canvas drawer, opened via the hamburger button. */
+  .side {
+    position: fixed; top: 0; left: 0; z-index: 60;
+    width: min(80vw, 280px); height: 100dvh;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+    transition: transform .25s ease;
+  }
+  .sidebar-toggle-checkbox:checked ~ .side { transform: translateX(0); }
+
+  .brand { justify-content: space-between; }
+  .sidebar-close {
+    display: grid; place-items: center; width: 32px; height: 32px;
+    border-radius: 8px; color: var(--text-secondary);
+  }
+  .sidebar-close svg { width: 18px; height: 18px; }
+  .sidebar-close:hover { background: var(--bg-card); color: var(--text-primary); }
+
+  .nav { flex-direction: column; overflow: visible; }
+
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0; z-index: 50;
+    background: rgba(0,0,0,.5); cursor: pointer;
+  }
+  .sidebar-toggle-checkbox:checked ~ .sidebar-overlay { display: block; }
+
+  .hamburger-btn {
+    display: grid; place-items: center; flex-shrink: 0;
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .hamburger-btn svg { width: 18px; height: 18px; }
+  .hamburger-btn:hover { color: var(--text-primary); border-color: var(--accent-border); }
+
   .main { padding: 20px 16px; }
   .stats-grid { grid-template-columns: 1fr; }
   .topline, .detail { display: block; }
