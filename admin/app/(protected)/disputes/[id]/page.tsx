@@ -102,6 +102,10 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
           {dispute.status === 'open' ? (
             <form action={resolve} className="actions">
               <textarea className="field" name="note" required placeholder="Explain the outcome for both sides." />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                <input type="checkbox" name="refund" />
+                Also refund the customer's payment for this job
+              </label>
               <button className="btn approve" type="submit">Resolve dispute</button>
             </form>
           ) : (
