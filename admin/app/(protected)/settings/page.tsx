@@ -1,6 +1,6 @@
 'use client';
 
-import { useAdminTheme } from '../hooks/useAdminTheme';
+import { useAdminTheme } from '../../hooks/useAdminTheme';
 
 export default function SettingsPage() {
   const { theme, setTheme: switchTheme } = useAdminTheme();

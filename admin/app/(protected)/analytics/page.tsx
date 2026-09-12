@@ -1,4 +1,4 @@
-import { createAdminClient } from '../../lib/admin';
+import { createAdminClient } from '../../../lib/admin';
 
 export const dynamic = 'force-dynamic';
 

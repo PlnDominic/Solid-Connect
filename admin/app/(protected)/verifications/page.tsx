@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { createServerSupabase } from '../../lib/supabase';
-import { ErrorBanner } from '../components/ErrorBanner';
-import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../components/Pagination';
+import { createServerSupabase } from '../../../lib/supabase';
+import { ErrorBanner } from '../../components/ErrorBanner';
+import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 
 type Props = { searchParams: Promise<{ status?: string; page?: string }> };
 const statuses = ['pending', 'approved', 'rejected'];

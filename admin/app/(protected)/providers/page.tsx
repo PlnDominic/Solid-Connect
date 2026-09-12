@@ -1,6 +1,6 @@
-import { createServerSupabase } from '../../lib/supabase';
-import { ErrorBanner } from '../components/ErrorBanner';
-import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../components/Pagination';
+import { createServerSupabase } from '../../../lib/supabase';
+import { ErrorBanner } from '../../components/ErrorBanner';
+import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 
 type Props = { searchParams: Promise<{ q?: string; category?: string; page?: string }> };
 

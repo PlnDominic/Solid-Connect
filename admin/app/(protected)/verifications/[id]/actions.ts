@@ -1,7 +1,7 @@
 'use server';
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '../../../lib/admin';
-import { createServerSupabase } from '../../../lib/supabase';
+import { createAdminClient } from '../../../../lib/admin';
+import { createServerSupabase } from '../../../../lib/supabase';
 
 const LEVEL_BY_TYPE: Record<string, string> = {
   IDENTITY: 'IDENTITY_VERIFIED',

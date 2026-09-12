@@ -1,7 +1,7 @@
-import { createServerSupabase } from '../../lib/supabase';
+import { createServerSupabase } from '../../../lib/supabase';
 import { resolveDispute } from './actions';
-import { ErrorBanner } from '../components/ErrorBanner';
-import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../components/Pagination';
+import { ErrorBanner } from '../../components/ErrorBanner';
+import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 
 type Props = { searchParams: Promise<{ status?: string; page?: string }> };
 

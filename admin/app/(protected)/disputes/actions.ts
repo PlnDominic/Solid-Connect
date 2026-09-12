@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '../../lib/admin';
-import { createServerSupabase } from '../../lib/supabase';
+import { createAdminClient } from '../../../lib/admin';
+import { createServerSupabase } from '../../../lib/supabase';
 
 export async function resolveDispute(id: string, formData: FormData): Promise<void> {
   const note = String(formData.get('note') ?? '').trim();
