@@ -2,17 +2,21 @@ import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
+import { SortHeader } from '../../components/SortHeader';
 
-type Props = { searchParams: Promise<{ q?: string; category?: string; page?: string }> };
+type Props = { searchParams: Promise<{ q?: string; category?: string; page?: string; sort?: string; dir?: string }> };
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 
 /** Strips characters that would break a PostgREST .or()/.ilike() filter string. */
 const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
+const SORTABLE = ['full_name', 'provider_category', 'area', 'provider_rating', 'provider_jobs_count', 'created_at'];
 
 export default async function ProvidersPage({ searchParams }: Props) {
-  const { q, category, page: pageRaw } = await searchParams;
+  const { q, category, page: pageRaw, sort: sortRaw, dir: dirRaw } = await searchParams;
   const requestedPage = parsePage(pageRaw);
+  const sort = SORTABLE.includes(sortRaw ?? '') ? sortRaw! : 'created_at';
+  const dir: 'asc' | 'desc' = dirRaw === 'asc' ? 'asc' : 'desc';
   const supabase = await createServerSupabase();
   const term = q ? sanitizeForFilter(q) : '';
 
@@ -68,7 +72,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  const { data: providers, error: listError } = await dataQuery().order('created_at', { ascending: false }).range(from, to);
+  const { data: providers, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
   const errors = [countError?.message, listError?.message, totalError?.message, verifiedError?.message, certifiedError?.message, categoryError?.message];
 
@@ -144,6 +148,9 @@ export default async function ProvidersPage({ searchParams }: Props) {
             Filter
           </button>
         </form>
+        <a href={`/api/export/providers?${new URLSearchParams({ ...(q ? { q } : {}), ...(category ? { category } : {}) }).toString()}`} className="filter-btn">
+          Export CSV
+        </a>
       </div>
 
       {/* Table */}
@@ -151,13 +158,13 @@ export default async function ProvidersPage({ searchParams }: Props) {
         <table className="table">
           <thead>
             <tr>
-              <th>Provider</th>
-              <th>Category</th>
-              <th>Area</th>
-              <th>Rating</th>
-              <th>Jobs</th>
+              <SortHeader label="Provider" field="full_name" currentSort={sort} currentDir={dir} basePath="/providers" params={{ q, category }} />
+              <SortHeader label="Category" field="provider_category" currentSort={sort} currentDir={dir} basePath="/providers" params={{ q, category }} />
+              <SortHeader label="Area" field="area" currentSort={sort} currentDir={dir} basePath="/providers" params={{ q, category }} />
+              <SortHeader label="Rating" field="provider_rating" currentSort={sort} currentDir={dir} basePath="/providers" params={{ q, category }} />
+              <SortHeader label="Jobs" field="provider_jobs_count" currentSort={sort} currentDir={dir} basePath="/providers" params={{ q, category }} />
               <th>Status</th>
-              <th>Joined</th>
+              <SortHeader label="Joined" field="created_at" currentSort={sort} currentDir={dir} basePath="/providers" params={{ q, category }} />
             </tr>
           </thead>
           <tbody>

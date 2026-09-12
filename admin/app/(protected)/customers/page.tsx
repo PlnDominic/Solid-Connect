@@ -2,17 +2,21 @@ import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
+import { SortHeader } from '../../components/SortHeader';
 
-type Props = { searchParams: Promise<{ q?: string; page?: string }> };
+type Props = { searchParams: Promise<{ q?: string; page?: string; sort?: string; dir?: string }> };
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 
 /** Strips characters that would break a PostgREST .or()/.ilike() filter string. */
 const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
+const SORTABLE = ['full_name', 'area', 'created_at'];
 
 export default async function CustomersPage({ searchParams }: Props) {
-  const { q, page: pageRaw } = await searchParams;
+  const { q, page: pageRaw, sort: sortRaw, dir: dirRaw } = await searchParams;
   const requestedPage = parsePage(pageRaw);
+  const sort = SORTABLE.includes(sortRaw ?? '') ? sortRaw! : 'created_at';
+  const dir: 'asc' | 'desc' = dirRaw === 'asc' ? 'asc' : 'desc';
   const supabase = await createServerSupabase();
   const term = q ? sanitizeForFilter(q) : '';
 
@@ -46,7 +50,7 @@ export default async function CustomersPage({ searchParams }: Props) {
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  const { data: customers, error: listError } = await dataQuery().order('created_at', { ascending: false }).range(from, to);
+  const { data: customers, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
   const rows = customers ?? [];
 
@@ -91,7 +95,7 @@ export default async function CustomersPage({ searchParams }: Props) {
       </div>
 
       {/* Search */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
         <form>
           <input
             type="text"
@@ -102,6 +106,7 @@ export default async function CustomersPage({ searchParams }: Props) {
             style={{ maxWidth: 400 }}
           />
         </form>
+        <a href={`/api/export/customers${q ? `?q=${encodeURIComponent(q)}` : ''}`} className="filter-btn">Export CSV</a>
       </div>
 
       {/* Table */}
@@ -109,11 +114,11 @@ export default async function CustomersPage({ searchParams }: Props) {
         <table className="table">
           <thead>
             <tr>
-              <th>Customer</th>
-              <th>Area</th>
+              <SortHeader label="Customer" field="full_name" currentSort={sort} currentDir={dir} basePath="/customers" params={{ q }} />
+              <SortHeader label="Area" field="area" currentSort={sort} currentDir={dir} basePath="/customers" params={{ q }} />
               <th>Phone</th>
               <th>Jobs Posted</th>
-              <th>Joined</th>
+              <SortHeader label="Joined" field="created_at" currentSort={sort} currentDir={dir} basePath="/customers" params={{ q }} />
             </tr>
           </thead>
           <tbody>

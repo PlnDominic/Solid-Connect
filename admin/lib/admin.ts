@@ -31,3 +31,21 @@ export async function requireOwner(): Promise<{ id: string; email: string } | nu
   if (!admin || admin.disabled_at || admin.role !== 'owner') return null;
   return { id: user.id, email: user.email };
 }
+
+/**
+ * Confirms the signed-in caller is any active (non-disabled) admin -
+ * owner or support. Used by actions and export routes that any admin may
+ * use, as opposed to requireOwner's owner-only gate. Same no-throw
+ * convention as requireOwner.
+ */
+export async function requireAdmin(): Promise<{ id: string; email: string } | null> {
+  const sessionClient = await createServerSupabase();
+  const {
+    data: { user },
+  } = await sessionClient.auth.getUser();
+  if (!user?.email) return null;
+  const adminClient = createAdminClient();
+  const { data: admin } = await adminClient.from('admins').select('id, disabled_at').eq('id', user.id).maybeSingle();
+  if (!admin || admin.disabled_at) return null;
+  return { id: user.id, email: user.email };
+}

@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
+import { SortHeader } from '../../components/SortHeader';
 
-type Props = { searchParams: Promise<{ status?: string; q?: string; page?: string }> };
+type Props = { searchParams: Promise<{ status?: string; q?: string; page?: string; sort?: string; dir?: string }> };
 const statuses = ['all', 'in_progress', 'completed'];
 const statusLabels: Record<string, string> = { all: 'All', in_progress: 'In Progress', completed: 'Completed' };
 
@@ -12,11 +13,14 @@ const currency = (n: number) => `$${n.toLocaleString('en-US')}`;
 
 /** Strips characters that would break a PostgREST .or()/.ilike() filter string. */
 const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
+const SORTABLE = ['title', 'price', 'location_label', 'status', 'started_at'];
 
 export default async function JobsPage({ searchParams }: Props) {
-  const { status: requested, q, page: pageRaw } = await searchParams;
+  const { status: requested, q, page: pageRaw, sort: sortRaw, dir: dirRaw } = await searchParams;
   const status = statuses.includes(requested ?? '') ? requested! : 'all';
   const requestedPage = parsePage(pageRaw);
+  const sort = SORTABLE.includes(sortRaw ?? '') ? sortRaw! : 'started_at';
+  const dir: 'asc' | 'desc' = dirRaw === 'asc' ? 'asc' : 'desc';
   const supabase = await createServerSupabase();
   const term = q ? sanitizeForFilter(q) : '';
 
@@ -71,7 +75,7 @@ export default async function JobsPage({ searchParams }: Props) {
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
-  const { data: jobs, error: listError } = await dataQuery().order('started_at', { ascending: false }).range(from, to);
+  const { data: jobs, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
   const errors = [countError?.message, listError?.message, totalError?.message, completedError?.message, inProgressError?.message, revenueError?.message];
 
@@ -153,6 +157,7 @@ export default async function JobsPage({ searchParams }: Props) {
             style={{ width: 240 }}
           />
         </form>
+        <a href={`/api/export/jobs?${new URLSearchParams({ status, ...(q ? { q } : {}) }).toString()}`} className="filter-btn">Export CSV</a>
       </div>
 
       {/* Table */}
@@ -160,13 +165,13 @@ export default async function JobsPage({ searchParams }: Props) {
         <table className="table">
           <thead>
             <tr>
-              <th>Job</th>
+              <SortHeader label="Job" field="title" currentSort={sort} currentDir={dir} basePath="/jobs" params={{ status, q }} />
               <th>Provider</th>
               <th>Customer</th>
-              <th>Price</th>
-              <th>Location</th>
-              <th>Status</th>
-              <th>Date</th>
+              <SortHeader label="Price" field="price" currentSort={sort} currentDir={dir} basePath="/jobs" params={{ status, q }} />
+              <SortHeader label="Location" field="location_label" currentSort={sort} currentDir={dir} basePath="/jobs" params={{ status, q }} />
+              <SortHeader label="Status" field="status" currentSort={sort} currentDir={dir} basePath="/jobs" params={{ status, q }} />
+              <SortHeader label="Date" field="started_at" currentSort={sort} currentDir={dir} basePath="/jobs" params={{ status, q }} />
             </tr>
           </thead>
           <tbody>

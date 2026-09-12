@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
+import { VerificationsTable } from './VerificationsTable';
 
 type Props = { searchParams: Promise<{ status?: string; page?: string }> };
 const statuses = ['pending', 'approved', 'rejected'];
-const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 
 export default async function VerificationsPage({ searchParams }: Props) {
   const { status: requested, page: pageRaw } = await searchParams;
@@ -55,36 +55,7 @@ export default async function VerificationsPage({ searchParams }: Props) {
       </nav>
       {rows?.length ? (
         <>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Provider</th>
-                <th>Trade</th>
-                <th>Area</th>
-                <th>Submitted</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row: any) => (
-                <tr key={row.id}>
-                  <td>
-                    <Link href={`/verifications/${row.id}`}>
-                      <strong>{row.profiles?.full_name ?? 'Unknown provider'}</strong>
-                    </Link>
-                    <br />
-                    <span className="mono">{row.id.slice(0, 8)}</span>
-                  </td>
-                  <td>{row.profiles?.provider_category ?? '—'}</td>
-                  <td>{row.profiles?.area ?? '—'}</td>
-                  <td>{stamp(row.submitted_at)}</td>
-                  <td>
-                    <span className={`pill ${row.status}`}>{row.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <VerificationsTable rows={rows as any} status={status} />
           <Pagination page={page} pageSize={PAGE_SIZE} total={total ?? 0} basePath="/verifications" params={{ status }} />
         </>
       ) : (

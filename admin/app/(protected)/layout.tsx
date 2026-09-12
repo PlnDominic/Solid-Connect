@@ -11,8 +11,8 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const { data: admin } = await supabase.from('admins').select('id, email').eq('id', user.id).maybeSingle();
-  if (!admin) { await supabase.auth.signOut(); redirect('/login?error=not-admin'); }
+  const { data: admin } = await supabase.from('admins').select('id, email, disabled_at').eq('id', user.id).maybeSingle();
+  if (!admin || admin.disabled_at) { await supabase.auth.signOut(); redirect('/login?error=not-admin'); }
   const initials = (admin.email ?? 'A').slice(0, 2).toUpperCase();
 
   return (
@@ -34,7 +34,10 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
         </div>
       </aside>
       <main className="main">
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 12 }}>
+          <form action="/search" style={{ flex: 1, maxWidth: 360 }}>
+            <input type="text" name="q" placeholder="Search customers, providers, jobs…" className="search-input" />
+          </form>
           <ThemeToggle initialTheme={theme} />
         </div>
         {children}
