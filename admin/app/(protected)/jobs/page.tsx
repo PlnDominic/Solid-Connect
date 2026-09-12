@@ -175,7 +175,7 @@ export default async function JobsPage({ searchParams }: Props) {
               const cust = customerMap[j.customer_id];
               return (
                 <tr key={j.id}>
-                  <td><strong>{j.title || 'Untitled'}</strong></td>
+                  <td><Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{j.title || 'Untitled'}</Link></td>
                   <td>
                     {prov ? (
                       <div className="profile-cell">

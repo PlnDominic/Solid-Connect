@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { formatDistanceKm, formatRelativeTime, haversineKm, mapsUrl } from '../../../lib/geo';
@@ -143,7 +144,7 @@ export default async function LiveJobsPage() {
               return (
                 <tr key={j.id}>
                   <td>
-                    <strong>{j.title || 'Untitled'}</strong>
+                    <Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{j.title || 'Untitled'}</Link>
                     <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>{j.location_label ?? '—'}</div>
                   </td>
                   <td>

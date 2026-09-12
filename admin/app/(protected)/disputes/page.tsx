@@ -1,5 +1,5 @@
+import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
-import { resolveDispute } from './actions';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 
@@ -73,7 +73,7 @@ export default async function DisputesPage({ searchParams }: Props) {
       <div className="page-header">
         <div className="page-header-eyebrow">Trust & safety</div>
         <h1>Disputes</h1>
-        <p className="page-header-sub">Customer-filed complaints on jobs. Resolve with a clear note for both sides.</p>
+        <p className="page-header-sub">Customer-filed complaints on jobs. Review the evidence, then resolve with a clear note for both sides.</p>
       </div>
 
       <ErrorBanner errors={errors} />
@@ -81,9 +81,7 @@ export default async function DisputesPage({ searchParams }: Props) {
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Open</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>
-            {openCount ?? 0}
-          </div>
+          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{openCount ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Listed</div>
@@ -91,24 +89,16 @@ export default async function DisputesPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <nav className="tabs" style={{ margin: '0 0 14px' }}>
         {(['open', 'resolved'] as const).map((s) => (
-          <a
-            key={s}
-            href={`/disputes?status=${s}`}
-            className="button"
-            style={{
-              opacity: status === s ? 1 : 0.55,
-              textDecoration: 'none',
-            }}
-          >
+          <Link key={s} href={`/disputes?status=${s}`} className={status === s ? 'selected' : ''}>
             {s === 'open' ? 'Open' : 'Resolved'}
-          </a>
+          </Link>
         ))}
-      </div>
+      </nav>
 
-      <div className="table-wrap">
-        <table>
+      <div className="table-card">
+        <table className="table">
           <thead>
             <tr>
               <th>Job</th>
@@ -116,47 +106,32 @@ export default async function DisputesPage({ searchParams }: Props) {
               <th>Customer</th>
               <th>Provider</th>
               <th>Opened</th>
-              <th>Action</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={6}>No disputes in this filter.</td>
+            {rows.length > 0 ? rows.map((d) => (
+              <tr key={d.id}>
+                <td>
+                  <Link href={`/disputes/${d.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>
+                    {jobMap[d.job_id] ?? d.job_id.slice(0, 8)}
+                  </Link>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>{d.description}</div>
+                </td>
+                <td>{reasonLabel[d.reason] ?? d.reason}</td>
+                <td>{nameMap[d.customer_id] ?? '—'}</td>
+                <td>{nameMap[d.provider_id] ?? '—'}</td>
+                <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(d.created_at)}</td>
+                <td>
+                  {d.status === 'open' ? (
+                    <Link href={`/disputes/${d.id}`} className="table-link" style={{ margin: 0 }}>Review →</Link>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Closed {d.resolved_at ? stamp(d.resolved_at) : ''}</span>
+                  )}
+                </td>
               </tr>
-            ) : (
-              rows.map((d) => (
-                <tr key={d.id}>
-                  <td>
-                    <div style={{ fontWeight: 600 }}>{jobMap[d.job_id] ?? d.job_id.slice(0, 8)}</div>
-                    <div style={{ opacity: 0.65, fontSize: 12, marginTop: 4 }}>{d.description}</div>
-                    {d.resolution_note ? (
-                      <div style={{ opacity: 0.75, fontSize: 12, marginTop: 6 }}>Resolved: {d.resolution_note}</div>
-                    ) : null}
-                  </td>
-                  <td>{reasonLabel[d.reason] ?? d.reason}</td>
-                  <td>{nameMap[d.customer_id] ?? '—'}</td>
-                  <td>{nameMap[d.provider_id] ?? '—'}</td>
-                  <td>{stamp(d.created_at)}</td>
-                  <td>
-                    {d.status === 'open' ? (
-                      <form action={resolveDispute.bind(null, d.id)} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        <input
-                          name="note"
-                          required
-                          placeholder="Resolution note"
-                          style={{ minWidth: 160, padding: '6px 8px' }}
-                        />
-                        <button className="button" type="submit">
-                          Resolve
-                        </button>
-                      </form>
-                    ) : (
-                      <span style={{ opacity: 0.6 }}>Closed {d.resolved_at ? stamp(d.resolved_at) : ''}</span>
-                    )}
-                  </td>
-                </tr>
-              ))
+            )) : (
+              <tr><td colSpan={6} className="empty">No disputes in this filter.</td></tr>
             )}
           </tbody>
         </table>
