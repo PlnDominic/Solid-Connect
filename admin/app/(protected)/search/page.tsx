@@ -6,7 +6,7 @@ type Props = { searchParams: Promise<{ q?: string }> };
 
 /** Strips characters that would break a PostgREST .or()/.ilike() filter string. */
 const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
-const currency = (n: number) => `$${(n ?? 0).toLocaleString('en-US')}`;
+const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;
 
 export default async function SearchPage({ searchParams }: Props) {
   const { q: raw } = await searchParams;

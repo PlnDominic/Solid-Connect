@@ -7,7 +7,7 @@ import { setPaymentStatus } from './actions';
 
 type Props = { searchParams: Promise<{ status?: string; page?: string; sort?: string; dir?: string }> };
 const statuses = ['all', 'pending', 'released', 'refunded'];
-const currency = (n: number) => `$${(n ?? 0).toLocaleString('en-US')}`;
+const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;
 const stamp = (date: string | null) => (date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date)) : '—');
 const SORTABLE = ['amount', 'status', 'created_at'];
 

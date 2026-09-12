@@ -74,7 +74,7 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
             </div>
             <div>
               <label>Job price</label>
-              <strong>${job?.price?.toLocaleString('en-US') ?? '—'}</strong>
+              <strong>GH₵{job?.price?.toLocaleString('en-US') ?? '—'}</strong>
             </div>
             <div>
               <label>Location</label>

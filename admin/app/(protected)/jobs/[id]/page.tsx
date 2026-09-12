@@ -6,7 +6,7 @@ import { formatDistanceKm, formatRelativeTime, haversineKm, mapsUrl } from '../.
 import { JobActivity } from '../../../components/JobActivity';
 
 const ACTIVE_STATUSES = ['accepted', 'in_progress', 'awaiting_completion_confirmation'];
-const currency = (n: number) => `$${(n ?? 0).toLocaleString('en-US')}`;
+const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;
 const stamp = (date: string | null) =>
   date ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date)) : '—';
 

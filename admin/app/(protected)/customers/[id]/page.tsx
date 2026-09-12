@@ -4,7 +4,7 @@ import { createServerSupabase } from '../../../../lib/supabase';
 import { SuspensionPanel } from '../../../components/SuspensionPanel';
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
-const currency = (n: number) => `$${(n ?? 0).toLocaleString('en-US')}`;
+const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;
 
 const reasonLabel: Record<string, string> = {
   not_completed: 'Not completed',

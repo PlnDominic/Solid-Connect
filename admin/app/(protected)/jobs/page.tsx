@@ -9,7 +9,7 @@ const statuses = ['all', 'in_progress', 'completed'];
 const statusLabels: Record<string, string> = { all: 'All', in_progress: 'In Progress', completed: 'Completed' };
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
-const currency = (n: number) => `$${n.toLocaleString('en-US')}`;
+const currency = (n: number) => `GH₵${n.toLocaleString('en-US')}`;
 
 /** Strips characters that would break a PostgREST .or()/.ilike() filter string. */
 const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
