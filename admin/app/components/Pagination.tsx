@@ -48,11 +48,8 @@ export function Pagination({
           href={hrefFor(Math.max(1, page - 1))}
           aria-disabled={atStart}
           tabIndex={atStart ? -1 : undefined}
-          style={{
-            padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)',
-            background: 'var(--bg-input)', color: atStart ? 'var(--text-muted)' : 'var(--text-primary)',
-            pointerEvents: atStart ? 'none' : 'auto', fontWeight: 600,
-          }}
+          className="pager-btn"
+          style={{ pointerEvents: atStart ? 'none' : 'auto' }}
         >
           Prev
         </Link>
@@ -63,11 +60,8 @@ export function Pagination({
           href={hrefFor(Math.min(totalPages, page + 1))}
           aria-disabled={atEnd}
           tabIndex={atEnd ? -1 : undefined}
-          style={{
-            padding: '6px 12px', borderRadius: 8, border: '1px solid var(--border)',
-            background: 'var(--bg-input)', color: atEnd ? 'var(--text-muted)' : 'var(--text-primary)',
-            pointerEvents: atEnd ? 'none' : 'auto', fontWeight: 600,
-          }}
+          className="pager-btn"
+          style={{ pointerEvents: atEnd ? 'none' : 'auto' }}
         >
           Next
         </Link>

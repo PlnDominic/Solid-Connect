@@ -97,11 +97,8 @@ export default async function CustomersPage({ searchParams }: Props) {
             name="q"
             defaultValue={q ?? ''}
             placeholder="Search by name, email, or area..."
-            style={{
-              width: '100%', maxWidth: 400, padding: '10px 14px', borderRadius: 8,
-              border: '1px solid var(--border)', background: 'var(--bg-input)',
-              color: 'var(--text-primary)', fontSize: 13
-            }}
+            className="search-input"
+            style={{ maxWidth: 400 }}
           />
         </form>
       </div>

@@ -149,11 +149,8 @@ export default async function JobsPage({ searchParams }: Props) {
             name="q"
             defaultValue={q ?? ''}
             placeholder="Search jobs..."
-            style={{
-              padding: '10px 14px', borderRadius: 8,
-              border: '1px solid var(--border)', background: 'var(--bg-input)',
-              color: 'var(--text-primary)', fontSize: 13, width: 240
-            }}
+            className="search-input"
+            style={{ width: 240 }}
           />
         </form>
       </div>
