@@ -43,6 +43,14 @@ export function friendlyAuthError(e: unknown, fallback: string): string {
  * anonymous session from before this app used real auth (or a stray one
  * from anywhere else) does not count as signed in, and gets cleared so it
  * can't cause a false "already logged in" skip on a later launch.
+ *
+ * Also the one enforcement point for admin-suspended accounts: checked
+ * once here, at app-launch sign-in, not on every screen or mid-session -
+ * a suspension takes effect on that person's next app launch, which is a
+ * deliberate, scoped trade-off (see 0026_review_moderation_and_suspension.sql).
+ * A suspended user is force-signed-out and this throws instead of
+ * returning null, so AuthFlowScreen's existing error display shows them
+ * the reason instead of silently dropping them at the splash screen.
  */
 export async function getCurrentUserId(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
@@ -51,6 +59,15 @@ export async function getCurrentUserId(): Promise<string | null> {
   if (user.is_anonymous) {
     await supabase.auth.signOut();
     return null;
+  }
+  const { data: profile } = await supabase.from('profiles').select('suspended_at, suspended_reason').eq('id', user.id).maybeSingle();
+  if (profile?.suspended_at) {
+    await supabase.auth.signOut();
+    throw new Error(
+      profile.suspended_reason
+        ? `Your account has been suspended: ${profile.suspended_reason}`
+        : 'Your account has been suspended. Contact support if you think this is a mistake.',
+    );
   }
   return user.id;
 }

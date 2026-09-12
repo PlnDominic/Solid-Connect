@@ -1,6 +1,7 @@
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
+import { setReviewHidden } from './actions';
 
 type Props = { searchParams: Promise<{ rating?: string; page?: string }> };
 
@@ -20,7 +21,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
     return q2;
   };
   const dataQuery = () => {
-    let q2 = supabase.from('reviews').select('id, rating, created_at, provider_id, customer_id, job_id');
+    let q2 = supabase.from('reviews').select('id, rating, comment, created_at, provider_id, customer_id, job_id, hidden_at');
     if (rating) q2 = q2.eq('rating', Number(rating));
     return q2;
   };
@@ -187,8 +188,9 @@ export default async function ReviewsPage({ searchParams }: Props) {
               <th>Rating</th>
               <th>Provider</th>
               <th>Customer</th>
-              <th>Job</th>
+              <th>Comment</th>
               <th>Date</th>
+              <th>Moderation</th>
             </tr>
           </thead>
           <tbody>
@@ -222,14 +224,24 @@ export default async function ReviewsPage({ searchParams }: Props) {
                       </div>
                     ) : '—'}
                   </td>
-                  <td style={{ maxWidth: 300, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: 12 }}>
-                    {r.job_id ? String(r.job_id).slice(0, 8) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                  <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+                    {r.comment || <span style={{ color: 'var(--text-muted)' }}>No comment</span>}
                   </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(r.created_at)}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {r.hidden_at && <span className="pill rejected">Hidden</span>}
+                      <form action={setReviewHidden.bind(null, r.id, !r.hidden_at)}>
+                        <button className="filter-btn" style={{ padding: '6px 12px' }}>
+                          {r.hidden_at ? 'Restore' : 'Hide'}
+                        </button>
+                      </form>
+                    </div>
+                  </td>
                 </tr>
               );
             }) : (
-              <tr><td colSpan={5} className="empty">No reviews found.</td></tr>
+              <tr><td colSpan={6} className="empty">No reviews found.</td></tr>
             )}
           </tbody>
         </table>

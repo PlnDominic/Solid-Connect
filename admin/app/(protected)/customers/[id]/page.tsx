@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
+import { SuspensionPanel } from '../../../components/SuspensionPanel';
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 const currency = (n: number) => `$${(n ?? 0).toLocaleString('en-US')}`;
@@ -19,7 +20,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   const { data: customer } = await supabase
     .from('profiles')
-    .select('id, full_name, initials, area, phone, email, created_at')
+    .select('id, full_name, initials, area, phone, email, created_at, suspended_at, suspended_reason')
     .eq('id', id)
     .eq('role', 'customer')
     .maybeSingle();
@@ -45,9 +46,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           <h1 className="heading">{customer.full_name}</h1>
           <p className="intro">{customer.area} · Joined {stamp(customer.created_at)}</p>
         </div>
-        <div className="stat" style={{ minWidth: 160 }}>
-          <b>{currency(totalSpend)}</b>
-          <span>Total spend · {completedJobs.length} completed jobs</span>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {customer.suspended_at && <span className="pill rejected">Suspended</span>}
+          <div className="stat" style={{ minWidth: 160 }}>
+            <b>{currency(totalSpend)}</b>
+            <span>Total spend · {completedJobs.length} completed jobs</span>
+          </div>
         </div>
       </div>
 
@@ -104,6 +108,14 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           ) : (
             <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No reviews written yet.</p>
           )}
+
+          <h2 style={{ marginTop: 28 }}>Account access</h2>
+          <SuspensionPanel
+            id={customer.id}
+            redirectPath={`/customers/${customer.id}`}
+            suspendedAt={customer.suspended_at}
+            suspendedReason={customer.suspended_reason}
+          />
         </aside>
       </div>
     </>

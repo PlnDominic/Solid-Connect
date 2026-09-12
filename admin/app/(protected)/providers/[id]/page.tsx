@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
+import { SuspensionPanel } from '../../../components/SuspensionPanel';
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 const currency = (n: number) => `$${(n ?? 0).toLocaleString('en-US')}`;
@@ -19,7 +20,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
 
   const { data: provider } = await supabase
     .from('profiles')
-    .select('id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, verification_level, availability_mode, created_at, tagline')
+    .select('id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, verification_level, availability_mode, created_at, tagline, suspended_at, suspended_reason')
     .eq('id', id)
     .eq('role', 'provider')
     .maybeSingle();
@@ -54,9 +55,12 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
           <h1 className="heading">{provider.full_name}</h1>
           <p className="intro">{provider.tagline || provider.provider_category || 'No trade set'} · {provider.area}</p>
         </div>
-        <span className={`pill ${provider.provider_verified ? 'approved' : 'pending'}`}>
-          {VERIFICATION_LEVEL_LABEL[provider.verification_level ?? 'REGISTERED'] ?? provider.verification_level}
-        </span>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {provider.suspended_at && <span className="pill rejected">Suspended</span>}
+          <span className={`pill ${provider.provider_verified ? 'approved' : 'pending'}`}>
+            {VERIFICATION_LEVEL_LABEL[provider.verification_level ?? 'REGISTERED'] ?? provider.verification_level}
+          </span>
+        </div>
       </div>
 
       <div className="detail">
@@ -138,6 +142,14 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
           ) : (
             <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No reviews yet.</p>
           )}
+
+          <h2 style={{ marginTop: 28 }}>Account access</h2>
+          <SuspensionPanel
+            id={provider.id}
+            redirectPath={`/providers/${provider.id}`}
+            suspendedAt={provider.suspended_at}
+            suspendedReason={provider.suspended_reason}
+          />
         </aside>
       </div>
     </>

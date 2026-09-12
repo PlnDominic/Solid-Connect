@@ -29,7 +29,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
     let q2 = supabase
       .from('profiles')
       .select(
-        'id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at',
+        'id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at, suspended_at',
       )
       .eq('role', 'provider');
     if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,provider_category.ilike.%${term}%,area.ilike.%${term}%`);
@@ -184,7 +184,9 @@ export default async function ProvidersPage({ searchParams }: Props) {
                 </td>
                 <td>{p.provider_jobs_count ?? 0}</td>
                 <td>
-                  {p.provider_verified ? (
+                  {p.suspended_at ? (
+                    <span className="pill rejected">Suspended</span>
+                  ) : p.provider_verified ? (
                     <span className="pill approved">Verified</span>
                   ) : p.provider_certified ? (
                     <span className="pill" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }}>Certified</span>
