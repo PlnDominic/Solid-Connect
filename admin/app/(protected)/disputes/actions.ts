@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '../../../lib/admin';
 import { createServerSupabase } from '../../../lib/supabase';
+import { logAdminAction } from '../../../lib/audit';
 
 export async function resolveDispute(id: string, formData: FormData): Promise<void> {
   const note = String(formData.get('note') ?? '').trim();
@@ -27,6 +28,12 @@ export async function resolveDispute(id: string, formData: FormData): Promise<vo
     })
     .eq('id', id)
     .eq('status', 'open');
+
+  await logAdminAction(
+    { id: user.id, email: user.email ?? '' },
+    'RESOLVED_DISPUTE',
+    { targetType: 'dispute', targetId: id, note },
+  );
 
   revalidatePath('/disputes');
 }

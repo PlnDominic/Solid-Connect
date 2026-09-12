@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '../../../../lib/admin';
 import { createServerSupabase } from '../../../../lib/supabase';
+import { logAdminAction } from '../../../../lib/audit';
 
 const LEVEL_BY_TYPE: Record<string, string> = {
   IDENTITY: 'IDENTITY_VERIFIED',
@@ -49,6 +50,11 @@ export async function reviewVerification(id: string, decision: 'approved' | 'rej
     const { error: profileError } = await adminClient.from('profiles').update(patch).eq('id', submission.provider_id);
     if (profileError) return { error: profileError.message };
   }
+  await logAdminAction(
+    { id: user.id, email: user.email ?? '' },
+    decision === 'approved' ? 'APPROVED_VERIFICATION' : 'REJECTED_VERIFICATION',
+    { targetType: 'provider_verification', targetId: id, note: decision === 'rejected' ? note : undefined },
+  );
   revalidatePath('/verifications');
   revalidatePath(`/verifications/${id}`);
   return { success: true };
