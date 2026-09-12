@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
@@ -168,7 +169,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
                       {p.initials}
                     </div>
                     <div>
-                      <strong>{p.full_name}</strong>
+                      <Link href={`/providers/${p.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{p.full_name}</Link>
                       <br />
                       <span className="mono">{p.email ?? 'No email'}</span>
                     </div>
