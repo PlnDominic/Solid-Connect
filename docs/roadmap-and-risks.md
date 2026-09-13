@@ -132,6 +132,13 @@ Source: §19–22, §25–28 of the concept document.
 - Identity and professional verification policies
 - Data retention and deletion procedures
 - Professional licensing requirements for regulated services
+
+**[`docs/legal/`](./legal/README.md)** has a first drafted pass at four of
+these (Terms of Service, Privacy Policy, Provider Agreement, Refund &
+Dispute Policy), grounded in the schema and admin tooling as it exists at
+migration `0029` - explicitly not reviewed by counsel, not wired into the
+app, and not a substitute for the qualified-professional review this
+section already calls for.
 - Consumer protection and marketplace responsibilities
 
 ## Recommended next steps with Solid Connect Limited

@@ -89,6 +89,10 @@ See `docs/roadmap-and-risks.md` for the fuller gap list and sequencing.
   target architecture)
 - [`PRODUCT.md`](./PRODUCT.md) - product record used by the design/redesign
   workflow (users, positioning, constraints)
+- [`docs/legal/`](./docs/legal/README.md) - draft Terms of Service, Privacy
+  Policy, Provider Agreement, and Refund & Dispute Policy. **Not reviewed
+  by counsel, not wired into the app** - see that folder's README before
+  using any of it.
 
 ## Getting started
 
