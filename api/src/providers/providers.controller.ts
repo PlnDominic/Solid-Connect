@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -29,6 +30,7 @@ export class ProvidersController {
   ) {}
 
   @Get('search')
+  @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async search(@Query() query: SearchProvidersQueryDto) {
     const data = await this.location.search(query);
@@ -47,6 +49,7 @@ export class ProvidersController {
   }
 
   @Put('me/skills')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async setMySkills(@CurrentUser() user: RequestUser, @Body() body: SetSkillsDto) {
     await this.users.setProviderSkills(user.id, body.skillIds, body.yearsExperience ?? 0);
@@ -61,6 +64,7 @@ export class ProvidersController {
   }
 
   @Put('me/categories')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async setMyCategories(@CurrentUser() user: RequestUser, @Body() body: SetCategoriesDto) {
     const result = await this.users.setProviderCategories(user.id, body.categoryIds);
@@ -76,6 +80,7 @@ export class ProvidersController {
   }
 
   @Put('me/service-areas')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async setMyServiceAreas(@CurrentUser() user: RequestUser, @Body() body: ReplaceServiceAreasDto) {
     const data = await this.location.replaceServiceAreas(user.id, body.areas);
@@ -90,6 +95,7 @@ export class ProvidersController {
   }
 
   @Put('me/availability/mode')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async setAvailabilityMode(@CurrentUser() user: RequestUser, @Body() body: AvailabilityModeDto) {
     const data = await this.location.setAvailabilityMode(user.id, body.mode);
@@ -97,6 +103,7 @@ export class ProvidersController {
   }
 
   @Put('me/availability/weekly')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async setWeeklyAvailability(
     @CurrentUser() user: RequestUser,

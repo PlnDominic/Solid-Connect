@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -16,6 +17,7 @@ export class QuotesController {
   constructor(private readonly quotes: QuotesService) {}
 
   @Post('quotes')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async create(@CurrentUser() user: RequestUser, @Body() body: CreateQuoteDto) {
     const data = await this.quotes.create(user.id, body);
@@ -23,6 +25,7 @@ export class QuotesController {
   }
 
   @Patch('quotes/:id')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async revise(
     @CurrentUser() user: RequestUser,
@@ -41,6 +44,7 @@ export class QuotesController {
   }
 
   @Post('quotes/accept')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async accept(@CurrentUser() user: RequestUser, @Body() body: AcceptQuoteDto) {
     const data = await this.quotes.accept(user.id, body);

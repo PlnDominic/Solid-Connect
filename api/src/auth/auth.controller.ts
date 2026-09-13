@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { UsersService } from '../users/users.service';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { Roles } from './decorators/roles.decorator';
@@ -40,6 +41,7 @@ export class AuthController {
   }
 
   @Post('sync')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async sync(@CurrentUser() user: RequestUser, @Body() body: SyncAuthDto) {
     const ensured = await this.users.ensureUser({
@@ -63,6 +65,7 @@ export class AuthController {
   }
 
   @Post('become-provider')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async becomeProvider(@CurrentUser() user: RequestUser, @Body() body: BecomeProviderDto) {
     const result = await this.users.becomeProvider(user.id, body);
@@ -78,6 +81,7 @@ export class AuthController {
   }
 
   @Post('switch-role')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async switchRole(@CurrentUser() user: RequestUser, @Body() body: SwitchRoleDto) {
     const result = await this.users.switchActiveRole(user.id, body.role);

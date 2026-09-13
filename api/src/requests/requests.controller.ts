@@ -1,5 +1,6 @@
 import { Body, Controller, ForbiddenException, Get, Param, Patch, Post, UseGuards, BadRequestException } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -15,6 +16,10 @@ import { RequestsService } from './requests.service';
 export class RequestsController {
   constructor(private readonly requests: RequestsService) {}
 
+  // Posting a job runs the matching scan against every eligible provider -
+  // real customers post a handful of jobs a day at most, so 10/min is
+  // generous for genuine use and blocks a scripted flood of fake requests.
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post()
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async create(@CurrentUser() user: RequestUser, @Body() body: CreateRequestDto) {
@@ -57,6 +62,10 @@ export class RequestsController {
     return { data, meta: { count: data.length } };
   }
 
+  // The most expensive route in this controller - runMatching() rescans
+  // every eligible provider for this request. Nothing legitimate calls it
+  // more than a couple of times per request lifecycle.
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post(':id/match')
   @Roles('CUSTOMER', 'ADMIN', 'SUPER_ADMIN')
   async rematch(@CurrentUser() user: RequestUser, @Param('id') id: string) {
@@ -75,6 +84,10 @@ export class RequestsController {
     return { data: { opportunities }, meta: { matchedCount: opportunities.length } };
   }
 
+  // Direct-request decisions are one-time state transitions per request -
+  // 10/min is well above any genuine usage and stops a retry loop (buggy
+  // client or scripted abuse) from hammering the accept/reject path.
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post(':id/accept-direct')
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async acceptDirect(@CurrentUser() user: RequestUser, @Param('id') id: string) {
@@ -82,6 +95,7 @@ export class RequestsController {
     return { data, meta: {} };
   }
 
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post(':id/reject-direct')
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async rejectDirect(

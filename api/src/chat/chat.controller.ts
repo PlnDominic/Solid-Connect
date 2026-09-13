@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -26,6 +27,7 @@ export class ChatController {
   }
 
   @Post('threads')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async ensure(@CurrentUser() user: RequestUser, @Body() body: CreateThreadDto) {
     const data = await this.chat.ensureThread(user.id, body);
@@ -40,6 +42,7 @@ export class ChatController {
   }
 
   @Post('threads/:id/messages')
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async send(
     @CurrentUser() user: RequestUser,

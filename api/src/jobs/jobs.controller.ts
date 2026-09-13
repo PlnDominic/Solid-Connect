@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -36,6 +37,7 @@ export class JobsController {
   }
 
   @Post(':id/start')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async start(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     const data = await this.jobs.start(id, user.id);
@@ -43,6 +45,7 @@ export class JobsController {
   }
 
   @Post(':id/finish')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async finish(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     const data = await this.jobs.finish(id, user.id);
@@ -50,6 +53,7 @@ export class JobsController {
   }
 
   @Post(':id/advance')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
   async advance(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     const data = await this.jobs.advance(id, user.id);
@@ -57,6 +61,7 @@ export class JobsController {
   }
 
   @Post(':id/confirm')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async confirm(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     const data = await this.jobs.confirm(id, user.id);
