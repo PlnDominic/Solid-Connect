@@ -4,9 +4,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useCreateRequest } from '../../api/requests';
 import { useAllProviders, useCategories } from '../../api/marketplace';
-import { AreaPicker, isValidArea } from '../../components/AreaPicker';
+import { isValidArea } from '../../components/AreaPicker';
 import { Button } from '../../components/Button';
 import { CategoryGridTile } from '../../components/CategoryTile';
+import { LocationField } from '../../components/LocationField';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { StepBars } from '../../components/StepDots';
@@ -262,8 +263,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           ) : null}
           {isDirect ? (
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Location</Text>
-              <AreaPicker value={location} onChangeValue={setLocation} />
+              <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
             </View>
           ) : null}
           {budgetField}
@@ -322,8 +322,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           </View>
           {budgetField}
           <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Location</Text>
-            <AreaPicker value={location} onChangeValue={setLocation} />
+            <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
           </View>
 
           <View style={styles.reviewCard}>

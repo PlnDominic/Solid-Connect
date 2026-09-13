@@ -3,7 +3,7 @@ import { requireAdmin } from '../../../../lib/admin';
 import { createServerSupabase } from '../../../../lib/supabase';
 import { toCsv, csvResponse } from '../../../../lib/csv';
 
-const statuses = ['all', 'pending', 'released', 'refunded'];
+const statuses = ['all', 'pending', 'released', 'refunded', 'partially_refunded'];
 
 export async function GET(request: NextRequest) {
   const admin = await requireAdmin();
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('payments')
-    .select('id, job_id, amount, status, refund_reason, released_at, created_at')
+    .select('id, job_id, amount, status, refund_amount, refund_reason, released_at, created_at')
     .order('created_at', { ascending: false })
     .limit(5000);
   if (status !== 'all') query = query.eq('status', status);
@@ -23,6 +23,9 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query;
   if (error) return new Response(error.message, { status: 500 });
 
-  const csv = toCsv(['id', 'job_id', 'amount', 'status', 'refund_reason', 'released_at', 'created_at'], data ?? []);
+  const csv = toCsv(
+    ['id', 'job_id', 'amount', 'status', 'refund_amount', 'refund_reason', 'released_at', 'created_at'],
+    data ?? [],
+  );
   return csvResponse('payments.csv', csv);
 }

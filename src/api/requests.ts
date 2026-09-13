@@ -365,6 +365,18 @@ export function useFeedRequests(myProviderId: string | null) {
         .limit(40);
       if (error) throw error;
       if (!requests?.length) return [];
+
+      // Unlike the Nest feed (which reads request_opportunities directly
+      // and already excludes DISMISSED - see api/src/requests/requests.
+      // service.ts providerFeed), this fallback queries service_requests
+      // itself, so a dismissal needs to be filtered back out here.
+      const { data: dismissed } = await supabase
+        .from('request_opportunities')
+        .select('request_id')
+        .eq('provider_id', myProviderId as string)
+        .eq('status', 'DISMISSED')
+        .in('request_id', requests.map((r) => r.id));
+      const dismissedIds = new Set((dismissed ?? []).map((d) => d.request_id));
       const { data: myQuotes, error: qErr } = await supabase
         .from('quotes')
         .select('*')
@@ -385,6 +397,7 @@ export function useFeedRequests(myProviderId: string | null) {
 
       return requests
         .filter((r) => !r.preferred_provider_id || r.preferred_provider_id === myProviderId)
+        .filter((r) => !dismissedIds.has(r.id))
         .map((r) => ({ ...r, myQuote: byRequest.get(r.id) ?? null }))
         .sort((a, b) => {
           const score = (r: ServiceRequest) => {
@@ -413,6 +426,32 @@ export function useFeedRequests(myProviderId: string | null) {
   });
 
   return query;
+}
+
+/**
+ * Records a provider explicitly passing on a general/broadcast
+ * opportunity (as opposed to a DIRECT request, which already required a
+ * reason via reject_direct_request) - a plain data write with no other
+ * business logic, so it goes straight to the dismiss_opportunity RPC
+ * either way rather than branching on isApiConfigured(). The Nest feed
+ * (providerFeed) and the Supabase-direct fallback both already filter out
+ * DISMISSED rows, so this alone is enough to drop it from the feed.
+ */
+export function useDismissOpportunity() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { requestId: string; providerId: string; reason?: string }) => {
+      const { error } = await supabase.rpc('dismiss_opportunity', {
+        p_request_id: input.requestId,
+        p_provider_id: input.providerId,
+        p_reason: input.reason ?? null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feedRequests'] });
+    },
+  });
 }
 
 export function useSendQuote() {

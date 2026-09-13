@@ -102,10 +102,21 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
           {dispute.status === 'open' ? (
             <form action={resolve} className="actions">
               <textarea className="field" name="note" required placeholder="Explain the outcome for both sides." />
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-                <input type="checkbox" name="refund" />
-                Also refund the customer's payment for this job
+              <label style={{ display: 'block', fontSize: 13 }}>
+                Refund amount (optional)
+                <input
+                  type="number"
+                  name="refundAmount"
+                  min={0}
+                  max={job?.price ?? undefined}
+                  placeholder={`Up to GH₵${job?.price ?? 0} · leave blank for none`}
+                  className="search-input"
+                  style={{ marginTop: 6, width: '100%' }}
+                />
               </label>
+              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
+                The full price is a full refund; anything less splits it - the provider still gets paid for the rest.
+              </p>
               <button className="btn approve" type="submit">Resolve dispute</button>
             </form>
           ) : (

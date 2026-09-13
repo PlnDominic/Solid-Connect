@@ -1,14 +1,18 @@
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { Check } from 'lucide-react-native';
-import { useFeedRequests } from '../../api/requests';
+import { Check, X } from 'lucide-react-native';
+import { useDismissOpportunity, useFeedRequests } from '../../api/requests';
 import { isApiConfigured } from '../../lib/api';
 import { Badge } from '../../components/Badge';
+import { BottomSheet } from '../../components/BottomSheet';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
+
+const DECLINE_REASONS = ['Too far', 'Budget too low', 'Wrong trade', 'Not available', 'Other'];
 
 function timeAgo(iso: string) {
   const mins = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
@@ -25,6 +29,14 @@ export function FeedScreen({ navigation }: { navigation: any }) {
     profile?.id ?? null,
   );
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
+  const dismissOpportunity = useDismissOpportunity();
+  const [dismissTargetId, setDismissTargetId] = useState<string | null>(null);
+
+  function handleDismiss(reason?: string) {
+    if (!profile || !dismissTargetId) return;
+    dismissOpportunity.mutate({ requestId: dismissTargetId, providerId: profile.id, reason });
+    setDismissTargetId(null);
+  }
 
   return (
     <Screen>
@@ -58,42 +70,59 @@ export function FeedScreen({ navigation }: { navigation: any }) {
             subtitle="When customers nearby post a matching job — or send you a direct request — they’ll show up here."
           />
         ) : (
-          requests.map((r) => (
-            <Pressable
-              key={r.id}
-              style={styles.card}
-              onPress={() => navigation.navigate('RequestDetail', { requestId: r.id })}
-            >
-              <View style={styles.cardTop}>
-                <View style={{ gap: 3 }}>
-                  <Text style={styles.cardTitle}>{r.category_label.split('·').pop()?.trim()}</Text>
-                  <Text style={styles.cardMeta}>
-                    {r.location_label} · {timeAgo(r.created_at)}
+          requests.map((r) => {
+            // Not-interested tracking only applies to general opportunities
+            // a provider can silently skip - a DIRECT request already has
+            // its own reject flow (with a required reason) inside Request
+            // Detail, and there's nothing to dismiss once a quote is sent.
+            const canDismiss = !r.myQuote && r.request_mode !== 'DIRECT' && r.status !== 'awaiting_provider';
+            return (
+              <Pressable
+                key={r.id}
+                style={styles.card}
+                onPress={() => navigation.navigate('RequestDetail', { requestId: r.id })}
+              >
+                <View style={styles.cardTop}>
+                  <View style={{ gap: 3, flex: 1 }}>
+                    <Text style={styles.cardTitle}>{r.category_label.split('·').pop()?.trim()}</Text>
+                    <Text style={styles.cardMeta}>
+                      {r.location_label} · {timeAgo(r.created_at)}
+                    </Text>
+                  </View>
+                  <Text style={styles.cardBudget}>
+                    GHS {r.customer_budget ?? r.budget_min}
+                    {r.budget_max != null && r.budget_max !== r.budget_min ? `-${r.budget_max}` : ''}
                   </Text>
+                  {canDismiss ? (
+                    <Pressable
+                      hitSlop={10}
+                      style={styles.dismissBtn}
+                      onPress={() => setDismissTargetId(r.id)}
+                      accessibilityLabel="Not interested"
+                    >
+                      <X size={14} strokeWidth={2.4} color={colors.inkFaint} />
+                    </Pressable>
+                  ) : null}
                 </View>
-                <Text style={styles.cardBudget}>
-                  GHS {r.customer_budget ?? r.budget_min}
-                  {r.budget_max != null && r.budget_max !== r.budget_min ? `-${r.budget_max}` : ''}
-                </Text>
-              </View>
-              {r.myQuote ? (
-                <Badge
-                  label="Quote sent"
-                  bg={colors.confirmBg}
-                  fg={colors.confirm}
-                  icon={<Check size={11} strokeWidth={3} color={colors.confirm} />}
-                />
-              ) : r.request_mode === 'DIRECT' || r.status === 'awaiting_provider' ? (
-                <Badge label="Direct request" bg={colors.navyBg} fg={colors.navy} />
-              ) : (
-                <Badge
-                  label={r.category_label.split('·')[0]?.trim() ?? ''}
-                  bg={colors.paperDim}
-                  fg={colors.inkMuted}
-                />
-              )}
-            </Pressable>
-          ))
+                {r.myQuote ? (
+                  <Badge
+                    label="Quote sent"
+                    bg={colors.confirmBg}
+                    fg={colors.confirm}
+                    icon={<Check size={11} strokeWidth={3} color={colors.confirm} />}
+                  />
+                ) : r.request_mode === 'DIRECT' || r.status === 'awaiting_provider' ? (
+                  <Badge label="Direct request" bg={colors.navyBg} fg={colors.navy} />
+                ) : (
+                  <Badge
+                    label={r.category_label.split('·')[0]?.trim() ?? ''}
+                    bg={colors.paperDim}
+                    fg={colors.inkMuted}
+                  />
+                )}
+              </Pressable>
+            );
+          })
         )}
         {isError ? (
           <Pressable onPress={() => refetch()} style={styles.retry} disabled={isFetching}>
@@ -101,6 +130,21 @@ export function FeedScreen({ navigation }: { navigation: any }) {
           </Pressable>
         ) : null}
       </ScrollView>
+
+      <BottomSheet visible={!!dismissTargetId} onClose={() => setDismissTargetId(null)}>
+        <Text style={styles.sheetTitle}>Not interested?</Text>
+        <Text style={styles.sheetSubtitle}>Optional - helps us send you better matches.</Text>
+        <View style={styles.reasonList}>
+          {DECLINE_REASONS.map((reason) => (
+            <Pressable key={reason} style={styles.reasonRow} onPress={() => handleDismiss(reason)}>
+              <Text style={styles.reasonLabel}>{reason}</Text>
+            </Pressable>
+          ))}
+          <Pressable style={styles.reasonRow} onPress={() => handleDismiss(undefined)}>
+            <Text style={[styles.reasonLabel, { color: colors.inkFaint }]}>Skip, just remove it</Text>
+          </Pressable>
+        </View>
+      </BottomSheet>
     </Screen>
   );
 }
@@ -138,5 +182,20 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
     },
     retryLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+
+    dismissBtn: {
+      width: 24,
+      height: 24,
+      borderRadius: radii.pill,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.paperDim,
+      marginLeft: spacing.sm,
+    },
+    sheetTitle: { fontSize: 17, fontFamily: fonts.extrabold, color: colors.ink },
+    sheetSubtitle: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, marginTop: 2, marginBottom: spacing.sm },
+    reasonList: { gap: 2 },
+    reasonRow: { paddingVertical: spacing.md, borderTopWidth: 1, borderTopColor: colors.hairline },
+    reasonLabel: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
   });
 }

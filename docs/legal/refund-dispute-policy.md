@@ -62,13 +62,9 @@ App once your dispute is resolved. Possible outcomes:
 - **Refunded**: the held payment is returned to you.
 - **Released to provider**: the admin team found the work was
   satisfactorily completed as agreed; the payment is released normally.
-- **Partial or other resolution**: for anything that doesn't fit a full
-  refund or full release, the note explains what was agreed instead.
-
-_[Placeholder — "partial refund" is not a mechanic the payments schema
-currently supports (a payment is refunded or released, not split); if
-partial refunds are needed, that requires a schema change before this
-policy can promise it.]_
+- **Partial refund**: part of the held payment is returned to you, and
+  the provider is still paid the remainder - used when the work was
+  partly done, or partly met what was agreed.
 
 ## 5. If you disagree with a resolution
 

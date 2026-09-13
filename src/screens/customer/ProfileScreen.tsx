@@ -8,6 +8,7 @@ import {
   Heart,
   KeyRound,
   LifeBuoy,
+  MapPin,
   Moon,
   Star,
   UserCog,
@@ -39,6 +40,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     title: 'Account',
     rows: [
       { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
+      { label: 'Saved locations', screen: 'SavedLocations', icon: MapPin },
       { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
       { label: 'Payment methods', screen: 'PaymentMethods', icon: CreditCard },
     ],

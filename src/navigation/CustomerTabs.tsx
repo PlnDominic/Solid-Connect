@@ -11,6 +11,7 @@ import { JobDetailScreen } from '../screens/customer/JobDetailScreen';
 import { RateJobScreen } from '../screens/customer/RateJobScreen';
 import { ProfileScreen } from '../screens/customer/ProfileScreen';
 import { SavedProvidersScreen } from '../screens/customer/SavedProvidersScreen';
+import { SavedLocationsScreen } from '../screens/shared/SavedLocationsScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
@@ -76,6 +77,7 @@ function ProfileStack() {
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
       <ProfileStackNav.Screen name="SavedProviders" component={SavedProvidersScreen} />
+      <ProfileStackNav.Screen name="SavedLocations" component={SavedLocationsScreen} />
       <ProfileStackNav.Screen name="ProviderDetail" component={ProviderDetailScreen} />
       <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
       <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
