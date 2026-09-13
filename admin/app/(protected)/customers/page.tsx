@@ -34,16 +34,7 @@ export default async function CustomersPage({ searchParams }: Props) {
     return q2;
   };
 
-  const [
-    { count: filteredTotal, error: countError },
-    // Total Customers stat reflects the whole table, independent of search.
-    { count: allCustomers, error: totalError },
-    { count: totalJobs, error: jobsError },
-  ] = await Promise.all([
-    countQuery(),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
-    supabase.from('jobs').select('*', { count: 'exact', head: true }),
-  ]);
+  const { count: filteredTotal, error: countError } = await countQuery();
 
   const total = filteredTotal ?? 0;
   const page = clampPage(requestedPage, total, PAGE_SIZE);
@@ -60,7 +51,7 @@ export default async function CustomersPage({ searchParams }: Props) {
     ? await supabase.from('jobs').select('customer_id').in('customer_id', customerIds)
     : { data: [], error: null };
 
-  const errors = [countError?.message, listError?.message, totalError?.message, jobsError?.message, jobCountsError?.message];
+  const errors = [countError?.message, listError?.message, jobCountsError?.message];
 
   const countMap: Record<string, number> = {};
   jobCounts?.forEach(j => { countMap[j.customer_id] = (countMap[j.customer_id] || 0) + 1; });
@@ -75,19 +66,6 @@ export default async function CustomersPage({ searchParams }: Props) {
       </div>
 
       <ErrorBanner errors={errors} />
-
-      {/* Total Customers is a plain count (Analytics already headlines
-          providers/jobs the same way), and Total Jobs Posted duplicates the
-          Jobs page. Avg Jobs per Customer is the one number that's actually
-          specific to this page - an engagement signal, not just a count. */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Avg Jobs per Customer</div>
-          <div className="stat-card-value">
-            {allCustomers && allCustomers > 0 ? ((totalJobs ?? 0) / allCustomers).toFixed(1) : '0'}
-          </div>
-        </div>
-      </div>
 
       {/* Search */}
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>

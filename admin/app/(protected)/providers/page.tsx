@@ -41,29 +41,11 @@ export default async function ProvidersPage({ searchParams }: Props) {
     return q2;
   };
 
-  // Stat cards summarize the whole provider table, independent of the
-  // search/category filter and the current page - matched counts, not the
-  // paginated rows, so they stay correct as the table grows past one page.
   const [
     { count: filteredTotal, error: countError },
-    { count: allProviders, error: totalError },
-    { count: verifiedCount, error: verifiedError },
-    { count: certifiedCount, error: certifiedError },
     { data: categoryRows, error: categoryError },
   ] = await Promise.all([
     countQuery(),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'provider'),
-    supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'provider')
-      .eq('provider_verified', true),
-    supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role', 'provider')
-      .eq('provider_verified', false)
-      .eq('provider_certified', true),
     supabase.from('profiles').select('provider_category').eq('role', 'provider'),
   ]);
 
@@ -74,12 +56,9 @@ export default async function ProvidersPage({ searchParams }: Props) {
 
   const { data: providers, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
-  const errors = [countError?.message, listError?.message, totalError?.message, verifiedError?.message, certifiedError?.message, categoryError?.message];
+  const errors = [countError?.message, listError?.message, categoryError?.message];
 
   const rows = providers ?? [];
-  const verified = verifiedCount ?? 0;
-  const certified = certifiedCount ?? 0;
-  const pending = Math.max(0, (allProviders ?? 0) - verified - certified);
   const categories = [...new Set((categoryRows ?? []).map(p => p.provider_category).filter(Boolean))].sort();
 
   return (
@@ -92,18 +71,6 @@ export default async function ProvidersPage({ searchParams }: Props) {
       </div>
 
       <ErrorBanner errors={errors} />
-
-      {/* Total Providers, Verified, and Certified are all "good state"
-          breakdowns of the same total (and Total Providers duplicates
-          Analytics anyway) - Unverified is the actual queue that needs an
-          admin's attention, same number as Analytics' "Pending
-          Verifications" but scoped to this list. */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Unverified</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{pending}</div>
-        </div>
-      </div>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>

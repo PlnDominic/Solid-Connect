@@ -40,19 +40,7 @@ export default async function JobsPage({ searchParams }: Props) {
     return q2;
   };
 
-  // Stat card reflects the selected status tab (matching the tabs
-  // themselves) but not the search box - counted independently of the
-  // current page so it stays correct once the table is paginated.
-  const withTab = () => {
-    let q2 = supabase.from('jobs').select('*', { count: 'exact', head: true });
-    if (status !== 'all') q2 = q2.eq('status', status);
-    return q2;
-  };
-
-  const [
-    { count: filteredTotal, error: countError },
-    { count: inProgressCount, error: inProgressError },
-  ] = await Promise.all([countQuery(), withTab().eq('status', 'in_progress')]);
+  const { count: filteredTotal, error: countError } = await countQuery();
 
   const total = filteredTotal ?? 0;
   const page = clampPage(requestedPage, total, PAGE_SIZE);
@@ -61,7 +49,7 @@ export default async function JobsPage({ searchParams }: Props) {
 
   const { data: jobs, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
-  const errors = [countError?.message, listError?.message, inProgressError?.message];
+  const errors = [countError?.message, listError?.message];
 
   const filtered = jobs ?? [];
 
@@ -93,16 +81,6 @@ export default async function JobsPage({ searchParams }: Props) {
       </div>
 
       <ErrorBanner errors={errors} />
-
-      {/* Total Jobs and Revenue are already headlined on Analytics; Completed
-          is a lifetime count with little day-to-day urgency. In Progress is
-          the one number that actually asks for attention right now. */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">In Progress</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{inProgressCount ?? 0}</div>
-        </div>
-      </div>
 
       {/* Tabs + Search */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>

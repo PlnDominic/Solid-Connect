@@ -15,13 +15,10 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
   const requestedPage = parsePage(pageRaw);
   const supabase = await createServerSupabase();
 
-  const [
-    { count: filteredTotal, error: countError },
-    { count: pendingCount, error: pendingError },
-  ] = await Promise.all([
-    supabase.from('account_deletion_requests').select('*', { count: 'exact', head: true }).eq('status', status),
-    supabase.from('account_deletion_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-  ]);
+  const { count: filteredTotal, error: countError } = await supabase
+    .from('account_deletion_requests')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', status);
 
   const total = filteredTotal ?? 0;
   const page = clampPage(requestedPage, total, PAGE_SIZE);
@@ -42,7 +39,7 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
     ? await supabase.from('profiles').select('id, full_name, email, role').in('id', userIds)
     : { data: [] as { id: string; full_name: string; email: string | null; role: string }[], error: null };
 
-  const errors = [countError?.message, listError?.message, pendingError?.message, peopleError?.message];
+  const errors = [countError?.message, listError?.message, peopleError?.message];
 
   const peopleMap: Record<string, { full_name: string; email: string | null; role: string }> = {};
   people?.forEach((p) => {
@@ -59,16 +56,6 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
           anonymizes the profile; job/payment/review history tied to other people&apos;s accounts is kept, same as a
           removed review only recalculating a rating.
         </p>
-      </div>
-
-      {/* "Listed" dropped - same reasoning as disputes/page.tsx: it just
-          restates the active tab, and Pagination's footer already shows
-          the total once there's more than a page of rows. */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Pending</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{pendingCount ?? 0}</div>
-        </div>
       </div>
 
       <ErrorBanner errors={errors} />

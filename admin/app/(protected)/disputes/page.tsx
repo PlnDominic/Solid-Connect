@@ -22,15 +22,10 @@ export default async function DisputesPage({ searchParams }: Props) {
   const requestedPage = parsePage(pageRaw);
   const supabase = await createServerSupabase();
 
-  const [
-    { count: filteredTotal, error: countError },
-    // "Open" stat is a standing queue signal - always the true global open
-    // count, not scoped to whichever tab you happen to be viewing.
-    { count: openCount, error: openError },
-  ] = await Promise.all([
-    supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', status),
-    supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-  ]);
+  const { count: filteredTotal, error: countError } = await supabase
+    .from('disputes')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', status);
 
   const total = filteredTotal ?? 0;
   const page = clampPage(requestedPage, total, PAGE_SIZE);
@@ -57,7 +52,7 @@ export default async function DisputesPage({ searchParams }: Props) {
       : Promise.resolve({ data: [] as { id: string; title: string }[], error: null }),
   ]);
 
-  const errors = [countError?.message, listError?.message, openError?.message, peopleError?.message, jobsError?.message];
+  const errors = [countError?.message, listError?.message, peopleError?.message, jobsError?.message];
 
   const nameMap: Record<string, string> = {};
   people?.forEach((p) => {
@@ -77,18 +72,6 @@ export default async function DisputesPage({ searchParams }: Props) {
       </div>
 
       <ErrorBanner errors={errors} />
-
-      {/* "Listed" is dropped - it just restates whichever tab is selected,
-          and the Pagination footer already shows "X-Y of total" once
-          there's more than one page. "Open" is the one number that's
-          always the true global queue size, not scoped to the active
-          tab - see the comment on its query above. */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Open</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{openCount ?? 0}</div>
-        </div>
-      </div>
 
       <nav className="tabs" style={{ margin: '0 0 14px' }}>
         {(['open', 'resolved'] as const).map((s) => (

@@ -13,10 +13,10 @@ export default async function VerificationsPage({ searchParams }: Props) {
   const requestedPage = parsePage(pageRaw);
   const supabase = await createServerSupabase();
 
-  const [{ count: filteredTotal, error: countError }, { count: pendingCount, error: pendingError }] = await Promise.all([
-    supabase.from('provider_verifications').select('*', { count: 'exact', head: true }).eq('status', status),
-    supabase.from('provider_verifications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-  ]);
+  const { count: filteredTotal, error: countError } = await supabase
+    .from('provider_verifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', status);
 
   const total = filteredTotal ?? 0;
   const page = clampPage(requestedPage, total, PAGE_SIZE);
@@ -30,7 +30,7 @@ export default async function VerificationsPage({ searchParams }: Props) {
     .order('submitted_at', { ascending: true })
     .range(from, to);
 
-  const errors = [countError?.message, pendingError?.message, error?.message];
+  const errors = [countError?.message, error?.message];
 
   return (
     <>
@@ -39,10 +39,6 @@ export default async function VerificationsPage({ searchParams }: Props) {
           <p className="eyebrow">Trust & safety</p>
           <h1 className="heading">Provider verification</h1>
           <p className="intro">Review identity documents before a provider can carry the Solid Connect verification mark.</p>
-        </div>
-        <div className="stat">
-          <b>{pendingCount ?? 0}</b>
-          <span>awaiting review</span>
         </div>
       </div>
       <ErrorBanner errors={errors} />
