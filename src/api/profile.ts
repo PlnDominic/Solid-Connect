@@ -13,6 +13,9 @@ export interface SignUpDetails {
   providerCategory?: string;
   /** Category ids for multi-service providers. */
   providerCategoryIds?: string[];
+  /** Set together, only once the sign-up consent checkbox was checked - see SignUpScreen. */
+  termsAcceptedAt?: string;
+  termsVersion?: string;
 }
 
 function initialsFrom(fullName: string): string {
@@ -90,6 +93,12 @@ export async function createOrUpdateOwnProfile(
         provider_category:
           role === 'provider' ? details.providerCategory?.trim() || null : null,
         is_seed: false,
+        // Omitted entirely (not set to null) when the caller has no consent
+        // to record, so an upsert from a later step never overwrites an
+        // already-recorded acceptance with nothing.
+        ...(details.termsAcceptedAt
+          ? { terms_accepted_at: details.termsAcceptedAt, terms_version: details.termsVersion ?? null }
+          : {}),
       },
       { onConflict: 'id' }
     )
@@ -272,6 +281,133 @@ export function useSwitchRole() {
     onSuccess: (profile) => {
       setProfile(profile);
       queryClient.setQueryData(['profile', profile.id], profile);
+    },
+  });
+}
+
+// ── Account deletion requests ──────────────────────────────────────────
+// Self-service half of docs/legal/privacy-policy.md §6 ("You can request
+// account deletion by contacting support"): this records the request and
+// lets a user cancel a pending one. Actually carrying it out - deleting
+// the auth.users row and anonymizing the profile - is an admin action
+// (admin/app/(protected)/deletion-requests), since it also needs the
+// Supabase Auth admin API, which the mobile app has no credentials for.
+
+export interface AccountDeletionRequest {
+  id: string;
+  user_id: string;
+  reason: string | null;
+  status: 'pending' | 'completed' | 'cancelled';
+  requested_at: string;
+  admin_note: string | null;
+}
+
+/** Most recent deletion request for this user, whatever its status - so the UI can show "pending since…" or let a past cancellation be resubmitted. */
+export async function fetchAccountDeletionRequest(userId: string): Promise<AccountDeletionRequest | null> {
+  const { data, error } = await supabase
+    .from('account_deletion_requests')
+    .select('id, user_id, reason, status, requested_at, admin_note')
+    .eq('user_id', userId)
+    .order('requested_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function requestAccountDeletion(userId: string, reason: string): Promise<AccountDeletionRequest> {
+  const { data, error } = await supabase
+    .from('account_deletion_requests')
+    .insert({ user_id: userId, reason: reason.trim() || null })
+    .select('id, user_id, reason, status, requested_at, admin_note')
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function cancelAccountDeletionRequest(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('account_deletion_requests')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+    .eq('status', 'pending');
+  if (error) throw error;
+}
+
+export function useAccountDeletionRequest(userId: string | null) {
+  return useQuery({
+    queryKey: ['account-deletion-request', userId],
+    queryFn: () => fetchAccountDeletionRequest(userId as string),
+    enabled: !!userId,
+  });
+}
+
+export function useRequestAccountDeletion() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, reason }: { userId: string; reason: string }) => requestAccountDeletion(userId, reason),
+    onSuccess: (request) => {
+      queryClient.setQueryData(['account-deletion-request', request.user_id], request);
+    },
+  });
+}
+
+export function useCancelAccountDeletionRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, userId }: { id: string; userId: string }) => cancelAccountDeletionRequest(id).then(() => userId),
+    onSuccess: (userId) => {
+      queryClient.invalidateQueries({ queryKey: ['account-deletion-request', userId] });
+    },
+  });
+}
+
+// ── Server-side notification preferences ───────────────────────────────
+// Previously local-only (AsyncStorage, see NotificationsScreen's original
+// DEFAULT_PREFS) - moved server-side so admin broadcasts can honor the
+// "promotions" opt-out docs/legal/privacy-policy.md §2 promises. Shape
+// matches that screen's four categories exactly.
+
+export interface NotificationPrefs {
+  jobUpdates: boolean;
+  newQuotes: boolean;
+  messages: boolean;
+  promotions: boolean;
+}
+
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  jobUpdates: true,
+  newQuotes: true,
+  messages: true,
+  promotions: false,
+};
+
+export async function fetchNotificationPrefs(userId: string): Promise<NotificationPrefs> {
+  const { data, error } = await supabase.from('profiles').select('notification_prefs').eq('id', userId).maybeSingle();
+  if (error) throw error;
+  return { ...DEFAULT_NOTIFICATION_PREFS, ...(data?.notification_prefs ?? {}) };
+}
+
+export async function updateNotificationPrefs(userId: string, prefs: NotificationPrefs): Promise<NotificationPrefs> {
+  const { error } = await supabase.from('profiles').update({ notification_prefs: prefs }).eq('id', userId);
+  if (error) throw error;
+  return prefs;
+}
+
+export function useNotificationPrefs(userId: string | null) {
+  return useQuery({
+    queryKey: ['notification-prefs', userId],
+    queryFn: () => fetchNotificationPrefs(userId as string),
+    enabled: !!userId,
+  });
+}
+
+export function useUpdateNotificationPrefs() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, prefs }: { userId: string; prefs: NotificationPrefs }) => updateNotificationPrefs(userId, prefs),
+    onSuccess: (prefs, { userId }) => {
+      queryClient.setQueryData(['notification-prefs', userId], prefs);
     },
   });
 }

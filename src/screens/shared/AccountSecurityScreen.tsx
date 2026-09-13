@@ -3,11 +3,20 @@ import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, Te
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import {
+  useAccountDeletionRequest,
+  useCancelAccountDeletionRequest,
+  useRequestAccountDeletion,
+} from '../../api/profile';
 import { friendlyAuthError } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
+
+function stamp(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 export function AccountSecurityScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
@@ -17,6 +26,43 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
   const [confirm, setConfirm] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { data: deletionRequest } = useAccountDeletionRequest(profile?.id ?? null);
+  const requestDeletion = useRequestAccountDeletion();
+  const cancelDeletion = useCancelAccountDeletionRequest();
+  const [deleteReason, setDeleteReason] = useState('');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const isPending = deletionRequest?.status === 'pending';
+
+  function handleRequestDeletion() {
+    if (!profile) return;
+    Alert.alert(
+      'Delete your account?',
+      "This sends a deletion request to Solid Connect's team. Your profile, verification documents, and contact details will be removed once it's processed; job and payment history tied to other people's accounts is kept in an anonymized form, same as removing a review only recalculates the total rather than erasing it. This can take a few days.",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Request deletion',
+          style: 'destructive',
+          onPress: () => {
+            requestDeletion.mutate(
+              { userId: profile.id, reason: deleteReason },
+              {
+                onSuccess: () => setConfirmingDelete(false),
+                onError: (e: any) =>
+                  Alert.alert('Could not submit request', friendlyAuthError(e, 'Please try again.')),
+              },
+            );
+          },
+        },
+      ],
+    );
+  }
+
+  function handleCancelDeletion() {
+    if (!profile || !deletionRequest) return;
+    cancelDeletion.mutate({ id: deletionRequest.id, userId: profile.id });
+  }
 
   const canSave = password.length >= 8 && password === confirm && !saving;
 
@@ -67,6 +113,43 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
           />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Button title="Update password" onPress={handleSave} disabled={!canSave} loading={saving} />
+
+          <Text style={[styles.section, styles.dangerSection]}>Danger zone</Text>
+          {isPending ? (
+            <View style={styles.card}>
+              <Text style={styles.label}>Deletion requested</Text>
+              <Text style={styles.value}>
+                Submitted {stamp(deletionRequest!.requested_at)} - Solid Connect's team will process this soon.
+              </Text>
+              <Button
+                title="Cancel request"
+                variant="outline"
+                onPress={handleCancelDeletion}
+                loading={cancelDeletion.isPending}
+              />
+            </View>
+          ) : confirmingDelete ? (
+            <View style={styles.card}>
+              <Text style={styles.label}>Why are you leaving? (optional)</Text>
+              <TextInput
+                value={deleteReason}
+                onChangeText={setDeleteReason}
+                placeholder="Optional - helps us improve"
+                placeholderTextColor={colors.inkFainter}
+                multiline
+                style={[styles.input, styles.reasonInput]}
+              />
+              <Button
+                title="Request account deletion"
+                variant="outline"
+                onPress={handleRequestDeletion}
+                loading={requestDeletion.isPending}
+              />
+              <Button title="Never mind" variant="outline" onPress={() => setConfirmingDelete(false)} />
+            </View>
+          ) : (
+            <Button title="Delete my account" variant="outline" onPress={() => setConfirmingDelete(true)} />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
@@ -88,6 +171,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     label: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
     value: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
     section: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
+    dangerSection: { color: colors.danger, marginTop: spacing.xl },
+    reasonInput: { minHeight: 80, textAlignVertical: 'top', paddingTop: spacing.md },
     input: {
       height: 52,
       borderRadius: radii.lg,

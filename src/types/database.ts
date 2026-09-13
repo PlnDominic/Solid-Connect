@@ -54,6 +54,10 @@ export interface Profile {
   // Added in supabase/migrations/0009_profile_photo.sql.
   photo_url: string | null;
   tagline: string | null;
+  // Added in supabase/migrations/0030_consent_deletion_notification_prefs.sql.
+  terms_accepted_at?: string | null;
+  terms_version?: string | null;
+  notification_prefs?: Record<string, boolean>;
 }
 
 export interface Category {

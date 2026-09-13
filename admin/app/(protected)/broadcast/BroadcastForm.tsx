@@ -46,6 +46,14 @@ export function BroadcastForm() {
         <textarea name="body" required placeholder="Write the announcement..." className="field" style={{ minHeight: 100 }} />
       </div>
 
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12.5, color: 'var(--text-muted)' }}>
+        <input type="checkbox" name="essential" style={{ marginTop: 2 }} />
+        <span>
+          Send regardless of notification preferences (operational notice - outage, policy change). Leave unchecked
+          for anything promotional: those only reach users who opted in, per the Privacy Policy.
+        </span>
+      </label>
+
       <button className="btn" disabled={pending} style={{ justifySelf: 'start', padding: '10px 24px' }}>
         {pending ? 'Sending…' : 'Send broadcast'}
       </button>

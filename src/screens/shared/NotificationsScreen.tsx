@@ -4,22 +4,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { EmptyState } from '../../components/EmptyState';
+import {
+  DEFAULT_NOTIFICATION_PREFS,
+  NotificationPrefs,
+  useNotificationPrefs,
+  useUpdateNotificationPrefs,
+} from '../../api/profile';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '../../api/requests';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { AppNotification } from '../../types/database';
 
+// Cache key only - the server (profiles.notification_prefs) is the source
+// of truth now, so an admin broadcast can honor the "promotions" opt-out.
+// This just paints the last-known values instantly before the query
+// resolves, and is a fallback if the device is offline.
 const STORAGE_KEY = 'solid-connect:notification-prefs';
 
-const DEFAULT_PREFS = {
-  jobUpdates: true,
-  newQuotes: true,
-  messages: true,
-  promotions: false,
-};
-
-type Prefs = typeof DEFAULT_PREFS;
+type Prefs = NotificationPrefs;
 
 const ROWS: { key: keyof Prefs; label: string; detail: string }[] = [
   { key: 'jobUpdates', label: 'Job updates', detail: 'Progress, completion and payment status' },
@@ -47,22 +50,33 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
   const { data: notifications, isLoading } = useNotifications(profile?.id ?? null);
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
-  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  const { data: serverPrefs } = useNotificationPrefs(profile?.id ?? null);
+  const updatePrefs = useUpdateNotificationPrefs();
+  const [prefs, setPrefs] = useState<Prefs>(DEFAULT_NOTIFICATION_PREFS);
 
+  // Paint the last-known values instantly from the local cache, then
+  // reconcile with the server (source of truth) once that query resolves.
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
-        if (raw) setPrefs({ ...DEFAULT_PREFS, ...JSON.parse(raw) });
+        if (raw) setPrefs({ ...DEFAULT_NOTIFICATION_PREFS, ...JSON.parse(raw) });
       })
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (serverPrefs) {
+      setPrefs(serverPrefs);
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(serverPrefs)).catch(() => {});
+    }
+  }, [serverPrefs]);
+
   function toggle(key: keyof Prefs) {
-    setPrefs((prev) => {
-      const next = { ...prev, [key]: !prev[key] };
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
-      return next;
-    });
+    if (!profile) return;
+    const next = { ...prefs, [key]: !prefs[key] };
+    setPrefs(next);
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+    updatePrefs.mutate({ userId: profile.id, prefs: next });
   }
 
   const rows: AppNotification[] = notifications ?? [];

@@ -10,6 +10,7 @@ import {
   signInWithPassword,
   signUpWithPassword,
 } from '../../lib/auth';
+import { LEGAL_VERSION } from '../../lib/legal';
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -79,9 +80,18 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [providerCategoryIds, setProviderCategoryIds] = useState<string[]>([]);
   const [roleChoiceLoading, setRoleChoiceLoading] = useState<Role | null>(null);
   const [roleError, setRoleError] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
   const setProfile = useSessionStore((s) => s.setProfile);
   const setBootstrapping = useSessionStore((s) => s.setBootstrapping);
+
+  // Only recorded when the checkbox on the role step was actually ticked -
+  // omitted (not falsely dated) otherwise, so createOrUpdateOwnProfile's
+  // own "don't overwrite an existing acceptance with nothing" guard has
+  // something meaningful to skip.
+  function termsMeta() {
+    return termsAccepted ? { termsAcceptedAt: new Date().toISOString(), termsVersion: LEGAL_VERSION } : {};
+  }
 
   function providerDetails() {
     const names = categories
@@ -140,7 +150,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     try {
       const userId = await getCurrentUserId();
       if (userId) {
-        const profile = await createOrUpdateOwnProfile(userId, role, { fullName, phone, email, area });
+        const profile = await createOrUpdateOwnProfile(userId, role, { fullName, phone, email, area, ...termsMeta() });
         setProfile(profile);
         setPhase('signup-notifications');
         return;
@@ -165,6 +175,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
           email,
           area,
           ...providerDetails(),
+          ...termsMeta(),
         });
         setProfile(profile);
         setPhase('signup-notifications');
@@ -201,6 +212,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         email,
         area,
         ...(selectedRole === 'provider' ? providerDetails() : {}),
+        ...termsMeta(),
       });
       setProfile(profile);
       setPhase('signup-notifications');
@@ -379,6 +391,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         onSelectRole={handleChooseRole}
         loading={roleChoiceLoading}
         errorMessage={roleError}
+        termsAccepted={termsAccepted}
+        onToggleTerms={() => setTermsAccepted((v) => !v)}
       />
     );
   }
