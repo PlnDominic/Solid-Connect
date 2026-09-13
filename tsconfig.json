@@ -2,7 +2,8 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["jest"]
   },
   "exclude": ["node_modules", "admin", "api", "dist", ".expo"]
 }
