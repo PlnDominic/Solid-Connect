@@ -76,11 +76,17 @@ textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
   --text-primary: #0a0a0a;
   --text-secondary: #525252;
   --text-muted: #6b6b6b;
-  --accent: #1e3a8a;
-  --accent-text: #1e3a8a;
-  --accent-hover: #2451d1;
-  --accent-bg: rgba(30,58,138,.08);
-  --accent-border: rgba(30,58,138,.25);
+  /* Same blue as dark mode's --accent below (#3459d4), not a separate
+     value - previously light mode used a much heavier navy (#1e3a8a)
+     here, so the two themes didn't read as the same brand. This hex
+     already checks out at ~5.96:1 against this theme's near-white
+     background, comfortably clearing the 4.5:1 bar used elsewhere in
+     this panel. */
+  --accent: #3459d4;
+  --accent-text: #3459d4;
+  --accent-hover: #2c4bc0;
+  --accent-bg: rgba(52,89,212,.08);
+  --accent-border: rgba(52,89,212,.25);
   --green: #157a3d;
   --green-bg: rgba(21,122,61,.10);
   --red: #dc2626;
@@ -89,7 +95,7 @@ textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
   --blue-bg: rgba(37,99,235,.08);
   --purple: #9333ea;
   --purple-bg: rgba(147,51,234,.08);
-  --ring: rgba(30,58,138,.2);
+  --ring: rgba(52,89,212,.2);
   --shadow: 0 1px 3px rgba(0,0,0,.08);
   --shadow-lg: 0 8px 32px rgba(0,0,0,.1);
 }
