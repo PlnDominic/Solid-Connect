@@ -34,13 +34,11 @@ export default async function PaymentsPage({ searchParams }: Props) {
 
   const [
     { count: filteredTotal, error: countError },
-    { data: releasedRows, error: releasedError },
     { data: pendingRows, error: pendingError },
     { data: refundedRows, error: refundedError },
     { data: partialRows, error: partialError },
   ] = await Promise.all([
     countQuery(),
-    withTab('released'),
     withTab('pending'),
     withTab('refunded'),
     withTab('partially_refunded'),
@@ -49,7 +47,6 @@ export default async function PaymentsPage({ searchParams }: Props) {
   const sum = (rows: { amount: number }[] | null) => (rows ?? []).reduce((s, r) => s + (r.amount ?? 0), 0);
   const sumRefunded = (rows: { refund_amount: number | null }[] | null) =>
     (rows ?? []).reduce((s, r) => s + (r.refund_amount ?? 0), 0);
-  const totalReleased = sum(releasedRows);
   const totalPending = sum(pendingRows);
   const totalRefunded = sum(refundedRows) + sumRefunded(partialRows);
 
@@ -80,7 +77,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
     ? await supabase.from('provider_payouts').select('payment_id, status, net_amount').in('payment_id', paymentIds)
     : { data: [], error: null };
 
-  const errors = [countError?.message, releasedError?.message, pendingError?.message, refundedError?.message, partialError?.message, listError?.message, jobsError?.message, peopleError?.message, payoutsError?.message];
+  const errors = [countError?.message, pendingError?.message, refundedError?.message, partialError?.message, listError?.message, jobsError?.message, peopleError?.message, payoutsError?.message];
 
   const jobMap: Record<string, any> = {};
   (jobs ?? []).forEach((j) => { jobMap[j.id] = j; });
@@ -99,11 +96,11 @@ export default async function PaymentsPage({ searchParams }: Props) {
 
       <ErrorBanner errors={errors} />
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Released</div>
-          <div className="stat-card-value" style={{ color: 'var(--green)' }}>{currency(totalReleased)}</div>
-        </div>
+      {/* "Released" is dropped here - it's the same total revenue figure
+          already headlined on Analytics ("Revenue"), just restated. Pending
+          and Refunded are the two states that actually need an admin's eyes
+          (money not yet settled, money given back). */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Pending</div>
           <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{currency(totalPending)}</div>

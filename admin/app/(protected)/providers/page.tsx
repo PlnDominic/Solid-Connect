@@ -93,20 +93,12 @@ export default async function ProvidersPage({ searchParams }: Props) {
 
       <ErrorBanner errors={errors} />
 
-      {/* Stats */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Providers</div>
-          <div className="stat-card-value">{allProviders ?? 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Verified</div>
-          <div className="stat-card-value" style={{ color: 'var(--green)' }}>{verified}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Certified</div>
-          <div className="stat-card-value" style={{ color: 'var(--blue)' }}>{certified}</div>
-        </div>
+      {/* Total Providers, Verified, and Certified are all "good state"
+          breakdowns of the same total (and Total Providers duplicates
+          Analytics anyway) - Unverified is the actual queue that needs an
+          admin's attention, same number as Analytics' "Pending
+          Verifications" but scoped to this list. */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Unverified</div>
           <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{pending}</div>

@@ -84,10 +84,6 @@ export default async function LiveJobsPage() {
   const profileById: Record<string, any> = {};
   (profiles ?? []).forEach((p: any) => { profileById[p.id] = p; });
 
-  const bothSharing = jobList.filter((j) => {
-    const loc = locationByJob[j.id];
-    return loc?.provider_lat != null && loc?.customer_lat != null;
-  }).length;
   const noneSharing = jobList.filter((j) => {
     const loc = locationByJob[j.id];
     return loc?.provider_lat == null && loc?.customer_lat == null;
@@ -106,15 +102,10 @@ export default async function LiveJobsPage() {
 
       <ErrorBanner errors={errors} />
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Active Jobs</div>
-          <div className="stat-card-value">{jobList.length}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Both Parties Sharing</div>
-          <div className="stat-card-value" style={{ color: 'var(--green)' }}>{bothSharing}</div>
-        </div>
+      {/* Active Jobs is just the table's own row count, and Both Parties
+          Sharing is the "everything's fine" case - Neither Sharing is the
+          one that actually needs a look. */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Neither Sharing</div>
           <div className="stat-card-value" style={{ color: jobList.length && noneSharing ? 'var(--red)' : undefined }}>{noneSharing}</div>

@@ -76,16 +76,11 @@ export default async function CustomersPage({ searchParams }: Props) {
 
       <ErrorBanner errors={errors} />
 
-      {/* Stats */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Customers</div>
-          <div className="stat-card-value">{allCustomers ?? 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Jobs Posted</div>
-          <div className="stat-card-value">{totalJobs ?? 0}</div>
-        </div>
+      {/* Total Customers is a plain count (Analytics already headlines
+          providers/jobs the same way), and Total Jobs Posted duplicates the
+          Jobs page. Avg Jobs per Customer is the one number that's actually
+          specific to this page - an engagement signal, not just a count. */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Avg Jobs per Customer</div>
           <div className="stat-card-value">

@@ -98,8 +98,12 @@ export default async function ReviewsPage({ searchParams }: Props) {
 
       <ErrorBanner errors={errors} />
 
-      {/* Stats */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 20 }}>
+      {/* "5-Star Reviews" is dropped - the Rating Distribution panel right
+          below already shows every star bucket's count and share, this
+          card just duplicated the top row of it. Total Reviews stays as
+          context for trusting the average (4.8★ from 3 reviews reads very
+          differently from 4.8★ from 300). */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, minmax(180px, 240px))', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Total Reviews</div>
           <div className="stat-card-value">{total}</div>
@@ -108,15 +112,6 @@ export default async function ReviewsPage({ searchParams }: Props) {
           <div className="stat-card-label">Average Rating</div>
           <div className="stat-card-value" style={{ color: 'var(--accent)' }}>
             {avgRating.toFixed(1)} ★
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">5-Star Reviews</div>
-          <div className="stat-card-value" style={{ color: 'var(--green)' }}>
-            {dist[0].count}
-          </div>
-          <div className="stat-card-sub">
-            {total > 0 ? ((dist[0].count / total) * 100).toFixed(0) : 0}% of all reviews
           </div>
         </div>
       </div>

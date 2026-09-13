@@ -40,35 +40,19 @@ export default async function JobsPage({ searchParams }: Props) {
     return q2;
   };
 
-  // Stat cards reflect the selected status tab (matching the tabs
+  // Stat card reflects the selected status tab (matching the tabs
   // themselves) but not the search box - counted independently of the
-  // current page so they stay correct once the table is paginated.
+  // current page so it stays correct once the table is paginated.
   const withTab = () => {
     let q2 = supabase.from('jobs').select('*', { count: 'exact', head: true });
     if (status !== 'all') q2 = q2.eq('status', status);
     return q2;
   };
-  // Completed jobs within the current tab (narrow single-column fetch, just
-  // to sum price client-side - PostgREST has no server-side SUM here).
-  const revenueQuery = () => {
-    let q2 = supabase.from('jobs').select('price');
-    if (status !== 'all') q2 = q2.eq('status', status);
-    return q2.eq('status', 'completed');
-  };
 
   const [
     { count: filteredTotal, error: countError },
-    { count: totalCount, error: totalError },
-    { count: completedCount, error: completedError },
     { count: inProgressCount, error: inProgressError },
-    { data: completedPrices, error: revenueError },
-  ] = await Promise.all([
-    countQuery(),
-    withTab(),
-    withTab().eq('status', 'completed'),
-    withTab().eq('status', 'in_progress'),
-    revenueQuery(),
-  ]);
+  ] = await Promise.all([countQuery(), withTab().eq('status', 'in_progress')]);
 
   const total = filteredTotal ?? 0;
   const page = clampPage(requestedPage, total, PAGE_SIZE);
@@ -77,11 +61,9 @@ export default async function JobsPage({ searchParams }: Props) {
 
   const { data: jobs, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
-  const errors = [countError?.message, listError?.message, totalError?.message, completedError?.message, inProgressError?.message, revenueError?.message];
+  const errors = [countError?.message, listError?.message, inProgressError?.message];
 
   const filtered = jobs ?? [];
-  const totalRevenue = (completedPrices ?? []).reduce((s, j) => s + (j.price ?? 0), 0);
-  const avgPrice = (completedCount ?? 0) > 0 ? totalRevenue / (completedCount ?? 1) : 0;
 
   // Get provider and customer names for display
   const providerIds = [...new Set(filtered.map(j => j.provider_id).filter(Boolean))];
@@ -112,24 +94,13 @@ export default async function JobsPage({ searchParams }: Props) {
 
       <ErrorBanner errors={errors} />
 
-      {/* Stats */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 20 }}>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Jobs</div>
-          <div className="stat-card-value">{totalCount ?? 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Completed</div>
-          <div className="stat-card-value" style={{ color: 'var(--green)' }}>{completedCount ?? 0}</div>
-        </div>
+      {/* Total Jobs and Revenue are already headlined on Analytics; Completed
+          is a lifetime count with little day-to-day urgency. In Progress is
+          the one number that actually asks for attention right now. */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">In Progress</div>
           <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{inProgressCount ?? 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Revenue</div>
-          <div className="stat-card-value">{currency(totalRevenue)}</div>
-          <div className="stat-card-sub">Avg: {currency(avgPrice)}</div>
         </div>
       </div>
 

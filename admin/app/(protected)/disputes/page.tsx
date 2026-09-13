@@ -78,14 +78,15 @@ export default async function DisputesPage({ searchParams }: Props) {
 
       <ErrorBanner errors={errors} />
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: 20 }}>
+      {/* "Listed" is dropped - it just restates whichever tab is selected,
+          and the Pagination footer already shows "X-Y of total" once
+          there's more than one page. "Open" is the one number that's
+          always the true global queue size, not scoped to the active
+          tab - see the comment on its query above. */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Open</div>
           <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{openCount ?? 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Listed</div>
-          <div className="stat-card-value">{total ?? 0}</div>
         </div>
       </div>
 

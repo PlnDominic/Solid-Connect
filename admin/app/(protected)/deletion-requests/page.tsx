@@ -61,14 +61,13 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: 20 }}>
+      {/* "Listed" dropped - same reasoning as disputes/page.tsx: it just
+          restates the active tab, and Pagination's footer already shows
+          the total once there's more than a page of rows. */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'minmax(180px, 240px)', marginBottom: 20 }}>
         <div className="stat-card">
           <div className="stat-card-label">Pending</div>
           <div className="stat-card-value" style={{ color: 'var(--accent)' }}>{pendingCount ?? 0}</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Listed</div>
-          <div className="stat-card-value">{total ?? 0}</div>
         </div>
       </div>
 
