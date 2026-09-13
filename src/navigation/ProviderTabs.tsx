@@ -15,6 +15,7 @@ import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
 import { AppearanceScreen } from '../screens/shared/AppearanceScreen';
+import { NotificationsScreen } from '../screens/shared/NotificationsScreen';
 import { AccountSecurityScreen } from '../screens/shared/AccountSecurityScreen';
 import { ReferralScreen } from '../screens/shared/ReferralScreen';
 import { LegalScreen } from '../screens/shared/LegalScreen';
@@ -67,6 +68,7 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
       <ProfileStackNav.Screen name="Availability" component={AvailabilityScreen} />
       <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />
+      <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
       <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />
       <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />

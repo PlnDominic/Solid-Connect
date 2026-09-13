@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  Bell,
   ChevronRight,
   Camera,
   Clock,
@@ -57,7 +58,10 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
   },
   {
     title: 'Preferences',
-    rows: [{ label: 'Appearance', screen: 'Appearance', icon: Moon }],
+    rows: [
+      { label: 'Notifications', screen: 'Notifications', icon: Bell },
+      { label: 'Appearance', screen: 'Appearance', icon: Moon },
+    ],
   },
   {
     title: 'More',

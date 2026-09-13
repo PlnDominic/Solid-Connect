@@ -551,3 +551,42 @@ export function useNotifications(userId: string | null) {
     },
   });
 }
+
+/** Matches the existing Nest endpoint exactly: PATCH requests/notifications/:id/read
+ * (see api/src/requests/requests.controller.ts). */
+export function useMarkNotificationRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (isApiConfigured()) {
+        return apiFetch(`/api/v1/requests/notifications/${id}/read`, { method: 'PATCH' });
+      }
+      const { error } = await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+}
+
+/** Marks every unread notification for this user read at once - the
+ * "Clear all" action on the inbox screen. Always goes direct to Supabase,
+ * even when the Nest API is configured: there's no batch endpoint there
+ * yet, only the single-notification one useMarkNotificationRead calls. */
+export function useMarkAllNotificationsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .is('read_at', null);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+}

@@ -69,13 +69,26 @@ Source: §19–22, §25–28 of the concept document.
 | Predictive pricing | | | ✅ |
 | Advanced workforce optimization | | | ✅ |
 
-> **Where the prototype stands against MVP scope:** registration/auth
-> (demo/anonymous only), customer & provider profiles, service categories,
-> service requests, quotes, chat, jobs & completion, and reviews are
-> present in some form. Provider verification is a boolean flag rather
-> than a workflow. Location/GIS matching and real payments are **not**
-> implemented - see [system-architecture.md](./system-architecture.md) and
-> [marketplace-mechanics.md](./marketplace-mechanics.md) for the gaps.
+> **Where the prototype stands against MVP scope (updated 2026-09-13,
+> schema at migration `0029` - see README.md's Status section for the
+> fuller current-state summary):** registration/auth is real Supabase
+> email/password + Apple Sign-In, not anonymous/demo. Customer & provider
+> profiles, service categories (with archive), service requests, quotes,
+> chat, jobs & completion, and reviews (with moderation) are built.
+> Provider verification is a real staged workflow (`REGISTERED` →
+> `IDENTITY_VERIFIED` → `PROFESSION_VERIFIED` → `EXPERIENCE_VERIFIED` →
+> `SOLID_CONNECT_VERIFIED`) with admin approve/reject, not a boolean flag.
+> Location/GIS matching is implemented (PostGIS, `area_centroids`), as is
+> live location sharing during an active job. A full admin panel exists
+> (analytics, verifications, providers/customers/jobs/disputes/reviews,
+> team management, broadcast, search, CSV export). **Real payments are
+> still not implemented** - `payments`/`provider_payouts` model the
+> two-leg escrow flow (customer → platform → provider, net of
+> commission) and have full admin tooling, but nothing calls an actual
+> payment gateway (Paystack/Flutterwave) yet; this remains the actual
+> gap - see [system-architecture.md](./system-architecture.md) and
+> [marketplace-mechanics.md](./marketplace-mechanics.md), themselves not
+> updated to match this note.
 
 ## Proposed development roadmap
 

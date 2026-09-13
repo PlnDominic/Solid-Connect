@@ -11,21 +11,50 @@ app backed by a real Supabase project (Postgres + RLS + Realtime).
 
 ## Status
 
-Work in progress. Scaffolded so far:
+_Last updated 2026-09-13. Schema is at migration `0029`; this section is
+kept in sync by hand, so if it looks stale, the migrations folder and git
+log are the source of truth, not this file._
 
-- Expo + TypeScript app shell (`App.tsx`, navigation/theme folders under `src/`)
-- Design tokens (`src/theme`) matching the prototype's colors/type/radii
-- Supabase client wiring (`src/lib/supabase.ts`) - anonymous auth, no OTP,
-  matching the prototype's "Demo mode" login
-- Full schema + RLS policies (`supabase/migrations/0001_init.sql`) and demo
-  seed data (`supabase/seed/seed.sql`) for categories, sample providers and
-  sample nearby requests
-- Data layer (`src/api/*`) for profiles, categories/providers, requests +
-  quotes, jobs + payments + reviews, and realtime chat
+**Built and working:**
 
-Still to come: onboarding/login screens, the customer and provider screen
-flows, and wiring the Supabase project itself (URL/anon key go in `.env`,
-see `.env.example`).
+- Real Supabase email/password auth + Apple Sign-In (`src/lib/auth.ts`) -
+  not anonymous/demo. One account, switchable between customer and
+  provider roles.
+- Full job lifecycle: post request → PostGIS-matched providers → quote →
+  accept → chat → progress → completion → (simulated) payment → review.
+- Staged provider verification (`REGISTERED` → `IDENTITY_VERIFIED` →
+  `PROFESSION_VERIFIED` → `EXPERIENCE_VERIFIED` → `SOLID_CONNECT_VERIFIED`),
+  with a real admin approve/reject workflow and a full audit trail.
+- Live location sharing during an active job (`useReportJobLocation`,
+  distance + "Open in Maps" on mobile, an ops map-equivalent table in
+  admin) - foreground-only, deleted the moment a job completes.
+- A full admin panel (`admin/`, Next.js): analytics + coverage-by-area,
+  verifications (single and bulk), providers/customers/jobs/disputes/
+  reviews with detail pages, live jobs, categories (with archive, not
+  delete), team management with owner/support roles and an audit log,
+  a broadcast composer, global search, CSV export, and a two-leg payments
+  model (`payments` = customer → platform, `provider_payouts` = platform
+  → provider, net of a configurable commission rate).
+- Account suspension (admin-initiated, enforced at the next app-launch
+  sign-in) and review moderation (hide/restore, with the provider's
+  rating correctly recomputed either way).
+
+**Explicitly still simulated / not real:**
+
+- **Payments.** No live MoMo/card charging - `payments`/`provider_payouts`
+  are real tables with real admin tooling, but nothing calls an actual
+  payment gateway (Paystack/Flutterwave) yet. This is the actual blocker
+  to the business model; everything else is built around it.
+- **Push notifications.** No EAS project is linked, so a device can't get
+  a push token; `notifications` rows are written (job events, admin
+  broadcasts) but no mobile screen reads them yet.
+- **Production deployment.** The Nest API only runs via `npm run start:dev`
+  locally (no hosting target); there's no EAS build/submit configured for
+  the App Store or Play Store.
+- **Legal.** `LegalScreen.tsx` is honest placeholder copy, not documents
+  reviewed by counsel.
+
+See `docs/roadmap-and-risks.md` for the fuller gap list and sequencing.
 
 ## Stack
 
@@ -43,6 +72,13 @@ see `.env.example`).
 - [Phase D gap](./docs/phase-d-gap.md) / [acceptance](./docs/phase-d-acceptance.md) — requests, matching, provider opportunity feed
 - [Phase E gap](./docs/phase-e-gap.md) / [acceptance](./docs/phase-e-acceptance.md) — quotes create/revise/accept → job
 - [Phase F gap](./docs/phase-f-gap.md) / [acceptance](./docs/phase-f-acceptance.md) — jobs, events, chat, completion
+
+> This phase-report trail stops at F (migration `0015`). Everything from
+> `0016` onward - direct provider requests, live location, the entire
+> admin panel, the two-leg payments model, category archiving - shipped
+> without an equivalent gap/acceptance doc. For that work, the migration
+> files' own comments and `git log` are the record; nothing has been
+> backfilled into this format.
 
 ## Docs
 
