@@ -97,3 +97,20 @@ export async function updateCategory(id: string, formData: FormData): Promise<vo
   await logAdminAction(admin, 'UPDATED_CATEGORY', { targetType: 'category', targetId: id, note: name });
   revalidatePath('/categories');
 }
+
+/** Retires (or restores) a category from new selection - job posting,
+ * provider category picker, signup - without touching any existing
+ * provider tag, job, or request that already references it. Never a
+ * hard delete: categories.id is a real foreign key from
+ * provider_categories, so deleting one would silently strip that tag
+ * from every provider who has it. */
+export async function setCategoryActive(id: string, active: boolean): Promise<void> {
+  const admin = await requireAdmin();
+  if (!admin) return;
+
+  const adminClient = createAdminClient();
+  await adminClient.from('categories').update({ active }).eq('id', id);
+
+  await logAdminAction(admin, active ? 'RESTORED_CATEGORY' : 'ARCHIVED_CATEGORY', { targetType: 'category', targetId: id });
+  revalidatePath('/categories');
+}

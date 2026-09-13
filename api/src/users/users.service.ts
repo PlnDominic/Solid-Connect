@@ -132,6 +132,7 @@ export class UsersService {
         .from('categories')
         .select('id')
         .ilike('name', input.category.trim())
+        .eq('active', true)
         .maybeSingle();
       if (cat?.id) categoryIds = [cat.id];
     }

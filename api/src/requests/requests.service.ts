@@ -14,7 +14,7 @@ export class RequestsService {
   async create(customerId: string, dto: CreateRequestDto) {
     const { data: category, error: catErr } = await this.supabase.client
       .from('categories')
-      .select('id, budget_min, budget_max, default_label')
+      .select('id, budget_min, budget_max, default_label, active')
       .eq('id', dto.categoryId)
       .maybeSingle();
     if (catErr) {
@@ -22,6 +22,11 @@ export class RequestsService {
     }
     if (!category) {
       throw new BadRequestException({ code: 'CATEGORY_NOT_FOUND', message: 'Unknown service category.' });
+    }
+    // Defense in depth: the picker (GET /categories) already excludes
+    // archived categories, but a stale client cache could still submit one.
+    if (!category.active) {
+      throw new BadRequestException({ code: 'CATEGORY_ARCHIVED', message: 'This service category is no longer accepting new requests.' });
     }
 
     const bandMin = category.budget_min ?? 0;

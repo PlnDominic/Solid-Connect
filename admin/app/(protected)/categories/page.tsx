@@ -1,15 +1,24 @@
+import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { CreateCategoryForm } from './CreateCategoryForm';
-import { updateCategory } from './actions';
+import { updateCategory, setCategoryActive } from './actions';
 
 export const dynamic = 'force-dynamic';
 
-export default async function CategoriesPage() {
+type Props = { searchParams: Promise<{ status?: string }> };
+
+export default async function CategoriesPage({ searchParams }: Props) {
+  const { status: requested } = await searchParams;
+  const status = requested === 'archived' ? 'archived' : 'active';
   const supabase = await createServerSupabase();
 
   const [{ data: categories, error: catError }, { data: providerCounts, error: countError }] = await Promise.all([
-    supabase.from('categories').select('id, name, abbr, default_label, sort_order, budget_min, budget_max').order('sort_order', { ascending: true }),
+    supabase
+      .from('categories')
+      .select('id, name, abbr, default_label, sort_order, budget_min, budget_max, active')
+      .eq('active', status === 'active')
+      .order('sort_order', { ascending: true }),
     supabase.from('provider_categories').select('category_id'),
   ]);
 
@@ -30,7 +39,12 @@ export default async function CategoriesPage() {
 
       <ErrorBanner errors={errors} />
 
-      <CreateCategoryForm />
+      {status === 'active' && <CreateCategoryForm />}
+
+      <nav className="tabs" style={{ marginBottom: 14 }}>
+        <Link href="/categories?status=active" className={status === 'active' ? 'selected' : ''}>Active</Link>
+        <Link href="/categories?status=archived" className={status === 'archived' ? 'selected' : ''}>Archived</Link>
+      </nav>
 
       <div className="table-card">
         <table className="table">
@@ -43,6 +57,7 @@ export default async function CategoriesPage() {
               <th>Budget (GHS)</th>
               <th>Providers</th>
               <th>Save</th>
+              <th>{status === 'active' ? 'Archive' : 'Restore'}</th>
             </tr>
           </thead>
           <tbody>
@@ -111,10 +126,17 @@ export default async function CategoriesPage() {
                     <form id={formId} action={updateCategory.bind(null, c.id)} />
                     <button form={formId} className="filter-btn" style={{ padding: '6px 14px' }}>Save</button>
                   </td>
+                  <td>
+                    <form action={setCategoryActive.bind(null, c.id, status !== 'active')}>
+                      <button className="filter-btn" style={{ padding: '6px 14px' }}>
+                        {status === 'active' ? 'Archive' : 'Restore'}
+                      </button>
+                    </form>
+                  </td>
                 </tr>
               );
             }) : (
-              <tr><td colSpan={7} className="empty">No categories yet.</td></tr>
+              <tr><td colSpan={8} className="empty">No {status} categories.</td></tr>
             )}
           </tbody>
         </table>

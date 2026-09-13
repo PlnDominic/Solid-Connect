@@ -10,9 +10,12 @@ export class CategoriesController {
 
   @Get('categories')
   async listCategories() {
+    // Archived categories (active = false) stay fully intact for anyone who
+    // already references them - they just aren't offered as a new choice.
     const { data, error } = await this.supabase.client
       .from('categories')
       .select('*')
+      .eq('active', true)
       .order('sort_order');
     if (error) throw new BadRequestException({ code: 'CATEGORIES_FAILED', message: error.message });
     return { data: data ?? [], meta: {} };

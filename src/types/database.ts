@@ -65,6 +65,10 @@ export interface Category {
   /** Catalog budget band (GHS) for this service. */
   budget_min?: number;
   budget_max?: number;
+  /** Added in supabase/migrations/0029_category_archive.sql. false = retired
+   * from new selection; existing references (provider tags, jobs, requests)
+   * are unaffected. */
+  active: boolean;
 }
 
 export interface ServiceRequest {

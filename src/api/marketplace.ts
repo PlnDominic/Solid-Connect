@@ -5,11 +5,15 @@ import { isApiConfigured } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { Category, Profile } from '../types/database';
 
+/** Categories offered for new selection (job posting, provider category
+ * picker, signup). Archived categories (active = false) are excluded -
+ * they stay fully intact for existing providers/jobs/requests that
+ * already reference them, they just aren't offered as a new choice. */
 export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: async (): Promise<Category[]> => {
-      const { data, error } = await supabase.from('categories').select('*').order('sort_order');
+      const { data, error } = await supabase.from('categories').select('*').eq('active', true).order('sort_order');
       if (error) throw error;
       return data ?? [];
     },
