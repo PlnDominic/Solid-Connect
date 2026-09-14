@@ -1,0 +1,52 @@
+import { Text, View, StyleSheet } from 'react-native';
+import { fonts, radii, spacing } from '../theme';
+import { useTheme } from '../theme/ThemeProvider';
+import type { JobStatus } from '../types/database';
+
+/** The 3-stop "Start → Finish → Confirmed" dot tracker - originally
+ * provider-only, now shared so a customer's Job Detail shows the same
+ * determinate progress a provider already sees, instead of just a status
+ * sentence (loading.md/feedback.md: prefer showing real progress over
+ * describing it in prose alone). */
+export function JobPhaseTracker({ status }: { status: JobStatus }) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const phases = [
+    { label: 'Start', active: true, done: status !== 'accepted' },
+    {
+      label: 'Finish',
+      active: status === 'in_progress' || status === 'awaiting_completion_confirmation' || status === 'completed',
+      done: status === 'awaiting_completion_confirmation' || status === 'completed',
+    },
+    { label: 'Confirmed', active: status === 'completed', done: status === 'completed' },
+  ];
+  return (
+    <View style={styles.phases}>
+      {phases.map((phase) => (
+        <View key={phase.label} style={styles.phaseItem}>
+          <View style={[styles.phaseDot, phase.active && styles.phaseDotActive, phase.done && styles.phaseDotDone]} />
+          <Text style={[styles.phaseLabel, phase.active && styles.phaseLabelActive]}>{phase.label}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    phases: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
+    phaseItem: { flex: 1, alignItems: 'center', gap: 6 },
+    phaseDot: {
+      width: 10,
+      height: 10,
+      borderRadius: radii.pill,
+      backgroundColor: colors.paperDim,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    phaseDotActive: { borderColor: colors.ink, backgroundColor: colors.paper },
+    phaseDotDone: { backgroundColor: colors.ink, borderColor: colors.ink },
+    phaseLabel: { fontSize: 11, fontFamily: fonts.medium, color: colors.inkFaint },
+    phaseLabelActive: { color: colors.ink, fontFamily: fonts.semibold },
+  });
+}

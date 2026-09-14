@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, MapPin, Star } from 'lucide-react-native';
+import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert, Star } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useConfirmCompletion, useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
@@ -8,6 +8,8 @@ import { getOrCreateThread } from '../../api/chat';
 import { Avatar } from '../../components/Avatar';
 import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
+import { JobPhaseTracker } from '../../components/JobPhaseTracker';
+import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { LiveLocationCard } from '../../components/LiveLocationCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
@@ -50,6 +52,14 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId: thread.id, peerId: job.provider_id } });
   }
 
+  const quickActions: JobQuickAction[] = [
+    { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
+    ...(job.status === 'completed'
+      ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
+      : []),
+    { key: 'dispute', label: 'Dispute', icon: ShieldAlert, onPress: () => navigation.navigate('Dispute', { jobId: job.id }), tone: 'danger' },
+  ];
+
   return (
     <Screen edges={['top']}>
       <View style={styles.header}>
@@ -86,6 +96,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <Text style={styles.progressLabel}>{jobStatusLabel(job.status, 'customer')}</Text>
             <Text style={styles.progressStep}>GHS {job.price.toLocaleString()}</Text>
           </View>
+          <JobPhaseTracker status={job.status} />
           <Text style={styles.progressNote}>
             {job.status === 'in_progress'
               ? `Provider on site · started ${formatTime(job.started_at)}`
@@ -98,7 +109,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         <View style={styles.detailsCard}>
           <Text style={styles.detailsLabel}>DETAILS</Text>
           <Text style={styles.detailsValue}>
-            {job.title} · GHS {job.price} fixed price
+            {job.title} · GHS {job.price.toLocaleString()} fixed price
           </Text>
           <View style={styles.detailsLocationRow}>
             <MapPin size={13} strokeWidth={1.8} color={colors.inkFaint} />
@@ -106,19 +117,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </View>
         </View>
 
-        <Button title="Message provider" variant="outline" onPress={handleMessage} />
-        {job.status === 'completed' ? (
-          <Button
-            title="View receipt"
-            variant="outline"
-            onPress={() => navigation.navigate('Receipt', { jobId: job.id })}
-          />
-        ) : null}
-        <Button
-          title="Open a dispute"
-          variant="outline"
-          onPress={() => navigation.navigate('Dispute', { jobId: job.id })}
-        />
+        <JobQuickActions actions={quickActions} />
       </ScrollView>
 
       <View style={styles.footer}>
@@ -185,12 +184,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.lg,
       backgroundColor: colors.card,
       padding: spacing.lg,
-      gap: spacing.sm,
+      gap: spacing.md,
       ...shadow.card,
     },
-    progressRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    progressLabel: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
-    progressStep: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
+    progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    progressLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },
+    progressStep: { fontSize: 13, fontFamily: fonts.bold, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
     progressNote: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted },
 
     detailsCard: {

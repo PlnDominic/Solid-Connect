@@ -1,10 +1,12 @@
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, MessageCircle, Receipt, ShieldAlert } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useFinishJob, useJob, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { getOrCreateThread } from '../../api/chat';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
+import { JobPhaseTracker } from '../../components/JobPhaseTracker';
+import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { LiveLocationCard } from '../../components/LiveLocationCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
@@ -86,6 +88,14 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
               disabled: true,
             };
 
+  const quickActions: JobQuickAction[] = [
+    { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
+    ...(job.status === 'completed'
+      ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
+      : []),
+    { key: 'dispute', label: 'Dispute', icon: ShieldAlert, onPress: () => navigation.navigate('Dispute', { jobId: job.id }), tone: 'danger' },
+  ];
+
   return (
     <Screen edges={['top']}>
       <View style={styles.header}>
@@ -118,15 +128,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <Text style={styles.progressLabel}>{jobStatusLabel(job.status, 'provider')}</Text>
             <Text style={styles.progressStep}>GHS {job.price.toLocaleString()}</Text>
           </View>
-          <View style={styles.phases}>
-            <Phase active={true} done={job.status !== 'accepted'} label="Start" />
-            <Phase
-              active={job.status === 'in_progress' || job.status === 'awaiting_completion_confirmation' || job.status === 'completed'}
-              done={job.status === 'awaiting_completion_confirmation' || job.status === 'completed'}
-              label="Finish"
-            />
-            <Phase active={job.status === 'completed'} done={job.status === 'completed'} label="Confirmed" />
-          </View>
+          <JobPhaseTracker status={job.status} />
           <Text style={styles.progressNote}>{jobStatusHint(job.status, 'provider')}</Text>
         </View>
 
@@ -138,41 +140,10 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           loading={primaryCta.loading}
           disabled={primaryCta.disabled}
         />
-        {job.status === 'completed' ? (
-          <Button
-            title="View receipt"
-            variant="outline"
-            onPress={() => navigation.navigate('Receipt', { jobId: job.id })}
-          />
-        ) : null}
-        <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-          <Button title="Message" variant="outline" onPress={handleMessage} style={{ flex: 1, height: 48 }} />
-          <Button
-            title="Dispute"
-            variant="outline"
-            onPress={() => navigation.navigate('Dispute', { jobId: job.id })}
-            style={{ flex: 1, height: 48 }}
-          />
-        </View>
+
+        <JobQuickActions actions={quickActions} />
       </ScrollView>
     </Screen>
-  );
-}
-
-function Phase({ active, done, label }: { active: boolean; done: boolean; label: string }) {
-  const { colors } = useTheme();
-  const styles = makeStyles(colors);
-  return (
-    <View style={styles.phaseItem}>
-      <View
-        style={[
-          styles.phaseDot,
-          active && styles.phaseDotActive,
-          done && styles.phaseDotDone,
-        ]}
-      />
-      <Text style={[styles.phaseLabel, active && styles.phaseLabelActive]}>{label}</Text>
-    </View>
   );
 }
 
@@ -202,7 +173,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     peerMeta: { color: colors.white, opacity: 0.7, fontSize: 12, fontFamily: fonts.medium },
 
     body: { flex: 1 },
-    bodyContent: { padding: spacing.lg, gap: spacing.lg },
+    bodyContent: { padding: spacing.lg, gap: spacing.md },
 
     progressCard: {
       borderRadius: radii.lg,
@@ -213,21 +184,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     progressLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },
-    progressStep: { fontSize: 13, fontFamily: fonts.bold, color: colors.inkMuted },
-    phases: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
-    phaseItem: { flex: 1, alignItems: 'center', gap: 6 },
-    phaseDot: {
-      width: 10,
-      height: 10,
-      borderRadius: radii.pill,
-      backgroundColor: colors.paperDim,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-    },
-    phaseDotActive: { borderColor: colors.ink, backgroundColor: colors.paper },
-    phaseDotDone: { backgroundColor: colors.ink, borderColor: colors.ink },
-    phaseLabel: { fontSize: 11, fontFamily: fonts.medium, color: colors.inkFaint },
-    phaseLabelActive: { color: colors.ink, fontFamily: fonts.semibold },
+    progressStep: { fontSize: 13, fontFamily: fonts.bold, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
     progressNote: { fontSize: 13, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
   });
 }
