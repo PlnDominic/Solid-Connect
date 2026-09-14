@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FeedScreen } from '../screens/provider/FeedScreen';
 import { RequestDetailScreen } from '../screens/provider/RequestDetailScreen';
+import { RequestsScreen } from '../screens/provider/RequestsScreen';
 import { JobsScreen } from '../screens/provider/JobsScreen';
 import { JobDetailScreen } from '../screens/provider/JobDetailScreen';
 import { ProfileScreen } from '../screens/provider/ProfileScreen';
@@ -31,6 +32,15 @@ function FeedStack() {
       <FeedStackNav.Screen name="Feed" component={FeedScreen} />
       <FeedStackNav.Screen name="RequestDetail" component={RequestDetailScreen} />
     </FeedStackNav.Navigator>
+  );
+}
+
+const RequestsStackNav = createNativeStackNavigator();
+function RequestsStack() {
+  return (
+    <RequestsStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <RequestsStackNav.Screen name="RequestsHome" component={RequestsScreen} />
+    </RequestsStackNav.Navigator>
   );
 }
 
@@ -86,6 +96,7 @@ export function ProviderTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
       <Tab.Screen name="FeedTab" component={FeedStack} options={{ tabBarLabel: 'Feed' }} />
+      <Tab.Screen name="RequestsTab" component={RequestsStack} options={{ tabBarLabel: 'Requests' }} />
       <Tab.Screen name="JobsTab" component={JobsStack} options={{ tabBarLabel: 'Jobs' }} />
       <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
       <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />

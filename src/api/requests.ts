@@ -428,6 +428,86 @@ export function useFeedRequests(myProviderId: string | null) {
   return query;
 }
 
+export type ProviderRequestStatus =
+  | 'awaiting_response'
+  | 'quote_sent'
+  | 'quote_accepted'
+  | 'quote_declined'
+  | 'direct_declined';
+
+export type ProviderRequestHistoryItem = {
+  request: ServiceRequest;
+  myStatus: ProviderRequestStatus;
+  price: number | null;
+  updatedAt: string;
+};
+
+/**
+ * Every request this provider has ever responded to, win or lose - the
+ * Feed only ever shows what's still live (open/matching/quoted), so once
+ * a customer picks a different provider the request just disappears from
+ * it with no record of the outcome. Combines two sources: this
+ * provider's own quotes (covers sent/accepted/declined-because-they-lost,
+ * and an accepted DIRECT request too - accept_direct_request inserts an
+ * already-accepted quote row) and the DIRECT requests they've rejected or
+ * not yet answered, which never get a quote row at all.
+ */
+export function useProviderRequestHistory(providerId: string | null) {
+  return useQuery({
+    queryKey: ['providerRequestHistory', providerId],
+    queryFn: async (): Promise<ProviderRequestHistoryItem[]> => {
+      const { data: quotes, error: quotesError } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('provider_id', providerId as string)
+        .order('created_at', { ascending: false });
+      if (quotesError) throw quotesError;
+
+      const { data: directRows, error: directError } = await supabase
+        .from('service_requests')
+        .select('*')
+        .eq('preferred_provider_id', providerId as string)
+        .in('status', ['awaiting_provider', 'rejected'])
+        .order('created_at', { ascending: false });
+      if (directError) throw directError;
+
+      const requestIds = Array.from(
+        new Set([...(quotes ?? []).map((q) => q.request_id), ...(directRows ?? []).map((r) => r.id)]),
+      );
+      if (!requestIds.length) return [];
+
+      const { data: requests, error: requestsError } = await supabase
+        .from('service_requests')
+        .select('*')
+        .in('id', requestIds);
+      if (requestsError) throw requestsError;
+      const requestById = new Map((requests ?? []).map((r) => [r.id, r as ServiceRequest]));
+
+      const items: ProviderRequestHistoryItem[] = [];
+      for (const q of quotes ?? []) {
+        const request = requestById.get(q.request_id);
+        if (!request) continue;
+        items.push({
+          request,
+          myStatus: q.status === 'accepted' ? 'quote_accepted' : q.status === 'declined' ? 'quote_declined' : 'quote_sent',
+          price: q.price,
+          updatedAt: q.updated_at ?? q.created_at,
+        });
+      }
+      for (const r of directRows ?? []) {
+        items.push({
+          request: r as ServiceRequest,
+          myStatus: r.status === 'rejected' ? 'direct_declined' : 'awaiting_response',
+          price: r.customer_budget ?? r.budget_min ?? null,
+          updatedAt: r.created_at,
+        });
+      }
+      return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    },
+    enabled: !!providerId,
+  });
+}
+
 /**
  * Records a provider explicitly passing on a general/broadcast
  * opportunity (as opposed to a DIRECT request, which already required a
@@ -507,6 +587,7 @@ export function useSendQuote() {
       queryClient.invalidateQueries({ queryKey: ['feedRequests', vars.providerId] });
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] });
       queryClient.invalidateQueries({ queryKey: ['providerQuoteStats', vars.providerId] });
+      queryClient.invalidateQueries({ queryKey: ['providerRequestHistory', vars.providerId] });
     },
   });
 }
@@ -580,6 +661,7 @@ export function useAcceptDirectRequest() {
       queryClient.invalidateQueries({ queryKey: ['feedRequests'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] });
       queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['providerRequestHistory'] });
     },
   });
 }
@@ -609,6 +691,7 @@ export function useRejectDirectRequest() {
       queryClient.invalidateQueries({ queryKey: ['feedRequests'] });
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] });
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['providerRequestHistory'] });
     },
   });
 }
