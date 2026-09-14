@@ -69,9 +69,10 @@ function TopProviderCard({ provider, onPress }: { provider: Profile; onPress: ()
 export function HomeScreen({ navigation }: { navigation: any }) {
   const { colors, scheme } = useTheme();
   const { t } = useLocale();
-  const styles = makeStyles(colors);
+  const styles = makeStyles(colors, scheme);
   const activityEyebrowColor = scheme === 'dark' ? colors.pendingOnDark : colors.pending;
   const activityFillColor = scheme === 'dark' ? colors.confirmOnDark : colors.confirm;
+  const ctaFgColor = scheme === 'dark' ? colors.white : colors.active;
   const profile = useSessionStore((s) => s.profile);
   const { data: categories = [], refetch: refetchCategories } = useCategories();
   // The full, unfiltered set - useTopProviders() caps at 3, which made the
@@ -182,7 +183,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             onPress={() => navigation.navigate('NewRequest')}
           >
             <Text style={styles.heroCtaLabel}>{t('home.startRequest')}</Text>
-            <ArrowUpRight color={colors.paper} size={18} strokeWidth={2.4} />
+            <ArrowUpRight color={ctaFgColor} size={18} strokeWidth={2.4} />
           </Pressable>
 
           {activeJobIsLive ? (
@@ -295,7 +296,8 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   );
 }
 
-function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
+function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: ReturnType<typeof useTheme>['scheme']) {
+  const isDark = scheme === 'dark';
   return StyleSheet.create({
     scroll: { flex: 1, backgroundColor: colors.paper },
     body: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: 112, gap: spacing.xl },
@@ -346,12 +348,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      backgroundColor: colors.ink,
+      backgroundColor: isDark ? colors.black : colors.white,
       borderRadius: radii.lg,
       height: 50,
     },
     heroCtaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-    heroCtaLabel: { color: colors.paper, fontSize: 15, fontFamily: fonts.bold },
+    heroCtaLabel: { color: isDark ? colors.white : colors.active, fontSize: 15, fontFamily: fonts.bold },
 
     heroActivity: {
       padding: spacing.md,
