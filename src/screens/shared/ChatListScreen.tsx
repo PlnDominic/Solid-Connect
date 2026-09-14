@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { Check, CheckCheck, Search, ShieldCheck } from 'lucide-react-native';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
-import { useThreadsForRole } from '../../api/chat';
+import { Check, CheckCheck, Search, ShieldCheck, Trash2 } from 'lucide-react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { useHideThread, useThreadsForRole } from '../../api/chat';
 import { useProvidersByIds } from '../../api/marketplace';
 import { supabase } from '../../lib/supabase';
 import { Avatar } from '../../components/Avatar';
@@ -41,14 +41,42 @@ type ThreadPreview = {
   unread: boolean;
 };
 
-function ThreadRow({ preview, myId, onPress }: { preview: ThreadPreview; myId: string; onPress: () => void }) {
+function ThreadRow({
+  preview,
+  myId,
+  onPress,
+  onDelete,
+}: {
+  preview: ThreadPreview;
+  myId: string;
+  onPress: () => void;
+  onDelete: () => void;
+}) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { peer, latest, unread } = preview;
   const sentByMe = latest?.sender_id === myId;
 
+  function handleLongPress() {
+    Alert.alert(
+      'Delete this chat?',
+      `This removes it from your list only - ${peer.full_name} will still see your conversation. New messages bring it back.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: onDelete },
+      ],
+    );
+  }
+
   return (
-    <Pressable style={styles.row} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      onPress={onPress}
+      onLongPress={handleLongPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Chat with ${peer.full_name}`}
+      accessibilityHint="Long press for options"
+    >
       <Avatar initials={peer.initials} />
       <View style={{ flex: 1, gap: 3 }}>
         <View style={styles.nameRow}>
@@ -71,6 +99,14 @@ function ThreadRow({ preview, myId, onPress }: { preview: ThreadPreview; myId: s
       <View style={styles.trailing}>
         {latest ? <Text style={styles.time}>{formatTime(latest.created_at)}</Text> : null}
         {unread ? <View style={styles.unreadDot} /> : null}
+        <Pressable
+          hitSlop={10}
+          onPress={handleLongPress}
+          accessibilityRole="button"
+          accessibilityLabel={`Delete chat with ${peer.full_name}`}
+        >
+          <Trash2 size={14} strokeWidth={2} color={colors.inkFainter} />
+        </Pressable>
       </View>
     </Pressable>
   );
@@ -82,6 +118,7 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
   const profile = useSessionStore((s) => s.profile);
   const { data: threads = [], isLoading: threadsLoading, refetch } = useThreadsForRole(profile?.id ?? null, role);
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
+  const hideThread = useHideThread();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
@@ -169,6 +206,7 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
                   peerId: role === 'customer' ? p.thread.provider_id : p.thread.customer_id,
                 })
               }
+              onDelete={() => hideThread.mutate({ threadId: p.thread.id, role })}
             />
           ))
         ) : threads.length ? (
@@ -218,6 +256,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
+    rowPressed: { backgroundColor: colors.paperDim },
     nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     name: { fontSize: 16.5, fontFamily: fonts.semibold, color: colors.ink, letterSpacing: -0.15, flexShrink: 1 },
     nameUnread: { fontFamily: fonts.bold },

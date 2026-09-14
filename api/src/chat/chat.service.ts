@@ -13,10 +13,12 @@ export class ChatService {
 
   async listThreads(userId: string, role: 'customer' | 'provider') {
     const column = role === 'customer' ? 'customer_id' : 'provider_id';
+    const hiddenColumn = role === 'customer' ? 'customer_hidden_at' : 'provider_hidden_at';
     const { data, error } = await this.supabase.client
       .from('chat_threads')
       .select('*')
       .eq(column, userId)
+      .is(hiddenColumn, null)
       .order('created_at', { ascending: false });
     if (error) throw new BadRequestException({ code: 'THREAD_LIST_FAILED', message: error.message });
     return data ?? [];
@@ -113,5 +115,19 @@ export class ChatService {
       p_reader_id: userId,
     });
     if (error) throw new BadRequestException({ code: 'MARK_READ_FAILED', message: error.message });
+  }
+
+  /** "Delete chat" - hides the thread from only the caller's own side
+   * (see 0040_chat_thread_hide.sql for why this is a hide, not a real
+   * delete: the row is shared by both participants, so removing it
+   * outright would also erase the other person's conversation). */
+  async hideThread(threadId: string, userId: string) {
+    const thread = await this.getThread(threadId, userId);
+    const column = thread.customer_id === userId ? 'customer_hidden_at' : 'provider_hidden_at';
+    const { error } = await this.supabase.client
+      .from('chat_threads')
+      .update({ [column]: new Date().toISOString() })
+      .eq('id', threadId);
+    if (error) throw new BadRequestException({ code: 'THREAD_HIDE_FAILED', message: error.message });
   }
 }

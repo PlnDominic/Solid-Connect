@@ -52,6 +52,7 @@ export async function getOrCreateThread(input: {
 
 export function useThreadsForRole(userId: string | null, role: Role) {
   const column = role === 'customer' ? 'customer_id' : 'provider_id';
+  const hiddenColumn = role === 'customer' ? 'customer_hidden_at' : 'provider_hidden_at';
   const query = useQuery({
     queryKey: ['chatThreads', role, userId, isApiConfigured()],
     queryFn: async (): Promise<ChatThread[]> => {
@@ -63,6 +64,7 @@ export function useThreadsForRole(userId: string | null, role: Role) {
         .from('chat_threads')
         .select('*')
         .eq(column, userId as string)
+        .is(hiddenColumn, null)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -242,6 +244,32 @@ export function useMarkThreadRead() {
     },
     onSuccess: (threadId) => {
       queryClient.invalidateQueries({ queryKey: ['messages', threadId] });
+    },
+  });
+}
+
+/** "Delete chat" - hides the thread from only the caller's own side. The
+ * row and its messages are untouched (see 0040_chat_thread_hide.sql) - a
+ * hard delete would also erase the other participant's conversation,
+ * since one thread row is shared by both of them. */
+export function useHideThread() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { threadId: string; role: Role }) => {
+      if (isApiConfigured()) {
+        await apiFetch(`/api/v1/chat/threads/${input.threadId}/hide`, { method: 'PATCH' });
+        return input;
+      }
+      const column = input.role === 'customer' ? 'customer_hidden_at' : 'provider_hidden_at';
+      const { error } = await supabase
+        .from('chat_threads')
+        .update({ [column]: new Date().toISOString() })
+        .eq('id', input.threadId);
+      if (error) throw error;
+      return input;
+    },
+    onSuccess: (_result, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['chatThreads', vars.role] });
     },
   });
 }

@@ -163,6 +163,11 @@ export interface ChatThread {
   customer_id: string;
   provider_id: string;
   created_at: string;
+  // Added in supabase/migrations/0040_chat_thread_hide.sql - "delete
+  // chat" hides the thread from only whichever side set their own
+  // column; the row and its messages are otherwise untouched.
+  customer_hidden_at?: string | null;
+  provider_hidden_at?: string | null;
 }
 
 export interface ChatMessage {

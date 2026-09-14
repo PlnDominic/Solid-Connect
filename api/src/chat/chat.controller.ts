@@ -59,4 +59,11 @@ export class ChatController {
     await this.chat.markThreadRead(id, user.id);
     return { data: { ok: true }, meta: {} };
   }
+
+  @Patch('threads/:id/hide')
+  @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
+  async hide(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    await this.chat.hideThread(id, user.id);
+    return { data: { ok: true }, meta: {} };
+  }
 }
