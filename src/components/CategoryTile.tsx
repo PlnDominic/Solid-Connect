@@ -247,13 +247,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     gridTilePressed: { opacity: 0.82, transform: [{ scale: 0.975 }] },
     gridTileHome: {
-      width: '30.6%',
-      minHeight: 142,
+      width: 76,
       alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: spacing.sm,
-      paddingVertical: spacing.lg,
-      borderRadius: radii.xxxl,
+      gap: 6,
     },
     gridBadge: {
       width: 52,
@@ -291,7 +287,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       elevation: 3,
     },
     gridBadgeSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
-    gridIllustration: { width: 84, height: 84, marginBottom: 4 },
+    gridIllustration: { width: 44, height: 44 },
     gridCheck: {
       position: 'absolute',
       top: 10,
@@ -305,7 +301,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     gridName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
     gridNameCompact: { fontSize: 13, fontFamily: fonts.bold, textAlign: 'left' },
-    gridNameHome: { fontSize: 12.5, lineHeight: 16, fontFamily: fonts.bold, textAlign: 'center' },
+    gridNameHome: { fontSize: 11, lineHeight: 14, fontFamily: fonts.bold, textAlign: 'center' },
     gridDesc: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
     gridDescCompact: { fontSize: 10.5, lineHeight: 14, fontFamily: fonts.medium, textAlign: 'left' },
   });

@@ -200,7 +200,11 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           <Text style={styles.sectionCount}>{categories.length} available</Text>
         </View>
 
-        <View style={styles.categoryGrid}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryRow}
+        >
           {categories.map((category) => (
             <CategoryGridTile
               key={category.id}
@@ -208,7 +212,6 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               abbr={category.abbr}
               name={category.name}
               selected={false}
-              colorful
               homeGrid
               onPress={() =>
                 navigation.navigate('NewRequest', {
@@ -218,7 +221,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               }
             />
           ))}
-        </View>
+        </ScrollView>
 
         <View style={[styles.sectionHeading, styles.providerHeading]}>
           <Text style={styles.sectionTitle}>Top rated nearby</Text>
@@ -356,12 +359,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     providerHeading: { marginTop: 4 },
     seeAll: { color: colors.active, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
 
-    categoryGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-      rowGap: spacing.md,
-    },
+    categoryRow: { gap: spacing.lg },
 
     filterEmpty: {
       backgroundColor: colors.card,
