@@ -73,7 +73,13 @@ export function SignUpDetailScreen({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.header}>
-          <Pressable onPress={onBack} hitSlop={12} style={styles.back}>
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            style={styles.back}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
           </Pressable>
           <StepDots count={totalSteps} activeIndex={activeIndex} />

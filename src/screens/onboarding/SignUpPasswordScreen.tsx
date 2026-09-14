@@ -49,7 +49,14 @@ export function SignUpPasswordScreen({
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.header}>
-          <Pressable onPress={onBack} hitSlop={12} style={styles.back} disabled={!!loading}>
+          <Pressable
+            onPress={onBack}
+            hitSlop={12}
+            style={styles.back}
+            disabled={!!loading}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
           </Pressable>
           <StepDots count={totalSteps} activeIndex={activeIndex} />

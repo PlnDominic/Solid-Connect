@@ -37,7 +37,13 @@ function ProviderRow({
           <Text style={styles.meta}>{provider.provider_rating.toFixed(1)} · {provider.provider_distance_km} km</Text>
         </View>
       </View>
-      <Pressable hitSlop={10} onPress={() => toggleSaved.mutate({ customerId, providerId: provider.id, saved })}>
+      <Pressable
+        hitSlop={10}
+        onPress={() => toggleSaved.mutate({ customerId, providerId: provider.id, saved })}
+        accessibilityRole="button"
+        accessibilityLabel={saved ? 'Remove from saved providers' : 'Save this provider'}
+        accessibilityState={{ selected: saved }}
+      >
         <Heart
           size={18}
           strokeWidth={2}

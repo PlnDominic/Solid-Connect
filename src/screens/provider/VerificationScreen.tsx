@@ -93,7 +93,13 @@ function SubmissionForm({ providerId, rejectionNote }: { providerId: string; rej
         {images.map((uri) => (
           <View key={uri} style={styles.thumbWrap}>
             <Image source={{ uri }} style={styles.thumb} />
-            <Pressable hitSlop={8} style={styles.thumbRemove} onPress={() => removeImage(uri)}>
+            <Pressable
+              hitSlop={8}
+              style={styles.thumbRemove}
+              onPress={() => removeImage(uri)}
+              accessibilityRole="button"
+              accessibilityLabel="Remove this document"
+            >
               <X size={12} strokeWidth={3} color={colors.white} />
             </Pressable>
           </View>

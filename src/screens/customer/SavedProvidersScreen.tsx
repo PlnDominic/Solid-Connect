@@ -38,6 +38,9 @@ function SavedProviderRow({
       <Pressable
         hitSlop={10}
         onPress={() => toggleSaved.mutate({ customerId, providerId: provider.id, saved: true })}
+        accessibilityRole="button"
+        accessibilityLabel="Remove from saved providers"
+        accessibilityState={{ selected: true }}
       >
         <Heart size={18} strokeWidth={2} color={colors.ink} fill={colors.ink} />
       </Pressable>

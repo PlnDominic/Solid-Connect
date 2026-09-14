@@ -53,7 +53,13 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     <Screen edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.navigate('JobsHome')} hitSlop={12} style={styles.back}>
+          <Pressable
+            onPress={() => navigation.navigate('JobsHome')}
+            hitSlop={12}
+            style={styles.back}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <ChevronLeft size={20} strokeWidth={2.4} color={colors.white} />
           </Pressable>
           <Text style={styles.headerTitle} numberOfLines={1}>

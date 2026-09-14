@@ -37,7 +37,14 @@ export function SignUpCategoryScreen({
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={onBack} disabled={loading} hitSlop={12} style={styles.back}>
+        <Pressable
+          onPress={onBack}
+          disabled={loading}
+          hitSlop={12}
+          style={styles.back}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
         </Pressable>
         <StepDots count={totalSteps} activeIndex={activeIndex} />
