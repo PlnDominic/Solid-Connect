@@ -89,7 +89,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
         >
           <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
         </Pressable>
-        <Avatar initials={peer?.initials ?? ''} size={36} />
+        <Avatar initials={peer?.initials ?? ''} photoUrl={peer?.photo_url} size={36} />
         <View style={{ flex: 1 }}>
           <Text style={styles.peerName} numberOfLines={1}>{peer?.full_name}</Text>
           {peerTyping ? <Text style={styles.typingLabel}>typing…</Text> : null}
