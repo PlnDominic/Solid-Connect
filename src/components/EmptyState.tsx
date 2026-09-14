@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from 'react-native';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { Inbox } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import { fonts, radii, spacing } from '../theme';
@@ -8,10 +8,14 @@ export function EmptyState({
   title,
   subtitle,
   icon: Icon = Inbox,
+  action,
 }: {
   title: string;
   subtitle?: string;
   icon?: LucideIcon;
+  /** Optional next step - an empty state that can only describe the
+   * situation and never point anywhere is a dead end. */
+  action?: { label: string; onPress: () => void };
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -22,6 +26,11 @@ export function EmptyState({
       </View>
       <Text style={styles.title}>{title}</Text>
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      {action ? (
+        <Pressable style={styles.action} onPress={action.onPress}>
+          <Text style={styles.actionLabel}>{action.label}</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -42,5 +51,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     title: { fontSize: 16, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
     subtitle: { fontSize: 13, color: colors.inkMuted, lineHeight: 20, textAlign: 'center', maxWidth: 260, fontFamily: fonts.regular },
+    action: { marginTop: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+    actionLabel: { fontSize: 14, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
   });
 }

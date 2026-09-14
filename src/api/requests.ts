@@ -506,7 +506,53 @@ export function useSendQuote() {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ['feedRequests', vars.providerId] });
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] });
+      queryClient.invalidateQueries({ queryKey: ['providerQuoteStats', vars.providerId] });
     },
+  });
+}
+
+/** A provider's own quoting scorecard for the Feed hero - acceptance rate
+ * and average response time, computed from their own quote history. Two
+ * queries rather than one nested select (quotes joined to the requests
+ * they're for) to sidestep depending on Supabase's foreign-table select
+ * syntax resolving correctly for this relationship. */
+export function useProviderQuoteStats(providerId: string | null) {
+  return useQuery({
+    queryKey: ['providerQuoteStats', providerId],
+    queryFn: async (): Promise<{ total: number; acceptanceRate: number | null; avgResponseMins: number | null }> => {
+      const { data: quotes, error } = await supabase
+        .from('quotes')
+        .select('status, created_at, request_id')
+        .eq('provider_id', providerId as string);
+      if (error) throw error;
+      const rows = quotes ?? [];
+      if (!rows.length) return { total: 0, acceptanceRate: null, avgResponseMins: null };
+
+      const { data: sourceRequests } = await supabase
+        .from('service_requests')
+        .select('id, created_at')
+        .in('id', rows.map((r) => r.request_id));
+      const requestCreatedById = new Map((sourceRequests ?? []).map((r) => [r.id, r.created_at]));
+
+      const accepted = rows.filter((r) => r.status === 'accepted').length;
+      const responseMins = rows
+        .map((r) => {
+          const requestCreated = requestCreatedById.get(r.request_id);
+          if (!requestCreated) return null;
+          const mins = (new Date(r.created_at).getTime() - new Date(requestCreated).getTime()) / 60000;
+          return mins >= 0 ? mins : null;
+        })
+        .filter((n): n is number => n != null);
+
+      return {
+        total: rows.length,
+        acceptanceRate: Math.round((accepted / rows.length) * 100),
+        avgResponseMins: responseMins.length
+          ? Math.round(responseMins.reduce((a, b) => a + b, 0) / responseMins.length)
+          : null,
+      };
+    },
+    enabled: !!providerId,
   });
 }
 

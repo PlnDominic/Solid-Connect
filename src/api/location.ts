@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as Location from 'expo-location';
 import { apiFetch, isApiConfigured } from '../lib/api';
+import { AREAS } from '../constants/areas';
 import { haversineKm } from '../lib/geo';
 import type { Profile } from '../types/database';
 
@@ -34,6 +35,36 @@ const AREA_COORDS: Record<string, { lng: number; lat: number }> = {
 
 export function coordsForArea(name: string) {
   return AREA_COORDS[name] ?? null;
+}
+
+// Same substring match marketplace.ts's own (module-private) matchAreaName
+// uses for provider search - free-text location labels ("Achimota, Accra")
+// need to resolve to one of the known named areas before they mean coords.
+function matchAreaName(needle: string): string | null {
+  const n = needle.trim().toLowerCase();
+  return AREAS.find((a) => a.toLowerCase().includes(n) || n.includes(a.toLowerCase())) ?? null;
+}
+
+/** Approximate straight-line distance between two free-text location
+ * labels, each resolved to its nearest known named area - this app never
+ * models a precise address, only "which of these 8 neighborhoods", so
+ * this is exactly as precise as location gets anywhere else in the app.
+ * Null if either label doesn't match a known area. */
+export function distanceBetweenLabelsKm(fromLabel: string, toLabel: string): number | null {
+  const fromArea = matchAreaName(fromLabel);
+  const toArea = matchAreaName(toLabel);
+  if (!fromArea || !toArea) return null;
+  const from = coordsForArea(fromArea);
+  const to = coordsForArea(toArea);
+  if (!from || !to) return null;
+  return haversineKm({ lat: from.lat, lng: from.lng }, { lat: to.lat, lng: to.lng });
+}
+
+/** Coordinates for a free-text location label, via the same area match -
+ * used to open a request's neighborhood in the device's own Maps app. */
+export function coordsForLabel(label: string): { lat: number; lng: number } | null {
+  const area = matchAreaName(label);
+  return area ? coordsForArea(area) : null;
 }
 
 export type DetectAreaResult =

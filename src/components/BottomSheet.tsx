@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Modal, Pressable, View, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
@@ -19,10 +19,17 @@ export function BottomSheet({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <SafeAreaView edges={['bottom']} style={styles.sheet}>
-          <View style={styles.grabber} />
-          {children}
-        </SafeAreaView>
+        {/* Any sheet with a text field (e.g. FeedScreen's quote sheet)
+            would otherwise sit under the keyboard - iOS's `padding`
+            behavior pushes the whole sheet up above it; Android already
+            resizes the window on its own (windowSoftInputMode), so this
+            is a no-op there. */}
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <SafeAreaView edges={['bottom']} style={styles.sheet}>
+            <View style={styles.grabber} />
+            {children}
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
