@@ -1,10 +1,11 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, Text, View, StyleSheet } from 'react-native';
-import { ArrowUpRight, MapPin, MessageCircle } from 'lucide-react-native';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { ArrowUpRight, MessageCircle } from 'lucide-react-native';
 import { useJobLocation } from '../hooks/useJobLocation';
+import { coordsForLabel } from '../api/location';
 import { useProvider } from '../api/marketplace';
 import { formatDistanceKm, formatRelativeTime, haversineKm, openInMaps } from '../lib/geo';
 import { Avatar } from './Avatar';
+import { JobLiveMap } from './JobLiveMap';
 import { fonts, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import type { Job, JobStatus } from '../types/database';
@@ -22,33 +23,15 @@ const PILL_LABEL: Record<JobStatus, string> = {
   completed: 'DONE',
 };
 
-function PulsingDot({ color }: { color: string }) {
-  const pulse = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.timing(pulse, { toValue: 1, duration: 1600, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [pulse]);
-  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 2.4] });
-  const opacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] });
-  return (
-    <View style={styles.pinWrap}>
-      <Animated.View style={[styles.pinRing, { backgroundColor: color, opacity, transform: [{ scale }] }]} />
-      <View style={[styles.pinDot, { backgroundColor: color }]} />
-    </View>
-  );
-}
-
 /**
  * The one dark, map-style "tracking" frame on an otherwise white-ground
  * app - same idea as the reference shipment-tracking card the user sent,
- * adapted to what this app actually has: no map SDK (this app deliberately
- * opens the device's own Maps app instead - see openInMaps), and one
- * shared job location rather than a two-point shipment route. So the
- * "map" is a stylized dark surface with a live pulsing pin for the other
- * party's last reported position, not a real map tile.
+ * adapted to what this app actually has: one shared job location rather
+ * than a two-point shipment route, and (per the user's own choice
+ * between the options here) a real interactive map via an embedded
+ * Leaflet/OpenStreetMap page - see JobLiveMap - rather than a native map
+ * SDK, which would have required leaving Expo Go for a custom dev
+ * client build.
  */
 export function JobTrackingCard({
   job,
@@ -84,30 +67,23 @@ export function JobTrackingCard({
 
   const reference = `JOB-${job.id.slice(0, 8).toUpperCase()}`;
   const badgeColor = job.status === 'in_progress' ? colors.active : colors.pendingOnDark;
+  const fallbackCenter = coordsForLabel(job.location_label);
 
   return (
     <View style={styles.card}>
       <View style={styles.mapFrame}>
-        <View style={styles.mapGrid}>
-          {[0.25, 0.5, 0.75].map((p) => (
-            <View key={`h${p}`} style={[styles.gridLineH, { top: `${p * 100}%` }]} />
-          ))}
-          {[0.25, 0.5, 0.75].map((p) => (
-            <View key={`v${p}`} style={[styles.gridLineV, { left: `${p * 100}%` }]} />
-          ))}
-        </View>
-        <View style={styles.mapTopRow}>
-          <Text style={styles.mapEyebrow} numberOfLines={1}>{otherLabel.toUpperCase()} LOCATION</Text>
+        <JobLiveMap
+          otherPoint={hasOther ? { lat: otherPoint.lat!, lng: otherPoint.lng! } : null}
+          myPoint={hasMine ? { lat: myPoint.lat!, lng: myPoint.lng! } : null}
+          fallbackCenter={fallbackCenter}
+        />
+        <View style={styles.mapTopRow} pointerEvents="none">
+          <View style={styles.mapEyebrowBadge}>
+            <Text style={styles.mapEyebrow} numberOfLines={1}>{otherLabel.toUpperCase()} LOCATION</Text>
+          </View>
           <View style={[styles.statusPill, { backgroundColor: badgeColor }]}>
             <Text style={styles.statusPillText} numberOfLines={1}>{PILL_LABEL[job.status]}</Text>
           </View>
-        </View>
-        <View style={styles.mapCenter}>
-          {hasOther ? (
-            <PulsingDot color={colors.active} />
-          ) : (
-            <MapPin size={22} strokeWidth={1.8} color="rgba(255,255,255,0.35)" />
-          )}
         </View>
       </View>
 
@@ -155,12 +131,6 @@ export function JobTrackingCard({
   );
 }
 
-const styles = StyleSheet.create({
-  pinWrap: { width: 14, height: 14, alignItems: 'center', justifyContent: 'center' },
-  pinRing: { position: 'absolute', width: 14, height: 14, borderRadius: 7 },
-  pinDot: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.9)' },
-});
-
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     card: {
@@ -171,22 +141,30 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       ...shadow.card,
     },
     mapFrame: {
-      height: 128,
       borderRadius: radii.xl,
-      backgroundColor: 'rgba(255,255,255,0.06)',
+      overflow: 'hidden',
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.1)',
-      padding: spacing.md,
-      overflow: 'hidden',
     },
-    mapGrid: { ...styleAbsoluteFill },
-    gridLineH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.05)' },
-    gridLineV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(255,255,255,0.05)' },
-    mapTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
-    mapEyebrow: { flexShrink: 1, color: 'rgba(255,255,255,0.55)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
+    // Overlaid on top of the live map itself (pointerEvents="none" so
+    // panning/zooming underneath still works) - a real map's tiles can be
+    // bright, so both labels get their own solid/translucent backing
+    // instead of floating bare text over whatever color the map is.
+    mapTopRow: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: spacing.sm,
+      padding: spacing.sm,
+    },
+    mapEyebrowBadge: { flexShrink: 1, backgroundColor: 'rgba(0,0,0,0.55)', paddingVertical: 4, paddingHorizontal: 8, borderRadius: radii.sm },
+    mapEyebrow: { color: 'rgba(255,255,255,0.85)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
     statusPill: { flexShrink: 0, paddingVertical: 4, paddingHorizontal: 9, borderRadius: radii.pill },
     statusPillText: { color: colors.white, fontSize: 9.5, fontFamily: fonts.extrabold, letterSpacing: 0.4 },
-    mapCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
     refRow: { alignItems: 'center', gap: 3 },
     refLabel: { color: 'rgba(255,255,255,0.45)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
@@ -223,5 +201,3 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     ctaPillText: { color: colors.white, fontSize: 14, fontFamily: fonts.bold },
   });
 }
-
-const styleAbsoluteFill = { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0 };

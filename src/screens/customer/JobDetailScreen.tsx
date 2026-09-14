@@ -95,7 +95,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       </View>
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
-        <View style={[styles.progressCard, { borderLeftColor: statusColors.fg }]}>
+        <View style={styles.progressCard}>
           <View style={styles.progressRow}>
             <View style={[styles.progressIcon, { backgroundColor: statusColors.bg }]}>
               <StatusIcon size={18} strokeWidth={2.2} color={statusColors.fg} />
@@ -192,7 +192,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.md,
-      borderLeftWidth: 3,
       ...shadow.card,
     },
     progressRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
