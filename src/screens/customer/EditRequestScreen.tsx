@@ -20,6 +20,10 @@ const MAX_PHOTOS = 4;
  * request, not an edit of this one), and the server rejects the whole
  * call once the request has moved past 'open'/'matching' anyway (see
  * update_request() in 0034_update_request.sql).
+ *
+ * Same grouped-card/budget-field/photo-grid vocabulary as
+ * NewRequestScreen's own step 2 - this is the same data, just reached
+ * from the other direction, so it should look like the same form.
  */
 export function EditRequestScreen({ navigation, route }: { navigation: any; route: any }) {
   const { colors } = useTheme();
@@ -31,6 +35,7 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
 
   const [description, setDescription] = useState('');
   const [budgetText, setBudgetText] = useState('');
+  const [budgetFocused, setBudgetFocused] = useState(false);
   const [location, setLocation] = useState('');
   const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
   const [newPhotoUris, setNewPhotoUris] = useState<string[]>([]);
@@ -95,82 +100,90 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
   return (
     <Screen>
       <ScreenHeader title="Edit request" onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Describe the work</Text>
-          <TextInput
-            value={description}
-            onChangeText={setDescription}
-            multiline
-            style={styles.textarea}
-            placeholderTextColor={colors.inkFainter}
-          />
-        </View>
-
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>Budget (GHS)</Text>
-          <TextInput
-            value={budgetText}
-            onChangeText={setBudgetText}
-            keyboardType="number-pad"
-            style={styles.input}
-            placeholderTextColor={colors.inkFainter}
-          />
+          <View style={[styles.budgetField, budgetFocused && styles.budgetFieldFocused]}>
+            <Text style={styles.budgetCurrency}>GHS</Text>
+            <TextInput
+              value={budgetText}
+              onChangeText={setBudgetText}
+              onFocus={() => setBudgetFocused(true)}
+              onBlur={() => setBudgetFocused(false)}
+              keyboardType="number-pad"
+              placeholderTextColor={colors.inkFainter}
+              style={styles.budgetInput}
+            />
+          </View>
         </View>
 
         <View style={styles.field}>
           <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>
-            Photos ({totalPhotos}/{MAX_PHOTOS})
-          </Text>
-          <View style={styles.photoRow}>
-            {existingPhotos.map((url) => (
-              <View key={url} style={styles.photoWrap}>
-                <Image source={{ uri: url }} style={styles.photo} />
-                <Pressable
-                  hitSlop={10}
-                  style={styles.photoRemove}
-                  onPress={() => setExistingPhotos((prev) => prev.filter((u) => u !== url))}
-                  accessibilityRole="button"
-                  accessibilityLabel="Remove this photo"
-                >
-                  <X size={12} strokeWidth={3} color={colors.white} />
+        <Text style={styles.groupLabel}>DETAILS</Text>
+        <View style={styles.groupCard}>
+          <View style={[styles.detailBlock, styles.groupRowBorder]}>
+            <Text style={styles.groupRowLabel}>Describe the work</Text>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              style={styles.textarea}
+              placeholderTextColor={colors.inkFainter}
+            />
+            <Text style={styles.detailHint}>A clear description helps providers quote accurately.</Text>
+          </View>
+          <View style={styles.detailBlock}>
+            <Text style={styles.groupRowLabel}>
+              Photos <Text style={styles.groupRowLabelCount}>({totalPhotos}/{MAX_PHOTOS})</Text>
+            </Text>
+            <View style={styles.photoRow}>
+              {existingPhotos.map((url) => (
+                <View key={url} style={styles.photoWrap}>
+                  <Image source={{ uri: url }} style={styles.photo} />
+                  <Pressable
+                    hitSlop={10}
+                    style={styles.photoRemove}
+                    onPress={() => setExistingPhotos((prev) => prev.filter((u) => u !== url))}
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove this photo"
+                  >
+                    <X size={12} strokeWidth={3} color={colors.white} />
+                  </Pressable>
+                </View>
+              ))}
+              {newPhotoUris.map((uri) => (
+                <View key={uri} style={styles.photoWrap}>
+                  <Image source={{ uri }} style={styles.photo} />
+                  <Pressable
+                    hitSlop={10}
+                    style={styles.photoRemove}
+                    onPress={() => setNewPhotoUris((prev) => prev.filter((u) => u !== uri))}
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove this photo"
+                  >
+                    <X size={12} strokeWidth={3} color={colors.white} />
+                  </Pressable>
+                </View>
+              ))}
+              {totalPhotos < MAX_PHOTOS ? (
+                <Pressable style={styles.photoAdd} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel="Add a photo">
+                  {totalPhotos ? (
+                    <Plus size={20} strokeWidth={1.8} color={colors.inkFaint} />
+                  ) : (
+                    <Camera size={20} strokeWidth={1.8} color={colors.inkFaint} />
+                  )}
                 </Pressable>
-              </View>
-            ))}
-            {newPhotoUris.map((uri) => (
-              <View key={uri} style={styles.photoWrap}>
-                <Image source={{ uri }} style={styles.photo} />
-                <Pressable
-                  hitSlop={10}
-                  style={styles.photoRemove}
-                  onPress={() => setNewPhotoUris((prev) => prev.filter((u) => u !== uri))}
-                  accessibilityRole="button"
-                  accessibilityLabel="Remove this photo"
-                >
-                  <X size={12} strokeWidth={3} color={colors.white} />
-                </Pressable>
-              </View>
-            ))}
-            {totalPhotos < MAX_PHOTOS ? (
-              <Pressable style={styles.photoAdd} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel="Add a photo">
-                {totalPhotos ? (
-                  <Plus size={20} strokeWidth={1.8} color={colors.inkFaint} />
-                ) : (
-                  <Camera size={20} strokeWidth={1.8} color={colors.inkFaint} />
-                )}
-              </Pressable>
-            ) : null}
+              ) : null}
+            </View>
           </View>
         </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </ScrollView>
       <View style={styles.footer}>
-        <Button title="Save changes" onPress={handleSave} disabled={!isValid} loading={updateRequest.isPending} />
+        <Button title="Save changes" variant="active" onPress={handleSave} disabled={!isValid} loading={updateRequest.isPending} />
       </View>
     </Screen>
   );
@@ -179,40 +192,61 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.xl },
-    field: { gap: spacing.sm },
+    field: { gap: 7 },
     fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
-    input: {
-      height: 52,
+
+    budgetField: {
+      height: 58,
       borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.hairline,
       backgroundColor: colors.card,
+      flexDirection: 'row',
+      alignItems: 'center',
       paddingHorizontal: spacing.md,
-      fontSize: 15,
-      fontFamily: fonts.medium,
-      color: colors.ink,
     },
-    textarea: {
-      minHeight: 100,
-      borderRadius: radii.lg,
+    budgetFieldFocused: { borderWidth: 1.5, borderColor: colors.ink },
+    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 17, fontFamily: fonts.medium },
+    budgetInput: { flex: 1, fontSize: 20, fontFamily: fonts.mono, color: colors.ink },
+
+    // Small all-caps eyebrow above a grouped card - same idiom as
+    // NewRequestScreen's own step 2 and the settings screens.
+    groupLabel: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -8 },
+    groupCard: {
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.hairline,
       backgroundColor: colors.card,
-      padding: spacing.md,
+      overflow: 'hidden',
+    },
+    groupRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+    groupRowLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    groupRowLabelCount: { fontFamily: fonts.medium, color: colors.inkFainter },
+
+    // Nested directly in the groupCard - no border/background of its own,
+    // so it reads as one continuous row rather than a card within a card.
+    detailBlock: { padding: spacing.lg, gap: spacing.sm },
+    detailHint: { fontSize: 12, lineHeight: 16, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: -4 },
+    textarea: {
+      minHeight: 96,
       fontSize: 15,
-      fontFamily: fonts.medium,
+      lineHeight: 22,
+      fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',
+      padding: 0,
+      margin: 0,
     },
-    photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-    photoWrap: { width: 72, height: 72, borderRadius: radii.md, overflow: 'visible' },
-    photo: { width: 72, height: 72, borderRadius: radii.md },
+
+    photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+    photoWrap: { width: 72, height: 72 },
+    photo: { width: 72, height: 72, borderRadius: radii.lg, backgroundColor: colors.paperDim },
     photoRemove: {
       position: 'absolute',
       top: -6,
       right: -6,
-      width: 20,
-      height: 20,
+      width: 22,
+      height: 22,
       borderRadius: radii.pill,
       backgroundColor: colors.ink,
       alignItems: 'center',
@@ -221,15 +255,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     photoAdd: {
       width: 72,
       height: 72,
-      borderRadius: radii.md,
+      borderRadius: radii.lg,
       borderWidth: 1,
-      borderColor: colors.hairlineStrong,
       borderStyle: 'dashed',
+      borderColor: colors.hairlineStrong,
+      backgroundColor: colors.paperDim,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.paperDim,
     },
+
     errorText: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
-    footer: { padding: spacing.lg, borderTopWidth: 1, borderTopColor: colors.hairline },
+    footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.hairline },
   });
 }
