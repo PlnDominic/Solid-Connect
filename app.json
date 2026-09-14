@@ -16,7 +16,8 @@
           "locationWhenInUsePermission": "Solid Connect uses your location to suggest your neighborhood, and shares it with your provider or customer only while a job is active."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-localization"
     ],
     "ios": {
       "supportsTablet": true,

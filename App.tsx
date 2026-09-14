@@ -13,7 +13,9 @@ import {
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { linking } from './src/navigation/linking';
 import { BiometricLockGate } from './src/components/BiometricLockGate';
+import { LocaleProvider } from './src/i18n';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -40,13 +42,15 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <BiometricLockGate>
-            <NavigationContainer>
-              <RootNavigator />
-            </NavigationContainer>
-          </BiometricLockGate>
-        </ThemeProvider>
+        <LocaleProvider>
+          <ThemeProvider>
+            <BiometricLockGate>
+              <NavigationContainer linking={linking}>
+                <RootNavigator />
+              </NavigationContainer>
+            </BiometricLockGate>
+          </ThemeProvider>
+        </LocaleProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

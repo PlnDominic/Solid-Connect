@@ -10,6 +10,7 @@ import { FilterChips } from '../../components/FilterChips';
 import type { FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
+import { useLocale } from '../../i18n';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -26,6 +27,7 @@ const PROVIDER_PREVIEW_COUNT = 6;
 
 export function HomeScreen({ navigation }: { navigation: any }) {
   const { colors, scheme } = useTheme();
+  const { t } = useLocale();
   const styles = makeStyles(colors);
   const activityEyebrowColor = scheme === 'dark' ? colors.pendingOnDark : colors.pending;
   const activityFillColor = scheme === 'dark' ? colors.confirmOnDark : colors.confirm;
@@ -113,7 +115,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
         <View style={styles.heroCard}>
           <View style={styles.heroGreetRow}>
             <View style={styles.heroGreetText}>
-              <Text style={styles.heroGreeting}>Good morning, {firstName}</Text>
+              <Text style={styles.heroGreeting}>{t('home.greeting')}, {firstName}</Text>
               <Text style={styles.heroLocation}>{profile?.area ?? 'Accra'}</Text>
             </View>
             {profile?.photo_url ? (
@@ -140,7 +142,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             style={({ pressed }) => [styles.heroCta, pressed && styles.heroCtaPressed]}
             onPress={() => navigation.navigate('NewRequest')}
           >
-            <Text style={styles.heroCtaLabel}>Start a request</Text>
+            <Text style={styles.heroCtaLabel}>{t('home.startRequest')}</Text>
             <ArrowUpRight color={colors.paper} size={18} strokeWidth={2.4} />
           </Pressable>
 
@@ -194,7 +196,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
         </View>
 
         <View style={styles.sectionHeading}>
-          <Text style={styles.sectionTitle}>Choose a category</Text>
+          <Text style={styles.sectionTitle}>{t('home.chooseCategory')}</Text>
           <Text style={styles.sectionCount}>{categories.length} available</Text>
         </View>
 
@@ -213,6 +215,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
                 description={category.default_label}
                 selected={false}
                 compact
+                colorful
                 onPress={() =>
                   navigation.navigate('NewRequest', {
                     initialCategoryId: category.id,

@@ -25,6 +25,19 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   ac_repair: Wind,
 };
 
+type CategoryAccent = { surface: string; border: string; foreground: string };
+
+const CATEGORY_ACCENTS: Record<string, { light: CategoryAccent; dark: CategoryAccent }> = {
+  plumbing: { light: { surface: '#E7F1FF', border: '#B8D4F5', foreground: '#1455A3' }, dark: { surface: '#102D4D', border: '#245A91', foreground: '#8CC4FF' } },
+  electrical: { light: { surface: '#FFF3CC', border: '#F2D376', foreground: '#855400' }, dark: { surface: '#3A2B08', border: '#80631A', foreground: '#FFD86B' } },
+  carpentry: { light: { surface: '#F8E7D7', border: '#E9BB93', foreground: '#8A4317' }, dark: { surface: '#3B2010', border: '#7C431F', foreground: '#FFB98A' } },
+  masonry: { light: { surface: '#F1E9E6', border: '#D6BDB6', foreground: '#70453A' }, dark: { surface: '#342521', border: '#684940', foreground: '#E9C5BA' } },
+  painting: { light: { surface: '#F1E8FF', border: '#D4BDF5', foreground: '#6740A4' }, dark: { surface: '#2D1F47', border: '#5B3D8A', foreground: '#C9A6FF' } },
+  welding: { light: { surface: '#FFE8E2', border: '#F0B7A8', foreground: '#A23A25' }, dark: { surface: '#401D17', border: '#873E2F', foreground: '#FFAC9B' } },
+  cleaning: { light: { surface: '#DDF5ED', border: '#A9DDCC', foreground: '#17684F' }, dark: { surface: '#12392D', border: '#28725A', foreground: '#87E1C1' } },
+  ac_repair: { light: { surface: '#E0F4F8', border: '#A9DCE5', foreground: '#126B7A' }, dark: { surface: '#10373E', border: '#28727F', foreground: '#80D9E7' } },
+};
+
 /** Grid variant used for category browsing/picking - a circular emblem
  * badge (ink ring, fills solid ink when selected) reads closer to a coin
  * or seal than a soft app icon tile, matching the hero card's register.
@@ -40,6 +53,7 @@ export function CategoryGridTile({
   onPress,
   bare = false,
   compact = false,
+  colorful = false,
 }: {
   id: string;
   abbr: string;
@@ -49,16 +63,20 @@ export function CategoryGridTile({
   onPress: () => void;
   bare?: boolean;
   compact?: boolean;
+  /** Applies the category's semantic accent palette; used for Home discovery. */
+  colorful?: boolean;
 }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
   const Icon = CATEGORY_ICONS[id] ?? Wrench;
+  const accent = colorful ? CATEGORY_ACCENTS[id]?.[scheme] : undefined;
   return (
     <Pressable
       onPress={onPress}
       style={[
         bare ? styles.gridTileBare : compact ? styles.gridTileCompact : styles.gridTile,
         !bare && selected ? styles.gridTileSelected : null,
+        accent ? { backgroundColor: accent.surface, borderWidth: 1, borderColor: accent.border } : null,
       ]}
     >
       {selected ? (
@@ -70,15 +88,16 @@ export function CategoryGridTile({
         style={[
           compact ? styles.gridBadgeCompact : styles.gridBadge,
           selected ? styles.gridBadgeSelected : null,
+          accent && !selected ? { backgroundColor: colors.card, borderColor: accent.border } : null,
         ]}
       >
-        <Icon size={compact ? 17 : 21} strokeWidth={1.75} color={selected ? colors.paper : colors.ink} />
+        <Icon size={compact ? 17 : 21} strokeWidth={1.75} color={selected ? colors.paper : accent?.foreground ?? colors.ink} />
       </View>
-      <Text style={[styles.gridName, compact && styles.gridNameCompact]} numberOfLines={1}>
+      <Text style={[styles.gridName, compact && styles.gridNameCompact, accent && !selected ? { color: accent.foreground } : null]} numberOfLines={1}>
         {name}
       </Text>
       {description ? (
-        <Text style={[styles.gridDesc, compact && styles.gridDescCompact]} numberOfLines={1}>
+        <Text style={[styles.gridDesc, compact && styles.gridDescCompact, accent && !selected ? { color: accent.foreground, opacity: 0.74 } : null]} numberOfLines={1}>
           {description}
         </Text>
       ) : null}
@@ -97,7 +116,7 @@ export function CategoryTile({
   selected?: boolean;
   onPress: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
   return (
     <Pressable onPress={onPress} style={styles.tile}>
@@ -123,7 +142,7 @@ export function CategoryRow({
   selected: boolean;
   onPress: () => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
   return (
     <Pressable

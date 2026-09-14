@@ -5,6 +5,7 @@ import {
   ChevronRight,
   CreditCard,
   FileText,
+  Globe,
   Heart,
   KeyRound,
   LifeBuoy,
@@ -50,6 +51,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     rows: [
       { label: 'Notifications', screen: 'Notifications', icon: Bell },
       { label: 'Appearance', screen: 'Appearance', icon: Moon },
+      { label: 'Language', screen: 'Language', icon: Globe },
     ],
   },
   {

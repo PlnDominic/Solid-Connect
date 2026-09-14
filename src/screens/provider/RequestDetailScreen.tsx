@@ -10,6 +10,7 @@ import { Button } from '../../components/Button';
 import { ImageViewer, useImageViewer } from '../../components/ImageViewer';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -63,6 +64,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
   async function handleAcceptDirect() {
     try {
       const data = await acceptDirect.mutateAsync(requestId);
+      haptics.success();
       const jobId = (data as { job?: { id?: string } })?.job?.id;
       if (jobId) {
         navigation.navigate('JobsTab' as never, {

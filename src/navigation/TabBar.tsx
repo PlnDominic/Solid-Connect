@@ -3,6 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { LucideIcon } from 'lucide-react-native';
 import { House, LayoutGrid, ClipboardList, Briefcase, MessageCircle, User } from 'lucide-react-native';
+import { useLocale, type TranslationKey } from '../i18n';
 import { fonts } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -15,17 +16,31 @@ const routeIcons: Record<string, LucideIcon> = {
   ProfileTab: User,
 };
 
+// Keyed by tab route name rather than by the tabBarLabel string each
+// navigator passes, so every screen's translated label lives in one place
+// instead of duplicated across CustomerTabs.tsx and ProviderTabs.tsx.
+const routeLabelKeys: Record<string, TranslationKey> = {
+  HomeTab: 'tab.home',
+  FeedTab: 'tab.feed',
+  RequestsTab: 'tab.requests',
+  JobsTab: 'tab.jobs',
+  ChatTab: 'tab.chat',
+  ProfileTab: 'tab.profile',
+};
+
 const ICON_SIZE = 22;
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
+  const { t } = useLocale();
   const styles = makeStyles(colors);
   return (
     <SafeAreaView edges={['bottom']} style={styles.wrap} pointerEvents="box-none">
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
-          const label = (options.tabBarLabel ?? options.title ?? route.name) as string;
+          const labelKey = routeLabelKeys[route.name];
+          const label = labelKey ? t(labelKey) : ((options.tabBarLabel ?? options.title ?? route.name) as string);
           const focused = state.index === index;
           const Icon = routeIcons[route.name] ?? House;
 

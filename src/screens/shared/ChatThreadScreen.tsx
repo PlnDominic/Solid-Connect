@@ -19,6 +19,7 @@ import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
 import { useTypingIndicator } from '../../hooks/useTypingIndicator';
+import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -51,6 +52,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
     const value = text.trim();
     setText('');
     await sendMessage.mutateAsync({ threadId, senderId: profile.id, senderRole: profile.role, text: value });
+    haptics.light();
     requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
   }
 

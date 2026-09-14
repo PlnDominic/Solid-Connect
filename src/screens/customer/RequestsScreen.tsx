@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { MapPin, ShieldCheck, Star } from 'lucide-react-native';
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCancelRequest, useMyActiveRequest, useNotifications } from '../../api/requests';
@@ -10,6 +11,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
+import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -37,6 +39,7 @@ function QuoteCard({
   async function handleAccept() {
     if (!profile) return;
     const job = await acceptQuote.mutateAsync({ requestId: request.id, quoteId: quote.id, customerId: profile.id });
+    haptics.success();
     onAccepted(job.id);
   }
 
@@ -107,6 +110,15 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
   });
 
   const hasQuotes = request && request.status === 'quoted' && request.quotes.length > 0;
+  const quoteCount = request?.quotes.length ?? 0;
+  const seenQuoteCount = useRef(quoteCount);
+  // Fires only on a real increase while this screen is mounted (a fresh
+  // quote landing via refetch/pull-to-refresh) - not on first load, which
+  // would otherwise buzz every time someone simply reopens the tab.
+  useEffect(() => {
+    if (quoteCount > seenQuoteCount.current) haptics.success();
+    seenQuoteCount.current = quoteCount;
+  }, [quoteCount]);
   const isAwaiting = request?.status === 'awaiting_provider';
   const isRejected = request?.status === 'rejected';
   const isMatching = request?.status === 'matching' || request?.status === 'open';
