@@ -2,13 +2,16 @@ import { ActivityIndicator, Pressable, Text, StyleSheet, ViewStyle } from 'react
 import { fonts, radii } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
-type Variant = 'primary' | 'navy' | 'outline' | 'ghost';
+type Variant = 'primary' | 'navy' | 'active' | 'outline' | 'ghost';
 
 /**
  * Primary CTAs stay ink. `navy` is the brand-navy variant used on
  * onboarding/login (matches the Home hero card) - it's a branding choice,
  * not the confirm-green accent, which stays reserved elsewhere for actions
- * that themselves complete a verification/payment moment.
+ * that themselves complete a verification/payment moment. `active` is the
+ * brand-orange variant - used sparingly, only where a screen wants its own
+ * primary action to read as the same "active" accent as a picked filter or
+ * category, e.g. the New Request flow's own Continue/Post button.
  */
 export function Button({
   title,
@@ -29,8 +32,9 @@ export function Button({
   const styles = makeStyles(colors);
   const isPrimary = variant === 'primary';
   const isNavy = variant === 'navy';
+  const isActive = variant === 'active';
   const isOutline = variant === 'outline';
-  const isFilled = isPrimary || isNavy;
+  const isFilled = isPrimary || isNavy || isActive;
   return (
     <Pressable
       onPress={onPress}
@@ -39,6 +43,7 @@ export function Button({
         styles.base,
         isPrimary && styles.primary,
         isNavy && styles.navy,
+        isActive && styles.active,
         isOutline && styles.outline,
         variant === 'ghost' && styles.ghost,
         (disabled || loading) && styles.disabled,
@@ -81,6 +86,14 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.navy,
       shadowColor: colors.black,
       shadowOpacity: 0.2,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
+    },
+    active: {
+      backgroundColor: colors.active,
+      shadowColor: colors.activeDeep,
+      shadowOpacity: 0.22,
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 4 },
       elevation: 3,

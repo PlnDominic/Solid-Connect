@@ -366,6 +366,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         {step < 3 || isDirect ? (
           <Button
             title={isDirect && step === 2 ? 'Send to provider' : 'Continue'}
+            variant="active"
             disabled={
               (step === 1 && !category) ||
               (step === 2 && !category) ||
@@ -378,6 +379,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           <>
             <Button
               title="Post request"
+              variant="active"
               onPress={handlePost}
               loading={createRequest.isPending}
               disabled={!isValidArea(location) || !category}
