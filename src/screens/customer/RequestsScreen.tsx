@@ -1,21 +1,48 @@
 import { useEffect, useRef } from 'react';
-import { MapPin, ShieldCheck, Star } from 'lucide-react-native';
+import { Check, Clock, MapPin, Search, ShieldCheck, Star, X } from 'lucide-react-native';
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCancelRequest, useMyActiveRequest, useNotifications } from '../../api/requests';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
+import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
+import { formatRelativeTime } from '../../lib/geo';
 import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote, ServiceRequest } from '../../types/database';
+
+// The customer-side equivalent of the provider RequestsScreen's own local
+// StatusBadge - same Badge component, same bg/fg palette per outcome, so
+// "matching" / "declined" / "quotes received" read as the same visual
+// language on both sides of the marketplace.
+function RequestStatusBadge({ kind, count }: { kind: 'awaiting' | 'matching' | 'rejected' | 'quoted'; count?: number }) {
+  const { colors } = useTheme();
+  switch (kind) {
+    case 'awaiting':
+      return <Badge label="Awaiting provider response" bg={colors.navyBg} fg={colors.navy} icon={<Clock size={11} strokeWidth={2.6} color={colors.navy} />} />;
+    case 'matching':
+      return <Badge label="Matching providers" bg={colors.pendingBg} fg={colors.pending} icon={<Search size={11} strokeWidth={2.6} color={colors.pending} />} />;
+    case 'rejected':
+      return <Badge label="Declined by provider" bg={colors.dangerBg} fg={colors.danger} icon={<X size={11} strokeWidth={3} color={colors.danger} />} />;
+    case 'quoted':
+      return (
+        <Badge
+          label={`${count} quote${count === 1 ? '' : 's'} received`}
+          bg={colors.confirmBg}
+          fg={colors.confirm}
+          icon={<Check size={11} strokeWidth={3} color={colors.confirm} />}
+        />
+      );
+  }
+}
 
 function QuoteCard({
   quote,
@@ -83,12 +110,10 @@ function QuoteCard({
             </View>
           </View>
         </View>
-        <Text style={styles.quotePrice}>GHS {quote.price}</Text>
+        <Text style={styles.quotePrice}>GHS {quote.price.toLocaleString()}</Text>
       </View>
 
-      <View style={styles.quoteEta}>
-        <Text style={styles.quoteEtaText}>{quote.eta_label}</Text>
-      </View>
+      <Badge label={quote.eta_label} bg={colors.paperDim} fg={colors.inkMuted} icon={<Clock size={11} strokeWidth={2.4} color={colors.inkMuted} />} />
 
       <View style={styles.quoteActions}>
         <Button title="Accept" onPress={handleAccept} loading={acceptQuote.isPending} style={styles.halfBtn} />
@@ -173,22 +198,34 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
               </View>
             ))}
 
-            {request && (isAwaiting || isRejected || isMatching) ? (
+            {request ? (
               <View style={styles.summary}>
-                <Text style={styles.summaryTitle}>
-                  {request.category_label} · {request.location_label}
-                </Text>
-                <Text style={styles.summarySub}>
-                  Budget GHS {budget}
-                  {isAwaiting
-                    ? ' · Waiting for provider response'
-                    : isRejected
-                      ? ' · Declined by provider'
-                      : ' · Matching providers'}
-                </Text>
+                <View style={styles.summaryTop}>
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={styles.summaryTitle} numberOfLines={1}>
+                      {request.category_label.split('·').pop()?.trim()}
+                    </Text>
+                    <Text style={styles.summaryMeta}>
+                      {request.location_label} · {formatRelativeTime(request.created_at)}
+                    </Text>
+                  </View>
+                  {budget != null ? <Text style={styles.summaryBudget}>GHS {budget.toLocaleString()}</Text> : null}
+                </View>
+
+                {isAwaiting ? (
+                  <RequestStatusBadge kind="awaiting" />
+                ) : isRejected ? (
+                  <RequestStatusBadge kind="rejected" />
+                ) : hasQuotes ? (
+                  <RequestStatusBadge kind="quoted" count={request.quotes.length} />
+                ) : (
+                  <RequestStatusBadge kind="matching" />
+                )}
+
                 {isRejected && request.rejection_reason ? (
                   <Text style={styles.rejectInline}>Reason: {request.rejection_reason}</Text>
                 ) : null}
+
                 {(canEdit || canCancel) ? (
                   <View style={styles.summaryActions}>
                     {canEdit ? (
@@ -213,27 +250,8 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
               </View>
             ) : null}
 
-            {hasQuotes && request ? (
-              <>
-                <View style={styles.summary}>
-                  <Text style={styles.summaryTitle}>
-                    {request.category_label} · {request.location_label}
-                  </Text>
-                  <Text style={styles.summarySub}>
-                    Budget GHS {budget} · {request.quotes.length} quote
-                    {request.quotes.length === 1 ? '' : 's'} received
-                  </Text>
-                  <View style={styles.summaryActions}>
-                    <Button
-                      title="Cancel request"
-                      variant="outline"
-                      onPress={handleCancel}
-                      loading={cancelRequest.isPending}
-                      style={styles.summaryActionBtn}
-                    />
-                  </View>
-                </View>
-                {request.quotes.map((q) => (
+            {hasQuotes && request
+              ? request.quotes.map((q) => (
                   <QuoteCard
                     key={q.id}
                     quote={q}
@@ -245,14 +263,14 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
                       navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })
                     }
                   />
-                ))}
-              </>
-            ) : null}
+                ))
+              : null}
           </View>
         ) : (
           <EmptyState
             title="No requests yet"
             subtitle="Post a general request from Home, or pick a provider and send a direct request."
+            action={{ label: 'Post a request', onPress: () => navigation.navigate('HomeTab', { screen: 'Home' }) }}
           />
         )}
       </ScrollView>
@@ -264,24 +282,25 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md },
     summary: {
-      padding: spacing.md,
+      padding: spacing.lg,
       borderRadius: radii.lg,
       backgroundColor: colors.card,
-      gap: 3,
+      gap: spacing.md,
       ...shadow.card,
     },
+    summaryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
     summaryTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
-    summarySub: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted },
-    summaryActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    summaryMeta: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    summaryBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    summaryActions: { flexDirection: 'row', gap: spacing.sm },
     summaryActionBtn: { flex: 1, height: 40 },
-    rejectInline: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
+    rejectInline: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
     rejectBanner: {
-      padding: spacing.md,
+      padding: spacing.lg,
       borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.danger,
       backgroundColor: colors.card,
       gap: 4,
+      ...shadow.card,
     },
     rejectTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
     rejectBody: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19.5 },
@@ -316,15 +335,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     quoteMeta: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
     quoteMetaDim: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFaint },
     quotePrice: { fontSize: 20.5, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
-
-    quoteEta: {
-      alignSelf: 'flex-start',
-      borderRadius: radii.sm,
-      paddingVertical: 4,
-      paddingHorizontal: 8,
-      backgroundColor: colors.paperDim,
-    },
-    quoteEtaText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted },
 
     quoteActions: { flexDirection: 'row', gap: spacing.sm },
     halfBtn: { flex: 1, height: 46 },
