@@ -44,6 +44,10 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [bioExpanded, setBioExpanded] = useState(false);
   const [messaging, setMessaging] = useState(false);
+  // Which photo the big hero frame shows - starts on the provider's own
+  // photo, but tapping a portfolio thumbnail swaps it in, same as an
+  // e-commerce product page's thumbnail strip.
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const imageViewer = useImageViewer();
   const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
   const portfolioPhotoUrls = portfolio.filter((p) => p.media_type !== 'video').map((p) => p.photo_url);
@@ -117,15 +121,34 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
 
   const visibleThumbs = portfolio.slice(0, VISIBLE_THUMBS);
   const extraThumbCount = Math.max(0, portfolio.length - VISIBLE_THUMBS);
+  const heroPhotoUrl = selectedPhoto ?? provider.photo_url ?? portfolioPhotoUrls[0] ?? null;
+  // The full set the hero's own tap-to-zoom viewer can page through -
+  // the provider's own photo first (if any), then their portfolio, with
+  // no duplicate when the two happen to be the same photo.
+  const heroGalleryUrls = provider.photo_url
+    ? [provider.photo_url, ...portfolioPhotoUrls.filter((u) => u !== provider.photo_url)]
+    : portfolioPhotoUrls;
 
-  function openPortfolioAt(index: number) {
+  function handleThumbPress(index: number, isMoreTile: boolean) {
     const photo = portfolio[index];
     if (!photo) return;
+    if (isMoreTile) {
+      // "+N" - browse the rest in the full viewer rather than only
+      // swapping the hero to this one photo.
+      imageViewer.open(portfolioPhotoUrls, portfolioPhotoUrls.indexOf(photo.photo_url));
+      return;
+    }
     if (photo.media_type === 'video') {
       setPreviewVideoUrl(photo.photo_url);
     } else {
-      imageViewer.open(portfolioPhotoUrls, portfolioPhotoUrls.indexOf(photo.photo_url));
+      setSelectedPhoto(photo.photo_url);
     }
+  }
+
+  function openHeroViewer() {
+    if (!heroPhotoUrl) return;
+    const index = heroGalleryUrls.indexOf(heroPhotoUrl);
+    imageViewer.open(heroGalleryUrls, index === -1 ? 0 : index);
   }
 
   async function handleMessage() {
@@ -179,28 +202,36 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-        <View style={styles.heroCard}>
-          {provider.photo_url ? (
-            <Image source={{ uri: provider.photo_url }} style={styles.heroImage} />
+        <Pressable
+          style={styles.heroCard}
+          onPress={openHeroViewer}
+          disabled={!heroPhotoUrl}
+          accessibilityRole="imagebutton"
+          accessibilityLabel="View full-size photo"
+        >
+          {heroPhotoUrl ? (
+            <Image source={{ uri: heroPhotoUrl }} style={styles.heroImage} />
           ) : (
             <View style={styles.heroFallback}>
               <Avatar initials={provider.initials} size={96} />
             </View>
           )}
-        </View>
+        </Pressable>
 
         {visibleThumbs.length > 0 ? (
           <View style={styles.thumbRow}>
             {visibleThumbs.map((photo, index) => {
               const isLastVisible = index === VISIBLE_THUMBS - 1;
               const showMoreOverlay = isLastVisible && extraThumbCount > 0;
+              const isSelected = !showMoreOverlay && photo.photo_url === heroPhotoUrl;
               return (
                 <Pressable
                   key={photo.id}
-                  style={styles.thumb}
-                  onPress={() => openPortfolioAt(index)}
+                  style={[styles.thumb, isSelected && styles.thumbSelected]}
+                  onPress={() => handleThumbPress(index, showMoreOverlay)}
                   accessibilityRole="button"
-                  accessibilityLabel={showMoreOverlay ? `View ${extraThumbCount} more photos` : 'View photo'}
+                  accessibilityLabel={showMoreOverlay ? `View ${extraThumbCount} more photos` : 'Show this photo'}
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Image source={{ uri: photo.photo_url }} style={styles.thumbImage} />
                   {photo.media_type === 'video' && !showMoreOverlay ? (
@@ -396,7 +427,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     heroFallback: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
     thumbRow: { flexDirection: 'row', gap: spacing.sm },
-    thumb: { flex: 1, aspectRatio: 1, borderRadius: radii.md, overflow: 'hidden', backgroundColor: colors.paperDim },
+    thumb: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: radii.md,
+      overflow: 'hidden',
+      backgroundColor: colors.paperDim,
+      borderWidth: 2,
+      borderColor: 'transparent',
+    },
+    thumbSelected: { borderColor: colors.active },
     thumbImage: { width: '100%', height: '100%' },
     thumbPlayBadge: {
       position: 'absolute',
