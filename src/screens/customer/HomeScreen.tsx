@@ -94,12 +94,10 @@ export function HomeScreen({ navigation }: { navigation: any }) {
         action: 'View details',
       };
     }
-    return {
-      eyebrow: 'REQUEST IN PROGRESS',
-      title: activeRequest.category_label,
-      detail: 'We’re matching you with verified providers nearby.',
-      action: 'View request',
-    };
+    // Plain matching/open state (no quotes yet, nothing actionable) - no
+    // banner rather than a "REQUEST IN PROGRESS" card with nothing to do
+    // from it besides look at the same Requests tab that's always there.
+    return null;
   })();
 
   return (
