@@ -1,35 +1,77 @@
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useLatestMessage, useThreadsForRole } from '../../api/chat';
-import { useProvider } from '../../api/marketplace';
+import { useMemo, useState } from 'react';
+import { useQueries } from '@tanstack/react-query';
+import { Check, CheckCheck, Search, ShieldCheck } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { useThreadsForRole } from '../../api/chat';
+import { useProvidersByIds } from '../../api/marketplace';
+import { supabase } from '../../lib/supabase';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
+import { FilterChips, type FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
-import type { ChatThread } from '../../types/database';
+import { isIdentityVerified } from '../../lib/verification';
+import type { ChatMessage, ChatThread, Profile } from '../../types/database';
 
-function ThreadRow({ thread, myRole, onPress }: { thread: ChatThread; myRole: 'customer' | 'provider'; onPress: () => void }) {
+const LIST_FILTERS: FilterOption[] = [
+  { id: 'all', label: 'All' },
+  { id: 'unread', label: 'Unread' },
+];
+
+async function fetchLatestMessage(threadId: string): Promise<ChatMessage | null> {
+  const { data, error } = await supabase
+    .from('chat_messages')
+    .select('*')
+    .eq('thread_id', threadId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+type ThreadPreview = {
+  thread: ChatThread;
+  peer: Profile;
+  latest: ChatMessage | null;
+  unread: boolean;
+};
+
+function ThreadRow({ preview, myId, onPress }: { preview: ThreadPreview; myId: string; onPress: () => void }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const peerId = myRole === 'customer' ? thread.provider_id : thread.customer_id;
-  const { data: peer } = useProvider(peerId);
-  const { data: latest } = useLatestMessage(thread.id);
-
-  if (!peer) return null;
+  const { peer, latest, unread } = preview;
+  const sentByMe = latest?.sender_id === myId;
 
   return (
     <Pressable style={styles.row} onPress={onPress}>
       <Avatar initials={peer.initials} />
       <View style={{ flex: 1, gap: 3 }}>
-        <Text style={styles.name} numberOfLines={1}>{peer.full_name}</Text>
-        <Text style={styles.preview} numberOfLines={1}>
-          {latest?.text ?? 'Say hello 👋'}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={[styles.name, unread && styles.nameUnread]} numberOfLines={1}>{peer.full_name}</Text>
+          {isIdentityVerified(peer) ? <ShieldCheck size={13} strokeWidth={2.4} color={colors.confirm} /> : null}
+        </View>
+        <View style={styles.previewRow}>
+          {sentByMe ? (
+            latest?.read_at ? (
+              <CheckCheck size={14} strokeWidth={2.2} color={colors.active} />
+            ) : (
+              <Check size={14} strokeWidth={2.2} color={colors.inkFaint} />
+            )
+          ) : null}
+          <Text style={[styles.preview, unread && styles.previewUnread]} numberOfLines={1}>
+            {latest?.image_url && !latest.text ? 'Photo' : latest?.text ?? 'Say hello 👋'}
+          </Text>
+        </View>
       </View>
-      {latest ? <Text style={styles.time}>{formatTime(latest.created_at)}</Text> : null}
+      <View style={styles.trailing}>
+        {latest ? <Text style={styles.time}>{formatTime(latest.created_at)}</Text> : null}
+        {unread ? <View style={styles.unreadDot} /> : null}
+      </View>
     </Pressable>
   );
 }
@@ -40,10 +82,72 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
   const profile = useSessionStore((s) => s.profile);
   const { data: threads = [], isLoading: threadsLoading, refetch } = useThreadsForRole(profile?.id ?? null, role);
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
+
+  const peerIds = useMemo(
+    () => threads.map((t) => (role === 'customer' ? t.provider_id : t.customer_id)),
+    [threads, role],
+  );
+  const { data: peers = [] } = useProvidersByIds(peerIds);
+  const peerById = useMemo(() => new Map(peers.map((p) => [p.id, p])), [peers]);
+
+  // One query per thread, sharing the exact key useLatestMessage uses
+  // elsewhere so both read the same cache entry instead of double-fetching
+  // the same row.
+  const latestResults = useQueries({
+    queries: threads.map((t) => ({
+      queryKey: ['latestMessage', t.id],
+      queryFn: () => fetchLatestMessage(t.id),
+      enabled: true,
+    })),
+  });
+
+  const previews: ThreadPreview[] = useMemo(() => {
+    return threads
+      .map((thread, i) => {
+        const peerId = role === 'customer' ? thread.provider_id : thread.customer_id;
+        const peer = peerById.get(peerId);
+        if (!peer) return null;
+        const latest = latestResults[i]?.data ?? null;
+        const unread = !!latest && latest.sender_id !== profile?.id && !latest.read_at;
+        return { thread, peer, latest, unread };
+      })
+      .filter((p): p is ThreadPreview => !!p)
+      .sort((a, b) => {
+        const at = a.latest?.created_at ?? a.thread.created_at;
+        const bt = b.latest?.created_at ?? b.thread.created_at;
+        return bt.localeCompare(at);
+      });
+  }, [threads, peerById, latestResults, role, profile?.id]);
+
+  const visible = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return previews.filter((p) => {
+      if (filter === 'unread' && !p.unread) return false;
+      if (!needle) return true;
+      return p.peer.full_name.toLowerCase().includes(needle);
+    });
+  }, [previews, search, filter]);
 
   return (
     <Screen>
-      <ScreenHeader title="Chat" large />
+      <ScreenHeader title="Chats" large />
+      <View style={styles.searchBar}>
+        <Search size={16} strokeWidth={2} color={colors.inkFaint} />
+        <TextInput
+          value={search}
+          onChangeText={setSearch}
+          placeholder="Search"
+          placeholderTextColor={colors.inkFainter}
+          style={styles.searchInput}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+      </View>
+      <View style={styles.filtersWrap}>
+        <FilterChips options={LIST_FILTERS} value={filter} onChange={setFilter} />
+      </View>
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
@@ -53,20 +157,22 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
           <View style={{ padding: spacing.xl, alignItems: 'center' }}>
             <ActivityIndicator color={colors.ink} />
           </View>
-        ) : threads.length ? (
-          threads.map((t) => (
+        ) : visible.length ? (
+          visible.map((p) => (
             <ThreadRow
-              key={t.id}
-              thread={t}
-              myRole={role}
+              key={p.thread.id}
+              preview={p}
+              myId={profile?.id ?? ''}
               onPress={() =>
                 navigation.navigate('ChatThread', {
-                  threadId: t.id,
-                  peerId: role === 'customer' ? t.provider_id : t.customer_id,
+                  threadId: p.thread.id,
+                  peerId: role === 'customer' ? p.thread.provider_id : p.thread.customer_id,
                 })
               }
             />
           ))
+        ) : threads.length ? (
+          <EmptyState title="No matches" subtitle="Try a different name or filter." />
         ) : (
           <EmptyState title="No conversations yet" />
         )}
@@ -76,11 +182,30 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const date = new Date(iso);
+  const isToday = date.toDateString() === new Date().toDateString();
+  return isToday
+    ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : date.toLocaleDateString([], { day: 'numeric', month: 'short' });
 }
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      height: 44,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      paddingHorizontal: spacing.md,
+      marginHorizontal: spacing.lg,
+      marginBottom: spacing.md,
+    },
+    searchInput: { flex: 1, fontSize: 14.5, fontFamily: fonts.medium, color: colors.ink },
+    filtersWrap: { paddingBottom: spacing.md },
     row: {
       flexDirection: 'row',
       gap: spacing.md,
@@ -93,8 +218,14 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
-    name: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.15 },
-    preview: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted },
-    time: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
+    nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    name: { fontSize: 16.5, fontFamily: fonts.semibold, color: colors.ink, letterSpacing: -0.15, flexShrink: 1 },
+    nameUnread: { fontFamily: fonts.bold },
+    previewRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    preview: { flex: 1, fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted },
+    previewUnread: { fontFamily: fonts.semibold, color: colors.ink },
+    trailing: { alignItems: 'flex-end', gap: 6 },
+    time: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
+    unreadDot: { width: 9, height: 9, borderRadius: radii.pill, backgroundColor: colors.active },
   });
 }
