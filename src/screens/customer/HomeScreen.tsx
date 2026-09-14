@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { ArrowUpRight, ChevronRight, ListFilter, MapPin, Search, ShieldCheck, Star } from 'lucide-react-native';
 import { useAllProviders, useCategories } from '../../api/marketplace';
+import { usePortfolioPhotos } from '../../api/portfolio';
 import { useMyActiveRequest } from '../../api/requests';
 import { useCustomerActiveJob } from '../../api/jobs';
 import { Avatar } from '../../components/Avatar';
@@ -14,6 +15,7 @@ import { useLocale } from '../../i18n';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
+import type { Profile } from '../../types/database';
 
 const PROVIDER_FILTERS: FilterOption[] = [
   { id: 'all', label: 'All', icon: ListFilter },
@@ -24,6 +26,51 @@ const PROVIDER_FILTERS: FilterOption[] = [
 
 // Preview count shown on Home; "View all" leads to the full, unlimited list.
 const PROVIDER_PREVIEW_COUNT = 6;
+
+/** One "Top rated" card: a strip of the provider's own portfolio photos -
+ * their actual finished work, standing in for "top rated jobs" since jobs
+ * themselves carry no photos of their own, only the provider's portfolio
+ * does - above their name/rating, so the grid reads as a peek at their
+ * work rather than another plain contact-list row. Falls back to a plain
+ * header when a provider has no portfolio photos yet, rather than an
+ * empty gray block pretending to be one. */
+function TopProviderCard({ provider, onPress }: { provider: Profile; onPress: () => void }) {
+  const { colors } = useTheme();
+  const styles = makeCardStyles(colors);
+  const { data: photos = [] } = usePortfolioPhotos(provider.id);
+  const preview = photos.filter((p) => p.media_type !== 'video').slice(0, 3);
+
+  return (
+    <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]} onPress={onPress}>
+      {preview.length > 0 ? (
+        <View style={styles.photoGrid}>
+          {preview.map((photo) => (
+            <Image key={photo.id} source={{ uri: photo.photo_url }} style={styles.photoThumb} />
+          ))}
+        </View>
+      ) : null}
+      <View style={styles.cardBody}>
+        <View style={styles.cardHeaderRow}>
+          <Avatar initials={provider.initials} size={32} />
+          <View style={styles.cardNameWrap}>
+            <View style={styles.cardNameRow}>
+              <Text style={styles.cardName} numberOfLines={1}>{provider.full_name}</Text>
+              {provider.provider_verified ? <ShieldCheck size={11} strokeWidth={2.6} color={colors.confirm} /> : null}
+            </View>
+            <Text style={styles.cardTrade} numberOfLines={1}>{provider.provider_category}</Text>
+          </View>
+        </View>
+        <View style={styles.cardMetaRow}>
+          <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
+          <Text style={styles.cardMeta}>{provider.provider_rating.toFixed(1)}</Text>
+          <View style={styles.metaDot} />
+          <MapPin color={colors.inkFaint} size={10} strokeWidth={2} />
+          <Text style={styles.cardMeta}>{provider.provider_distance_km} km</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
 
 export function HomeScreen({ navigation }: { navigation: any }) {
   const { colors, scheme } = useTheme();
@@ -239,38 +286,15 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             <Text style={styles.filterEmptyText}>No providers match this filter right now.</Text>
           </View>
         ) : (
-        <View style={styles.providerListShadow}>
-        <View style={styles.providerList}>
-          {filteredProviders.map((provider) => (
-            <Pressable
-              key={provider.id}
-              style={({ pressed }) => [styles.providerRow, pressed && styles.providerRowPressed]}
-              onPress={() => navigation.navigate('ProviderDetail', { providerId: provider.id })}
-            >
-              <Avatar initials={provider.initials} size={46} />
-              <View style={styles.providerInfo}>
-                <View style={styles.providerNameRow}>
-                  <Text style={styles.providerName}>{provider.full_name}</Text>
-                  {provider.provider_verified ? (
-                    <View style={styles.verifiedStamp} accessibilityLabel="Verified">
-                      <ShieldCheck size={12} strokeWidth={2.6} color={colors.confirm} />
-                    </View>
-                  ) : null}
-                </View>
-                <Text style={styles.providerTrade} numberOfLines={1}>{provider.provider_category}</Text>
-                <View style={styles.providerMetaRow}>
-                  <Star color={colors.ink} fill={colors.ink} size={11} strokeWidth={2} />
-                  <Text style={styles.providerMeta}>{provider.provider_rating.toFixed(1)}</Text>
-                  <View style={styles.metaDot} />
-                  <MapPin color={colors.inkFaint} size={11} strokeWidth={2} />
-                  <Text style={styles.providerMeta}>{provider.provider_distance_km} km away</Text>
-                </View>
-              </View>
-              <ChevronRight color={colors.inkFainter} size={18} strokeWidth={2.2} />
-            </Pressable>
-          ))}
-        </View>
-        </View>
+          <View style={styles.providerGrid}>
+            {filteredProviders.map((provider) => (
+              <TopProviderCard
+                key={provider.id}
+                provider={provider}
+                onPress={() => navigation.navigate('ProviderDetail', { providerId: provider.id })}
+              />
+            ))}
+          </View>
         )}
       </ScrollView>
     </Screen>
@@ -368,21 +392,33 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     filterEmptyText: { color: colors.inkMuted, fontSize: 13.5, fontFamily: fonts.medium },
 
-    providerListShadow: {
+    providerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  });
+}
+
+/** Styles for TopProviderCard - a separate function (mirrors the pattern
+ * elsewhere in this codebase, e.g. AllProvidersScreen's ProviderRow) so the
+ * card component doesn't depend on HomeScreen's own makeStyles output. */
+function makeCardStyles(colors: ReturnType<typeof useTheme>['colors']) {
+  return StyleSheet.create({
+    card: {
+      width: '48%',
       borderRadius: radii.lg,
       backgroundColor: colors.card,
+      overflow: 'hidden',
       ...shadow.card,
     },
-    providerList: { borderRadius: radii.lg, overflow: 'hidden' },
-    providerRow: { minHeight: 78, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
-    providerRowPressed: { backgroundColor: colors.paperDim },
-    providerInfo: { flex: 1, gap: 2 },
-    providerNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    providerName: { color: colors.ink, fontSize: 16, fontFamily: fonts.bold },
-    verifiedStamp: { alignItems: 'center', justifyContent: 'center', width: 20, height: 20, borderRadius: radii.pill, backgroundColor: colors.confirmBg },
-    providerTrade: { color: colors.inkMuted, fontSize: 13, fontFamily: fonts.medium },
-    providerMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
-    providerMeta: { color: colors.inkFaint, fontSize: 12.5, fontFamily: fonts.medium, marginRight: 4 },
-    metaDot: { width: 2.5, height: 2.5, borderRadius: 2, backgroundColor: colors.inkFainter, marginHorizontal: 1 },
+    cardPressed: { opacity: 0.9 },
+    photoGrid: { flexDirection: 'row', height: 84, gap: 1.5 },
+    photoThumb: { flex: 1, height: '100%', backgroundColor: colors.paperDim },
+    cardBody: { padding: spacing.sm, gap: 6 },
+    cardHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    cardNameWrap: { flex: 1, gap: 1 },
+    cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    cardName: { flexShrink: 1, color: colors.ink, fontSize: 13.5, fontFamily: fonts.bold },
+    cardTrade: { color: colors.inkMuted, fontSize: 11.5, fontFamily: fonts.medium },
+    cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    cardMeta: { color: colors.inkFaint, fontSize: 11, fontFamily: fonts.medium, marginRight: 3 },
+    metaDot: { width: 2.5, height: 2.5, borderRadius: 2, backgroundColor: colors.inkFainter },
   });
 }
