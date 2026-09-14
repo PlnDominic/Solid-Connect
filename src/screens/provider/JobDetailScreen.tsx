@@ -7,7 +7,7 @@ import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
-import { LiveLocationCard } from '../../components/LiveLocationCard';
+import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { jobStatusHint, jobStatusLabel } from '../../lib/jobStatus';
@@ -132,7 +132,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           <Text style={styles.progressNote}>{jobStatusHint(job.status, 'provider')}</Text>
         </View>
 
-        <LiveLocationCard job={job} viewerRole="provider" />
+        <JobTrackingCard job={job} viewerRole="provider" onMessage={handleMessage} />
 
         <View style={styles.detailsCard}>
           <Text style={styles.detailsLabel}>DETAILS</Text>
