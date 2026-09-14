@@ -1,6 +1,6 @@
 import { createServerSupabase } from '../../../lib/supabase';
 import { SettingsClient } from './SettingsClient';
-import { updateCommission } from './actions';
+import { purgeStorageQueue, updateCommission } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,9 +18,10 @@ export default async function SettingsPage() {
   // no-ops for a non-owner (see actions.ts), so the form itself has to
   // agree with that or a support admin can "Save" a rate change that
   // silently does nothing.
-  const [{ data: me }, { data: config }] = await Promise.all([
+  const [{ data: me }, { data: config }, { count: pendingPurgeCount }] = await Promise.all([
     supabase.from('admins').select('email, role, disabled_at, created_at').eq('id', user?.id ?? '').maybeSingle(),
     supabase.from('platform_config').select('commission_percent').eq('id', true).maybeSingle(),
+    supabase.from('storage_purge_queue').select('id', { count: 'exact', head: true }).is('purged_at', null),
   ]);
 
   const isOwner = me?.role === 'owner' && !me?.disabled_at;
@@ -59,6 +60,22 @@ export default async function SettingsPage() {
         )}
 
         <SettingsClient />
+
+        {isOwner && !!pendingPurgeCount && (
+          <div className="chart-panel">
+            <div className="chart-panel-header">
+              <h3>Storage cleanup</h3>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+              {pendingPurgeCount} file{pendingPurgeCount === 1 ? '' : 's'} queued by the nightly data-retention job
+              (rejected verification documents past their retention window) still need deleting - SQL can clear the
+              database reference, but not the file itself; only the Storage API can, which is what this does.
+            </p>
+            <form action={purgeStorageQueue}>
+              <button className="btn">Purge {pendingPurgeCount} file{pendingPurgeCount === 1 ? '' : 's'} now</button>
+            </form>
+          </div>
+        )}
 
         <div className="chart-panel">
           <div className="chart-panel-header">

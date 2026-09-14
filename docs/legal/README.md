@@ -40,15 +40,16 @@ approved them.** That review should specifically cover:
 
 Every concrete mechanic named in these drafts (verification levels, the
 escrow flow, commission, dispute resolution windows, suspension) matches
-something real in the schema and admin tooling as of migration `0029` — I
-did not invent workflow steps to sound formal. Two things are explicitly
-**not** grounded and need a business decision before these documents can be
+something real in the schema and admin tooling as of migration `0035` — I
+did not invent workflow steps to sound formal. One thing is explicitly
+**not** grounded and needs a business decision before these documents can be
 finalized:
 
 1. **The commission rate.** The drafts say "the commission rate shown in the
    app" rather than a fixed number, since it's admin-configurable
    (`platform_config.commission_percent`, currently 15%) and could change.
-2. **The dispute filing window.** `disputes` has no time-limit column
-   enforcing one — the drafts propose 48 hours after job completion as a
-   placeholder figure (matching a note already in `PaymentMethodsScreen.tsx`)
-   but this is not enforced anywhere in code and needs a decision.
+
+The dispute filing window (48 hours after job completion) is no longer a
+placeholder — it's enforced directly on `disputes`' own insert policy
+(`0035_retention_dispute_window_feature_flags.sql`), and the mobile dispute
+screen reflects it once the window has closed.

@@ -10,6 +10,8 @@ import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { DisputeReason } from '../../types/database';
 
+const DISPUTE_WINDOW_MS = 48 * 60 * 60 * 1000;
+
 const REASONS: { id: DisputeReason; label: string }[] = [
   { id: 'not_completed', label: 'Work not completed' },
   { id: 'poor_quality', label: 'Poor quality' },
@@ -47,6 +49,11 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
   }
 
   const isCustomer = profile?.role === 'customer';
+  // Matches the 48-hour window enforced server-side on the insert policy
+  // itself (0035_retention_dispute_window_feature_flags.sql) - a job
+  // that's never been marked complete has no window yet (e.g. a no-show
+  // dispute filed mid-job), so only a set completed_at starts the clock.
+  const windowExpired = !!job?.completed_at && Date.now() - new Date(job.completed_at).getTime() > DISPUTE_WINDOW_MS;
 
   return (
     <Screen>
@@ -65,6 +72,15 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
           </View>
         ) : !isCustomer ? (
           <Text style={styles.lead}>No dispute has been filed on this job yet.</Text>
+        ) : windowExpired ? (
+          <View style={styles.card}>
+            <Text style={styles.statusLabel}>WINDOW CLOSED</Text>
+            <Text style={styles.statusValue}>Too late to dispute this job</Text>
+            <Text style={styles.bodyText}>
+              Disputes need to be filed within 48 hours of a job being marked complete. If something's still wrong,
+              contact support@solidconnect.co directly.
+            </Text>
+          </View>
         ) : (
           <>
             <Text style={styles.lead}>

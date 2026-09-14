@@ -20,6 +20,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
   // hides the handful of nav items that are pure action surfaces with
   // nothing to see once you can't act on them).
   const permissions = admin.role === 'owner' ? [...ADMIN_PERMISSIONS] : admin.permissions ?? [];
+  const isOwner = admin.role === 'owner';
 
   return (
     <div className="shell">
@@ -28,7 +29,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
           <img src="/logo.jpeg" alt="" width={26} height={26} />
           Solid Connect
         </div>
-        <NavLinks permissions={permissions} />
+        <NavLinks permissions={permissions} isOwner={isOwner} />
         <div className="help-card">
           <p>Need help?<br />Feel free to contact</p>
           <a href="mailto:support@solidconnect.co">Get support →</a>

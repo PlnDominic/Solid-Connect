@@ -33,10 +33,12 @@ customer can open a dispute from that job in the App, choosing a reason:
 - **No-show** — the provider never arrived.
 - **Other** — anything not covered above, described in your own words.
 
-A dispute needs a description of what happened. You should open a dispute
-promptly — **within 48 hours of the job's scheduled or actual completion**
-is proposed here as the window, though this is not currently enforced by
-the app and needs a decision (see `docs/legal/README.md`).
+A dispute needs a description of what happened. You must open a dispute
+within **48 hours of the job being marked complete** — the App enforces
+this window; past it, the dispute screen shows that filing has closed
+and points you to support instead. A job that hasn't been marked
+complete yet has no window - you can still dispute a no-show or an
+in-progress problem.
 
 ## 3. What happens after you open one
 
