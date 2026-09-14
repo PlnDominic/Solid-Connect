@@ -66,6 +66,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           onPress: handleStart,
           loading: startJob.isPending,
           disabled: false,
+          variant: 'primary' as const,
         }
       : job.status === 'in_progress'
         ? {
@@ -73,6 +74,11 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             onPress: handleFinish,
             loading: finishJob.isPending,
             disabled: false,
+            // The one moment the provider actually completes an action on
+            // this screen - the brand-orange "active" variant, same accent
+            // as the header, instead of the plain ink primary the other,
+            // less consequential states use.
+            variant: 'active' as const,
           }
         : job.status === 'awaiting_completion_confirmation'
           ? {
@@ -80,12 +86,14 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
               onPress: () => {},
               loading: false,
               disabled: true,
+              variant: 'primary' as const,
             }
           : {
               title: 'Completed',
               onPress: () => {},
               loading: false,
               disabled: true,
+              variant: 'primary' as const,
             };
 
   const quickActions: JobQuickAction[] = [
@@ -154,6 +162,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           onPress={primaryCta.onPress}
           loading={primaryCta.loading}
           disabled={primaryCta.disabled}
+          variant={primaryCta.variant}
         />
       </View>
     </Screen>
