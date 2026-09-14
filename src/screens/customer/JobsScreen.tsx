@@ -21,7 +21,7 @@ function JobRow({ job, needsRating, onPress }: { job: Job; needsRating: boolean;
   return (
     <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]} onPress={onPress}>
       <View style={styles.cardTop}>
-        <Avatar initials={provider?.initials ?? ''} />
+        <Avatar initials={provider?.initials ?? ''} photoUrl={provider?.photo_url} />
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={styles.cardTitle} numberOfLines={1}>
             {job.title}

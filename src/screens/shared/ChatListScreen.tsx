@@ -77,7 +77,7 @@ function ThreadRow({
       accessibilityLabel={`Chat with ${peer.full_name}`}
       accessibilityHint="Long press for options"
     >
-      <Avatar initials={peer.initials} />
+      <Avatar initials={peer.initials} photoUrl={peer.photo_url} />
       <View style={{ flex: 1, gap: 3 }}>
         <View style={styles.nameRow}>
           <Text style={[styles.name, unread && styles.nameUnread]} numberOfLines={1}>{peer.full_name}</Text>

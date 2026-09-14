@@ -78,7 +78,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </Text>
         </View>
         <View style={styles.peerRow}>
-          <Avatar initials={provider?.initials ?? ''} size={44} dim fg={colors.white} />
+          <Avatar initials={provider?.initials ?? ''} photoUrl={provider?.photo_url} size={44} dim fg={colors.white} />
           <View style={{ gap: 3 }}>
             <Text style={styles.peerName}>{provider?.full_name}</Text>
             <View style={styles.peerMetaRow}>

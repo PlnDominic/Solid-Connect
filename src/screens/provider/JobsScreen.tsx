@@ -20,7 +20,7 @@ function JobRow({ job, onPress }: { job: Job; onPress: () => void }) {
   return (
     <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]} onPress={onPress}>
       <View style={styles.cardTop}>
-        <Avatar initials={customer?.initials ?? 'CU'} />
+        <Avatar initials={customer?.initials ?? 'CU'} photoUrl={customer?.photo_url} />
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={styles.cardTitle} numberOfLines={1}>
             {job.title}

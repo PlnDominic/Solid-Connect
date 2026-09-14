@@ -1,4 +1,4 @@
-import { ChevronLeft, MessageCircle, Receipt, ShieldAlert } from 'lucide-react-native';
+import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useFinishJob, useJob, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
@@ -114,7 +114,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </Text>
         </View>
         <View style={styles.peerRow}>
-          <Avatar initials={customer?.initials ?? ''} size={44} dim fg={colors.white} />
+          <Avatar initials={customer?.initials ?? ''} photoUrl={customer?.photo_url} size={44} dim fg={colors.white} />
           <View style={{ gap: 2 }}>
             <Text style={styles.peerName}>{customer?.full_name}</Text>
             <Text style={styles.peerMeta}>{customer?.area}</Text>
@@ -134,15 +134,28 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
 
         <LiveLocationCard job={job} viewerRole="provider" />
 
+        <View style={styles.detailsCard}>
+          <Text style={styles.detailsLabel}>DETAILS</Text>
+          <Text style={styles.detailsValue}>
+            {job.title} · GHS {job.price.toLocaleString()} fixed price
+          </Text>
+          <View style={styles.detailsLocationRow}>
+            <MapPin size={13} strokeWidth={1.8} color={colors.inkFaint} />
+            <Text style={styles.detailsSub}>{job.location_label}</Text>
+          </View>
+        </View>
+
+        <JobQuickActions actions={quickActions} />
+      </ScrollView>
+
+      <View style={styles.footer}>
         <Button
           title={primaryCta.title}
           onPress={primaryCta.onPress}
           loading={primaryCta.loading}
           disabled={primaryCta.disabled}
         />
-
-        <JobQuickActions actions={quickActions} />
-      </ScrollView>
+      </View>
     </Screen>
   );
 }
@@ -186,5 +199,19 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     progressLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },
     progressStep: { fontSize: 13, fontFamily: fonts.bold, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
     progressNote: { fontSize: 13, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
+
+    detailsCard: {
+      borderRadius: radii.lg,
+      backgroundColor: colors.card,
+      padding: spacing.lg,
+      gap: 6,
+      ...shadow.card,
+    },
+    detailsLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    detailsValue: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+    detailsLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    detailsSub: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkMuted },
+
+    footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.hairline },
   });
 }
