@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Camera, Plus, X } from 'lucide-react-native';
+import { Briefcase, ImagePlus, Plus, UserRound, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useCreateRequest } from '../../api/requests';
@@ -70,9 +70,13 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   });
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [budgetFocused, setBudgetFocused] = useState(false);
 
   const band = bandFor(category);
   const budget = parseInt(budgetText.replace(/[^\d]/g, ''), 10);
+  // Dynamic validation per entering-data.md: surface the problem the
+  // moment it's true, rather than only after Continue is tapped.
+  const budgetOutOfRange = budgetText.length > 0 && (!budget || budget < band.min || budget > band.max);
 
   useEffect(() => {
     if (!categories.length || category) return;
@@ -192,18 +196,24 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
       <Text style={styles.fieldLabel}>
         Your budget (GHS {band.min}–{band.max})
       </Text>
-      <View style={styles.budgetField}>
+      <View style={[styles.budgetField, budgetFocused && styles.budgetFieldFocused]}>
         <Text style={styles.budgetCurrency}>GHS</Text>
         <TextInput
           value={budgetText}
           onChangeText={setBudgetText}
+          onFocus={() => setBudgetFocused(true)}
+          onBlur={() => setBudgetFocused(false)}
           keyboardType="number-pad"
           placeholder={String(band.mid)}
           placeholderTextColor={colors.inkFainter}
           style={styles.budgetInput}
         />
       </View>
-      <Text style={styles.budgetHint}>Must fall within this service’s allowed range.</Text>
+      <Text style={[styles.budgetHint, budgetOutOfRange && styles.budgetHintError]}>
+        {budgetOutOfRange
+          ? `Enter an amount between GHS ${band.min} and GHS ${band.max}.`
+          : `Typical range for ${category?.name ?? 'this service'}.`}
+      </Text>
     </View>
   );
 
@@ -241,67 +251,85 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
 
       {step === 2 && (
         <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-          <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Service</Text>
-            <View style={styles.readonlyField}>
-              <Text style={styles.readonlyValue}>{category?.default_label ?? 'Loading trade…'}</Text>
-            </View>
-          </View>
-          {preferredProviderName ? (
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Provider</Text>
-              <View style={styles.readonlyField}>
-                <Text style={styles.readonlyValue}>{preferredProviderName}</Text>
+          <Text style={styles.groupLabel}>REQUEST</Text>
+          <View style={styles.groupCard}>
+            <View style={[styles.groupRow, preferredProviderName && styles.groupRowBorder]}>
+              <View style={styles.groupRowIcon}>
+                <Briefcase size={15} strokeWidth={2} color={colors.inkFaint} />
+              </View>
+              <View style={styles.groupRowText}>
+                <Text style={styles.groupRowLabel}>Service</Text>
+                <Text style={styles.groupRowValue}>{category?.default_label ?? 'Loading trade…'}</Text>
               </View>
             </View>
-          ) : null}
+            {preferredProviderName ? (
+              <View style={styles.groupRow}>
+                <View style={styles.groupRowIcon}>
+                  <UserRound size={15} strokeWidth={2} color={colors.inkFaint} />
+                </View>
+                <View style={styles.groupRowText}>
+                  <Text style={styles.groupRowLabel}>Provider</Text>
+                  <Text style={styles.groupRowValue}>{preferredProviderName}</Text>
+                </View>
+              </View>
+            ) : null}
+          </View>
+
           {isDirect ? (
             <View style={styles.field}>
               <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
             </View>
           ) : null}
+
           {budgetField}
-          <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Describe the work</Text>
-            <TextInput
-              value={description}
-              onChangeText={setDescription}
-              placeholder={placeholderDescription}
-              placeholderTextColor={colors.inkFainter}
-              multiline
-              style={styles.textarea}
-            />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.fieldLabel}>
-              Photos ({photoUris.length}/{MAX_PHOTOS})
-            </Text>
-            <View style={styles.photoRow}>
-              {photoUris.map((uri) => (
-                <View key={uri} style={styles.photoWrap}>
-                  <Image source={{ uri }} style={styles.photo} />
-                  <Pressable
-                    hitSlop={10}
-                    style={styles.photoRemove}
-                    onPress={() => setPhotoUris((prev) => prev.filter((u) => u !== uri))}
-                    accessibilityRole="button"
-                    accessibilityLabel="Remove this photo"
-                  >
-                    <X size={12} strokeWidth={3} color={colors.white} />
+
+          <Text style={styles.groupLabel}>DETAILS</Text>
+          <View style={styles.groupCard}>
+            <View style={[styles.detailBlock, styles.groupRowBorder]}>
+              <Text style={styles.groupRowLabel}>Describe the work</Text>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder={placeholderDescription}
+                placeholderTextColor={colors.inkFainter}
+                multiline
+                style={styles.textarea}
+              />
+              <Text style={styles.detailHint}>A clear description helps providers quote accurately.</Text>
+            </View>
+            <View style={styles.detailBlock}>
+              <Text style={styles.groupRowLabel}>
+                Photos <Text style={styles.groupRowLabelCount}>({photoUris.length}/{MAX_PHOTOS})</Text>
+              </Text>
+              <Text style={styles.detailHint}>Add photos so providers understand the job before quoting.</Text>
+              <View style={styles.photoRow}>
+                {photoUris.map((uri) => (
+                  <View key={uri} style={styles.photoWrap}>
+                    <Image source={{ uri }} style={styles.photo} />
+                    <Pressable
+                      hitSlop={10}
+                      style={styles.photoRemove}
+                      onPress={() => setPhotoUris((prev) => prev.filter((u) => u !== uri))}
+                      accessibilityRole="button"
+                      accessibilityLabel="Remove this photo"
+                    >
+                      <X size={12} strokeWidth={3} color={colors.white} />
+                    </Pressable>
+                  </View>
+                ))}
+                {photoUris.length < MAX_PHOTOS ? (
+                  <Pressable style={styles.photoAdd} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel="Add a photo">
+                    {photoUris.length ? (
+                      <Plus size={20} strokeWidth={1.8} color={colors.inkFaint} />
+                    ) : (
+                      <ImagePlus size={20} strokeWidth={1.8} color={colors.inkFaint} />
+                    )}
                   </Pressable>
-                </View>
-              ))}
-              {photoUris.length < MAX_PHOTOS ? (
-                <Pressable style={styles.photoAdd} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel="Add a photo">
-                  {photoUris.length ? (
-                    <Plus size={20} strokeWidth={1.8} color={colors.inkFaint} />
-                  ) : (
-                    <Camera size={20} strokeWidth={1.8} color={colors.inkFaint} />
-                  )}
-                </Pressable>
-              ) : null}
+                ) : null}
+              </View>
             </View>
           </View>
+
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
         </ScrollView>
       )}
@@ -385,31 +413,69 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
     readonlyValueMono: { fontSize: 15, fontFamily: fonts.mono, color: colors.ink },
+
+    // Small all-caps eyebrow above a grouped card - same idiom as the
+    // settings screens (Account Security, Appearance): the section's own
+    // job stated once, quietly, never repeated on every row inside it.
+    groupLabel: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -8 },
+    groupCard: {
+      borderRadius: radii.xl,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      overflow: 'hidden',
+    },
+    groupRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      minHeight: 60,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.lg,
+    },
+    groupRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
+    groupRowIcon: {
+      width: 30,
+      height: 30,
+      borderRadius: radii.md,
+      backgroundColor: colors.paperDim,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    groupRowText: { flex: 1, gap: 1 },
+    groupRowLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    groupRowLabelCount: { fontFamily: fonts.medium, color: colors.inkFainter },
+    groupRowValue: { fontSize: 15.5, fontFamily: fonts.semibold, color: colors.ink },
+
     budgetField: {
-      height: 52,
+      height: 58,
       borderRadius: radii.lg,
-      borderWidth: 1.5,
-      borderColor: colors.ink,
+      borderWidth: 1,
+      borderColor: colors.hairline,
       backgroundColor: colors.card,
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: spacing.md,
     },
-    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 16, fontFamily: fonts.medium },
-    budgetInput: { flex: 1, fontSize: 16, fontFamily: fonts.medium, color: colors.ink },
+    budgetFieldFocused: { borderWidth: 1.5, borderColor: colors.ink },
+    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 17, fontFamily: fonts.medium },
+    budgetInput: { flex: 1, fontSize: 20, fontFamily: fonts.mono, color: colors.ink },
     budgetHint: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    budgetHintError: { color: colors.danger },
+
+    // Nested directly in a groupCard - no border/background of its own, so
+    // it reads as one continuous row rather than a card within a card.
+    detailBlock: { padding: spacing.lg, gap: spacing.sm },
+    detailHint: { fontSize: 12, lineHeight: 16, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: -4 },
     textarea: {
-      minHeight: 100,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      backgroundColor: colors.card,
-      padding: spacing.md,
+      minHeight: 96,
       fontSize: 15,
       lineHeight: 22,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',
+      padding: 0,
+      margin: 0,
     },
     photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
     photoWrap: { width: 72, height: 72 },
