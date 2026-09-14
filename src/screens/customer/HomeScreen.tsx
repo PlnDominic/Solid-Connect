@@ -200,31 +200,24 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           <Text style={styles.sectionCount}>{categories.length} available</Text>
         </View>
 
-        <View style={styles.categoryCard}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryRow}
-          >
-            {categories.map((category) => (
-              <CategoryGridTile
-                key={category.id}
-                id={category.id}
-                abbr={category.abbr}
-                name={category.name}
-                description={category.default_label}
-                selected={false}
-                compact
-                colorful
-                onPress={() =>
-                  navigation.navigate('NewRequest', {
-                    initialCategoryId: category.id,
-                    initialCategoryName: category.name,
-                  })
-                }
-              />
-            ))}
-          </ScrollView>
+        <View style={styles.categoryGrid}>
+          {categories.map((category) => (
+            <CategoryGridTile
+              key={category.id}
+              id={category.id}
+              abbr={category.abbr}
+              name={category.name}
+              selected={false}
+              colorful
+              homeGrid
+              onPress={() =>
+                navigation.navigate('NewRequest', {
+                  initialCategoryId: category.id,
+                  initialCategoryName: category.name,
+                })
+              }
+            />
+          ))}
         </View>
 
         <View style={[styles.sectionHeading, styles.providerHeading]}>
@@ -363,13 +356,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     providerHeading: { marginTop: 4 },
     seeAll: { color: colors.active, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
 
-    categoryCard: {
-      borderRadius: radii.lg,
-      backgroundColor: colors.card,
-      padding: spacing.md,
-      ...shadow.card,
+    categoryGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      rowGap: spacing.md,
     },
-    categoryRow: { gap: spacing.md },
 
     filterEmpty: {
       backgroundColor: colors.card,

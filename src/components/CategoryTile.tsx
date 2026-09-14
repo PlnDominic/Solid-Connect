@@ -1,4 +1,5 @@
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { Image, Pressable, Text, View, StyleSheet } from 'react-native';
+import type { ImageSourcePropType } from 'react-native';
 import {
   Check,
   Wrench,
@@ -23,6 +24,20 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   welding: Flame,
   cleaning: Sparkles,
   ac_repair: Wind,
+};
+
+// Glossy 3D renders (CC0, 3dicons.co) used only for the large Home grid -
+// at the small sizes every other variant (compact row, picker) renders at,
+// a flat vector icon stays crisper than a scaled-down raster illustration.
+const CATEGORY_ILLUSTRATIONS: Record<string, ImageSourcePropType> = {
+  plumbing: require('../../assets/categories/plumbing.png'),
+  electrical: require('../../assets/categories/electrical.png'),
+  carpentry: require('../../assets/categories/carpentry.png'),
+  masonry: require('../../assets/categories/masonry.png'),
+  painting: require('../../assets/categories/painting.png'),
+  welding: require('../../assets/categories/welding.png'),
+  cleaning: require('../../assets/categories/cleaning.png'),
+  ac_repair: require('../../assets/categories/ac_repair.png'),
 };
 
 type CategoryAccent = { surface: string; border: string; foreground: string };
@@ -54,6 +69,7 @@ export function CategoryGridTile({
   bare = false,
   compact = false,
   colorful = false,
+  homeGrid = false,
 }: {
   id: string;
   abbr: string;
@@ -65,18 +81,27 @@ export function CategoryGridTile({
   compact?: boolean;
   /** Applies the category's semantic accent palette; used for Home discovery. */
   colorful?: boolean;
+  /** Large three-column category card used only on Home. */
+  homeGrid?: boolean;
 }) {
   const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
   const Icon = CATEGORY_ICONS[id] ?? Wrench;
+  const illustration = CATEGORY_ILLUSTRATIONS[id];
   const accent = colorful ? CATEGORY_ACCENTS[id]?.[scheme] : undefined;
+  // The Home grid gets the full glossy illustration (large enough to read
+  // well); every other, smaller variant keeps the crisp vector icon.
+  const useIllustration = homeGrid && illustration && !selected;
   return (
     <Pressable
       onPress={onPress}
-      style={[
-        bare ? styles.gridTileBare : compact ? styles.gridTileCompact : styles.gridTile,
+      accessibilityRole="button"
+      accessibilityLabel={`Choose ${name}`}
+      style={({ pressed }) => [
+        bare ? styles.gridTileBare : homeGrid ? styles.gridTileHome : compact ? styles.gridTileCompact : styles.gridTile,
         !bare && selected ? styles.gridTileSelected : null,
         accent ? { backgroundColor: accent.surface, borderWidth: 1, borderColor: accent.border } : null,
+        pressed ? styles.gridTilePressed : null,
       ]}
     >
       {selected ? (
@@ -84,16 +109,23 @@ export function CategoryGridTile({
           <Check size={11} strokeWidth={3} color={colors.paper} />
         </View>
       ) : null}
-      <View
-        style={[
-          compact ? styles.gridBadgeCompact : styles.gridBadge,
-          selected ? styles.gridBadgeSelected : null,
-          accent && !selected ? { backgroundColor: colors.card, borderColor: accent.border } : null,
-        ]}
-      >
-        <Icon size={compact ? 17 : 21} strokeWidth={1.75} color={selected ? colors.paper : accent?.foreground ?? colors.ink} />
-      </View>
-      <Text style={[styles.gridName, compact && styles.gridNameCompact, accent && !selected ? { color: accent.foreground } : null]} numberOfLines={1}>
+      {useIllustration ? (
+        // Floats directly on the accent card, no badge chip behind it - the
+        // illustration already carries its own shading/depth, and a white
+        // circle behind it would just add a redundant nested-card look.
+        <Image source={illustration} style={styles.gridIllustration} resizeMode="contain" />
+      ) : (
+        <View
+          style={[
+            homeGrid ? styles.gridBadgeHome : compact ? styles.gridBadgeCompact : styles.gridBadge,
+            selected ? styles.gridBadgeSelected : null,
+            accent && !selected ? { backgroundColor: colors.card, borderColor: accent.border } : null,
+          ]}
+        >
+          <Icon size={homeGrid ? 50 : compact ? 17 : 21} strokeWidth={homeGrid ? 1.45 : 1.75} color={selected ? colors.paper : accent?.foreground ?? colors.ink} />
+        </View>
+      )}
+      <Text style={[styles.gridName, compact && styles.gridNameCompact, homeGrid && styles.gridNameHome, accent && !selected ? { color: accent.foreground } : null]} numberOfLines={2}>
         {name}
       </Text>
       {description ? (
@@ -205,12 +237,23 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 3,
     },
     gridTileCompact: {
-      width: 92,
+      width: 112,
+      minHeight: 124,
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: 6,
+      padding: spacing.md,
+      borderRadius: radii.xl,
+    },
+    gridTilePressed: { opacity: 0.82, transform: [{ scale: 0.975 }] },
+    gridTileHome: {
+      width: '30.6%',
+      minHeight: 142,
       alignItems: 'center',
-      gap: 2,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: 6,
-      borderRadius: radii.lg,
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.lg,
+      borderRadius: radii.xxxl,
     },
     gridBadge: {
       width: 52,
@@ -224,17 +267,31 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       marginBottom: 6,
     },
     gridBadgeCompact: {
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       borderRadius: radii.pill,
       backgroundColor: colors.paperDim,
       borderWidth: 1.5,
       borderColor: colors.hairlineStrong,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 4,
+      marginBottom: 2,
+    },
+    gridBadgeHome: {
+      width: 76,
+      height: 76,
+      borderRadius: 28,
+      backgroundColor: colors.card,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.black,
+      shadowOpacity: 0.1,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 5 },
+      elevation: 3,
     },
     gridBadgeSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
+    gridIllustration: { width: 84, height: 84, marginBottom: 4 },
     gridCheck: {
       position: 'absolute',
       top: 10,
@@ -247,8 +304,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
     gridName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
-    gridNameCompact: { fontSize: 12, fontFamily: fonts.semibold },
+    gridNameCompact: { fontSize: 13, fontFamily: fonts.bold, textAlign: 'left' },
+    gridNameHome: { fontSize: 12.5, lineHeight: 16, fontFamily: fonts.bold, textAlign: 'center' },
     gridDesc: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
-    gridDescCompact: { fontSize: 10, fontFamily: fonts.regular },
+    gridDescCompact: { fontSize: 10.5, lineHeight: 14, fontFamily: fonts.medium, textAlign: 'left' },
   });
 }
