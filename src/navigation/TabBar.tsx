@@ -45,10 +45,10 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               <Icon
                 size={ICON_SIZE}
                 strokeWidth={focused ? 2.4 : 1.8}
-                color={focused ? colors.paper : colors.textDim}
+                color={focused ? colors.white : colors.textDim}
               />
               <Text
-                style={[styles.label, { color: focused ? colors.paper : colors.textDim }]}
+                style={[styles.label, { color: focused ? colors.white : colors.textDim }]}
                 numberOfLines={1}
               >
                 {label}
