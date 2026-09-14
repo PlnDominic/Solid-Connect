@@ -29,6 +29,25 @@ values
    'Plumber', 4.6, 58, 4.7, true, false)
 on conflict (id) do nothing;
 
+-- A few portfolio photos per seed provider, so Home's "Top rated nearby"
+-- photo-grid preview (TopProviderCard) has something to show for them.
+-- Free Pexels stock photos (Pexels License - free commercial/personal
+-- use, no attribution required), picked to match each provider's trade.
+insert into public.provider_portfolio_photos (provider_id, photo_url, media_type) values
+  ('11111111-1111-4111-8111-111111111111', 'https://images.pexels.com/photos/6419128/pexels-photo-6419128.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('11111111-1111-4111-8111-111111111111', 'https://images.pexels.com/photos/16509869/pexels-photo-16509869.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('11111111-1111-4111-8111-111111111111', 'https://images.pexels.com/photos/7937299/pexels-photo-7937299.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('22222222-2222-4222-8222-222222222222', 'https://images.pexels.com/photos/29226620/pexels-photo-29226620.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('22222222-2222-4222-8222-222222222222', 'https://images.pexels.com/photos/7937300/pexels-photo-7937300.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('22222222-2222-4222-8222-222222222222', 'https://images.pexels.com/photos/7937292/pexels-photo-7937292.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('33333333-3333-4333-8333-333333333333', 'https://images.pexels.com/photos/442160/pexels-photo-442160.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('33333333-3333-4333-8333-333333333333', 'https://images.pexels.com/photos/2898199/pexels-photo-2898199.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('33333333-3333-4333-8333-333333333333', 'https://images.pexels.com/photos/4981803/pexels-photo-4981803.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('44444444-4444-4444-8444-444444444444', 'https://images.pexels.com/photos/8486975/pexels-photo-8486975.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('44444444-4444-4444-8444-444444444444', 'https://images.pexels.com/photos/8488060/pexels-photo-8488060.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo'),
+  ('44444444-4444-4444-8444-444444444444', 'https://images.pexels.com/photos/5691653/pexels-photo-5691653.jpeg?auto=compress&cs=tinysrgb&w=600&h=600&fit=crop', 'photo')
+on conflict do nothing;
+
 -- seed customers (so the provider Feed has real "nearby requests" to browse)
 insert into public.profiles (id, role, full_name, initials, area, is_seed) values
   ('55555555-5555-4555-8555-555555555555', 'customer', 'Efua Mensah', 'EM', 'Achimota, Accra', true),
