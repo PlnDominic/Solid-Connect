@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -51,5 +51,12 @@ export class ChatController {
   ) {
     const data = await this.chat.sendMessage(id, user.id, body);
     return { data, meta: {} };
+  }
+
+  @Patch('threads/:id/read')
+  @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
+  async markRead(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    await this.chat.markThreadRead(id, user.id);
+    return { data: { ok: true }, meta: {} };
   }
 }

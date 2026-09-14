@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeScreen } from '../screens/customer/HomeScreen';
 import { NewRequestScreen } from '../screens/customer/NewRequestScreen';
+import { EditRequestScreen } from '../screens/customer/EditRequestScreen';
 import { MatchingScreen } from '../screens/customer/MatchingScreen';
 import { AllProvidersScreen } from '../screens/customer/AllProvidersScreen';
 import { ProviderDetailScreen } from '../screens/customer/ProviderDetailScreen';
@@ -43,6 +44,7 @@ function RequestsStack() {
   return (
     <RequestsStackNav.Navigator screenOptions={{ headerShown: false }}>
       <RequestsStackNav.Screen name="RequestsHome" component={RequestsScreen} />
+      <RequestsStackNav.Screen name="EditRequest" component={EditRequestScreen} />
     </RequestsStackNav.Navigator>
   );
 }

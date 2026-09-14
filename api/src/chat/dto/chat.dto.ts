@@ -1,10 +1,17 @@
-import { IsIn, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUUID, IsUrl, MaxLength, MinLength } from 'class-validator';
 
 export class SendMessageDto {
+  // Optional now - an image-only message has none. Service-layer
+  // validation still rejects a message with neither.
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(4000)
-  text!: string;
+  text?: string;
+
+  @IsOptional()
+  @IsUrl()
+  imageUrl?: string;
 }
 
 export class CreateThreadDto {

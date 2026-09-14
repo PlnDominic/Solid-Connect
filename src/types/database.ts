@@ -170,7 +170,13 @@ export interface ChatMessage {
   thread_id: string;
   sender_id: string;
   sender_role: Role;
-  text: string;
+  // Added in supabase/migrations/0033_chat_richness_and_request_cancel.sql -
+  // text is now optional (an image-only message has none), and a message
+  // can carry read_at (set once the other participant has opened the
+  // thread) and/or image_url.
+  text: string | null;
+  read_at?: string | null;
+  image_url?: string | null;
   created_at: string;
 }
 
@@ -248,7 +254,7 @@ export interface Database {
       payments: { Row: Payment; Insert: Partial<Payment> & { job_id: string; amount: number }; Update: Partial<Payment> };
       reviews: { Row: Review; Insert: Partial<Review> & { job_id: string; provider_id: string; customer_id: string; rating: number }; Update: Partial<Review> };
       chat_threads: { Row: ChatThread; Insert: Partial<ChatThread> & { customer_id: string; provider_id: string }; Update: Partial<ChatThread> };
-      chat_messages: { Row: ChatMessage; Insert: Partial<ChatMessage> & { thread_id: string; sender_id: string; sender_role: Role; text: string }; Update: Partial<ChatMessage> };
+      chat_messages: { Row: ChatMessage; Insert: Partial<ChatMessage> & { thread_id: string; sender_id: string; sender_role: Role }; Update: Partial<ChatMessage> };
       saved_providers: { Row: SavedProvider; Insert: SavedProvider; Update: Partial<SavedProvider> };
       provider_verifications: { Row: ProviderVerification; Insert: Partial<ProviderVerification> & { provider_id: string }; Update: Partial<ProviderVerification> };
       disputes: { Row: Dispute; Insert: Partial<Dispute> & { job_id: string; customer_id: string; provider_id: string; reason: DisputeReason }; Update: Partial<Dispute> };

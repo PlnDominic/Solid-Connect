@@ -567,6 +567,80 @@ export function useRejectDirectRequest() {
   });
 }
 
+/**
+ * Cancels a request before it's matched to a job - cancellable up through
+ * 'quoted'/'awaiting_provider', enforced server-side by cancel_request()
+ * (0033_chat_richness_and_request_cancel.sql), which also clears standing
+ * opportunities and notifies anyone already engaged (a quote already
+ * sent, or the one provider a DIRECT request is waiting on). A pure data
+ * write with no other business logic Nest needs to own, so - same as
+ * dismiss_opportunity earlier this session - it goes straight to the RPC
+ * regardless of isApiConfigured().
+ */
+export function useCancelRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { requestId: string; customerId: string }) => {
+      const { error } = await supabase.rpc('cancel_request', {
+        p_request_id: input.requestId,
+        p_customer_id: input.customerId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] });
+      queryClient.invalidateQueries({ queryKey: ['feedRequests'] });
+    },
+  });
+}
+
+/**
+ * Edits a request's description/budget/location/photos - only while it's
+ * still 'open' or 'matching' (not once a provider has quoted against the
+ * original details), enforced server-side by update_request()
+ * (0034_update_request.sql). Category is deliberately not editable here -
+ * changing trade is a new request, not an edit of this one. New photo
+ * URIs (local file URIs from the picker) are uploaded first and merged
+ * with whichever existing uploaded URLs the caller kept.
+ */
+export function useUpdateRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      requestId: string;
+      customerId: string;
+      description: string;
+      budget: number;
+      locationLabel: string;
+      existingPhotoUrls: string[];
+      newPhotoUris: string[];
+    }) => {
+      const uploaded: string[] = [];
+      for (const uri of input.newPhotoUris) {
+        uploaded.push(await uploadRequestPhoto(input.customerId, uri));
+      }
+      const photos = [...input.existingPhotoUrls, ...uploaded];
+
+      const { data, error } = await supabase.rpc('update_request', {
+        p_request_id: input.requestId,
+        p_customer_id: input.customerId,
+        p_description: input.description,
+        p_budget_min: input.budget,
+        p_budget_max: input.budget,
+        p_customer_budget: input.budget,
+        p_location_label: input.locationLabel,
+        p_photos: photos,
+      });
+      if (error) throw error;
+      return data as ServiceRequest;
+    },
+    onSuccess: (request) => {
+      queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] });
+      queryClient.setQueryData(['serviceRequest', request.id], request);
+    },
+  });
+}
+
 export function useNotifications(userId: string | null) {
   return useQuery({
     queryKey: ['notifications', userId],

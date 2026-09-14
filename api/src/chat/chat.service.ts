@@ -83,8 +83,10 @@ export class ChatService {
   async sendMessage(threadId: string, userId: string, dto: SendMessageDto) {
     const thread = await this.getThread(threadId, userId);
     const senderRole = thread.customer_id === userId ? 'customer' : 'provider';
-    const text = dto.text.trim();
-    if (!text) throw new BadRequestException({ code: 'EMPTY_MESSAGE', message: 'Message text is required.' });
+    const text = dto.text?.trim() || null;
+    if (!text && !dto.imageUrl) {
+      throw new BadRequestException({ code: 'EMPTY_MESSAGE', message: 'Message text or an image is required.' });
+    }
 
     const { data, error } = await this.supabase.client
       .from('chat_messages')
@@ -93,10 +95,23 @@ export class ChatService {
         sender_id: userId,
         sender_role: senderRole,
         text,
+        image_url: dto.imageUrl ?? null,
       })
       .select('*')
       .single();
     if (error) throw new BadRequestException({ code: 'MESSAGE_SEND_FAILED', message: error.message });
     return data;
+  }
+
+  /** Marks every message the *other* participant sent as read - see
+   * mark_thread_read()'s own comment in 0033 for why this goes through a
+   * security-definer RPC rather than a direct update. */
+  async markThreadRead(threadId: string, userId: string) {
+    await this.getThread(threadId, userId);
+    const { error } = await this.supabase.client.rpc('mark_thread_read', {
+      p_thread_id: threadId,
+      p_reader_id: userId,
+    });
+    if (error) throw new BadRequestException({ code: 'MARK_READ_FAILED', message: error.message });
   }
 }

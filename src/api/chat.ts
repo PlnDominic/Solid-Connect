@@ -168,11 +168,18 @@ export function useLatestMessage(threadId: string | null | undefined) {
 export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { threadId: string; senderId: string; senderRole: Role; text: string }) => {
+    mutationFn: async (input: {
+      threadId: string;
+      senderId: string;
+      senderRole: Role;
+      text?: string;
+      imageUrl?: string;
+    }) => {
+      const text = input.text?.trim() || undefined;
       if (isApiConfigured()) {
         const res = await apiFetch<{ data: ChatMessage }>(`/api/v1/chat/threads/${input.threadId}/messages`, {
           method: 'POST',
-          body: JSON.stringify({ text: input.text }),
+          body: JSON.stringify({ text, imageUrl: input.imageUrl }),
         });
         return res.data;
       }
@@ -182,7 +189,8 @@ export function useSendMessage() {
           thread_id: input.threadId,
           sender_id: input.senderId,
           sender_role: input.senderRole,
-          text: input.text,
+          text: text ?? null,
+          image_url: input.imageUrl ?? null,
         })
         .select('*')
         .single();
@@ -194,6 +202,46 @@ export function useSendMessage() {
         if (prev?.some((m) => m.id === message.id)) return prev;
         return [...(prev ?? []), message];
       });
+    },
+  });
+}
+
+/** Uploads one picked photo to the chat-photos bucket under the sender's
+ * own folder (matches the RLS policy in 0033, same shape as profile/
+ * request photo uploads elsewhere in this codebase) and returns its
+ * public URL - the caller still has to actually send it as a message. */
+export async function uploadChatPhoto(senderId: string, imageUri: string): Promise<string> {
+  const response = await fetch(imageUri);
+  const arrayBuffer = await response.arrayBuffer();
+  const path = `${senderId}/${Date.now()}.jpg`;
+  const { error } = await supabase.storage.from('chat-photos').upload(path, arrayBuffer, { contentType: 'image/jpeg' });
+  if (error) throw error;
+  const { data } = supabase.storage.from('chat-photos').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/** Marks every message the *other* participant sent in this thread as
+ * read - a security-definer RPC rather than a direct update, since
+ * chat_messages has no UPDATE policy at all (see mark_thread_read's own
+ * comment in 0033). Call this once when a thread is actually opened, not
+ * on every render - it's a write, not a read. */
+export function useMarkThreadRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { threadId: string; readerId: string }) => {
+      if (isApiConfigured()) {
+        await apiFetch(`/api/v1/chat/threads/${input.threadId}/read`, { method: 'PATCH' });
+        return input.threadId;
+      }
+      const { error } = await supabase.rpc('mark_thread_read', {
+        p_thread_id: input.threadId,
+        p_reader_id: input.readerId,
+      });
+      if (error) throw error;
+      return input.threadId;
+    },
+    onSuccess: (threadId) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', threadId] });
     },
   });
 }

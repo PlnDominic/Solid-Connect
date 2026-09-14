@@ -1,6 +1,6 @@
 import { MapPin, ShieldCheck, Star } from 'lucide-react-native';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useMyActiveRequest, useNotifications } from '../../api/requests';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { useCancelRequest, useMyActiveRequest, useNotifications } from '../../api/requests';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
@@ -101,6 +101,7 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: request, isLoading: requestLoading, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
   const { data: notifications = [], refetch: refetchNotifs } = useNotifications(profile?.id ?? null);
+  const cancelRequest = useCancelRequest();
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
     await Promise.all([refetchRequest(), refetchNotifs()]);
   });
@@ -111,6 +112,29 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
   const isMatching = request?.status === 'matching' || request?.status === 'open';
   const unreadReject = notifications.filter((n) => n.type === 'DIRECT_REJECTED' && !n.read_at);
   const budget = request?.customer_budget ?? request?.budget_min;
+  // Editable up through 'matching' (a provider may have already priced
+  // the job once it's quoted or awaiting a direct response); cancellable
+  // through both of those plus 'quoted'/'awaiting_provider' - anything
+  // short of an actual job existing. Matches update_request()/
+  // cancel_request()'s own server-side guards in 0033/0034.
+  const canEdit = isMatching;
+  const canCancel = isMatching || isAwaiting || hasQuotes;
+
+  function handleCancel() {
+    if (!request || !profile) return;
+    Alert.alert(
+      'Cancel this request?',
+      'Any providers who already quoted will be notified. This can\'t be undone.',
+      [
+        { text: 'Keep it', style: 'cancel' },
+        {
+          text: 'Cancel request',
+          style: 'destructive',
+          onPress: () => cancelRequest.mutate({ requestId: request.id, customerId: profile.id }),
+        },
+      ],
+    );
+  }
 
   const showFeed =
     unreadReject.length > 0 || isRejected || isAwaiting || isMatching || hasQuotes;
@@ -153,6 +177,27 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
                 {isRejected && request.rejection_reason ? (
                   <Text style={styles.rejectInline}>Reason: {request.rejection_reason}</Text>
                 ) : null}
+                {(canEdit || canCancel) ? (
+                  <View style={styles.summaryActions}>
+                    {canEdit ? (
+                      <Button
+                        title="Edit"
+                        variant="outline"
+                        onPress={() => navigation.navigate('EditRequest', { requestId: request.id })}
+                        style={styles.summaryActionBtn}
+                      />
+                    ) : null}
+                    {canCancel ? (
+                      <Button
+                        title="Cancel"
+                        variant="outline"
+                        onPress={handleCancel}
+                        loading={cancelRequest.isPending}
+                        style={styles.summaryActionBtn}
+                      />
+                    ) : null}
+                  </View>
+                ) : null}
               </View>
             ) : null}
 
@@ -166,6 +211,15 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
                     Budget GHS {budget} · {request.quotes.length} quote
                     {request.quotes.length === 1 ? '' : 's'} received
                   </Text>
+                  <View style={styles.summaryActions}>
+                    <Button
+                      title="Cancel request"
+                      variant="outline"
+                      onPress={handleCancel}
+                      loading={cancelRequest.isPending}
+                      style={styles.summaryActionBtn}
+                    />
+                  </View>
                 </View>
                 {request.quotes.map((q) => (
                   <QuoteCard
@@ -206,6 +260,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     summaryTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
     summarySub: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted },
+    summaryActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    summaryActionBtn: { flex: 1, height: 40 },
     rejectInline: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger, marginTop: 4 },
     rejectBanner: {
       padding: spacing.md,
