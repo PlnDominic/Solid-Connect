@@ -6,6 +6,7 @@ import { usePortfolioPhotos } from '../../api/portfolio';
 import { useProvider } from '../../api/marketplace';
 import { useProviderReviews } from '../../api/reviews';
 import { useIsProviderSaved, useToggleSavedProvider } from '../../api/saved';
+import { recordProviderView } from '../../hooks/useRecentlyViewedProviders';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
@@ -29,6 +30,10 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
   const toggleSaved = useToggleSavedProvider();
   const [serviceRows, setServiceRows] = useState<ProviderCategoryRow[]>([]);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+
+  useEffect(() => {
+    recordProviderView(providerId);
+  }, [providerId]);
 
   useEffect(() => {
     let cancelled = false;

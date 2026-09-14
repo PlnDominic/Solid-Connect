@@ -1,16 +1,25 @@
-import { Heart, Star } from 'lucide-react-native';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useAllProviders } from '../../api/marketplace';
+import { useMemo, useState } from 'react';
+import { Heart, Search, Star } from 'lucide-react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { useAllProviders, useCategories, useProvidersByIds } from '../../api/marketplace';
 import { useIsProviderSaved, useToggleSavedProvider } from '../../api/saved';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
+import { FilterChips, type FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
+import { useRecentlyViewedProviderIds } from '../../hooks/useRecentlyViewedProviders';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Profile } from '../../types/database';
+
+const RATING_OPTIONS: FilterOption[] = [
+  { id: 'any', label: 'Any rating' },
+  { id: '4', label: '4.0+' },
+  { id: '4.5', label: '4.5+' },
+];
 
 function ProviderRow({
   provider,
@@ -59,24 +68,91 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: providers = [], isLoading: providersLoading, refetch } = useAllProviders();
+  const [search, setSearch] = useState('');
+  const [categoryId, setCategoryId] = useState('all');
+  const [minRating, setMinRating] = useState('any');
+
+  const { data: categories = [] } = useCategories();
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const { data: providers = [], isLoading: providersLoading, refetch } = useAllProviders(
+    selectedCategory?.name ?? null,
+    profile?.area ?? null,
+  );
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
+
+  const recentIds = useRecentlyViewedProviderIds();
+  const { data: recentlyViewed = [] } = useProvidersByIds(recentIds);
+
+  const categoryOptions: FilterOption[] = useMemo(
+    () => [{ id: 'all', label: 'All trades' }, ...categories.map((c) => ({ id: c.id, label: c.name }))],
+    [categories],
+  );
+
+  const filtered = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    const minRatingValue = minRating === 'any' ? 0 : Number(minRating);
+    return providers.filter((p) => {
+      if (p.provider_rating < minRatingValue) return false;
+      if (!needle) return true;
+      return (
+        p.full_name.toLowerCase().includes(needle) ||
+        (p.provider_category ?? '').toLowerCase().includes(needle)
+      );
+    });
+  }, [providers, search, minRating]);
+
+  const showRecentlyViewed = !search.trim() && categoryId === 'all' && minRating === 'any' && recentlyViewed.length > 0;
 
   return (
     <Screen>
       <ScreenHeader title="All providers" onBack={() => navigation.goBack()} />
+      <View style={styles.filters}>
+        <View style={styles.searchRow}>
+          <Search size={16} strokeWidth={2} color={colors.inkFaint} />
+          <TextInput
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search by name or trade"
+            placeholderTextColor={colors.inkFainter}
+            style={styles.searchInput}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        </View>
+        <FilterChips options={categoryOptions} value={categoryId} onChange={setCategoryId} />
+        <FilterChips options={RATING_OPTIONS} value={minRating} onChange={setMinRating} />
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.body}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }
       >
+        {showRecentlyViewed ? (
+          <View style={{ gap: spacing.sm }}>
+            <Text style={styles.sectionLabel}>RECENTLY VIEWED</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+              {recentlyViewed.map((p) => (
+                <Pressable
+                  key={p.id}
+                  style={styles.recentCard}
+                  onPress={() => navigation.navigate('ProviderDetail', { providerId: p.id })}
+                >
+                  <Avatar initials={p.initials} size={40} />
+                  <Text style={styles.recentName} numberOfLines={1}>{p.full_name}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
         {providersLoading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator color={colors.ink} />
           </View>
-        ) : providers.length ? (
-          providers.map((p) =>
+        ) : filtered.length ? (
+          filtered.map((p) =>
             profile ? (
               <ProviderRow
                 key={p.id}
@@ -86,6 +162,8 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
               />
             ) : null
           )
+        ) : providers.length ? (
+          <EmptyState title="No matches" subtitle="Try a different search, trade, or rating filter." />
         ) : (
           <EmptyState title="No providers yet" subtitle="Check back soon - new providers are joining Solid Connect." />
         )}
@@ -96,8 +174,33 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    body: { padding: spacing.lg, gap: spacing.md },
+    filters: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, gap: spacing.md },
+    searchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      height: 44,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      paddingHorizontal: spacing.md,
+    },
+    searchInput: { flex: 1, fontSize: 14.5, fontFamily: fonts.medium, color: colors.ink },
+    body: { padding: spacing.lg, paddingTop: 0, gap: spacing.md },
     loadingWrap: { paddingVertical: spacing.xxl, alignItems: 'center' },
+    sectionLabel: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
+    recentCard: {
+      width: 84,
+      alignItems: 'center',
+      gap: 6,
+      padding: spacing.sm,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+    },
+    recentName: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'center' },
     card: {
       flexDirection: 'row',
       gap: spacing.md,

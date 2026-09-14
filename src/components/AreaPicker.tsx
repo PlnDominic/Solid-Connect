@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { LocateFixed } from 'lucide-react-native';
 import { AREAS } from '../constants/areas';
+import { detectNearestArea } from '../api/location';
 import { fonts, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -16,6 +18,7 @@ export function AreaPicker({ value, onChangeValue }: { value: string; onChangeVa
   const styles = makeStyles(colors);
   const isKnownArea = AREAS.includes(value);
   const [showOther, setShowOther] = useState(!isKnownArea && value.trim().length > 0);
+  const [detecting, setDetecting] = useState(false);
   const selected = showOther ? OTHER : value;
 
   function pick(area: string) {
@@ -28,8 +31,36 @@ export function AreaPicker({ value, onChangeValue }: { value: string; onChangeVa
     onChangeValue(area);
   }
 
+  async function useCurrentLocation() {
+    setDetecting(true);
+    try {
+      const result = await detectNearestArea();
+      if ('error' in result) {
+        Alert.alert(
+          result.error === 'PERMISSION_DENIED' ? 'Location access needed' : "Couldn't get your location",
+          result.error === 'PERMISSION_DENIED'
+            ? 'Allow location access to detect your neighborhood automatically, or pick one below.'
+            : 'Please try again, or pick your neighborhood below.',
+        );
+        return;
+      }
+      pick(result.area);
+    } finally {
+      setDetecting(false);
+    }
+  }
+
   return (
     <View style={{ gap: spacing.lg }}>
+      <Pressable onPress={useCurrentLocation} disabled={detecting} style={styles.locateRow} hitSlop={8}>
+        {detecting ? (
+          <ActivityIndicator size="small" color={colors.ink} />
+        ) : (
+          <LocateFixed size={15} strokeWidth={2.2} color={colors.ink} />
+        )}
+        <Text style={styles.locateLabel}>{detecting ? 'Finding your area…' : 'Use my current location'}</Text>
+      </Pressable>
+
       <View style={styles.chipsWrap}>
         {[...AREAS, OTHER].map((area) => {
           const active = area === OTHER ? showOther : !showOther && area === selected;
@@ -64,6 +95,8 @@ export function isValidArea(value: string): boolean {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
+    locateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, alignSelf: 'flex-start' },
+    locateLabel: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.ink, textDecorationLine: 'underline' },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,

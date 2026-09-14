@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Location from 'expo-location';
 import { apiFetch, isApiConfigured } from '../lib/api';
+import { haversineKm } from '../lib/geo';
 import type { Profile } from '../types/database';
 
 export type ServiceAreaPayload = {
@@ -32,6 +34,43 @@ const AREA_COORDS: Record<string, { lng: number; lat: number }> = {
 
 export function coordsForArea(name: string) {
   return AREA_COORDS[name] ?? null;
+}
+
+export type DetectAreaResult =
+  | { area: string }
+  | { error: 'PERMISSION_DENIED' | 'LOCATION_UNAVAILABLE' };
+
+/**
+ * "Use my current location" - reads the device's actual GPS position and
+ * picks the nearest of AREA_COORDS' known neighborhoods by straight-line
+ * distance. Deliberately not a reverse-geocoding API call: the app only
+ * ever models location as one of these named areas (AreaPicker), never a
+ * street address, so snapping to the closest known area is the correct
+ * granularity here, not an approximation of a finer one.
+ */
+export async function detectNearestArea(): Promise<DetectAreaResult> {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') return { error: 'PERMISSION_DENIED' };
+
+  try {
+    const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    let nearestArea: string | null = null;
+    let nearestDistanceKm = Infinity;
+    for (const [name, coords] of Object.entries(AREA_COORDS)) {
+      const distanceKm = haversineKm(
+        { lat: position.coords.latitude, lng: position.coords.longitude },
+        { lat: coords.lat, lng: coords.lng },
+      );
+      if (distanceKm < nearestDistanceKm) {
+        nearestDistanceKm = distanceKm;
+        nearestArea = name;
+      }
+    }
+    if (!nearestArea) return { error: 'LOCATION_UNAVAILABLE' };
+    return { area: nearestArea };
+  } catch {
+    return { error: 'LOCATION_UNAVAILABLE' };
+  }
 }
 
 export function useMyServiceAreas() {

@@ -104,6 +104,23 @@ export function useAllProviders(categoryName?: string | null, areaNeedle?: strin
   });
 }
 
+/** Resolves a small, ordered list of provider ids (e.g. "recently viewed",
+ * see useRecentlyViewedProviders) into full profiles, in that same
+ * most-recent-first order - a plain .in() query doesn't preserve order,
+ * so this re-sorts the result against the id list itself afterward. */
+export function useProvidersByIds(providerIds: string[]) {
+  return useQuery({
+    queryKey: ['providers', 'byIds', providerIds],
+    queryFn: async (): Promise<Profile[]> => {
+      const { data, error } = await supabase.from('profiles').select('*').in('id', providerIds);
+      if (error) throw error;
+      const byId = new Map((data ?? []).map((p) => [p.id, p]));
+      return providerIds.map((id) => byId.get(id)).filter((p): p is Profile => !!p);
+    },
+    enabled: providerIds.length > 0,
+  });
+}
+
 export function useProvider(providerId: string | null | undefined) {
   return useQuery({
     queryKey: ['provider', providerId],
