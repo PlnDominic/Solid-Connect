@@ -31,15 +31,16 @@ export function ScreenHeader({
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Go back"
-            style={[
+            style={({ pressed }) => [
               styles.back,
               {
                 backgroundColor: dark ? 'rgba(255,255,255,0.1)' : colors.paperDim,
                 borderColor: dark ? 'rgba(255,255,255,0.14)' : colors.hairline,
               },
+              pressed && styles.backPressed,
             ]}
           >
-            <ChevronLeft size={20} strokeWidth={2.4} color={foreground} />
+            <ChevronLeft size={19} strokeWidth={2.5} color={foreground} />
           </Pressable>
           <Text style={[styles.title, { color: foreground, flex: 1 }]} numberOfLines={1}>{title}</Text>
         </View>
@@ -55,13 +56,14 @@ const styles = StyleSheet.create({
   large: { paddingTop: spacing.xxl, paddingBottom: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   back: {
-    width: 32,
-    height: 32,
-    borderRadius: radii.md,
+    width: 36,
+    height: 36,
+    borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
+  backPressed: { opacity: 0.6, transform: [{ scale: 0.92 }] },
   title: { fontSize: 18, letterSpacing: -0.3, fontFamily: fonts.bold },
   titleLarge: { fontSize: 28, letterSpacing: -0.7, fontFamily: fonts.extrabold },
 });
