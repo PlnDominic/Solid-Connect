@@ -8,9 +8,10 @@ import type { JobStatus } from '../types/database';
  * determinate progress a provider already sees, instead of just a status
  * sentence (loading.md/feedback.md: prefer showing real progress over
  * describing it in prose alone). */
-export function JobPhaseTracker({ status }: { status: JobStatus }) {
+export function JobPhaseTracker({ status, tint }: { status: JobStatus; tint?: string }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
+  const tintColor = tint ?? colors.ink;
   const phases = [
     { label: 'Start', active: true, done: status !== 'accepted' },
     {
@@ -24,8 +25,14 @@ export function JobPhaseTracker({ status }: { status: JobStatus }) {
     <View style={styles.phases}>
       {phases.map((phase) => (
         <View key={phase.label} style={styles.phaseItem}>
-          <View style={[styles.phaseDot, phase.active && styles.phaseDotActive, phase.done && styles.phaseDotDone]} />
-          <Text style={[styles.phaseLabel, phase.active && styles.phaseLabelActive]}>{phase.label}</Text>
+          <View
+            style={[
+              styles.phaseDot,
+              phase.active && { borderColor: tintColor, backgroundColor: colors.paper },
+              phase.done && { backgroundColor: tintColor, borderColor: tintColor },
+            ]}
+          />
+          <Text style={[styles.phaseLabel, phase.active && { color: tintColor, fontFamily: fonts.semibold }]}>{phase.label}</Text>
         </View>
       ))}
     </View>
@@ -44,9 +51,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
     },
-    phaseDotActive: { borderColor: colors.ink, backgroundColor: colors.paper },
-    phaseDotDone: { backgroundColor: colors.ink, borderColor: colors.ink },
     phaseLabel: { fontSize: 11, fontFamily: fonts.medium, color: colors.inkFaint },
-    phaseLabelActive: { color: colors.ink, fontFamily: fonts.semibold },
   });
 }

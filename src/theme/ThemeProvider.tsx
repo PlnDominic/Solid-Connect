@@ -21,6 +21,7 @@ export const darkColors: ThemeColors = {
   hairlineStrong: '#3C3C3A',
   confirmBg: '#0E2A1C',
   pendingBg: '#2A2208',
+  activeBg: '#3A2410',
   dangerBg: '#2A1410',
   navyBg: '#1A2434',
   bg: '#0B0B0A',

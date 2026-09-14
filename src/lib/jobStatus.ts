@@ -1,3 +1,5 @@
+import { Check, Clock, Wrench, type LucideIcon } from 'lucide-react-native';
+import type { ThemeColors } from '../theme/ThemeProvider';
 import type { JobStatus } from '../types/database';
 
 /**
@@ -56,4 +58,22 @@ export function jobStatusLabel(status: JobStatus, role: 'customer' | 'provider')
 export function jobStatusHint(status: JobStatus, role: 'customer' | 'provider'): string {
   const meta = JOB_STATUS_META[status];
   return role === 'customer' ? meta.customerHint : meta.providerHint;
+}
+
+/** The bg/fg pair for a tone - one definition, shared by JobStatusBadge
+ * and any other status-colored element (e.g. the Job Detail progress
+ * card's icon chip and left accent) so "in progress" is always the same
+ * orange, never a slightly different one per screen. */
+export function jobStatusToneColors(tone: JobStatusTone, colors: ThemeColors): { bg: string; fg: string } {
+  if (tone === 'confirm') return { bg: colors.confirmBg, fg: colors.confirm };
+  if (tone === 'active') return { bg: colors.activeBg, fg: colors.activeDeep };
+  return { bg: colors.pendingBg, fg: colors.pending };
+}
+
+/** The one icon per tone - Wrench for "actively being worked on", Clock
+ * for "waiting on someone", Check for "done". */
+export function jobStatusToneIcon(tone: JobStatusTone): LucideIcon {
+  if (tone === 'confirm') return Check;
+  if (tone === 'active') return Wrench;
+  return Clock;
 }

@@ -10,7 +10,7 @@ import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickA
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
-import { jobStatusHint, jobStatusLabel } from '../../lib/jobStatus';
+import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -104,6 +104,10 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     { key: 'dispute', label: 'Dispute', icon: ShieldAlert, onPress: () => navigation.navigate('Dispute', { jobId: job.id }), tone: 'danger' },
   ];
 
+  const statusTone = JOB_STATUS_META[job.status].tone;
+  const statusColors = jobStatusToneColors(statusTone, colors);
+  const StatusIcon = jobStatusToneIcon(statusTone);
+
   return (
     <Screen edges={['top']}>
       <View style={styles.header}>
@@ -131,12 +135,15 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       </View>
 
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.progressCard}>
+        <View style={[styles.progressCard, { borderLeftColor: statusColors.fg }]}>
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>{jobStatusLabel(job.status, 'provider')}</Text>
+            <View style={[styles.progressIcon, { backgroundColor: statusColors.bg }]}>
+              <StatusIcon size={18} strokeWidth={2.2} color={statusColors.fg} />
+            </View>
+            <Text style={[styles.progressLabel, { color: statusColors.fg }]}>{jobStatusLabel(job.status, 'provider')}</Text>
             <Text style={styles.progressStep}>GHS {job.price.toLocaleString()}</Text>
           </View>
-          <JobPhaseTracker status={job.status} />
+          <JobPhaseTracker status={job.status} tint={statusColors.fg} />
           <Text style={styles.progressNote}>{jobStatusHint(job.status, 'provider')}</Text>
         </View>
 
@@ -202,11 +209,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: spacing.md,
+      borderLeftWidth: 3,
       ...shadow.card,
     },
-    progressRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    progressLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: 0.2 },
-    progressStep: { fontSize: 13, fontFamily: fonts.bold, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
+    progressRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    progressIcon: { width: 36, height: 36, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
+    progressLabel: { flex: 1, fontSize: 14.5, fontFamily: fonts.extrabold, letterSpacing: -0.1 },
+    progressStep: { fontSize: 14, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
     progressNote: { fontSize: 13, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
 
     detailsCard: {
