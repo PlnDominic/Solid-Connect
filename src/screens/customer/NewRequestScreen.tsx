@@ -223,25 +223,19 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
             <Text style={styles.sectionTitle}>What do you need done?</Text>
             <Text style={styles.sectionCount}>{categories.length} categories</Text>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoryScroll}
-            contentContainerStyle={styles.categoryRow}
-          >
+          <View style={styles.categoryGrid}>
             {categories.map((c) => (
               <CategoryGridTile
                 key={c.id}
                 id={c.id}
                 abbr={c.abbr}
                 name={c.name}
-                description={c.default_label.split('·')[1]?.trim()}
                 selected={category?.id === c.id}
-                compact
+                illustrated
                 onPress={() => selectCategory(c)}
               />
             ))}
-          </ScrollView>
+          </View>
         </ScrollView>
       )}
 
@@ -377,8 +371,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
     sectionTitle: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
     sectionCount: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    categoryScroll: { marginHorizontal: -spacing.lg },
-    categoryRow: { paddingHorizontal: spacing.lg, gap: spacing.md },
+    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
     field: { gap: 7 },
     fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
     readonlyField: {

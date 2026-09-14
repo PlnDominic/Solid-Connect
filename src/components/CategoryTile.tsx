@@ -157,7 +157,7 @@ export function CategoryGridTile({
   bare = false,
   compact = false,
   colorful = false,
-  homeGrid = false,
+  illustrated = false,
 }: {
   id: string;
   abbr: string;
@@ -169,24 +169,25 @@ export function CategoryGridTile({
   compact?: boolean;
   /** Applies the category's semantic accent palette; used for Home discovery. */
   colorful?: boolean;
-  /** Large three-column category card used only on Home. */
-  homeGrid?: boolean;
+  /** Small, container-less tile with the full glossy illustration instead
+   * of the flat vector icon - used on Home and the new-request picker. */
+  illustrated?: boolean;
 }) {
   const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
   const Icon = CATEGORY_ICONS[id] ?? Wrench;
   const illustration = CATEGORY_ILLUSTRATIONS[id];
   const accent = colorful ? CATEGORY_ACCENTS[id]?.[scheme] : undefined;
-  // The Home grid gets the full glossy illustration (large enough to read
-  // well); every other, smaller variant keeps the crisp vector icon.
-  const useIllustration = homeGrid && illustration && !selected;
+  // Selecting swaps in the ink-filled badge + checkmark instead, so the
+  // illustration only shows for an unselected tile.
+  const useIllustration = illustrated && illustration && !selected;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Choose ${name}`}
       style={({ pressed }) => [
-        bare ? styles.gridTileBare : homeGrid ? styles.gridTileHome : compact ? styles.gridTileCompact : styles.gridTile,
+        bare ? styles.gridTileBare : illustrated ? styles.gridTileIllustrated : compact ? styles.gridTileCompact : styles.gridTile,
         !bare && selected ? styles.gridTileSelected : null,
         accent ? { backgroundColor: accent.surface, borderWidth: 1, borderColor: accent.border } : null,
         pressed ? styles.gridTilePressed : null,
@@ -205,15 +206,15 @@ export function CategoryGridTile({
       ) : (
         <View
           style={[
-            homeGrid ? styles.gridBadgeHome : compact ? styles.gridBadgeCompact : styles.gridBadge,
+            illustrated ? styles.gridBadgeIllustrated : compact ? styles.gridBadgeCompact : styles.gridBadge,
             selected ? styles.gridBadgeSelected : null,
             accent && !selected ? { backgroundColor: colors.card, borderColor: accent.border } : null,
           ]}
         >
-          <Icon size={homeGrid ? 50 : compact ? 17 : 21} strokeWidth={homeGrid ? 1.45 : 1.75} color={selected ? colors.paper : accent?.foreground ?? colors.ink} />
+          <Icon size={illustrated ? 22 : compact ? 17 : 21} strokeWidth={illustrated ? 1.75 : 1.75} color={selected ? colors.paper : accent?.foreground ?? colors.ink} />
         </View>
       )}
-      <Text style={[styles.gridName, compact && styles.gridNameCompact, homeGrid && styles.gridNameHome, accent && !selected ? { color: accent.foreground } : null]} numberOfLines={2}>
+      <Text style={[styles.gridName, compact && styles.gridNameCompact, illustrated && styles.gridNameIllustrated, accent && !selected ? { color: accent.foreground } : null]} numberOfLines={2}>
         {name}
       </Text>
       {description ? (
@@ -334,7 +335,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.xl,
     },
     gridTilePressed: { opacity: 0.82, transform: [{ scale: 0.975 }] },
-    gridTileHome: {
+    gridTileIllustrated: {
       width: 76,
       alignItems: 'center',
       gap: 6,
@@ -361,17 +362,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       marginBottom: 2,
     },
-    gridBadgeHome: {
-      width: 76,
-      height: 76,
-      borderRadius: 28,
+    gridBadgeIllustrated: {
+      width: 44,
+      height: 44,
+      borderRadius: 18,
       backgroundColor: colors.card,
       alignItems: 'center',
       justifyContent: 'center',
       shadowColor: colors.black,
-      shadowOpacity: 0.1,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 3 },
       elevation: 3,
     },
     gridBadgeSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
@@ -389,7 +390,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     gridName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
     gridNameCompact: { fontSize: 13, fontFamily: fonts.bold, textAlign: 'left' },
-    gridNameHome: { fontSize: 11, lineHeight: 14, fontFamily: fonts.bold, textAlign: 'center' },
+    gridNameIllustrated: { fontSize: 11, lineHeight: 14, fontFamily: fonts.bold, textAlign: 'center' },
     gridDesc: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
     gridDescCompact: { fontSize: 10.5, lineHeight: 14, fontFamily: fonts.medium, textAlign: 'left' },
   });

@@ -212,7 +212,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               abbr={category.abbr}
               name={category.name}
               selected={false}
-              homeGrid
+              illustrated
               onPress={() =>
                 navigation.navigate('NewRequest', {
                   initialCategoryId: category.id,
