@@ -105,6 +105,35 @@ export function useCustomerActiveJob(customerId: string | null) {
   return query;
 }
 
+/** Every job this customer has ever had, newest first - the customer's
+ * side of what useProviderJobs already gives providers. useCustomerActiveJob
+ * stays as-is for screens that only care about the single most recent job. */
+export function useCustomerJobs(customerId: string | null) {
+  const query = useQuery({
+    queryKey: ['jobs', 'customer', customerId],
+    queryFn: async (): Promise<Job[]> => {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('customer_id', customerId as string)
+        .order('started_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: !!customerId,
+  });
+
+  useRealtimeInvalidate({
+    channel: `jobs_customer:${customerId}`,
+    table: 'jobs',
+    filter: customerId ? `customer_id=eq.${customerId}` : undefined,
+    queryKeys: [['jobs', 'customer', customerId]],
+    enabled: !!customerId,
+  });
+
+  return query;
+}
+
 export function useProviderJobs(providerId: string | null) {
   const query = useQuery({
     queryKey: ['jobs', 'provider', providerId],

@@ -8,40 +8,10 @@ import { Button } from '../../components/Button';
 import { LiveLocationCard } from '../../components/LiveLocationCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
+import { jobStatusHint, jobStatusLabel } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
-import type { JobStatus } from '../../types/database';
-
-function statusLabel(status: JobStatus | string) {
-  switch (status) {
-    case 'accepted':
-      return 'Ready to start';
-    case 'in_progress':
-      return 'IN_PROGRESS';
-    case 'awaiting_completion_confirmation':
-      return 'AWAITING_COMPLETION_CONFIRMATION';
-    case 'completed':
-      return 'COMPLETED';
-    default:
-      return status;
-  }
-}
-
-function statusHint(status: JobStatus | string) {
-  switch (status) {
-    case 'accepted':
-      return 'Tap Start work when you begin on site.';
-    case 'in_progress':
-      return 'When you finish, mark the job complete for the customer to confirm.';
-    case 'awaiting_completion_confirmation':
-      return 'Waiting for the customer to confirm completion and release payment.';
-    case 'completed':
-      return 'Job completed. Payment released.';
-    default:
-      return '';
-  }
-}
 
 export function JobDetailScreen({ navigation, route }: { navigation: any; route: any }) {
   const { colors } = useTheme();
@@ -145,8 +115,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
         <View style={styles.progressCard}>
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>{statusLabel(job.status)}</Text>
-            <Text style={styles.progressStep}>GHS {job.price}</Text>
+            <Text style={styles.progressLabel}>{jobStatusLabel(job.status, 'provider')}</Text>
+            <Text style={styles.progressStep}>GHS {job.price.toLocaleString()}</Text>
           </View>
           <View style={styles.phases}>
             <Phase active={true} done={job.status !== 'accepted'} label="Start" />
@@ -157,7 +127,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             />
             <Phase active={job.status === 'completed'} done={job.status === 'completed'} label="Confirmed" />
           </View>
-          <Text style={styles.progressNote}>{statusHint(job.status)}</Text>
+          <Text style={styles.progressNote}>{jobStatusHint(job.status, 'provider')}</Text>
         </View>
 
         <LiveLocationCard job={job} viewerRole="provider" />

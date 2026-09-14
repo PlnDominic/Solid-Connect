@@ -11,6 +11,7 @@ import { Button } from '../../components/Button';
 import { LiveLocationCard } from '../../components/LiveLocationCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
+import { jobStatusHint, jobStatusLabel } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -82,25 +83,13 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false}>
         <View style={styles.progressCard}>
           <View style={styles.progressRow}>
-            <Text style={styles.progressLabel}>
-              {job.status === 'accepted'
-                ? 'Waiting for provider to start'
-                : job.status === 'in_progress'
-                  ? 'IN_PROGRESS'
-                  : job.status === 'awaiting_completion_confirmation'
-                    ? 'AWAITING_COMPLETION_CONFIRMATION'
-                    : 'COMPLETED'}
-            </Text>
-            <Text style={styles.progressStep}>GHS {job.price}</Text>
+            <Text style={styles.progressLabel}>{jobStatusLabel(job.status, 'customer')}</Text>
+            <Text style={styles.progressStep}>GHS {job.price.toLocaleString()}</Text>
           </View>
           <Text style={styles.progressNote}>
-            {job.status === 'accepted'
-              ? 'Your provider hasn’t started yet.'
-              : job.status === 'in_progress'
-                ? `Provider on site · started ${formatTime(job.started_at)}`
-                : job.status === 'awaiting_completion_confirmation'
-                  ? 'Provider marked the job finished. Confirm to release payment.'
-                  : 'Job completed.'}
+            {job.status === 'in_progress'
+              ? `Provider on site · started ${formatTime(job.started_at)}`
+              : jobStatusHint(job.status, 'customer')}
           </Text>
         </View>
 

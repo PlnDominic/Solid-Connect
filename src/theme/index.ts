@@ -76,6 +76,7 @@ export const colors = {
   // decorative color; still never used for plain body chrome.
   active: '#F27511',
   activeDeep: '#C85A08',
+  activeBg: '#FCE9DA',
 
   // Deep navy - used for the "Solid Connect" hero card background on Home,
   // and as the brand accent on onboarding/login (Button's "navy" variant).

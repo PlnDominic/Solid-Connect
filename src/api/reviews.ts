@@ -19,6 +19,21 @@ export function useJobReview(jobId: string | null | undefined) {
   });
 }
 
+/** Every job id this customer has already reviewed - lets the Jobs list
+ * mark completed-but-unrated jobs with one query instead of one
+ * useJobReview per row. */
+export function useCustomerReviewedJobIds(customerId: string | null) {
+  return useQuery({
+    queryKey: ['reviewedJobIds', 'customer', customerId],
+    queryFn: async (): Promise<Set<string>> => {
+      const { data, error } = await supabase.from('reviews').select('job_id').eq('customer_id', customerId as string);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.job_id as string));
+    },
+    enabled: !!customerId,
+  });
+}
+
 /** A provider's reviews, newest first, with the customer's display name. */
 export function useProviderReviews(providerId: string | null) {
   return useQuery({
