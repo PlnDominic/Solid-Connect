@@ -158,7 +158,7 @@ function formatTime(iso: string) {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    header: { backgroundColor: colors.navy, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xl, gap: spacing.lg },
+    header: { backgroundColor: colors.active, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xl, gap: spacing.lg },
     headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     back: {
       width: 32,

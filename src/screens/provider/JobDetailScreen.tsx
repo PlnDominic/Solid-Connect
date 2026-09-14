@@ -163,7 +163,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     header: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.active,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
       paddingBottom: spacing.xl,
