@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { LocateFixed } from 'lucide-react-native';
 import { radii } from '../theme';
 
 type LatLng = { lat: number; lng: number };
@@ -18,7 +19,24 @@ const MAP_HTML = `<!DOCTYPE html>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   html, body, #map { height: 100%; margin: 0; padding: 0; background: #1c1c1c; }
-  .other-pin { width: 16px; height: 16px; border-radius: 50%; background: #F27511; border: 2px solid #fff; box-shadow: 0 0 0 5px rgba(242,117,17,0.32); }
+  /* The other party's marker is the one actually being "tracked" - a
+     pulsing beacon ring, the standard live-location idiom (Uber/Lyft's
+     own driver dot), so it reads as moving/live at a glance even when it
+     hasn't moved in the last few seconds. */
+  .other-marker { position: relative; width: 40px; height: 40px; }
+  .other-marker .pulse {
+    position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+    border-radius: 50%; background: rgba(242,117,17,0.55);
+    animation: pulseRing 1.8s cubic-bezier(0.4,0,0.6,1) infinite;
+  }
+  .other-marker .dot {
+    position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+    border-radius: 50%; background: #F27511; border: 2px solid #fff;
+  }
+  @keyframes pulseRing {
+    0% { transform: scale(1); opacity: 0.65; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
   .my-pin { width: 12px; height: 12px; border-radius: 50%; background: #15181A; border: 2px solid #fff; }
   .leaflet-control-attribution { font-size: 8px; }
 </style>
@@ -33,15 +51,22 @@ const MAP_HTML = `<!DOCTYPE html>
     attribution: '&copy; OpenStreetMap'
   }).addTo(map);
 
-  var otherIcon = L.divIcon({ className: '', html: '<div class="other-pin"></div>', iconSize: [16, 16] });
+  var otherIcon = L.divIcon({ className: '', html: '<div class="other-marker"><div class="pulse"></div><div class="dot"></div></div>', iconSize: [40, 40], iconAnchor: [20, 20] });
   var myIcon = L.divIcon({ className: '', html: '<div class="my-pin"></div>', iconSize: [12, 12] });
   var otherMarker = null, myMarker = null, line = null, centered = false;
+
+  function trackedPoints() {
+    var pts = [];
+    if (otherMarker) pts.push(otherMarker.getLatLng());
+    if (myMarker) pts.push(myMarker.getLatLng());
+    return pts;
+  }
 
   window.updateTracking = function (otherLat, otherLng, myLat, myLng, fallbackLat, fallbackLng) {
     var points = [];
     if (otherLat != null && otherLng != null) {
       var op = [otherLat, otherLng];
-      if (!otherMarker) otherMarker = L.marker(op, { icon: otherIcon }).addTo(map);
+      if (!otherMarker) otherMarker = L.marker(op, { icon: otherIcon, zIndexOffset: 100 }).addTo(map);
       else otherMarker.setLatLng(op);
       points.push(op);
     }
@@ -60,6 +85,14 @@ const MAP_HTML = `<!DOCTYPE html>
       else if (points.length === 1) { map.setView(points[0], 15); centered = true; }
       else if (fallbackLat != null && fallbackLng != null) { map.setView([fallbackLat, fallbackLng], 14); centered = true; }
     }
+  };
+
+  // Snaps back to whatever is currently tracked - the recenter button's
+  // job once someone has panned/zoomed away from it.
+  window.recenter = function () {
+    var pts = trackedPoints();
+    if (pts.length === 2) map.fitBounds(pts, { padding: [32, 32] });
+    else if (pts.length === 1) map.setView(pts[0], 15);
   };
 </script>
 </body>
@@ -104,6 +137,16 @@ export function JobLiveMap({
         javaScriptEnabled
         domStorageEnabled
       />
+      {(otherPoint || myPoint) && (
+        <Pressable
+          style={({ pressed }) => [styles.recenterBtn, pressed && styles.recenterBtnPressed]}
+          onPress={() => webRef.current?.injectJavaScript('window.recenter(); true;')}
+          accessibilityRole="button"
+          accessibilityLabel="Recenter map on tracked location"
+        >
+          <LocateFixed size={16} strokeWidth={2.2} color="#15181A" />
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -111,4 +154,21 @@ export function JobLiveMap({
 const styles = StyleSheet.create({
   wrap: { borderRadius: radii.xl, overflow: 'hidden' },
   webview: { flex: 1, backgroundColor: 'transparent' },
+  recenterBtn: {
+    position: 'absolute',
+    right: 8,
+    bottom: 8,
+    width: 32,
+    height: 32,
+    borderRadius: radii.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 3,
+  },
+  recenterBtnPressed: { opacity: 0.85 },
 });

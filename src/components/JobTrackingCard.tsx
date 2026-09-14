@@ -1,4 +1,5 @@
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, Text, View, StyleSheet } from 'react-native';
 import { ArrowUpRight, MessageCircle } from 'lucide-react-native';
 import { useJobLocation } from '../hooks/useJobLocation';
 import { coordsForLabel } from '../api/location';
@@ -22,6 +23,28 @@ const PILL_LABEL: Record<JobStatus, string> = {
   awaiting_completion_confirmation: 'AWAITING',
   completed: 'DONE',
 };
+
+const pulseStyles = StyleSheet.create({
+  liveDot: { width: 6, height: 6, borderRadius: 3 },
+});
+
+// A small blinking dot next to the eyebrow label - the card-level echo of
+// the map's own pulsing marker, so "this is live" reads even before your
+// eye reaches the map itself.
+function LivePulseDot({ color }: { color: string }) {
+  const pulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 0.25, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  return <Animated.View style={[pulseStyles.liveDot, { backgroundColor: color, opacity: pulse }]} />;
+}
 
 /**
  * The one dark, map-style "tracking" frame on an otherwise white-ground
@@ -79,7 +102,10 @@ export function JobTrackingCard({
         />
         <View style={styles.mapTopRow} pointerEvents="none">
           <View style={styles.mapEyebrowBadge}>
-            <Text style={styles.mapEyebrow} numberOfLines={1}>{otherLabel.toUpperCase()} LOCATION</Text>
+            {hasOther ? <LivePulseDot color={colors.active} /> : null}
+            <Text style={styles.mapEyebrow} numberOfLines={1}>
+              {otherLabel.toUpperCase()} LOCATION{hasOther ? ' · LIVE' : ''}
+            </Text>
           </View>
           <View style={[styles.statusPill, { backgroundColor: badgeColor }]}>
             <Text style={styles.statusPillText} numberOfLines={1}>{PILL_LABEL[job.status]}</Text>
@@ -161,7 +187,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: spacing.sm,
       padding: spacing.sm,
     },
-    mapEyebrowBadge: { flexShrink: 1, backgroundColor: 'rgba(0,0,0,0.55)', paddingVertical: 4, paddingHorizontal: 8, borderRadius: radii.sm },
+    mapEyebrowBadge: {
+      flexShrink: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      borderRadius: radii.sm,
+    },
     mapEyebrow: { color: 'rgba(255,255,255,0.85)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
     statusPill: { flexShrink: 0, paddingVertical: 4, paddingHorizontal: 9, borderRadius: radii.pill },
     statusPillText: { color: colors.white, fontSize: 9.5, fontFamily: fonts.extrabold, letterSpacing: 0.4 },
