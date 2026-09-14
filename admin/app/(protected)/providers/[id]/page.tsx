@@ -34,7 +34,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
     { data: reviews },
   ] = await Promise.all([
     supabase.from('provider_categories').select('is_primary, categories(name)').eq('provider_id', id),
-    supabase.from('provider_portfolio_photos').select('id, photo_url').eq('provider_id', id).order('created_at', { ascending: false }),
+    supabase.from('provider_portfolio_photos').select('id, photo_url, media_type').eq('provider_id', id).order('created_at', { ascending: false }),
     supabase.from('provider_verifications').select('id, status, verification_type, submitted_at').eq('provider_id', id).order('submitted_at', { ascending: false }),
     supabase.from('jobs').select('id, title, price, status, started_at').eq('provider_id', id).order('started_at', { ascending: false }).limit(25),
     supabase.from('reviews').select('rating, comment, created_at, job_id').eq('provider_id', id).order('created_at', { ascending: false }).limit(25),
@@ -89,11 +89,17 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
           <h2 style={{ marginTop: 28 }}>Portfolio</h2>
           {(portfolio ?? []).length > 0 ? (
             <div className="docs">
-              {(portfolio ?? []).map((p) => (
-                <a className="doc" key={p.id} href={p.photo_url} target="_blank" rel="noreferrer" style={{ padding: 0, overflow: 'hidden' }}>
-                  <img src={p.photo_url} alt="Portfolio work" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </a>
-              ))}
+              {(portfolio ?? []).map((p) =>
+                p.media_type === 'video' ? (
+                  <div className="doc" key={p.id} style={{ padding: 0, overflow: 'hidden' }}>
+                    <video src={p.photo_url} controls style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ) : (
+                  <a className="doc" key={p.id} href={p.photo_url} target="_blank" rel="noreferrer" style={{ padding: 0, overflow: 'hidden' }}>
+                    <img src={p.photo_url} alt="Portfolio work" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </a>
+                )
+              )}
             </div>
           ) : (
             <div className="empty">No portfolio photos uploaded.</div>

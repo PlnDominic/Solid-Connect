@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { ImagePlus, Images, X } from 'lucide-react-native';
+import { ImagePlus, Images, Play, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useDeletePortfolioPhoto, usePortfolioPhotos, useUploadPortfolioPhoto } from '../../api/portfolio';
 import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { VideoPlayerModal } from '../../components/VideoPlayerModal';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
+
+// A quick clip of finished work, not a video-hosting feature - keeps
+// uploads small on mobile data and portfolio browsing fast.
+const MAX_VIDEO_SECONDS = 30;
 
 const MAX_PHOTOS = 12;
 
@@ -21,6 +26,7 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
   const remove = useDeletePortfolioPhoto();
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
 
   if (!profile) return <Screen />;
 
@@ -28,19 +34,22 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
     setError(null);
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Photo access needed', 'Allow photo library access to add portfolio photos.');
+      Alert.alert('Photo access needed', 'Allow photo library access to add portfolio photos or a short video.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ['images', 'videos'],
       allowsMultipleSelection: false,
       quality: 0.7,
+      videoMaxDuration: MAX_VIDEO_SECONDS,
     });
     if (result.canceled) return;
+    const asset = result.assets[0];
+    const mediaType = asset.type === 'video' ? 'video' : 'photo';
     try {
-      await upload.mutateAsync({ providerId: profile!.id, imageUri: result.assets[0].uri });
+      await upload.mutateAsync({ providerId: profile!.id, imageUri: asset.uri, mediaType });
     } catch (e: any) {
-      setError(e?.message ?? 'Could not upload that photo. Please try again.');
+      setError(e?.message ?? `Could not upload that ${mediaType}. Please try again.`);
     }
   }
 
@@ -63,15 +72,25 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
         {photos.length === 0 && !upload.isPending ? (
           <EmptyState
             title="No portfolio photos yet"
-            subtitle="Add photos of your past work so customers can see what you do."
+            subtitle="Add photos or a short video of your past work so customers can see what you do."
             icon={Images}
           />
         ) : null}
 
         <View style={styles.grid}>
           {photos.map((photo) => (
-            <View key={photo.id} style={styles.cell}>
+            <Pressable
+              key={photo.id}
+              style={styles.cell}
+              onPress={() => photo.media_type === 'video' && setPreviewVideoUrl(photo.photo_url)}
+              disabled={photo.media_type !== 'video'}
+            >
               <Image source={{ uri: photo.photo_url }} style={styles.photo} />
+              {photo.media_type === 'video' ? (
+                <View style={styles.playBadge} pointerEvents="none">
+                  <Play size={16} strokeWidth={2.4} color={colors.white} fill={colors.white} />
+                </View>
+              ) : null}
               <Pressable
                 hitSlop={10}
                 style={styles.removeBadge}
@@ -86,7 +105,7 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
                   <X size={12} strokeWidth={3} color={colors.white} />
                 )}
               </Pressable>
-            </View>
+            </Pressable>
           ))}
 
           {photos.length < MAX_PHOTOS ? (
@@ -108,6 +127,12 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </ScrollView>
+
+      <VideoPlayerModal
+        visible={!!previewVideoUrl}
+        uri={previewVideoUrl}
+        onClose={() => setPreviewVideoUrl(null)}
+      />
     </Screen>
   );
 }
@@ -120,6 +145,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     cell: { width: CELL_SIZE, height: CELL_SIZE },
     photo: { width: CELL_SIZE, height: CELL_SIZE, borderRadius: radii.md, backgroundColor: colors.paperDim },
+    playBadge: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0,0,0,0.25)',
+    },
     removeBadge: {
       position: 'absolute',
       top: -6,

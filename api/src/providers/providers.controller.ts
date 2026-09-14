@@ -157,7 +157,7 @@ export class ProvidersController {
   async providerPortfolio(@Param('id') id: string) {
     const { data, error } = await this.supabase.client
       .from('provider_portfolio_photos')
-      .select('id, provider_id, photo_url, created_at')
+      .select('id, provider_id, photo_url, media_type, created_at')
       .eq('provider_id', id)
       .order('created_at', { ascending: false });
     if (error) throw error;

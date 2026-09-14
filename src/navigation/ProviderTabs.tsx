@@ -20,6 +20,7 @@ import { AccountSecurityScreen } from '../screens/shared/AccountSecurityScreen';
 import { ReferralScreen } from '../screens/shared/ReferralScreen';
 import { LegalScreen } from '../screens/shared/LegalScreen';
 import { DisputeScreen } from '../screens/shared/DisputeScreen';
+import { ReceiptScreen } from '../screens/shared/ReceiptScreen';
 import { TabBar } from './TabBar';
 
 const FeedStackNav = createNativeStackNavigator();
@@ -39,6 +40,7 @@ function JobsStack() {
       <JobsStackNav.Screen name="JobsHome" component={JobsScreen} />
       <JobsStackNav.Screen name="JobDetail" component={JobDetailScreen} />
       <JobsStackNav.Screen name="Dispute" component={DisputeScreen} />
+      <JobsStackNav.Screen name="Receipt" component={ReceiptScreen} />
     </JobsStackNav.Navigator>
   );
 }

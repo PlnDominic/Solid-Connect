@@ -15,11 +15,15 @@
         {
           "locationWhenInUsePermission": "Solid Connect uses your location to suggest your neighborhood, and shares it with your provider or customer only while a job is active."
         }
-      ]
+      ],
+      "expo-video"
     ],
     "ios": {
       "supportsTablet": true,
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Solid Connect can use Face ID to unlock the app instead of typing your password every time."
+      }
     },
     "android": {
       "adaptiveIcon": {

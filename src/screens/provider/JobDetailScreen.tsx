@@ -168,6 +168,13 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           loading={primaryCta.loading}
           disabled={primaryCta.disabled}
         />
+        {job.status === 'completed' ? (
+          <Button
+            title="View receipt"
+            variant="outline"
+            onPress={() => navigation.navigate('Receipt', { jobId: job.id })}
+          />
+        ) : null}
         <View style={{ flexDirection: 'row', gap: spacing.sm }}>
           <Button title="Message" variant="outline" onPress={handleMessage} style={{ flex: 1, height: 48 }} />
           <Button

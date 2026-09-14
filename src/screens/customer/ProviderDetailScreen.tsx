@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Heart, MapPin, Star } from 'lucide-react-native';
+import { Heart, MapPin, Play, Star } from 'lucide-react-native';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { fetchProviderCategories, type ProviderCategoryRow } from '../../api/identity';
 import { usePortfolioPhotos } from '../../api/portfolio';
@@ -10,9 +10,11 @@ import { recordProviderView } from '../../hooks/useRecentlyViewedProviders';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
+import { ImageViewer, useImageViewer } from '../../components/ImageViewer';
 import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { VideoPlayerModal } from '../../components/VideoPlayerModal';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -30,6 +32,9 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
   const toggleSaved = useToggleSavedProvider();
   const [serviceRows, setServiceRows] = useState<ProviderCategoryRow[]>([]);
   const [selectedService, setSelectedService] = useState<string | null>(null);
+  const imageViewer = useImageViewer();
+  const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
+  const portfolioPhotoUrls = portfolio.filter((p) => p.media_type !== 'video').map((p) => p.photo_url);
 
   useEffect(() => {
     recordProviderView(providerId);
@@ -180,9 +185,23 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           <Text style={styles.sectionTitle}>Portfolio</Text>
           {portfolio.length ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.portfolioRow}>
-              {portfolio.map((p) => (
-                <Image key={p.id} source={{ uri: p.photo_url }} style={styles.portfolioThumb} />
-              ))}
+              {portfolio.map((p) =>
+                p.media_type === 'video' ? (
+                  <Pressable key={p.id} onPress={() => setPreviewVideoUrl(p.photo_url)}>
+                    <Image source={{ uri: p.photo_url }} style={styles.portfolioThumb} />
+                    <View style={styles.portfolioPlayBadge} pointerEvents="none">
+                      <Play size={16} strokeWidth={2.4} color={colors.white} fill={colors.white} />
+                    </View>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => imageViewer.open(portfolioPhotoUrls, portfolioPhotoUrls.indexOf(p.photo_url))}
+                  >
+                    <Image source={{ uri: p.photo_url }} style={styles.portfolioThumb} />
+                  </Pressable>
+                )
+              )}
             </ScrollView>
           ) : (
             <Text style={styles.emptyHint}>No portfolio photos yet.</Text>
@@ -198,6 +217,18 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           )}
         </View>
       </ScrollView>
+
+      <ImageViewer
+        visible={imageViewer.visible}
+        images={imageViewer.images}
+        initialIndex={imageViewer.index}
+        onClose={imageViewer.close}
+      />
+      <VideoPlayerModal
+        visible={!!previewVideoUrl}
+        uri={previewVideoUrl}
+        onClose={() => setPreviewVideoUrl(null)}
+      />
     </Screen>
   );
 }
@@ -229,6 +260,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     chipLabelActive: { color: colors.paper },
     portfolioRow: { gap: spacing.sm },
     portfolioThumb: { width: 96, height: 96, borderRadius: radii.md, backgroundColor: colors.paperDim },
+    portfolioPlayBadge: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderRadius: radii.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0,0,0,0.25)',
+    },
     emptyHint: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
     cta: {
       height: 54,

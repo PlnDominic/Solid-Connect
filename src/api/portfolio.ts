@@ -20,26 +20,37 @@ export function usePortfolioPhotos(providerId: string | null | undefined) {
 }
 
 /**
- * Uploads one picked image to the public portfolio-photos bucket under the
- * provider's own folder, then inserts a row pointing at its public URL.
- * Upload happens before the insert, same order as profile/verification
- * photo uploads, so a failed upload never leaves behind a broken row.
+ * Uploads one picked photo or short video to the public portfolio-photos
+ * bucket under the provider's own folder, then inserts a row pointing at
+ * its public URL. Upload happens before the insert, same order as
+ * profile/verification photo uploads, so a failed upload never leaves
+ * behind a broken row.
  */
 export function useUploadPortfolioPhoto() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ providerId, imageUri }: { providerId: string; imageUri: string }) => {
+    mutationFn: async ({
+      providerId,
+      imageUri,
+      mediaType = 'photo',
+    }: {
+      providerId: string;
+      imageUri: string;
+      mediaType?: 'photo' | 'video';
+    }) => {
       const response = await fetch(imageUri);
       const arrayBuffer = await response.arrayBuffer();
-      const path = `${providerId}/${Date.now()}.jpg`;
+      const ext = mediaType === 'video' ? 'mp4' : 'jpg';
+      const contentType = mediaType === 'video' ? 'video/mp4' : 'image/jpeg';
+      const path = `${providerId}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('portfolio-photos')
-        .upload(path, arrayBuffer, { contentType: 'image/jpeg' });
+        .upload(path, arrayBuffer, { contentType });
       if (uploadError) throw uploadError;
       const { data: publicUrl } = supabase.storage.from('portfolio-photos').getPublicUrl(path);
       const { error: insertError } = await supabase
         .from('provider_portfolio_photos')
-        .insert({ provider_id: providerId, photo_url: publicUrl.publicUrl });
+        .insert({ provider_id: providerId, photo_url: publicUrl.publicUrl, media_type: mediaType });
       if (insertError) throw insertError;
     },
     onSuccess: (_data, vars) => {

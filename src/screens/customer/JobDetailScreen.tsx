@@ -118,6 +118,13 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         </View>
 
         <Button title="Message provider" variant="outline" onPress={handleMessage} />
+        {job.status === 'completed' ? (
+          <Button
+            title="View receipt"
+            variant="outline"
+            onPress={() => navigation.navigate('Receipt', { jobId: job.id })}
+          />
+        ) : null}
         <Button
           title="Open a dispute"
           variant="outline"

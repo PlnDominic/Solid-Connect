@@ -305,3 +305,22 @@ export function useProviderEarningsThisMonth(providerId: string | null) {
   });
 }
 
+/** The one payment row tied to a job - the pending/released amount shown
+ * on the job receipt/invoice. Payments are inserted alongside the job
+ * itself (see useAcceptQuote) so this is always exactly one row. */
+export function usePayment(jobId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['payment', jobId],
+    queryFn: async (): Promise<Payment | null> => {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('job_id', jobId as string)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!jobId,
+  });
+}
+

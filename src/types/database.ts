@@ -239,7 +239,12 @@ export interface JobLocation {
 export interface ProviderPortfolioPhoto {
   id: string;
   provider_id: string;
+  // Holds either a photo or a video's public URL - which one is in
+  // media_type (added in 0037_portfolio_video_support.sql). Column name
+  // kept as-is rather than renamed to media_url, to avoid touching the
+  // Nest API and admin panel's own reads of this same table.
   photo_url: string;
+  media_type?: 'photo' | 'video';
   created_at: string;
 }
 

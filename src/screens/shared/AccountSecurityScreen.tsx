@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, Switch, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -8,6 +8,7 @@ import {
   useCancelAccountDeletionRequest,
   useRequestAccountDeletion,
 } from '../../api/profile';
+import { authenticateWithBiometrics, useBiometricLockPreference } from '../../hooks/useBiometricLock';
 import { friendlyAuthError } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -33,6 +34,26 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
   const [deleteReason, setDeleteReason] = useState('');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const isPending = deletionRequest?.status === 'pending';
+
+  const biometrics = useBiometricLockPreference();
+  const [biometricBusy, setBiometricBusy] = useState(false);
+
+  async function handleToggleBiometrics(value: boolean) {
+    if (!value) {
+      await biometrics.setEnabled(false);
+      return;
+    }
+    // Confirm the sensor actually works before committing to locking the
+    // app behind it - turning this on blind could lock someone out.
+    setBiometricBusy(true);
+    const ok = await authenticateWithBiometrics('Confirm to enable app lock');
+    setBiometricBusy(false);
+    if (ok) {
+      await biometrics.setEnabled(true);
+    } else {
+      Alert.alert('Could not confirm', 'Verify with Face ID / Touch ID / fingerprint to turn this on.');
+    }
+  }
 
   function handleRequestDeletion() {
     if (!profile) return;
@@ -114,6 +135,27 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Button title="Update password" onPress={handleSave} disabled={!canSave} loading={saving} />
 
+          {biometrics.available ? (
+            <>
+              <Text style={styles.section}>App lock</Text>
+              <View style={styles.card}>
+                <View style={styles.toggleRow}>
+                  <View style={{ flex: 1, gap: 2, paddingRight: spacing.md }}>
+                    <Text style={styles.value}>Require Face ID / Touch ID</Text>
+                    <Text style={styles.rowDetail}>Lock Solid Connect when it's reopened.</Text>
+                  </View>
+                  <Switch
+                    value={biometrics.enabled}
+                    onValueChange={handleToggleBiometrics}
+                    disabled={biometricBusy || !biometrics.loaded}
+                    trackColor={{ false: colors.hairline, true: colors.ink }}
+                    thumbColor={Platform.OS === 'android' ? colors.white : undefined}
+                  />
+                </View>
+              </View>
+            </>
+          ) : null}
+
           <Text style={[styles.section, styles.dangerSection]}>Danger zone</Text>
           {isPending ? (
             <View style={styles.card}>
@@ -170,6 +212,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     label: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
     value: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
+    toggleRow: { flexDirection: 'row', alignItems: 'center' },
+    rowDetail: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
     section: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
     dangerSection: { color: colors.danger, marginTop: spacing.xl },
     reasonInput: { minHeight: 80, textAlignVertical: 'top', paddingTop: spacing.md },

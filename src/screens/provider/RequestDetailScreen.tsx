@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Image, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
   useAcceptDirectRequest,
   useRejectDirectRequest,
@@ -7,6 +7,7 @@ import {
   useServiceRequest,
 } from '../../api/requests';
 import { Button } from '../../components/Button';
+import { ImageViewer, useImageViewer } from '../../components/ImageViewer';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -32,6 +33,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
   const [price, setPrice] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [showReject, setShowReject] = useState(false);
+  const imageViewer = useImageViewer();
 
   if (!request) return <Screen />;
 
@@ -108,8 +110,10 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
 
         {request.photos?.length ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoRow}>
-            {request.photos.map((uri) => (
-              <Image key={uri} source={{ uri }} style={styles.photo} />
+            {request.photos.map((uri, i) => (
+              <Pressable key={uri} onPress={() => imageViewer.open(request.photos, i)}>
+                <Image source={{ uri }} style={styles.photo} />
+              </Pressable>
             ))}
           </ScrollView>
         ) : null}
@@ -179,6 +183,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
           <Button title="Send quote" onPress={handleSendQuote} loading={sendQuote.isPending} disabled={!price} />
         )}
       </View>
+      <ImageViewer visible={imageViewer.visible} images={imageViewer.images} initialIndex={imageViewer.index} onClose={imageViewer.close} />
     </Screen>
   );
 }
