@@ -126,13 +126,13 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           </View>
 
           <View style={styles.heroSearch}>
-            <Search color={colors.inkFaint} size={18} strokeWidth={2} />
+            <Search color={colors.white} size={18} strokeWidth={2} />
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
               onSubmitEditing={handleSearchSubmit}
               placeholder="What do you need help with?"
-              placeholderTextColor={colors.inkFaint}
+              placeholderTextColor={'rgba(255,255,255,0.72)'}
               returnKeyType="search"
               style={styles.heroSearchInput}
             />
@@ -289,7 +289,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     // alone (no hairline - depth does the separating). Follows the theme:
     // white on light, dark charcoal on dark - same as every other card.
     heroCard: {
-      backgroundColor: colors.card,
+      backgroundColor: colors.active,
       borderRadius: radii.xxxl,
       padding: spacing.lg,
       gap: spacing.lg,
@@ -304,13 +304,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       width: 38,
       height: 38,
       borderRadius: 19,
-      backgroundColor: colors.paperDim,
+      backgroundColor: 'rgba(255,255,255,0.2)',
       borderWidth: 1,
-      borderColor: colors.hairline,
+      borderColor: 'rgba(255,255,255,0.35)',
     },
     heroGreetText: { flex: 1, gap: 3 },
-    heroGreeting: { color: colors.ink, fontSize: 19, letterSpacing: -0.4, fontFamily: fonts.extrabold },
-    heroLocation: { color: colors.inkMuted, fontSize: 12.5, fontFamily: fonts.medium },
+    heroGreeting: { color: colors.white, fontSize: 19, letterSpacing: -0.4, fontFamily: fonts.extrabold },
+    heroLocation: { color: 'rgba(255,255,255,0.82)', fontSize: 12.5, fontFamily: fonts.medium },
 
     heroSearch: {
       height: 48,
@@ -319,11 +319,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
-      backgroundColor: colors.paperDim,
+      backgroundColor: 'rgba(255,255,255,0.18)',
       borderWidth: 1,
-      borderColor: colors.hairline,
+      borderColor: 'rgba(255,255,255,0.34)',
     },
-    heroSearchInput: { flex: 1, color: colors.ink, fontSize: 14, fontFamily: fonts.medium, padding: 0 },
+    heroSearchInput: { flex: 1, color: colors.white, fontSize: 14, fontFamily: fonts.medium, padding: 0 },
 
     heroCta: {
       flexDirection: 'row',

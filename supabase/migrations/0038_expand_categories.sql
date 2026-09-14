@@ -1,26 +1,12 @@
--- Solid Connect - service categories
--- Real reference data the app needs to function (category picker, request
--- forms, etc.) - split out from seed.sql, which also has fake demo
--- providers/customers/requests you likely don't want on a production
--- project. Safe to run on its own.
+-- Expand from 8 home-repair trades to 30 categories spanning general
+-- local services and small business, per user request ("not just
+-- restricted to 8" - "other industries and business"). Same shape as the
+-- original 8 (supabase/seed/categories.sql) - id/name/abbr/default_label/
+-- sort_order, `active` defaults true (0029_category_archive.sql) - so
+-- these show up in useCategories() immediately, no other schema change
+-- needed since the app was already fully data-driven off this table.
 
 insert into public.categories (id, name, abbr, default_label, sort_order) values
-  ('plumbing',   'Plumbing',   'PL', 'Plumbing · Pipe repair',    1),
-  ('electrical', 'Electrical', 'EL', 'Electrical · Wiring',       2),
-  ('carpentry',  'Carpentry',  'CA', 'Carpentry · Repair',        3),
-  ('masonry',    'Masonry',    'MA', 'Masonry · Repair',          4),
-  ('painting',   'Painting',   'PA', 'Painting · Interior',       5),
-  ('welding',    'Welding',    'WE', 'Welding · Repair',          6),
-  ('cleaning',   'Cleaning',   'CL', 'Cleaning · Deep clean',     7),
-  ('ac_repair',  'AC repair',  'AC', 'AC repair · Servicing',     8)
-on conflict (id) do nothing;
-
--- Categories 9-30: see migrations/0038_expand_categories.sql for the full
--- list and rationale (kept there rather than duplicated here since this
--- file's own comment above says categories are "real reference data" the
--- migration already inserts into any environment it runs against).
-insert into public.categories (id, name, abbr, default_label, sort_order)
-select * from (values
   ('landscaping',      'Landscaping',        'LS', 'Landscaping · Gardening',        9),
   ('moving_hauling',   'Moving & Hauling',   'MV', 'Moving · Hauling',               10),
   ('pest_control',     'Pest Control',       'PC', 'Pest control · Fumigation',      11),
@@ -43,5 +29,4 @@ select * from (values
   ('accounting',       'Accounting',         'AB', 'Accounting · Bookkeeping',       28),
   ('web_tech',         'Web & Tech',         'WT', 'Web & tech · App development',   29),
   ('real_estate',      'Real Estate',        'RE', 'Real estate · Rentals',          30)
-) as v(id, name, abbr, default_label, sort_order)
 on conflict (id) do nothing;
