@@ -27,28 +27,22 @@ const PROVIDER_FILTERS: FilterOption[] = [
 // Preview count shown on Home; "View all" leads to the full, unlimited list.
 const PROVIDER_PREVIEW_COUNT = 6;
 
-/** One "Top rated" card: a strip of the provider's own portfolio photos -
- * their actual finished work, standing in for "top rated jobs" since jobs
- * themselves carry no photos of their own, only the provider's portfolio
- * does - above their name/rating, so the grid reads as a peek at their
- * work rather than another plain contact-list row. Falls back to a plain
- * header when a provider has no portfolio photos yet, rather than an
- * empty gray block pretending to be one. */
+/** One "Top rated" card: the provider's single most recent portfolio
+ * photo - their actual finished work, standing in for "top rated jobs"
+ * since jobs themselves carry no photos of their own, only the
+ * provider's portfolio does - above their name/rating, so the card reads
+ * as a peek at their work rather than another plain contact-list row.
+ * Falls back to a plain header when a provider has no portfolio photos
+ * yet, rather than an empty gray block pretending to be one. */
 function TopProviderCard({ provider, onPress }: { provider: Profile; onPress: () => void }) {
   const { colors } = useTheme();
   const styles = makeCardStyles(colors);
   const { data: photos = [] } = usePortfolioPhotos(provider.id);
-  const preview = photos.filter((p) => p.media_type !== 'video').slice(0, 3);
+  const preview = photos.find((p) => p.media_type !== 'video');
 
   return (
     <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]} onPress={onPress}>
-      {preview.length > 0 ? (
-        <View style={styles.photoGrid}>
-          {preview.map((photo) => (
-            <Image key={photo.id} source={{ uri: photo.photo_url }} style={styles.photoThumb} />
-          ))}
-        </View>
-      ) : null}
+      {preview ? <Image source={{ uri: preview.photo_url }} style={styles.photoFrame} /> : null}
       <View style={styles.cardBody}>
         <View style={styles.cardHeaderRow}>
           <Avatar initials={provider.initials} size={32} />
@@ -401,17 +395,32 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
  * card component doesn't depend on HomeScreen's own makeStyles output. */
 function makeCardStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
+    // No overflow:hidden here - the photo below is its own inset, rounded,
+    // independently-shadowed frame rather than a full-bleed image clipped
+    // to the card's edges, so both it and the card need room for their
+    // shadows to actually render (an overflow:hidden ancestor clips shadows
+    // too, on both platforms).
     card: {
       width: '48%',
       borderRadius: radii.lg,
       backgroundColor: colors.card,
-      overflow: 'hidden',
+      padding: spacing.sm,
+      gap: spacing.sm,
       ...shadow.card,
     },
     cardPressed: { opacity: 0.9 },
-    photoGrid: { flexDirection: 'row', height: 84, gap: 1.5 },
-    photoThumb: { flex: 1, height: '100%', backgroundColor: colors.paperDim },
-    cardBody: { padding: spacing.sm, gap: 6 },
+    photoFrame: {
+      width: '100%',
+      height: 132,
+      borderRadius: radii.md,
+      backgroundColor: colors.paperDim,
+      shadowColor: colors.black,
+      shadowOpacity: 0.14,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 3,
+    },
+    cardBody: { gap: 6 },
     cardHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     cardNameWrap: { flex: 1, gap: 1 },
     cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
