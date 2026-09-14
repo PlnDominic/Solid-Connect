@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createAdminClient, requireAdmin } from '../../../lib/admin';
+import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
 
 type BulkResult = { error?: string; success?: boolean; count?: number };
@@ -18,7 +18,7 @@ const LEVEL_BY_TYPE: Record<string, string> = {
  * a small, admin-selected batch, and sequential writes are simpler to
  * reason about than partial-failure handling across concurrent ones. */
 export async function bulkReviewVerifications(ids: string[], decision: 'approved' | 'rejected', reason: string): Promise<BulkResult> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('verifications');
   if (!admin) return { error: 'Only signed-in admins can do this.' };
   if (ids.length === 0) return { error: 'Nothing selected.' };
   if (decision === 'rejected' && !reason.trim()) return { error: 'A rejection reason is required for a bulk reject.' };

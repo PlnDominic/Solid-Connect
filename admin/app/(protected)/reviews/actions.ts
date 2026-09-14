@@ -1,28 +1,15 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createServerSupabase } from '../../../lib/supabase';
-import { createAdminClient } from '../../../lib/admin';
+import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
-
-async function requireAdmin(): Promise<{ id: string; email: string } | null> {
-  const sessionClient = await createServerSupabase();
-  const {
-    data: { user },
-  } = await sessionClient.auth.getUser();
-  if (!user?.email) return null;
-  const adminClient = createAdminClient();
-  const { data: admin } = await adminClient.from('admins').select('id, disabled_at').eq('id', user.id).maybeSingle();
-  if (!admin || admin.disabled_at) return null;
-  return { id: user.id, email: user.email };
-}
 
 /** Hides or restores a review, keeping the provider's running-average
  * rating/jobs-count (see apply_review() in 0001_init.sql) in sync either
  * way - removing or restoring one review's contribution to a plain
  * average is commutative, so this works regardless of insertion order. */
 export async function setReviewHidden(id: string, hidden: boolean): Promise<void> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('reviews');
   if (!admin) return;
 
   const adminClient = createAdminClient();

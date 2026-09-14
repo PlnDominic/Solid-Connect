@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAdmin, createAdminClient } from '../../../lib/admin';
+import { requirePermission, createAdminClient } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
 
 const VALID_STATUSES = ['pending', 'released', 'refunded', 'partially_refunded'];
@@ -30,7 +30,7 @@ const VALID_STATUSES = ['pending', 'released', 'refunded', 'partially_refunded']
  * args so the one button that needs a number (Partial refund) can supply
  * it - the Release/Refund/Reset buttons just submit an empty form. */
 export async function setPaymentStatus(id: string, status: string, formData: FormData): Promise<void> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('payments');
   if (!admin) return;
   if (!VALID_STATUSES.includes(status)) return;
 

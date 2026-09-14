@@ -1,8 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '../../../lib/admin';
-import { createServerSupabase } from '../../../lib/supabase';
+import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
 
 export async function resolveDispute(id: string, formData: FormData): Promise<void> {
@@ -15,16 +14,10 @@ export async function resolveDispute(id: string, formData: FormData): Promise<vo
   const refundAmount = refundAmountRaw ? Math.round(Number(refundAmountRaw)) : 0;
   if (!note) return;
 
-  const sessionClient = await createServerSupabase();
-  const {
-    data: { user },
-  } = await sessionClient.auth.getUser();
-  if (!user) return;
-
-  const adminClient = createAdminClient();
-  const { data: admin } = await adminClient.from('admins').select('id').eq('id', user.id).maybeSingle();
+  const admin = await requirePermission('disputes');
   if (!admin) return;
 
+  const adminClient = createAdminClient();
   const { data: dispute } = await adminClient.from('disputes').select('job_id').eq('id', id).maybeSingle();
 
   await adminClient
@@ -99,7 +92,7 @@ export async function resolveDispute(id: string, formData: FormData): Promise<vo
   }
 
   await logAdminAction(
-    { id: user.id, email: user.email ?? '' },
+    admin,
     'RESOLVED_DISPUTE',
     { targetType: 'dispute', targetId: id, note: `${note}${refundNote}` },
   );

@@ -1,7 +1,6 @@
 'use server';
 import { revalidatePath } from 'next/cache';
-import { createAdminClient } from '../../../../lib/admin';
-import { createServerSupabase } from '../../../../lib/supabase';
+import { createAdminClient, requirePermission } from '../../../../lib/admin';
 import { logAdminAction } from '../../../../lib/audit';
 
 const LEVEL_BY_TYPE: Record<string, string> = {
@@ -14,14 +13,9 @@ const LEVEL_BY_TYPE: Record<string, string> = {
 export async function reviewVerification(id: string, decision: 'approved' | 'rejected', formData: FormData) {
   const note = String(formData.get('note') ?? '').trim();
   if (decision === 'rejected' && !note) return { error: 'A rejection reason is required.' };
-  const sessionClient = await createServerSupabase();
-  const {
-    data: { user },
-  } = await sessionClient.auth.getUser();
-  if (!user) return { error: 'Your session has expired.' };
-  const adminClient = createAdminClient();
-  const { data: admin } = await adminClient.from('admins').select('id').eq('id', user.id).maybeSingle();
+  const admin = await requirePermission('verifications');
   if (!admin) return { error: 'This account cannot review submissions.' };
+  const adminClient = createAdminClient();
   const { data: submission } = await adminClient
     .from('provider_verifications')
     .select('provider_id,status,verification_type')
@@ -33,7 +27,7 @@ export async function reviewVerification(id: string, decision: 'approved' | 'rej
     .update({
       status: decision,
       note: decision === 'rejected' ? note : null,
-      reviewed_by: user.id,
+      reviewed_by: admin.id,
       reviewed_at: new Date().toISOString(),
     })
     .eq('id', id)
@@ -51,7 +45,7 @@ export async function reviewVerification(id: string, decision: 'approved' | 'rej
     if (profileError) return { error: profileError.message };
   }
   await logAdminAction(
-    { id: user.id, email: user.email ?? '' },
+    admin,
     decision === 'approved' ? 'APPROVED_VERIFICATION' : 'REJECTED_VERIFICATION',
     { targetType: 'provider_verification', targetId: id, note: decision === 'rejected' ? note : undefined },
   );

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerSupabase } from '../../lib/supabase';
+import { ADMIN_PERMISSIONS } from '../../lib/admin';
 import ThemeToggle from '../components/ThemeToggle';
 import NavLinks from '../components/NavLinks';
 import LogoutButton from '../components/LogoutButton';
@@ -11,9 +12,14 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
-  const { data: admin } = await supabase.from('admins').select('id, email, disabled_at').eq('id', user.id).maybeSingle();
+  const { data: admin } = await supabase.from('admins').select('id, email, role, disabled_at, permissions').eq('id', user.id).maybeSingle();
   if (!admin || admin.disabled_at) { await supabase.auth.signOut(); redirect('/login?error=not-admin'); }
   const initials = (admin.email ?? 'A').slice(0, 2).toUpperCase();
+  // Owners implicitly hold every scope - only a support admin's own
+  // permissions array actually narrows the sidebar (see NavLinks, which
+  // hides the handful of nav items that are pure action surfaces with
+  // nothing to see once you can't act on them).
+  const permissions = admin.role === 'owner' ? [...ADMIN_PERMISSIONS] : admin.permissions ?? [];
 
   return (
     <div className="shell">
@@ -22,7 +28,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
           <img src="/logo.jpeg" alt="" width={26} height={26} />
           Solid Connect
         </div>
-        <NavLinks />
+        <NavLinks permissions={permissions} />
         <div className="help-card">
           <p>Need help?<br />Feel free to contact</p>
           <a href="mailto:support@solidconnect.co">Get support →</a>

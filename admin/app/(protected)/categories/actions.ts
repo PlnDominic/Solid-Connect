@@ -1,8 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createServerSupabase } from '../../../lib/supabase';
-import { createAdminClient } from '../../../lib/admin';
+import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
 
 type ActionResult = { error?: string; success?: boolean };
@@ -15,20 +14,8 @@ function slugify(name: string): string {
     .replace(/^_+|_+$/g, '');
 }
 
-async function requireAdmin(): Promise<{ id: string; email: string } | null> {
-  const sessionClient = await createServerSupabase();
-  const {
-    data: { user },
-  } = await sessionClient.auth.getUser();
-  if (!user?.email) return null;
-  const adminClient = createAdminClient();
-  const { data: admin } = await adminClient.from('admins').select('id, disabled_at').eq('id', user.id).maybeSingle();
-  if (!admin || admin.disabled_at) return null;
-  return { id: user.id, email: user.email };
-}
-
 export async function createCategory(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('categories');
   if (!admin) return { error: 'Only signed-in admins can do this.' };
 
   const name = String(formData.get('name') ?? '').trim();
@@ -70,7 +57,7 @@ export async function createCategory(_prev: ActionResult, formData: FormData): P
 }
 
 export async function updateCategory(id: string, formData: FormData): Promise<void> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('categories');
   if (!admin) return;
 
   const name = String(formData.get('name') ?? '').trim();
@@ -105,7 +92,7 @@ export async function updateCategory(id: string, formData: FormData): Promise<vo
  * provider_categories, so deleting one would silently strip that tag
  * from every provider who has it. */
 export async function setCategoryActive(id: string, active: boolean): Promise<void> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('categories');
   if (!admin) return;
 
   const adminClient = createAdminClient();

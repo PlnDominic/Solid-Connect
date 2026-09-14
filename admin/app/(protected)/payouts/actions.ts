@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireAdmin, createAdminClient } from '../../../lib/admin';
+import { requirePermission, createAdminClient } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
 
 /** Records that Solid Connect actually sent a provider their payout -
@@ -10,7 +10,7 @@ import { logAdminAction } from '../../../lib/audit';
  * optional since a manual bank transfer today might not have one until
  * a real gateway supplies it. */
 export async function markPayoutPaid(id: string, formData: FormData): Promise<void> {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('payouts');
   if (!admin) return;
 
   const method = String(formData.get('method') ?? '').trim();
