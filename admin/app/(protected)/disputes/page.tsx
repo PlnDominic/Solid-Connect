@@ -97,14 +97,14 @@ export default async function DisputesPage({ searchParams }: Props) {
             {rows.length > 0 ? rows.map((d) => (
               <tr key={d.id}>
                 <td>
-                  <Link href={`/disputes/${d.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>
+                  <Link href={`/disputes/${d.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>
                     {jobMap[d.job_id] ?? d.job_id.slice(0, 8)}
                   </Link>
                   <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>{d.description}</div>
                 </td>
                 <td>{reasonLabel[d.reason] ?? d.reason}</td>
-                <td>{nameMap[d.customer_id] ?? '—'}</td>
-                <td>{nameMap[d.provider_id] ?? '—'}</td>
+                <td>{nameMap[d.customer_id] ?? '-'}</td>
+                <td>{nameMap[d.provider_id] ?? '-'}</td>
                 <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(d.created_at)}</td>
                 <td>
                   {d.status === 'open' ? (

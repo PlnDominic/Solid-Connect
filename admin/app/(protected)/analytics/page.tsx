@@ -288,7 +288,7 @@ export default async function AnalyticsPage() {
         <div className="page-header-eyebrow">Platform Overview</div>
         <h1>Solid Connect Dashboard</h1>
         <p className="page-header-sub">
-          Real-time insights into your provider marketplace — jobs, verifications, and revenue.
+          Real-time insights into your provider marketplace: jobs, verifications, and revenue.
         </p>
         <div className="page-header-actions">
           <span className="date-badge">
@@ -400,8 +400,8 @@ export default async function AnalyticsPage() {
                     <td>
                       <strong>{job.title || 'Untitled Job'}</strong>
                     </td>
-                    <td style={{ fontWeight: 700 }}>{currency(job.price ?? 0)}</td>
-                    <td>{job.location_label || '—'}</td>
+                    <td style={{ fontWeight: 500 }}>{currency(job.price ?? 0)}</td>
+                    <td>{job.location_label || '-'}</td>
                     <td>
                       <span className={`pill ${job.status === 'completed' ? 'approved' : 'pending'}`}>
                         {job.status === 'completed' ? 'Completed' : job.status?.replaceAll('_', ' ') || 'In progress'}
@@ -438,7 +438,7 @@ export default async function AnalyticsPage() {
                       </div>
                     </td>
                     <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {review.job_id ? String(review.job_id).slice(0, 8) : '—'}
+                      {review.job_id ? String(review.job_id).slice(0, 8) : '-'}
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
                       {new Date(review.created_at).toLocaleDateString()}

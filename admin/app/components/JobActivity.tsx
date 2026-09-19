@@ -24,7 +24,7 @@ export function JobActivity({
             <div key={e.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', marginTop: 6, flexShrink: 0 }} />
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700 }}>{EVENT_LABELS[e.event_type] ?? e.event_type}</div>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>{EVENT_LABELS[e.event_type] ?? e.event_type}</div>
                 <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                   {actorMap[e.actor_id] ?? 'Unknown'} · {stampTime(e.created_at)}
                   {e.from_step != null && e.to_step != null ? ` · step ${e.from_step} → ${e.to_step}` : ''}

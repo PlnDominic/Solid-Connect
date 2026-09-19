@@ -14,7 +14,7 @@ const reasonLabel: Record<string, string> = {
 };
 
 const stamp = (date: string | null) =>
-  date ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date)) : '—';
+  date ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date)) : '-';
 
 export default async function DisputeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -66,24 +66,24 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
           <div className="facts">
             <div>
               <label>Customer</label>
-              <strong>{customer?.full_name ?? '—'}</strong>
+              <strong>{customer?.full_name ?? '-'}</strong>
             </div>
             <div>
               <label>Provider</label>
-              <strong>{provider?.full_name ?? '—'}</strong>
+              <strong>{provider?.full_name ?? '-'}</strong>
             </div>
             <div>
               <label>Job price</label>
-              <strong>GH₵{job?.price?.toLocaleString('en-US') ?? '—'}</strong>
+              <strong>GH₵{job?.price?.toLocaleString('en-US') ?? '-'}</strong>
             </div>
             <div>
               <label>Location</label>
-              <strong>{job?.location_label ?? '—'}</strong>
+              <strong>{job?.location_label ?? '-'}</strong>
             </div>
           </div>
           <p style={{ marginTop: 16, fontSize: 13.5, lineHeight: 1.5 }}>{dispute.description || 'No description provided.'}</p>
 
-          <h2 style={{ marginTop: 28 }}>Evidence — request photos</h2>
+          <h2 style={{ marginTop: 28 }}>Evidence: request photos</h2>
           <div className="docs">
             {photos.length > 0 ? photos.map((url: string) => (
               <a className="doc" key={url} href={url} target="_blank" rel="noreferrer" style={{ padding: 0, overflow: 'hidden' }}>

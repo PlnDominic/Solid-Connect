@@ -129,7 +129,7 @@ export default async function JobsPage({ searchParams }: Props) {
               const cust = customerMap[j.customer_id];
               return (
                 <tr key={j.id}>
-                  <td><Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{j.title || 'Untitled'}</Link></td>
+                  <td><Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{j.title || 'Untitled'}</Link></td>
                   <td>
                     {prov ? (
                       <div className="profile-cell">
@@ -138,7 +138,7 @@ export default async function JobsPage({ searchParams }: Props) {
                         </div>
                         <span>{prov.full_name}</span>
                       </div>
-                    ) : '—'}
+                    ) : '-'}
                   </td>
                   <td>
                     {cust ? (
@@ -148,10 +148,10 @@ export default async function JobsPage({ searchParams }: Props) {
                         </div>
                         <span>{cust.full_name}</span>
                       </div>
-                    ) : '—'}
+                    ) : '-'}
                   </td>
-                  <td style={{ fontWeight: 700 }}>{currency(j.price ?? 0)}</td>
-                  <td>{j.location_label ?? '—'}</td>
+                  <td style={{ fontWeight: 500 }}>{currency(j.price ?? 0)}</td>
+                  <td>{j.location_label ?? '-'}</td>
                   <td>
                     <span className={`pill ${j.status === 'completed' ? 'approved' : 'pending'}`}>
                       {j.status === 'completed' ? 'Completed' : 'In Progress'}

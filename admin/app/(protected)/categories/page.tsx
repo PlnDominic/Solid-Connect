@@ -79,7 +79,7 @@ export default async function CategoriesPage({ searchParams }: Props) {
                       form={formId}
                       name="name"
                       defaultValue={c.name}
-                      style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 13, fontWeight: 700 }}
+                      style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 13, fontWeight: 500 }}
                     />
                     <div className="mono" style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 4 }}>{c.id}</div>
                   </td>

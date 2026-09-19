@@ -103,15 +103,15 @@ export default async function CustomersPage({ searchParams }: Props) {
                       {c.initials}
                     </div>
                     <div>
-                      <Link href={`/customers/${c.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{c.full_name}</Link>
+                      <Link href={`/customers/${c.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{c.full_name}</Link>
                       <br />
                       <span className="mono">{c.email ?? 'No email'}</span>
                     </div>
                   </div>
                 </td>
-                <td>{c.area ?? '—'}</td>
-                <td>{c.phone ?? '—'}</td>
-                <td><span style={{ fontWeight: 700 }}>{countMap[c.id] ?? 0}</span></td>
+                <td>{c.area ?? '-'}</td>
+                <td>{c.phone ?? '-'}</td>
+                <td><span style={{ fontWeight: 500 }}>{countMap[c.id] ?? 0}</span></td>
                 <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(c.created_at)}</td>
               </tr>
             )) : (

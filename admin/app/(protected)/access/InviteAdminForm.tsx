@@ -8,7 +8,7 @@ export function InviteAdminForm() {
 
   return (
     <form action={action} className="table-card" style={{ padding: 20, marginBottom: 16, display: 'grid', gap: 12 }}>
-      <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>Invite an admin</h3>
+      <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>Invite an admin</h3>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <input
           type="email"

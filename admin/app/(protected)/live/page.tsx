@@ -120,12 +120,12 @@ export default async function LiveJobsPage() {
               return (
                 <tr key={j.id}>
                   <td>
-                    <Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{j.title || 'Untitled'}</Link>
-                    <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>{j.location_label ?? '—'}</div>
+                    <Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{j.title || 'Untitled'}</Link>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>{j.location_label ?? '-'}</div>
                   </td>
                   <td>
                     <PartyCell
-                      name={provider?.full_name ?? '—'}
+                      name={provider?.full_name ?? '-'}
                       initials={provider?.initials ?? '?'}
                       lat={loc?.provider_lat}
                       lng={loc?.provider_lng}
@@ -136,7 +136,7 @@ export default async function LiveJobsPage() {
                   </td>
                   <td>
                     <PartyCell
-                      name={customer?.full_name ?? '—'}
+                      name={customer?.full_name ?? '-'}
                       initials={customer?.initials ?? '?'}
                       lat={loc?.customer_lat}
                       lng={loc?.customer_lng}
@@ -145,7 +145,7 @@ export default async function LiveJobsPage() {
                       accentFg="var(--blue)"
                     />
                   </td>
-                  <td style={{ fontWeight: 700 }}>{distanceKm != null ? formatDistanceKm(distanceKm) : '—'}</td>
+                  <td style={{ fontWeight: 500 }}>{distanceKm != null ? formatDistanceKm(distanceKm) : '-'}</td>
                   <td>
                     <span className="pill pending">{statusLabels[j.status] ?? j.status}</span>
                   </td>

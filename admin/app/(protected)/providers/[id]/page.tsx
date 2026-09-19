@@ -69,7 +69,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
           <div className="facts">
             <div><label>Phone</label><strong>{provider.phone ?? 'Not provided'}</strong></div>
             <div><label>Email</label><strong>{provider.email ?? 'Not provided'}</strong></div>
-            <div><label>Rating</label><strong>{provider.provider_rating?.toFixed?.(1) ?? '—'} · {provider.provider_jobs_count ?? 0} jobs</strong></div>
+            <div><label>Rating</label><strong>{provider.provider_rating?.toFixed?.(1) ?? '-'} · {provider.provider_jobs_count ?? 0} jobs</strong></div>
             <div><label>Availability</label><strong>{provider.availability_mode ?? 'Not set'}</strong></div>
             <div><label>Joined</label><strong>{stamp(provider.created_at)}</strong></div>
             <div><label>Certified</label><strong>{provider.provider_certified ? 'Yes' : 'No'}</strong></div>
@@ -140,7 +140,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {(reviews ?? []).map((r, i) => (
                 <div key={i} style={{ fontSize: 13 }}>
-                  <strong>{r.rating}★</strong>{r.comment ? ` — ${r.comment}` : ''}
+                  <strong>{r.rating}★</strong>{r.comment ? `: ${r.comment}` : ''}
                   <div style={{ color: 'var(--text-muted)', fontSize: 11.5 }}>{stamp(r.created_at)}</div>
                 </div>
               ))}

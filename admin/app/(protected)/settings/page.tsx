@@ -51,7 +51,7 @@ export default async function SettingsPage() {
                 min="0"
                 max="100"
                 defaultValue={config?.commission_percent ?? 15}
-                style={{ width: 90, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, fontWeight: 700 }}
+                style={{ width: 90, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}
               />
               <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>%</span>
               <button className="btn" style={{ padding: '10px 20px', marginLeft: 8 }}>Save</button>
@@ -83,16 +83,16 @@ export default async function SettingsPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Signed in as</div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>{me?.email ?? user?.email ?? '—'}</div>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Signed in as</div>
+              <div style={{ fontSize: 14, fontWeight: 600 }}>{me?.email ?? user?.email ?? '-'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Role</div>
+              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Role</div>
               <span className={`pill ${isOwner ? 'approved' : 'pending'}`}>{isOwner ? 'Owner' : 'Support'}</span>
             </div>
             {me?.created_at && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Admin since</div>
+                <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Admin since</div>
                 <div style={{ fontSize: 14, fontWeight: 600 }}>{stamp(me.created_at)}</div>
               </div>
             )}

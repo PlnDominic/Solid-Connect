@@ -18,7 +18,7 @@ export function BroadcastForm() {
       style={{ padding: 20, display: 'grid', gap: 14, maxWidth: 560 }}
     >
       <div>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
           Audience
         </label>
         <select
@@ -33,14 +33,14 @@ export function BroadcastForm() {
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
           Title
         </label>
         <input name="title" required placeholder="e.g. New payment methods coming soon" className="search-input" />
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
           Message
         </label>
         <textarea name="body" required placeholder="Write the announcement..." className="field" style={{ minHeight: 100 }} />

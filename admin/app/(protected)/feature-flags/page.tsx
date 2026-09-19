@@ -6,7 +6,7 @@ import { deleteFlag, updateFlag } from './actions';
 export const dynamic = 'force-dynamic';
 
 const stamp = (date: string | null) =>
-  date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(date)) : '—';
+  date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(date)) : '-';
 
 export default async function FeatureFlagsPage() {
   const supabase = await createServerSupabase();
@@ -54,8 +54,8 @@ export default async function FeatureFlagsPage() {
                   const formId = `flag-${f.key}`;
                   return (
                     <tr key={f.key}>
-                      <td><span className="mono" style={{ fontWeight: 700 }}>{f.key}</span></td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: 12.5, maxWidth: 260 }}>{f.description || '—'}</td>
+                      <td><span className="mono" style={{ fontWeight: 500 }}>{f.key}</span></td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: 12.5, maxWidth: 260 }}>{f.description || '-'}</td>
                       <td>
                         <input type="checkbox" name="enabled" form={formId} defaultChecked={f.enabled} />
                       </td>

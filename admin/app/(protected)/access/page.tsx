@@ -180,7 +180,7 @@ export default async function AccessPage({ searchParams }: Props) {
                     const granted: string[] = a.permissions ?? [];
                     return (
                       <div key={a.id} className="table-card" style={{ padding: 16 }}>
-                        <div style={{ fontWeight: 700, marginBottom: 10, fontSize: 13.5 }}>{a.email}</div>
+                        <div style={{ fontWeight: 500, marginBottom: 10, fontSize: 13.5 }}>{a.email}</div>
                         <form action={setAdminPermissions.bind(null, a.id)} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
                             {ADMIN_PERMISSIONS.map((scope: AdminPermission) => (
@@ -235,7 +235,7 @@ export default async function AccessPage({ searchParams }: Props) {
                     <td>{e.admin_email}</td>
                     <td>{ACTION_LABELS[e.action] ?? e.action}</td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-                      {e.note ?? (e.target_id ? <span className="mono">{String(e.target_id).slice(0, 8)}</span> : '—')}
+                      {e.note ?? (e.target_id ? <span className="mono">{String(e.target_id).slice(0, 8)}</span> : '-')}
                     </td>
                     <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stampTime(e.created_at)}</td>
                   </tr>

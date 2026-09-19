@@ -85,15 +85,15 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
               return (
                 <tr key={r.id}>
                   <td>
-                    <div style={{ fontWeight: 700 }}>{person?.full_name ?? r.user_id.slice(0, 8)}</div>
+                    <div style={{ fontWeight: 500 }}>{person?.full_name ?? r.user_id.slice(0, 8)}</div>
                     <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
-                      {person?.email ?? '—'} · {person?.role ?? '—'}
+                      {person?.email ?? '-'} · {person?.role ?? '-'}
                     </div>
                   </td>
                   <td style={{ maxWidth: 280 }}>{r.reason || <span style={{ color: 'var(--text-muted)' }}>No reason given</span>}</td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(r.requested_at)}</td>
                   {status !== 'pending' && (
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{r.admin_note || '—'}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{r.admin_note || '-'}</td>
                   )}
                   {status === 'pending' && (
                     <td>

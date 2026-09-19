@@ -8,7 +8,7 @@ import { JobActivity } from '../../../components/JobActivity';
 const ACTIVE_STATUSES = ['accepted', 'in_progress', 'awaiting_completion_confirmation'];
 const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;
 const stamp = (date: string | null) =>
-  date ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date)) : '—';
+  date ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date)) : '-';
 
 export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -55,11 +55,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <div className="facts">
             <div>
               <label>Customer</label>
-              <strong>{customer?.full_name ?? '—'}</strong>
+              <strong>{customer?.full_name ?? '-'}</strong>
             </div>
             <div>
               <label>Provider</label>
-              <strong>{provider?.full_name ?? '—'}</strong>
+              <strong>{provider?.full_name ?? '-'}</strong>
             </div>
             <div>
               <label>Started</label>

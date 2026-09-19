@@ -8,7 +8,7 @@ export function CreateFlagForm() {
 
   return (
     <form action={action} className="table-card" style={{ padding: 20, marginBottom: 16, display: 'grid', gap: 12 }}>
-      <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>New flag</h3>
+      <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>New flag</h3>
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <input
           type="text"

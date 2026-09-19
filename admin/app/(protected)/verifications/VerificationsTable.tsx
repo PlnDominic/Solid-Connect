@@ -109,8 +109,8 @@ export function VerificationsTable({ rows, status }: { rows: Row[]; status: stri
                   <br />
                   <span className="mono">{row.id.slice(0, 8)}</span>
                 </td>
-                <td>{row.profiles?.provider_category ?? '—'}</td>
-                <td>{row.profiles?.area ?? '—'}</td>
+                <td>{row.profiles?.provider_category ?? '-'}</td>
+                <td>{row.profiles?.area ?? '-'}</td>
                 <td>{stamp(row.submitted_at)}</td>
                 <td>
                   <span className={`pill ${row.status}`}>{row.status}</span>

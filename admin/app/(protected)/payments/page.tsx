@@ -10,7 +10,7 @@ const statuses = ['all', 'pending', 'released', 'refunded', 'partially_refunded'
 const statusLabel: Record<string, string> = { partially_refunded: 'Partially refunded' };
 const label = (s: string) => statusLabel[s] ?? s[0].toUpperCase() + s.slice(1);
 const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;
-const stamp = (date: string | null) => (date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date)) : '—');
+const stamp = (date: string | null) => (date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date)) : '-');
 const SORTABLE = ['amount', 'status', 'created_at'];
 
 export default async function PaymentsPage({ searchParams }: Props) {
@@ -143,7 +143,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
               return (
                 <tr key={p.id}>
                   <td>
-                    {job ? <Link href={`/jobs/${job.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{job.title || 'Untitled'}</Link> : '—'}
+                    {job ? <Link href={`/jobs/${job.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{job.title || 'Untitled'}</Link> : '-'}
                     {p.refund_reason && (
                       <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>
                         {p.status === 'partially_refunded'
@@ -153,9 +153,9 @@ export default async function PaymentsPage({ searchParams }: Props) {
                       </div>
                     )}
                   </td>
-                  <td>{job ? nameMap[job.customer_id] ?? '—' : '—'}</td>
-                  <td>{job ? nameMap[job.provider_id] ?? '—' : '—'}</td>
-                  <td style={{ fontWeight: 700 }}>{currency(p.amount)}</td>
+                  <td>{job ? nameMap[job.customer_id] ?? '-' : '-'}</td>
+                  <td>{job ? nameMap[job.provider_id] ?? '-' : '-'}</td>
+                  <td style={{ fontWeight: 500 }}>{currency(p.amount)}</td>
                   <td>
                     <span className={`pill ${p.status === 'released' ? 'approved' : p.status === 'refunded' ? 'rejected' : 'pending'}`}>
                       {label(p.status)}
@@ -168,7 +168,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
                         {payout.status} · {currency(payout.net_amount)}
                       </Link>
                     ) : (
-                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>—</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>-</span>
                     )}
                   </td>
                   <td>

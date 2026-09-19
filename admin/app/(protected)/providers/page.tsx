@@ -135,17 +135,17 @@ export default async function ProvidersPage({ searchParams }: Props) {
                       {p.initials}
                     </div>
                     <div>
-                      <Link href={`/providers/${p.id}`} style={{ color: 'var(--accent-text)', fontWeight: 700 }}>{p.full_name}</Link>
+                      <Link href={`/providers/${p.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{p.full_name}</Link>
                       <br />
                       <span className="mono">{p.email ?? 'No email'}</span>
                     </div>
                   </div>
                 </td>
-                <td>{p.provider_category ?? '—'}</td>
-                <td>{p.area ?? '—'}</td>
+                <td>{p.provider_category ?? '-'}</td>
+                <td>{p.area ?? '-'}</td>
                 <td>
-                  <span style={{ fontWeight: 700, color: 'var(--accent)' }}>
-                    {p.provider_rating?.toFixed(1) ?? '—'} ★
+                  <span style={{ fontWeight: 500, color: 'var(--accent)' }}>
+                    {p.provider_rating?.toFixed(1) ?? '-'} ★
                   </span>
                 </td>
                 <td>{p.provider_jobs_count ?? 0}</td>

@@ -207,7 +207,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
                         </div>
                         <span>{prov.full_name}</span>
                       </div>
-                    ) : '—'}
+                    ) : '-'}
                   </td>
                   <td>
                     {cust ? (
@@ -217,7 +217,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
                         </div>
                         <span>{cust.full_name}</span>
                       </div>
-                    ) : '—'}
+                    ) : '-'}
                   </td>
                   <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
                     {r.comment || <span style={{ color: 'var(--text-muted)' }}>No comment</span>}
