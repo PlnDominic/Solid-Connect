@@ -4,6 +4,7 @@ import { createServerSupabase } from '../../lib/supabase';
 import { ADMIN_PERMISSIONS } from '../../lib/admin';
 import ThemeToggle from '../components/ThemeToggle';
 import NavLinks from '../components/NavLinks';
+import MobileSidebar from '../components/MobileSidebar';
 import LogoutButton from '../components/LogoutButton';
 
 export default async function ProtectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -24,7 +25,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
 
   return (
     <div className="shell">
-      <aside className="side">
+      <MobileSidebar>
         <div className="brand">
           <img src="/logo.jpeg" alt="" width={26} height={26} />
           Solid Connect
@@ -39,7 +40,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
           <div style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{admin.email}</div>
           <LogoutButton />
         </div>
-      </aside>
+      </MobileSidebar>
       <main className="main">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 12 }}>
           <form action="/search" style={{ flex: 1, maxWidth: 360 }}>

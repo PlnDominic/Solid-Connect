@@ -155,6 +155,8 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .nav a svg, .nav span svg { width: 18px; height: 18px; flex-shrink: 0; }
 .nav span { cursor: default; opacity: .45; }
 
+.mobile-bar, .side-backdrop { display: none; }
+
 .nav-divider { height: 1px; background: var(--border); margin: 12px; }
 
 .side-footer {
@@ -499,8 +501,35 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 }
 @media (max-width: 760px) {
   .shell { grid-template-columns: 1fr; }
-  .side { position: static; height: auto; }
-  .nav { flex-direction: row; overflow: auto; }
+  .mobile-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 40; height: 56px; padding: 0 16px;
+    background: var(--bg-sidebar); border-bottom: 1px solid var(--border);
+  }
+  .mobile-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.04em; font-size: 17px; }
+  .mobile-brand img { width: 26px; height: 26px; border-radius: 6px; }
+  .hamburger {
+    width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center;
+    background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);
+    transition: background .15s, transform .1s;
+  }
+  .hamburger:active { transform: scale(.94); }
+  .hamburger svg { width: 20px; height: 20px; }
+  .side-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 50;
+    background: rgba(0,0,0,.5); opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .side-backdrop.open { opacity: 1; pointer-events: auto; }
+  .side {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 60;
+    width: min(290px, 84vw); height: 100dvh;
+    transform: translateX(-100%); transition: transform .28s cubic-bezier(.4,0,.2,1);
+    box-shadow: none;
+  }
+  .side.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .nav { flex-direction: column; }
+  .nav a { padding: 11px 12px; }
   .main { padding: 20px 16px; }
   .stats-grid { grid-template-columns: 1fr; }
   .topline, .detail { display: block; }
