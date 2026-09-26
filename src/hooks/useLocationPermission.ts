@@ -20,6 +20,10 @@ export function useLocationPermission() {
   // starts a background re-check that can finish *after* the prompt and
   // overwrite a fresh "granted" with the stale "undetermined".
   const seq = useRef(0);
+  // True while request() is showing system pop-ups. iOS moves the app to
+  // 'inactive' and back for every system alert; re-checking then would
+  // race the request and could drop its result.
+  const requesting = useRef(false);
 
   const evaluate = useCallback(async (p: Location.LocationPermissionResponse, mine: number) => {
     let next: LocationPermissionState;
@@ -37,6 +41,7 @@ export function useLocationPermission() {
   }, [isWeb]);
 
   const refresh = useCallback(async () => {
+    if (requesting.current) return;
     const mine = ++seq.current;
     try {
       await evaluate(await Location.getForegroundPermissionsAsync(), mine);
@@ -76,13 +81,20 @@ export function useLocationPermission() {
     Linking.openSettings().catch(() => {});
   }, [isWeb]);
 
+  /** iPhone: straight to Settings > Privacy & Security > Location Services
+   * when iOS allows it, otherwise the app's own Settings page. */
+  const openLocationServicesSettings = useCallback(() => {
+    if (Platform.OS !== 'ios') return openSettings();
+    Linking.openURL('App-Prefs:Privacy&path=LOCATION').catch(() => openSettings());
+  }, [openSettings]);
+
   /** A pop-up with an Open Settings button, for the cases no system dialog
    * can fix from inside the app. */
   const promptSettings = useCallback(
-    (title: string, message: string) => {
+    (title: string, message: string, onOpen: () => void = openSettings) => {
       Alert.alert(title, message, [
         { text: 'Not now', style: 'cancel' },
-        { text: 'Open Settings', onPress: openSettings },
+        { text: 'Open Settings', onPress: onOpen },
       ]);
     },
     [openSettings],
@@ -99,8 +111,22 @@ export function useLocationPermission() {
    */
   const request = useCallback(async (): Promise<boolean> => {
     setAttempted(true);
+    requesting.current = true;
     const mine = ++seq.current;
     try {
+      // iPhone: with Location Services switched off for the whole phone,
+      // no app permission prompt can help, so say that first.
+      if (Platform.OS === 'ios' && !(await Location.hasServicesEnabledAsync().catch(() => true))) {
+        await evaluate(await Location.getForegroundPermissionsAsync(), mine);
+        if (mine === seq.current) setState('services_off');
+        promptSettings(
+          'Turn on Location Services',
+          'Location Services are off on this iPhone. In Settings, go to Privacy & Security > Location Services and switch it on, then come back.',
+          openLocationServicesSettings,
+        );
+        return false;
+      }
+
       let perm = await Location.getForegroundPermissionsAsync();
       if (!perm.granted && (perm.canAskAgain || isWeb)) {
         perm = await Location.requestForegroundPermissionsAsync();
@@ -111,7 +137,9 @@ export function useLocationPermission() {
         if (!isWeb && !perm.canAskAgain) {
           promptSettings(
             'Allow location access',
-            'Location access is off for this app. Open Settings, tap Location, and choose "While using the app".',
+            Platform.OS === 'ios'
+              ? 'Location is not allowed for this app. In Settings, tap Location and choose "While Using the App". (In Expo Go this is the Expo Go app setting.)'
+              : 'Location access is off for this app. Open Settings, tap Location, and choose "While using the app".',
           );
         }
         return false;
@@ -135,6 +163,7 @@ export function useLocationPermission() {
           Platform.OS === 'ios'
             ? 'Location Services are off on this iPhone. Open Settings > Privacy & Security > Location Services and switch them on.'
             : 'Location is off on this phone. Switch on Location in Settings (or from the quick settings panel), then come back.',
+          openLocationServicesSettings,
         );
         return false;
       }
@@ -142,8 +171,10 @@ export function useLocationPermission() {
     } catch {
       if (mine === seq.current) setState('denied');
       return false;
+    } finally {
+      requesting.current = false;
     }
-  }, [evaluate, isWeb, promptSettings]);
+  }, [evaluate, isWeb, promptSettings, openLocationServicesSettings]);
 
   // A browser never shows its prompt twice, and there's no Settings screen
   // to send someone to, so on the web a refusal is final until reload.
