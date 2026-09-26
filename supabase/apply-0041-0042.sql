@@ -12,6 +12,7 @@ drop policy if exists "the job's customer manages its payment" on public.payment
 drop policy if exists "the job's customer updates its payment" on public.payments;
 
 -- Only the two parties to the job (and admins) can see a payment.
+drop policy if exists "job parties and admins read payments" on public.payments;
 create policy "job parties and admins read payments" on public.payments
   for select using (
     public.is_admin()
@@ -24,6 +25,7 @@ create policy "job parties and admins read payments" on public.payments
 
 -- The accept-quote flow still creates the escrow row client-side, but it
 -- can only ever start as an untouched pending payment.
+drop policy if exists "job customer opens a pending payment" on public.payments;
 create policy "job customer opens a pending payment" on public.payments
   for insert with check (
     status = 'pending'
