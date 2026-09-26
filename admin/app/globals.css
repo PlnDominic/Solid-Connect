@@ -604,3 +604,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   .mini-bars { width: 72px; height: 44px; }
   .gauge-value { font-size: 26px; margin-top: -40px; }
 }
+
+.trend svg { width: 100%; height: auto; display: block; overflow: visible; }
+.trend-axis { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.viz-card .trend { margin-top: 2px; }

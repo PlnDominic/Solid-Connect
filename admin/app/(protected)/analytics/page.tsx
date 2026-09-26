@@ -55,28 +55,64 @@ function smoothPath(points: [number, number][]) {
   return d.join(' ');
 }
 
-function Sparkline({ data, color = 'var(--accent)', id }: { data: number[]; color?: string; id: string }) {
+function Sparkline({
+  data,
+  labels,
+  color = 'var(--accent)',
+  id,
+  format = fmt,
+  unit,
+}: {
+  data: number[];
+  labels: string[];
+  color?: string;
+  id: string;
+  format?: (n: number) => string;
+  unit: string;
+}) {
   if (!data.length) return null;
+  const W = 240;
+  const H = 84;
+  const pad = { l: 4, r: 8, t: 10, b: 6 };
+  const iw = W - pad.l - pad.r;
+  const ih = H - pad.t - pad.b;
   const max = Math.max(...data, 1);
-  const points: [number, number][] = data.map((v, i) => [
-    data.length === 1 ? 0 : (i / (data.length - 1)) * 100,
-    100 - (v / max) * 80,
-  ]);
-  const linePath = smoothPath(points);
-  const areaPath = `${linePath} L${points[points.length - 1][0]},100 L${points[0][0]},100 Z`;
+  const x = (i: number) => pad.l + (data.length === 1 ? iw / 2 : (i / (data.length - 1)) * iw);
+  const y = (v: number) => pad.t + ih - (v / max) * ih;
+  const points: [number, number][] = data.map((v, i) => [x(i), y(v)]);
+  const line = smoothPath(points);
+  const base = pad.t + ih;
+  const area = `${line} L${points[points.length - 1][0]},${base} L${points[0][0]},${base} Z`;
+  const last = points[points.length - 1];
   const gradientId = `spark-fill-${id}`;
+  const peak = Math.max(...data);
   return (
-    <div className="stat-card-spark">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+    <div className="trend">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${unit} over the last ${data.length} months`}>
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
-        <path d={areaPath} fill={`url(#${gradientId})`} stroke="none" />
-        <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {[0, 0.5, 1].map((g) => (
+          <line key={g} x1={pad.l} x2={W - pad.r} y1={pad.t + ih * g} y2={pad.t + ih * g} stroke="var(--border)" strokeDasharray={g === 1 ? undefined : '3 4'} strokeWidth="1" />
+        ))}
+        <path d={area} fill={`url(#${gradientId})`} />
+        <path d={line} fill="none" stroke={color} strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={last[0]} cy={last[1]} r="7" fill={color} opacity="0.18" />
+        <circle cx={last[0]} cy={last[1]} r="3.5" fill="var(--bg-card)" stroke={color} strokeWidth="2.25" />
+        {points.map(([px, py], i) => (
+          <circle key={i} cx={px} cy={py} r="7" fill="transparent">
+            <title>{`${labels[i]}: ${format(data[i])}`}</title>
+          </circle>
+        ))}
       </svg>
+      <div className="trend-axis">
+        <span>{labels[0]}</span>
+        <span>Peak {format(peak)}</span>
+        <span>{labels[labels.length - 1]}</span>
+      </div>
     </div>
   );
 }
@@ -461,7 +497,7 @@ export default async function AnalyticsPage() {
               <div className="stat-card-sub">{currency(pendingPayments)} pending</div>
             </div>
           </div>
-          <Sparkline data={revenueByMonth} color="var(--green)" id="revenue" />
+          <Sparkline data={revenueByMonth} labels={monthLabels} color="var(--green)" id="revenue" format={currency} unit="Revenue" />
           <div className="viz-foot">From released payments</div>
         </div>
         <div className="stat-card viz-card">
@@ -477,7 +513,7 @@ export default async function AnalyticsPage() {
               <div className="stat-card-sub">{verified} verified, {pending} pending</div>
             </div>
           </div>
-          <Sparkline data={cumulative(providersByMonth)} color="var(--purple)" id="providers" />
+          <Sparkline data={cumulative(providersByMonth)} labels={monthLabels} color="var(--purple)" id="providers" unit="Total providers" />
           <div className="viz-foot">Cumulative sign-ups, 12 months</div>
         </div>
       </div>
