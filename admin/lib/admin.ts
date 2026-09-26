@@ -82,7 +82,7 @@ export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
   payouts: 'Payouts',
   categories: 'Categories',
   reviews: 'Reviews',
-  accounts: 'Suspensions & deletion requests',
+  accounts: 'Suspensions, reports & deletion requests',
   broadcast: 'Broadcast',
 };
 

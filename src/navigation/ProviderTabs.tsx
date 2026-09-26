@@ -20,6 +20,7 @@ import { LanguageScreen } from '../screens/shared/LanguageScreen';
 import { NotificationsScreen } from '../screens/shared/NotificationsScreen';
 import { AccountSecurityScreen } from '../screens/shared/AccountSecurityScreen';
 import { ReferralScreen } from '../screens/shared/ReferralScreen';
+import { BlockedUsersScreen } from '../screens/shared/BlockedUsersScreen';
 import { LegalScreen } from '../screens/shared/LegalScreen';
 import { DisputeScreen } from '../screens/shared/DisputeScreen';
 import { ReceiptScreen } from '../screens/shared/ReceiptScreen';
@@ -85,6 +86,7 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
       <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />
       <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
+      <ProfileStackNav.Screen name="BlockedUsers" component={BlockedUsersScreen} />
       <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
     </ProfileStackNav.Navigator>
   );

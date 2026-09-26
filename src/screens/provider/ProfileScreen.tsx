@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  Ban,
   Bell,
   ChevronRight,
   Camera,
@@ -70,6 +71,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     rows: [
       { label: 'Invite friends', screen: 'Referral', icon: Users },
       { label: 'Terms & privacy', screen: 'Legal', icon: FileText },
+      { label: 'Blocked users', screen: 'BlockedUsers', icon: Ban },
       { label: 'Help & support', screen: 'HelpSupport', icon: LifeBuoy },
     ],
   },

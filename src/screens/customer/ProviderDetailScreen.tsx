@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Heart, MapPin, MessageCircle, Play, Share2, Star } from 'lucide-react-native';
+import { ArrowLeft, Flag, Heart, MapPin, MessageCircle, Play, Share2, Star } from 'lucide-react-native';
 import { ActivityIndicator, Image, Pressable, Alert, Share, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { fetchProviderCategories, type ProviderCategoryRow } from '../../api/identity';
@@ -8,6 +8,7 @@ import { usePortfolioPhotos } from '../../api/portfolio';
 import { useProvider } from '../../api/marketplace';
 import { useProviderReviews } from '../../api/reviews';
 import { useIsProviderSaved, useToggleSavedProvider } from '../../api/saved';
+import { ReportSheet } from '../../components/ReportSheet';
 import { recordProviderView } from '../../hooks/useRecentlyViewedProviders';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
@@ -40,6 +41,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
   const { data: reviews = [] } = useProviderReviews(providerId);
   const { data: saved = false } = useIsProviderSaved(profile?.id ?? null, providerId);
   const toggleSaved = useToggleSavedProvider();
+  const [reporting, setReporting] = useState(false);
   const [serviceRows, setServiceRows] = useState<ProviderCategoryRow[]>([]);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [bioExpanded, setBioExpanded] = useState(false);
@@ -187,19 +189,37 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>Provider Details</Text>
         {profile ? (
-          <Pressable
-            style={styles.iconBtn}
-            onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: provider.id, saved })}
-            accessibilityRole="button"
-            accessibilityLabel={saved ? 'Remove from saved providers' : 'Save this provider'}
-            accessibilityState={{ selected: saved }}
-          >
-            <Heart size={18} strokeWidth={2.2} color={saved ? colors.ink : colors.inkFaint} fill={saved ? colors.ink : 'transparent'} />
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable
+              style={styles.iconBtn}
+              onPress={() => setReporting(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Report this provider"
+            >
+              <Flag size={17} strokeWidth={2.2} color={colors.inkFaint} />
+            </Pressable>
+            <Pressable
+              style={styles.iconBtn}
+              onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: provider.id, saved })}
+              accessibilityRole="button"
+              accessibilityLabel={saved ? 'Remove from saved providers' : 'Save this provider'}
+              accessibilityState={{ selected: saved }}
+            >
+              <Heart size={18} strokeWidth={2.2} color={saved ? colors.ink : colors.inkFaint} fill={saved ? colors.ink : 'transparent'} />
+            </Pressable>
+          </View>
         ) : (
           <View style={styles.iconBtn} />
         )}
       </View>
+
+      <ReportSheet
+        visible={reporting}
+        onClose={() => setReporting(false)}
+        reportedId={provider.id}
+        reportedName={provider.full_name}
+        context="profile"
+      />
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <Pressable

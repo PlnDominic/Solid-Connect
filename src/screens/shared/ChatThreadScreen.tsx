@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, CheckCheck, ChevronLeft, ImagePlus } from 'lucide-react-native';
+import { ArrowUp, Check, CheckCheck, ChevronLeft, ImagePlus, MoreVertical } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {
   ActivityIndicator,
@@ -16,7 +16,9 @@ import {
 } from 'react-native';
 import { useMarkThreadRead, useMessages, useSendMessage, uploadChatPhoto } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
+import { friendlySafetyError, useBlockUser, useMyBlocks, useUnblockUser } from '../../api/safety';
 import { Avatar } from '../../components/Avatar';
+import { ReportSheet } from '../../components/ReportSheet';
 import { Screen } from '../../components/Screen';
 import { useTypingIndicator } from '../../hooks/useTypingIndicator';
 import { haptics } from '../../lib/haptics';
@@ -36,6 +38,11 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   const { peerTyping, notifyTyping } = useTypingIndicator(threadId, profile?.id);
   const [text, setText] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const { data: blocks = [] } = useMyBlocks(profile?.id);
+  const blockUser = useBlockUser(profile?.id);
+  const unblockUser = useUnblockUser(profile?.id);
+  const iBlockedThem = blocks.some((b) => b.blocked_id === peerId);
   const listRef = useRef<FlatList>(null);
 
   // Mark as read once on opening the thread, and again whenever a new
@@ -51,9 +58,33 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
     if (!text.trim() || !profile) return;
     const value = text.trim();
     setText('');
-    await sendMessage.mutateAsync({ threadId, senderId: profile.id, senderRole: profile.role, text: value });
-    haptics.light();
-    requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
+    try {
+      await sendMessage.mutateAsync({ threadId, senderId: profile.id, senderRole: profile.role, text: value });
+      haptics.light();
+      requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
+    } catch (err) {
+      setText(value);
+      Alert.alert('Message not sent', friendlySafetyError(err));
+    }
+  }
+
+  function openMenu() {
+    const name = peer?.full_name ?? 'this person';
+    Alert.alert(name, undefined, [
+      { text: 'Report', onPress: () => setReporting(true) },
+      iBlockedThem
+        ? { text: 'Unblock', onPress: () => unblockUser.mutate(peerId) }
+        : {
+            text: 'Block',
+            style: 'destructive',
+            onPress: () =>
+              Alert.alert(`Block ${name}?`, 'You will not be able to message each other. You can unblock later in Profile.', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Block', style: 'destructive', onPress: () => blockUser.mutate(peerId) },
+              ]),
+          },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   }
 
   async function handlePickPhoto() {
@@ -94,7 +125,18 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           <Text style={styles.peerName} numberOfLines={1}>{peer?.full_name}</Text>
           {peerTyping ? <Text style={styles.typingLabel}>typing…</Text> : null}
         </View>
+        <Pressable onPress={openMenu} hitSlop={12} style={styles.back} accessibilityRole="button" accessibilityLabel="Report or block">
+          <MoreVertical size={18} strokeWidth={2.2} color={colors.ink} />
+        </Pressable>
       </View>
+      <ReportSheet
+        visible={reporting}
+        onClose={() => setReporting(false)}
+        reportedId={peerId}
+        reportedName={peer?.full_name}
+        context="chat"
+        threadId={threadId}
+      />
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
         <FlatList
@@ -143,6 +185,14 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             );
           }}
         />
+        {iBlockedThem ? (
+          <View style={styles.inputRow}>
+            <Text style={[styles.typingLabel, { flex: 1, color: colors.inkMuted }]}>You blocked this person.</Text>
+            <Pressable onPress={() => unblockUser.mutate(peerId)} hitSlop={8} accessibilityRole="button">
+              <Text style={[styles.peerName, { fontSize: 14 }]}>Unblock</Text>
+            </Pressable>
+          </View>
+        ) : (
         <View style={styles.inputRow}>
           <Pressable
             style={styles.photoBtn}
@@ -179,6 +229,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             <ArrowUp size={18} strokeWidth={2.4} color={colors.white} />
           </Pressable>
         </View>
+        )}
       </KeyboardAvoidingView>
     </Screen>
   );
