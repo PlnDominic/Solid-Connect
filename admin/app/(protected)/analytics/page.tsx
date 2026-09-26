@@ -280,6 +280,7 @@ function BarChart({ data, labels, color = 'var(--accent)' }: { data: number[]; l
 export default async function AnalyticsPage() {
   const supabase = createAdminClient();
   const months = lastTwelveMonths();
+  const windowStart = `${months[0].key}-01T00:00:00Z`;
 
   const [
     providersRes,
@@ -293,9 +294,7 @@ export default async function AnalyticsPage() {
     paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
-    areaCentroidsRes,
-    providerAreasRes,
-    requestAreasRes,
+    areaCoverageRes,
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'provider'),
     supabase
@@ -318,12 +317,10 @@ export default async function AnalyticsPage() {
       .order('created_at', { ascending: false })
       .limit(5),
     supabase.from('provider_categories').select('category_id, categories(name)'),
-    supabase.from('payments').select('amount, status, created_at'),
-    supabase.from('jobs').select('started_at'),
-    supabase.from('profiles').select('created_at').eq('role', 'provider'),
-    supabase.from('area_centroids').select('name'),
-    supabase.from('profiles').select('area').eq('role', 'provider'),
-    supabase.from('service_requests').select('location_label'),
+    supabase.rpc('admin_dashboard_money', { p_since: windowStart }),
+    supabase.from('jobs').select('started_at').gte('started_at', windowStart),
+    supabase.from('profiles').select('created_at').eq('role', 'provider').gte('created_at', windowStart),
+    supabase.rpc('admin_area_coverage'),
   ]);
 
   const queryErrors = [
@@ -338,9 +335,7 @@ export default async function AnalyticsPage() {
     paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
-    areaCentroidsRes,
-    providerAreasRes,
-    requestAreasRes,
+    areaCoverageRes,
   ]
     .map((r) => r.error?.message)
     .filter(Boolean);
@@ -357,14 +352,13 @@ export default async function AnalyticsPage() {
     ? await supabase.from('jobs').select('id, title').in('id', reviewJobIds)
     : { data: [] as { id: string; title: string | null }[] };
   const jobTitleById = Object.fromEntries((reviewJobs ?? []).map((j) => [j.id, j.title]));
-  const paymentsData = paymentsRes.data ?? [];
-
-  const totalRevenue = paymentsData
-    .filter((p) => p.status === 'released' || p.status === 'completed' || p.status === 'paid')
-    .reduce((sum, p) => sum + (p.amount ?? 0), 0);
-  const pendingPayments = paymentsData
-    .filter((p) => p.status === 'pending' || p.status === 'held' || p.status === 'escrow')
-    .reduce((sum, p) => sum + (p.amount ?? 0), 0);
+  const money = (paymentsRes.data ?? { released_total: 0, pending_total: 0, by_month: [] }) as {
+    released_total: number;
+    pending_total: number;
+    by_month: { month: string; amount: number }[];
+  };
+  const totalRevenue = Number(money.released_total) || 0;
+  const pendingPayments = Number(money.pending_total) || 0;
   const completionRate = jobs > 0 ? ((completed / jobs) * 100).toFixed(1) : '0';
   const verificationRate = providers > 0 ? ((verified / providers) * 100).toFixed(1) : '0';
 
@@ -397,12 +391,9 @@ export default async function AnalyticsPage() {
   const providersByMonth = countByMonth((providersTimelineRes.data ?? []).map((p) => p.created_at));
   const monthLabels = months.map((m) => m.label);
 
-  const revenueBuckets: Record<string, number> = {};
-  for (const p of paymentsData) {
-    if (!p.created_at || !(p.status === 'released' || p.status === 'completed' || p.status === 'paid')) continue;
-    const key = monthKey(new Date(p.created_at));
-    revenueBuckets[key] = (revenueBuckets[key] || 0) + (p.amount ?? 0);
-  }
+  const revenueBuckets: Record<string, number> = Object.fromEntries(
+    money.by_month.map((row) => [row.month, Number(row.amount) || 0]),
+  );
   const revenueByMonth = months.map((m) => revenueBuckets[m.key] ?? 0);
 
   // Cumulative sparkline series from monthly signups / jobs
@@ -419,16 +410,13 @@ export default async function AnalyticsPage() {
   // whether the area name leads the string - "Achimota, Accra" matches
   // "Achimota". Areas with high demand and low supply are the actionable
   // signal here, so the table sorts by that ratio, worst first.
-  const areaNames = (areaCentroidsRes.data ?? []).map((a) => a.name);
-  const providerAreaValues = (providerAreasRes.data ?? []).map((p) => p.area ?? '');
-  const requestAreaValues = (requestAreasRes.data ?? []).map((r) => r.location_label ?? '');
-  const coverage = areaNames
-    .map((area) => {
-      const needle = area.toLowerCase();
-      const supply = providerAreaValues.filter((v) => v.toLowerCase().startsWith(needle)).length;
-      const demand = requestAreaValues.filter((v) => v.toLowerCase().startsWith(needle)).length;
-      return { area, supply, demand, ratio: demand / Math.max(supply, 1) };
-    })
+  const coverage = ((areaCoverageRes.data ?? []) as { area: string; supply: number; demand: number }[])
+    .map(({ area, supply, demand }) => ({
+      area,
+      supply: Number(supply),
+      demand: Number(demand),
+      ratio: Number(demand) / Math.max(Number(supply), 1),
+    }))
     .sort((a, b) => b.ratio - a.ratio);
 
   return (
