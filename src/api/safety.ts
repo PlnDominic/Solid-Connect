@@ -85,10 +85,26 @@ export function useReportUser(reporterId: string | null | undefined) {
   });
 }
 
+export function useCreateSafetyAlert(userId: string | null | undefined) {
+  return useMutation({
+    mutationFn: async (input: { jobId: string | null; lat: number | null; lng: number | null; note?: string }) => {
+      const { error } = await supabase.from('safety_alerts').insert({
+        user_id: userId as string,
+        job_id: input.jobId,
+        lat: input.lat,
+        lng: input.lng,
+        note: (input.note ?? '').trim(),
+      });
+      if (error) throw error;
+    },
+  });
+}
+
 export function friendlySafetyError(err: unknown): string {
   const message =
     err instanceof Error ? err.message : typeof err === 'object' && err && 'message' in err ? String((err as { message: unknown }).message) : '';
   if (message.includes('REPORT_RATE_LIMIT')) return 'You have sent a lot of reports today. Please try again tomorrow.';
+  if (message.includes('ALERT_RATE_LIMIT')) return 'You already sent several alerts. Our team has them. Call 112 if you are in danger.';
   if (message.includes('BLOCKED')) return 'You cannot message this person.';
   return 'Something went wrong. Please try again.';
 }

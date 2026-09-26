@@ -15,6 +15,10 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
   if (!user) redirect('/login');
   const { data: admin } = await supabase.from('admins').select('id, email, role, disabled_at, permissions').eq('id', user.id).maybeSingle();
   if (!admin || admin.disabled_at) { await supabase.auth.signOut(); redirect('/login?error=not-admin'); }
+  const { count: openSafetyAlerts } = await supabase
+    .from('safety_alerts')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'open');
   const initials = (admin.email ?? 'A').slice(0, 2).toUpperCase();
   // Owners implicitly hold every scope - only a support admin's own
   // permissions array actually narrows the sidebar (see NavLinks, which
@@ -42,6 +46,11 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
         </div>
       </MobileSidebar>
       <main className="main">
+        {openSafetyAlerts ? (
+          <a href="/safety" className="safety-banner">
+            {openSafetyAlerts} open safety alert{openSafetyAlerts === 1 ? '' : 's'}. Follow up now →
+          </a>
+        ) : null}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 12 }}>
           <form action="/search" style={{ flex: 1, maxWidth: 360 }}>
             <input type="text" name="q" placeholder="Search customers, providers, jobs…" className="search-input" />

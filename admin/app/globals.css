@@ -626,3 +626,5 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .flex-gap-8 { display: flex !important; gap: 8px !important; }
 .flex-wrap-10 { display: flex !important; gap: 10px !important; flex-wrap: wrap !important; }
 .empty-note { padding: 20px !important; color: var(--text-muted) !important; font-size: 13px !important; }
+
+.safety-banner { display: block; margin-bottom: 14px; padding: 12px 16px; border-radius: 10px; background: var(--red-bg); border: 1px solid var(--red); color: var(--red); font-size: 14px; font-weight: 500; }

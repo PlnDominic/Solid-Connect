@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert, Star } from 'lucide-react-native';
+import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert, Siren, Star } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useConfirmCompletion, useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
@@ -12,6 +12,7 @@ import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { JobManageSection } from '../../components/JobManageSection';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
+import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
@@ -31,6 +32,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   useReportJobLocation(job);
 
   const [showPayment, setShowPayment] = useState(false);
+  const [showSafety, setShowSafety] = useState(false);
 
   if (!job) return <Screen edges={['top']} />;
 
@@ -57,6 +59,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
     ...(job.status === 'completed'
       ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
+      : []),
+    ...(job.status !== 'completed' && job.status !== 'cancelled'
+      ? [{ key: 'safety', label: 'Safety', icon: Siren, onPress: () => setShowSafety(true), tone: 'danger' as const }]
       : []),
     { key: 'dispute', label: 'Dispute', icon: ShieldAlert, onPress: () => navigation.navigate('Dispute', { jobId: job.id }), tone: 'danger' },
   ];
@@ -160,6 +165,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           <Button title="Confirm" onPress={handleConfirm} loading={confirmCompletion.isPending} style={{ flex: 1, height: 48 }} />
         </View>
       </BottomSheet>
+
+      <SafetySheet visible={showSafety} onClose={() => setShowSafety(false)} job={job} peerName={provider?.full_name} />
     </Screen>
   );
 }

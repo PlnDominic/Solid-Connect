@@ -1,4 +1,5 @@
-import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert } from 'lucide-react-native';
+import { useState } from 'react';
+import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert, Siren } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useFinishJob, useJob, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
@@ -9,6 +10,7 @@ import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { JobManageSection } from '../../components/JobManageSection';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
+import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
@@ -26,6 +28,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const startJob = useStartJob();
   const finishJob = useFinishJob();
   useReportJobLocation(job);
+  const [showSafety, setShowSafety] = useState(false);
 
   if (!job) return <Screen edges={['top']} />;
 
@@ -102,6 +105,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     ...(job.status === 'completed'
       ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
       : []),
+    ...(job.status !== 'completed' && job.status !== 'cancelled'
+      ? [{ key: 'safety', label: 'Safety', icon: Siren, onPress: () => setShowSafety(true), tone: 'danger' as const }]
+      : []),
     { key: 'dispute', label: 'Dispute', icon: ShieldAlert, onPress: () => navigation.navigate('Dispute', { jobId: job.id }), tone: 'danger' },
   ];
 
@@ -175,6 +181,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           variant={primaryCta.variant}
         />
       </View>
+
+      <SafetySheet visible={showSafety} onClose={() => setShowSafety(false)} job={job} peerName={customer?.full_name} />
     </Screen>
   );
 }
