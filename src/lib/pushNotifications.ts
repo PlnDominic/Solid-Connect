@@ -2,15 +2,25 @@ import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+// Show pushes as banners even while the app is open.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 export type PushPermissionStatus = 'granted' | 'denied' | 'skipped';
 
 /**
  * Requests OS notification permission and, if granted, the device's Expo
  * push token - for job/quote alerts once a backend actually sends them.
- * There's no EAS project linked in this repo yet (no eas.json), so
- * getExpoPushTokenAsync has no projectId to call with; that's expected
- * right now, not a bug - it's wrapped so a missing/invalid projectId just
- * yields a null token instead of throwing. The permission outcome itself
+ * The token needs an EAS projectId (run `eas init`, which writes
+ * extra.eas.projectId into app.json); until then this yields a null token
+ * instead of throwing. Delivery is done server-side by the
+ * notifications_send_push trigger (migration 0043). The permission outcome itself
  * is still real and worth recording either way.
  */
 export async function registerForPushNotificationsAsync(): Promise<{

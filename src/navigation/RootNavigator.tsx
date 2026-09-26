@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { usePushRegistration } from '../hooks/usePushRegistration';
 import { useSyncAuthEmail } from '../hooks/useSyncAuthEmail';
 import { AuthFlowScreen } from '../screens/onboarding/AuthFlowScreen';
 import { useSessionStore } from '../store/useSessionStore';
@@ -14,6 +15,7 @@ function MainTabs() {
 
 export function RootNavigator() {
   useSyncAuthEmail();
+  usePushRegistration();
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
       <Stack.Screen name="Auth">

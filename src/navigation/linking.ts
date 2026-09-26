@@ -1,4 +1,5 @@
 import * as Linking from 'expo-linking';
+import * as Notifications from 'expo-notifications';
 import type { LinkingOptions } from '@react-navigation/native';
 
 // Only the destinations the app actually lets someone share externally:
@@ -14,8 +15,30 @@ import type { LinkingOptions } from '@react-navigation/native';
 // mounted - e.g. a providers/:id link opens straight to the right screen
 // for a signed-in customer, and simply doesn't resolve for a provider,
 // who has no such screen to send it to.
+function urlFromPush(response: Notifications.NotificationResponse | null | undefined): string | null {
+  const url = response?.notification.request.content.data?.url;
+  return typeof url === 'string' ? url : null;
+}
+
 export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
   prefixes: [Linking.createURL('/'), 'solidconnect://'],
+  // Tapping a push opens the screen named in its payload, whether the app
+  // was killed (getInitialURL) or already running (subscribe).
+  async getInitialURL() {
+    const pushUrl = urlFromPush(await Notifications.getLastNotificationResponseAsync());
+    return pushUrl ?? Linking.getInitialURL();
+  },
+  subscribe(listener) {
+    const linkSub = Linking.addEventListener('url', ({ url }) => listener(url));
+    const pushSub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const url = urlFromPush(response);
+      if (url) listener(url);
+    });
+    return () => {
+      linkSub.remove();
+      pushSub.remove();
+    };
+  },
   config: {
     screens: {
       Main: {
@@ -34,6 +57,7 @@ export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
           ProfileTab: {
             screens: {
               Referral: 'referral',
+              Notifications: 'notifications',
             },
           },
         },

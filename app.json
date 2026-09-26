@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Solid Connect",
+    "slug": "solid-connect",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -9,11 +9,23 @@
     "scheme": "solidconnect",
     "plugins": [
       "expo-apple-authentication",
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "color": "#3459d4"
+        }
+      ],
       [
         "expo-location",
         {
           "locationWhenInUsePermission": "Solid Connect uses your location to suggest your neighborhood, and shares it with your provider or customer only while a job is active."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Solid Connect needs access to your photos so you can attach pictures to requests, your portfolio and verification documents.",
+          "cameraPermission": "Solid Connect uses your camera so you can take photos for requests, your portfolio and verification documents."
         }
       ],
       "expo-video",
@@ -23,8 +35,11 @@
       "supportsTablet": true,
       "usesAppleSignIn": true,
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Solid Connect can use Face ID to unlock the app instead of typing your password every time."
-      }
+        "NSFaceIDUsageDescription": "Solid Connect can use Face ID to unlock the app instead of typing your password every time.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "com.solidconnect.app",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,10 +48,26 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.solidconnect.app",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_MEDIA_VIDEO",
+        "POST_NOTIFICATIONS",
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "description": "Find and book trusted local service providers in Ghana.",
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
