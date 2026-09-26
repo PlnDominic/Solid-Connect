@@ -36,7 +36,7 @@ export function Pagination({
   return (
     <div
       style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
         marginTop: 12, marginBottom: 16, fontSize: 13, color: 'var(--text-secondary)',
       }}
     >
