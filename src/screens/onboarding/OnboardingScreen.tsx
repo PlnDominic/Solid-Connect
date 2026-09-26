@@ -59,7 +59,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
 
   const slide = SLIDES[step];
   const isLocationStep = step === SLIDES.length - 1;
-  const locationBlocked = location.state === 'denied' && !location.canAskAgain;
+  const locationBlocked = location.blocked;
   const animatedStyle = { opacity: fade, transform: [{ translateY: slideY }] };
 
   // Location is required, so this step only continues once the phone has
@@ -94,12 +94,8 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
         <View style={styles.textWrap}>
           <Text style={styles.title}>{slide.title}</Text>
           <Text style={styles.copy}>{slide.body}</Text>
-          {isLocationStep && location.state === 'denied' ? (
-            <Text style={styles.deniedHint}>
-              {locationBlocked
-                ? 'Location is off for Solid Connect. Open Settings, choose Location, and allow access while using the app.'
-                : 'Solid Connect needs your location to work. Please allow access to continue.'}
-            </Text>
+          {isLocationStep && (location.state === 'denied' || location.attempted) ? (
+            <Text style={styles.deniedHint}>{location.helpText}</Text>
           ) : null}
         </View>
       </Animated.View>
@@ -107,7 +103,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
       <View style={styles.footer}>
         <StepDots count={SLIDES.length} activeIndex={step} />
         <Button
-          title={isLocationStep && locationBlocked ? 'Open Settings' : slide.cta}
+          title={isLocationStep && locationBlocked ? (location.isWeb ? 'Reload' : 'Open Settings') : slide.cta}
           variant={slide.isConfirmStep ? 'navy' : 'primary'}
           onPress={handleCta}
         />

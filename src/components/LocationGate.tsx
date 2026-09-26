@@ -15,7 +15,7 @@ import { Button } from './Button';
  * system Settings, so there is no extra step after switching it on.
  */
 export function LocationGate({ children }: { children: ReactNode }) {
-  const { state, canAskAgain, request, openSettings } = useLocationPermission();
+  const { state, blocked, helpText, isWeb, attempted, request, openSettings } = useLocationPermission();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
 
@@ -29,8 +29,6 @@ export function LocationGate({ children }: { children: ReactNode }) {
     );
   }
 
-  const blocked = state === 'denied' && !canAskAgain;
-
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.body}>
@@ -42,13 +40,11 @@ export function LocationGate({ children }: { children: ReactNode }) {
           Solid Connect uses your phone's location to find verified providers near you, estimate arrival times and show
           live job tracking. It is only shared with the other person while a job is active.
         </Text>
-        {blocked ? (
-          <Text style={styles.hint}>Location is turned off for Solid Connect. Open Settings, choose Location, and allow access while using the app.</Text>
-        ) : null}
+        {state === 'denied' || attempted ? <Text style={styles.hint}>{helpText}</Text> : null}
       </View>
       <View style={styles.footer}>
         <Button
-          title={blocked ? 'Open Settings' : 'Allow location access'}
+          title={blocked ? (isWeb ? 'Reload' : 'Open Settings') : 'Allow location access'}
           variant="navy"
           onPress={() => (blocked ? openSettings() : request())}
         />
