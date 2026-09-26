@@ -14,6 +14,7 @@ import {
   Moon,
   ShieldCheck,
   Star,
+  TrendingUp,
   UserCog,
   Users,
   Wallet,
@@ -46,6 +47,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     rows: [
       { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
       { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
+      { label: 'Earnings', screen: 'Earnings', icon: TrendingUp },
       { label: 'Payout details', screen: 'PayoutDetails', icon: Wallet },
     ],
   },
