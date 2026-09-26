@@ -111,8 +111,8 @@ export default async function PaymentsPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-        <nav className="tabs" style={{ margin: 0 }}>
+      <div className="toolbar">
+        <nav className="tabs m-0" >
           {statuses.map((s) => (
             <Link key={s} href={`/payments?status=${s}`} className={s === status ? 'selected' : ''}>
               {label(s)}
@@ -143,7 +143,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
               return (
                 <tr key={p.id}>
                   <td>
-                    {job ? <Link href={`/jobs/${job.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{job.title || 'Untitled'}</Link> : '-'}
+                    {job ? <Link href={`/jobs/${job.id}`} className="link-accent">{job.title || 'Untitled'}</Link> : '-'}
                     {p.refund_reason && (
                       <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>
                         {p.status === 'partially_refunded'
@@ -155,20 +155,20 @@ export default async function PaymentsPage({ searchParams }: Props) {
                   </td>
                   <td>{job ? nameMap[job.customer_id] ?? '-' : '-'}</td>
                   <td>{job ? nameMap[job.provider_id] ?? '-' : '-'}</td>
-                  <td style={{ fontWeight: 500 }}>{currency(p.amount)}</td>
+                  <td className="fw-500">{currency(p.amount)}</td>
                   <td>
                     <span className={`pill ${p.status === 'released' ? 'approved' : p.status === 'refunded' ? 'rejected' : 'pending'}`}>
                       {label(p.status)}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(p.created_at)}</td>
+                  <td className="text-muted-sm">{stamp(p.created_at)}</td>
                   <td>
                     {payout ? (
                       <Link href="/payouts" className={`pill ${payout.status === 'paid' ? 'approved' : 'pending'}`}>
                         {payout.status} · {currency(payout.net_amount)}
                       </Link>
                     ) : (
-                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>-</span>
+                      <span className="text-muted-sm">-</span>
                     )}
                   </td>
                   <td>

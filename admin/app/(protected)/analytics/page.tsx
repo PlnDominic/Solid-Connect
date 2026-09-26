@@ -352,6 +352,11 @@ export default async function AnalyticsPage() {
   const completed = completedRes.count ?? 0;
   const recentJobs = recentJobsRes.data ?? [];
   const recentReviews = recentReviewsRes.data ?? [];
+  const reviewJobIds = [...new Set(recentReviews.map((r) => r.job_id).filter(Boolean))] as string[];
+  const { data: reviewJobs } = reviewJobIds.length
+    ? await supabase.from('jobs').select('id, title').in('id', reviewJobIds)
+    : { data: [] as { id: string; title: string | null }[] };
+  const jobTitleById = Object.fromEntries((reviewJobs ?? []).map((j) => [j.id, j.title]));
   const paymentsData = paymentsRes.data ?? [];
 
   const totalRevenue = paymentsData
@@ -533,7 +538,7 @@ export default async function AnalyticsPage() {
               ]}
             />
           ) : (
-            <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>No activity in the last 12 months</div>
+            <div className="empty-note">No activity in the last 12 months</div>
           )}
         </div>
 
@@ -565,7 +570,7 @@ export default async function AnalyticsPage() {
               }))}
             />
           ) : (
-            <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>No provider data yet</div>
+            <div className="empty-note">No provider data yet</div>
           )}
         </div>
 
@@ -577,7 +582,7 @@ export default async function AnalyticsPage() {
           {providersByMonth.some((n) => n > 0) ? (
             <BarChart data={providersByMonth} labels={monthLabels} color="var(--purple)" />
           ) : (
-            <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>No sign-ups in the last 12 months</div>
+            <div className="empty-note">No sign-ups in the last 12 months</div>
           )}
         </div>
       </div>
@@ -586,7 +591,7 @@ export default async function AnalyticsPage() {
         <div className="table-card">
           <div className="table-card-header">
             <h3>Recent Jobs</h3>
-            <a className="table-link" href="/jobs" style={{ margin: 0 }}>
+            <a className="table-link m-0" href="/jobs" >
               View All →
             </a>
           </div>
@@ -606,7 +611,7 @@ export default async function AnalyticsPage() {
                     <td>
                       <strong>{job.title || 'Untitled Job'}</strong>
                     </td>
-                    <td style={{ fontWeight: 500 }}>{currency(job.price ?? 0)}</td>
+                    <td className="fw-500">{currency(job.price ?? 0)}</td>
                     <td>{job.location_label || '-'}</td>
                     <td>
                       <span className={`pill ${job.status === 'completed' ? 'approved' : 'pending'}`}>
@@ -644,9 +649,13 @@ export default async function AnalyticsPage() {
                       </div>
                     </td>
                     <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {review.job_id ? String(review.job_id).slice(0, 8) : '-'}
+                      {review.job_id ? (
+                        <a className="link-accent" href={`/jobs/${review.job_id}`}>
+                          {jobTitleById[review.job_id] || 'Untitled job'}
+                        </a>
+                      ) : '-'}
                     </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                    <td className="text-muted-sm">
                       {new Date(review.created_at).toLocaleDateString()}
                     </td>
                   </tr>

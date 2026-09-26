@@ -38,7 +38,7 @@ export function JobActivity({
         <div className="empty">No events recorded yet.</div>
       )}
 
-      <h2 style={{ marginTop: 28 }}>Chat transcript</h2>
+      <h2 className="mt-28">Chat transcript</h2>
       {messages.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, maxHeight: 360, overflowY: 'auto' }}>
           {messages.map((m) => (

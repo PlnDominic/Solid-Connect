@@ -110,7 +110,7 @@ export default async function CategoriesPage({ searchParams }: Props) {
                         placeholder="min"
                         style={{ width: 60, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
                       />
-                      <span style={{ color: 'var(--text-muted)' }}>–</span>
+                      <span className="text-muted">–</span>
                       <input
                         form={formId}
                         name="budget_max"
@@ -121,7 +121,7 @@ export default async function CategoriesPage({ searchParams }: Props) {
                       />
                     </div>
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{countByCategory[c.id] ?? 0}</td>
+                  <td className="text-muted-sm">{countByCategory[c.id] ?? 0}</td>
                   <td>
                     <form id={formId} action={updateCategory.bind(null, c.id)} />
                     <button form={formId} className="filter-btn" style={{ padding: '6px 14px' }}>Save</button>

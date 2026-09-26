@@ -49,7 +49,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
     <>
       <Link className="mono" href="/providers">← Back to providers</Link>
 
-      <div className="topline" style={{ marginTop: 20 }}>
+      <div className="topline mt-20" >
         <div>
           <p className="eyebrow">Provider</p>
           <h1 className="heading">{provider.full_name}</h1>
@@ -77,7 +77,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
 
           {categories.length > 0 && (
             <>
-              <h2 style={{ marginTop: 28 }}>Categories offered</h2>
+              <h2 className="mt-28">Categories offered</h2>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {categories.map((c, i) => (
                   <span key={i} className={`pill ${c.isPrimary ? 'approved' : 'pending'}`}>{c.name}{c.isPrimary ? ' · primary' : ''}</span>
@@ -86,7 +86,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
             </>
           )}
 
-          <h2 style={{ marginTop: 28 }}>Portfolio</h2>
+          <h2 className="mt-28">Portfolio</h2>
           {(portfolio ?? []).length > 0 ? (
             <div className="docs">
               {(portfolio ?? []).map((p) =>
@@ -109,35 +109,35 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
         <aside className="panel">
           <h2>Verification history</h2>
           {(verifications ?? []).length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="stack-10">
               {(verifications ?? []).map((v) => (
-                <Link key={v.id} href={`/verifications/${v.id}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <Link key={v.id} href={`/verifications/${v.id}`} className="row-between">
                   <span>{v.verification_type ?? 'IDENTITY'}</span>
                   <span className={`pill ${v.status}`}>{v.status}</span>
                 </Link>
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No submissions yet.</p>
+            <p className="text-muted-md">No submissions yet.</p>
           )}
 
-          <h2 style={{ marginTop: 28 }}>Recent jobs</h2>
+          <h2 className="mt-28">Recent jobs</h2>
           {(jobs ?? []).length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="stack-10">
               {(jobs ?? []).map((j) => (
-                <Link key={j.id} href={`/jobs/${j.id}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <Link key={j.id} href={`/jobs/${j.id}`} className="row-between">
                   <span>{j.title || 'Untitled'}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{currency(j.price)}</span>
+                  <span className="text-muted">{currency(j.price)}</span>
                 </Link>
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No jobs yet.</p>
+            <p className="text-muted-md">No jobs yet.</p>
           )}
 
-          <h2 style={{ marginTop: 28 }}>Reviews received</h2>
+          <h2 className="mt-28">Reviews received</h2>
           {(reviews ?? []).length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="stack-10">
               {(reviews ?? []).map((r, i) => (
                 <div key={i} style={{ fontSize: 13 }}>
                   <strong>{r.rating}★</strong>{r.comment ? `: ${r.comment}` : ''}
@@ -146,10 +146,10 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No reviews yet.</p>
+            <p className="text-muted-md">No reviews yet.</p>
           )}
 
-          <h2 style={{ marginTop: 28 }}>Account access</h2>
+          <h2 className="mt-28">Account access</h2>
           <SuspensionPanel
             id={provider.id}
             redirectPath={`/providers/${provider.id}`}

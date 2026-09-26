@@ -99,7 +99,7 @@ export default async function SettingsPage() {
           </div>
           <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>
             Managed through Supabase Auth. To change your password, email{' '}
-            <a href="mailto:support@solidconnect.co?subject=Admin%20password%20reset" style={{ color: 'var(--accent-text)' }}>
+            <a href="mailto:support@solidconnect.co?subject=Admin%20password%20reset" className="text-accent">
               support@solidconnect.co
             </a>{' '}
             - there&apos;s no self-service reset yet.

@@ -38,7 +38,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
     <>
       <Link className="mono" href="/jobs">← Back to jobs</Link>
 
-      <div className="topline" style={{ marginTop: 20 }}>
+      <div className="topline mt-20" >
         <div>
           <p className="eyebrow">Job</p>
           <h1 className="heading">{job.title || 'Untitled job'}</h1>
@@ -71,7 +71,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </div>
           </div>
 
-          <div style={{ marginTop: 28 }}>
+          <div className="mt-28">
             <JobActivity events={activity.events} messages={activity.messages} actorMap={activity.actorMap} />
           </div>
         </section>
@@ -79,14 +79,14 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
         <aside className="panel">
           <h2>Live location</h2>
           {!isActive ? (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>This job isn't currently active.</p>
+            <p className="text-muted-md">This job isn't currently active.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label>Provider</label>
                 {location?.provider_lat != null ? (
                   <p style={{ margin: '4px 0 0', fontSize: 13 }}>
-                    <a href={mapsUrl(location.provider_lat, location.provider_lng!)} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-text)' }}>
+                    <a href={mapsUrl(location.provider_lat, location.provider_lng!)} target="_blank" rel="noreferrer" className="text-accent">
                       Open in Maps
                     </a>
                     <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>· {formatRelativeTime(location.provider_updated_at!)}</span>
@@ -99,7 +99,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
                 <label>Customer</label>
                 {location?.customer_lat != null ? (
                   <p style={{ margin: '4px 0 0', fontSize: 13 }}>
-                    <a href={mapsUrl(location.customer_lat, location.customer_lng!)} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-text)' }}>
+                    <a href={mapsUrl(location.customer_lat, location.customer_lng!)} target="_blank" rel="noreferrer" className="text-accent">
                       Open in Maps
                     </a>
                     <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>· {formatRelativeTime(location.customer_updated_at!)}</span>
@@ -117,7 +117,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
             </div>
           )}
 
-          <h2 style={{ marginTop: 28 }}>Contact</h2>
+          <h2 className="mt-28">Contact</h2>
           <div className="facts" style={{ gridTemplateColumns: '1fr' }}>
             <div>
               <label>Customer phone</label>

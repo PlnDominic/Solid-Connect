@@ -40,7 +40,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
     <>
       <Link className="mono" href="/customers">← Back to customers</Link>
 
-      <div className="topline" style={{ marginTop: 20 }}>
+      <div className="topline mt-20" >
         <div>
           <p className="eyebrow">Customer</p>
           <h1 className="heading">{customer.full_name}</h1>
@@ -65,39 +65,39 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             <div><label>Area</label><strong>{customer.area}</strong></div>
           </div>
 
-          <h2 style={{ marginTop: 28 }}>Job history</h2>
+          <h2 className="mt-28">Job history</h2>
           {jobRows.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="stack-10">
               {jobRows.map((j) => (
-                <Link key={j.id} href={`/jobs/${j.id}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <Link key={j.id} href={`/jobs/${j.id}`} className="row-between">
                   <span>{j.title || 'Untitled'}</span>
-                  <span style={{ color: 'var(--text-muted)' }}>{currency(j.price)} · {j.status.replaceAll('_', ' ')}</span>
+                  <span className="text-muted">{currency(j.price)} · {j.status.replaceAll('_', ' ')}</span>
                 </Link>
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No jobs posted yet.</p>
+            <p className="text-muted-md">No jobs posted yet.</p>
           )}
         </section>
 
         <aside className="panel">
           <h2>Disputes filed</h2>
           {(disputes ?? []).length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="stack-10">
               {(disputes ?? []).map((d) => (
-                <Link key={d.id} href={`/disputes/${d.id}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <Link key={d.id} href={`/disputes/${d.id}`} className="row-between">
                   <span>{reasonLabel[d.reason] ?? d.reason}</span>
                   <span className={`pill ${d.status === 'resolved' ? 'approved' : 'pending'}`}>{d.status}</span>
                 </Link>
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No disputes filed.</p>
+            <p className="text-muted-md">No disputes filed.</p>
           )}
 
-          <h2 style={{ marginTop: 28 }}>Reviews written</h2>
+          <h2 className="mt-28">Reviews written</h2>
           {(reviews ?? []).length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="stack-10">
               {(reviews ?? []).map((r, i) => (
                 <div key={i} style={{ fontSize: 13 }}>
                   <strong>{r.rating}★</strong>{r.comment ? `: ${r.comment}` : ''}
@@ -106,10 +106,10 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
               ))}
             </div>
           ) : (
-            <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>No reviews written yet.</p>
+            <p className="text-muted-md">No reviews written yet.</p>
           )}
 
-          <h2 style={{ marginTop: 28 }}>Account access</h2>
+          <h2 className="mt-28">Account access</h2>
           <SuspensionPanel
             id={customer.id}
             redirectPath={`/customers/${customer.id}`}

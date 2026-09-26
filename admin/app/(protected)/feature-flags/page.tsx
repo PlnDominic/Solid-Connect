@@ -54,7 +54,7 @@ export default async function FeatureFlagsPage() {
                   const formId = `flag-${f.key}`;
                   return (
                     <tr key={f.key}>
-                      <td><span className="mono" style={{ fontWeight: 500 }}>{f.key}</span></td>
+                      <td><span className="mono fw-500" >{f.key}</span></td>
                       <td style={{ color: 'var(--text-muted)', fontSize: 12.5, maxWidth: 260 }}>{f.description || '-'}</td>
                       <td>
                         <input type="checkbox" name="enabled" form={formId} defaultChecked={f.enabled} />
@@ -73,9 +73,9 @@ export default async function FeatureFlagsPage() {
                           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>%</span>
                         </div>
                       </td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(f.updated_at)}</td>
+                      <td className="text-muted-sm">{stamp(f.updated_at)}</td>
                       <td>
-                        <div style={{ display: 'flex', gap: 8 }}>
+                        <div className="flex-gap-8">
                           <form id={formId} action={updateFlag.bind(null, f.key)} />
                           <button form={formId} className="filter-btn" style={{ padding: '6px 14px' }}>Save</button>
                           <form action={deleteFlag.bind(null, f.key)}>

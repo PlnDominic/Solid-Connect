@@ -131,7 +131,7 @@ export default async function AccessPage({ searchParams }: Props) {
                       <td>
                         <span className={`pill ${a.disabled_at ? 'rejected' : 'approved'}`}>{a.disabled_at ? 'Disabled' : 'Active'}</span>
                       </td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(a.created_at)}</td>
+                      <td className="text-muted-sm">{stamp(a.created_at)}</td>
                       {isOwner && (
                         <td>
                           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -167,7 +167,7 @@ export default async function AccessPage({ searchParams }: Props) {
           {isOwner && (admins ?? []).some((a) => a.role === 'support' && !a.disabled_at) && (
             <>
               <div className="page-header" style={{ marginTop: 28, marginBottom: 12 }}>
-                <h3 style={{ margin: 0 }}>Permissions</h3>
+                <h3 className="m-0">Permissions</h3>
                 <p className="page-header-sub" style={{ marginTop: 4 }}>
                   What each support admin can act on. Owners always have every scope, plus team management, the
                   audit log, and the commission rate - those three stay owner-only and aren&apos;t granted here.
@@ -181,7 +181,7 @@ export default async function AccessPage({ searchParams }: Props) {
                     return (
                       <div key={a.id} className="table-card" style={{ padding: 16 }}>
                         <div style={{ fontWeight: 500, marginBottom: 10, fontSize: 13.5 }}>{a.email}</div>
-                        <form action={setAdminPermissions.bind(null, a.id)} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <form action={setAdminPermissions.bind(null, a.id)} className="stack-10">
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
                             {ADMIN_PERMISSIONS.map((scope: AdminPermission) => (
                               <label key={scope} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5 }}>
@@ -234,10 +234,10 @@ export default async function AccessPage({ searchParams }: Props) {
                   <tr key={e.id}>
                     <td>{e.admin_email}</td>
                     <td>{ACTION_LABELS[e.action] ?? e.action}</td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                    <td className="text-muted-sm">
                       {e.note ?? (e.target_id ? <span className="mono">{String(e.target_id).slice(0, 8)}</span> : '-')}
                     </td>
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stampTime(e.created_at)}</td>
+                    <td className="text-muted-sm">{stampTime(e.created_at)}</td>
                   </tr>
                 )) : (
                   <tr><td colSpan={4} className="empty">No admin activity{activityFilterValid ? ' of this kind' : ''} yet.</td></tr>

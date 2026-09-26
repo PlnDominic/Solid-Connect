@@ -83,8 +83,8 @@ export default async function JobsPage({ searchParams }: Props) {
       <ErrorBanner errors={errors} />
 
       {/* Tabs + Search */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-        <nav className="tabs" style={{ margin: 0 }}>
+      <div className="toolbar">
+        <nav className="tabs m-0" >
           {statuses.map(s => (
             <Link
               key={s}
@@ -129,7 +129,7 @@ export default async function JobsPage({ searchParams }: Props) {
               const cust = customerMap[j.customer_id];
               return (
                 <tr key={j.id}>
-                  <td><Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{j.title || 'Untitled'}</Link></td>
+                  <td><Link href={`/jobs/${j.id}`} className="link-accent">{j.title || 'Untitled'}</Link></td>
                   <td>
                     {prov ? (
                       <div className="profile-cell">
@@ -150,14 +150,14 @@ export default async function JobsPage({ searchParams }: Props) {
                       </div>
                     ) : '-'}
                   </td>
-                  <td style={{ fontWeight: 500 }}>{currency(j.price ?? 0)}</td>
+                  <td className="fw-500">{currency(j.price ?? 0)}</td>
                   <td>{j.location_label ?? '-'}</td>
                   <td>
                     <span className={`pill ${j.status === 'completed' ? 'approved' : 'pending'}`}>
                       {j.status === 'completed' ? 'Completed' : 'In Progress'}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                  <td className="text-muted-sm">
                     {stamp(j.started_at)}
                   </td>
                 </tr>

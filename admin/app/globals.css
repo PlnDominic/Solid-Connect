@@ -608,3 +608,21 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .trend svg { width: 100%; height: auto; display: block; overflow: visible; }
 .trend-axis { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .viz-card .trend { margin-top: 2px; }
+
+/* ===== Utilities (replace repeated inline styles) ===== */
+.text-muted { color: var(--text-muted) !important; }
+.text-muted-sm { color: var(--text-muted) !important; font-size: 12px !important; }
+.text-muted-md { color: var(--text-muted) !important; font-size: 13px !important; }
+.text-accent { color: var(--accent-text) !important; }
+.text-green-sm { color: var(--green) !important; font-size: 13px !important; margin: 0 !important; }
+.link-accent { color: var(--accent-text) !important; font-weight: 500 !important; }
+.fw-500 { font-weight: 500 !important; }
+.m-0 { margin: 0 !important; }
+.mt-20 { margin-top: 20px !important; }
+.mt-28 { margin-top: 28px !important; }
+.stack-10 { display: flex !important; flex-direction: column !important; gap: 10px !important; }
+.row-between { display: flex !important; justify-content: space-between !important; font-size: 13px !important; }
+.toolbar { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 14px !important; flex-wrap: wrap !important; gap: 10px !important; }
+.flex-gap-8 { display: flex !important; gap: 8px !important; }
+.flex-wrap-10 { display: flex !important; gap: 10px !important; flex-wrap: wrap !important; }
+.empty-note { padding: 20px !important; color: var(--text-muted) !important; font-size: 13px !important; }

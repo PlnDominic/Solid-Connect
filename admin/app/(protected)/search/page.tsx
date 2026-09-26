@@ -65,12 +65,12 @@ export default async function SearchPage({ searchParams }: Props) {
                         <div className="profile-cell">
                           <div className="profile-avatar" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }}>{c.initials}</div>
                           <div>
-                            <Link href={`/customers/${c.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{c.full_name}</Link>
+                            <Link href={`/customers/${c.id}`} className="link-accent">{c.full_name}</Link>
                             <br /><span className="mono">{c.email ?? 'No email'}</span>
                           </div>
                         </div>
                       </td>
-                      <td style={{ color: 'var(--text-muted)' }}>{c.area}</td>
+                      <td className="text-muted">{c.area}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -89,13 +89,13 @@ export default async function SearchPage({ searchParams }: Props) {
                         <div className="profile-cell">
                           <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>{p.initials}</div>
                           <div>
-                            <Link href={`/providers/${p.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{p.full_name}</Link>
+                            <Link href={`/providers/${p.id}`} className="link-accent">{p.full_name}</Link>
                             <br /><span className="mono">{p.email ?? 'No email'}</span>
                           </div>
                         </div>
                       </td>
                       <td>{p.provider_category ?? '-'}</td>
-                      <td style={{ color: 'var(--text-muted)' }}>{p.area}</td>
+                      <td className="text-muted">{p.area}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -110,9 +110,9 @@ export default async function SearchPage({ searchParams }: Props) {
                 <tbody>
                   {(jobs ?? []).map((j) => (
                     <tr key={j.id}>
-                      <td><Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{j.title || 'Untitled'}</Link></td>
-                      <td style={{ color: 'var(--text-muted)' }}>{j.location_label}</td>
-                      <td style={{ fontWeight: 500 }}>{currency(j.price)}</td>
+                      <td><Link href={`/jobs/${j.id}`} className="link-accent">{j.title || 'Untitled'}</Link></td>
+                      <td className="text-muted">{j.location_label}</td>
+                      <td className="fw-500">{currency(j.price)}</td>
                       <td><span className={`pill ${j.status === 'completed' ? 'approved' : 'pending'}`}>{j.status.replaceAll('_', ' ')}</span></td>
                     </tr>
                   ))}

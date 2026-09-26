@@ -85,19 +85,19 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
               return (
                 <tr key={r.id}>
                   <td>
-                    <div style={{ fontWeight: 500 }}>{person?.full_name ?? r.user_id.slice(0, 8)}</div>
-                    <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>
+                    <div className="fw-500">{person?.full_name ?? r.user_id.slice(0, 8)}</div>
+                    <div className="text-muted-sm">
                       {person?.email ?? '-'} · {person?.role ?? '-'}
                     </div>
                   </td>
-                  <td style={{ maxWidth: 280 }}>{r.reason || <span style={{ color: 'var(--text-muted)' }}>No reason given</span>}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(r.requested_at)}</td>
+                  <td style={{ maxWidth: 280 }}>{r.reason || <span className="text-muted">No reason given</span>}</td>
+                  <td className="text-muted-sm">{stamp(r.requested_at)}</td>
                   {status !== 'pending' && (
-                    <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{r.admin_note || '-'}</td>
+                    <td className="text-muted-sm">{r.admin_note || '-'}</td>
                   )}
                   {status === 'pending' && (
                     <td>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div className="flex-gap-8">
                         <form action={completeAccountDeletion.bind(null, r.id)}>
                           <button className="filter-btn" style={{ padding: '6px 14px', color: 'var(--red)' }}>
                             Complete deletion

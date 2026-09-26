@@ -97,7 +97,7 @@ export default async function DisputesPage({ searchParams }: Props) {
             {rows.length > 0 ? rows.map((d) => (
               <tr key={d.id}>
                 <td>
-                  <Link href={`/disputes/${d.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>
+                  <Link href={`/disputes/${d.id}`} className="link-accent">
                     {jobMap[d.job_id] ?? d.job_id.slice(0, 8)}
                   </Link>
                   <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>{d.description}</div>
@@ -105,12 +105,12 @@ export default async function DisputesPage({ searchParams }: Props) {
                 <td>{reasonLabel[d.reason] ?? d.reason}</td>
                 <td>{nameMap[d.customer_id] ?? '-'}</td>
                 <td>{nameMap[d.provider_id] ?? '-'}</td>
-                <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(d.created_at)}</td>
+                <td className="text-muted-sm">{stamp(d.created_at)}</td>
                 <td>
                   {d.status === 'open' ? (
-                    <Link href={`/disputes/${d.id}`} className="table-link" style={{ margin: 0 }}>Review →</Link>
+                    <Link href={`/disputes/${d.id}`} className="table-link m-0" >Review →</Link>
                   ) : (
-                    <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>Closed {d.resolved_at ? stamp(d.resolved_at) : ''}</span>
+                    <span className="text-muted-sm">Closed {d.resolved_at ? stamp(d.resolved_at) : ''}</span>
                   )}
                 </td>
               </tr>

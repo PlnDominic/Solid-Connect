@@ -59,7 +59,7 @@ export function BroadcastForm() {
       </button>
 
       {state.error && <p className="notice">{state.error}</p>}
-      {state.success && <p style={{ color: 'var(--green)', fontSize: 13, margin: 0 }}>Sent to {state.count} recipient{state.count === 1 ? '' : 's'}.</p>}
+      {state.success && <p className="text-green-sm">Sent to {state.count} recipient{state.count === 1 ? '' : 's'}.</p>}
     </form>
   );
 }

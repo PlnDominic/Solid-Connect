@@ -9,7 +9,7 @@ export function CreateFlagForm() {
   return (
     <form action={action} className="table-card" style={{ padding: 20, marginBottom: 16, display: 'grid', gap: 12 }}>
       <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>New flag</h3>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <div className="flex-wrap-10">
         <input
           type="text"
           name="key"
@@ -34,7 +34,7 @@ export function CreateFlagForm() {
         Starts off, 0% rollout - turn it on and dial up the percentage once created.
       </p>
       {state.error && <p className="notice">{state.error}</p>}
-      {state.success && <p style={{ color: 'var(--green)', fontSize: 13, margin: 0 }}>Flag created.</p>}
+      {state.success && <p className="text-green-sm">Flag created.</p>}
     </form>
   );
 }

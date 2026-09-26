@@ -85,8 +85,8 @@ export default async function PayoutsPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-        <nav className="tabs" style={{ margin: 0 }}>
+      <div className="toolbar">
+        <nav className="tabs m-0" >
           {statuses.map((s) => (
             <Link key={s} href={`/payouts?status=${s}`} className={s === status ? 'selected' : ''}>
               {s[0].toUpperCase() + s.slice(1)}
@@ -120,14 +120,14 @@ export default async function PayoutsPage({ searchParams }: Props) {
                     {provider ? (
                       <div className="profile-cell">
                         <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)', width: 28, height: 28, fontSize: 10 }}>{provider.initials}</div>
-                        <Link href={`/providers/${r.provider_id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{provider.full_name}</Link>
+                        <Link href={`/providers/${r.provider_id}`} className="link-accent">{provider.full_name}</Link>
                       </div>
                     ) : '-'}
                   </td>
-                  <td>{job ? <Link href={`/jobs/${job.id}`} style={{ color: 'var(--accent-text)' }}>{job.title || 'Untitled'}</Link> : '-'}</td>
+                  <td>{job ? <Link href={`/jobs/${job.id}`} className="text-accent">{job.title || 'Untitled'}</Link> : '-'}</td>
                   <td>{currency(r.gross_amount)}</td>
-                  <td style={{ color: 'var(--text-muted)' }}>-{currency(r.commission_amount)}</td>
-                  <td style={{ fontWeight: 500 }}>{currency(r.net_amount)}</td>
+                  <td className="text-muted">-{currency(r.commission_amount)}</td>
+                  <td className="fw-500">{currency(r.net_amount)}</td>
                   <td>
                     <span className={`pill ${r.status === 'paid' ? 'approved' : r.status === 'failed' ? 'rejected' : 'pending'}`}>{r.status}</span>
                     {r.status === 'paid' && (
@@ -155,7 +155,7 @@ export default async function PayoutsPage({ searchParams }: Props) {
                         <button className="filter-btn" style={{ padding: '6px 12px' }}>Mark paid</button>
                       </form>
                     ) : (
-                      <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>-</span>
+                      <span className="text-muted-sm">-</span>
                     )}
                   </td>
                 </tr>

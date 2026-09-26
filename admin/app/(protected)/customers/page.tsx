@@ -103,7 +103,7 @@ export default async function CustomersPage({ searchParams }: Props) {
                       {c.initials}
                     </div>
                     <div>
-                      <Link href={`/customers/${c.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{c.full_name}</Link>
+                      <Link href={`/customers/${c.id}`} className="link-accent">{c.full_name}</Link>
                       <br />
                       <span className="mono">{c.email ?? 'No email'}</span>
                     </div>
@@ -111,8 +111,8 @@ export default async function CustomersPage({ searchParams }: Props) {
                 </td>
                 <td>{c.area ?? '-'}</td>
                 <td>{c.phone ?? '-'}</td>
-                <td><span style={{ fontWeight: 500 }}>{countMap[c.id] ?? 0}</span></td>
-                <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(c.created_at)}</td>
+                <td><span className="fw-500">{countMap[c.id] ?? 0}</span></td>
+                <td className="text-muted-sm">{stamp(c.created_at)}</td>
               </tr>
             )) : (
               <tr><td colSpan={5} className="empty">No customers found.</td></tr>

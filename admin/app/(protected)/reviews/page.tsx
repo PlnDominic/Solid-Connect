@@ -220,9 +220,9 @@ export default async function ReviewsPage({ searchParams }: Props) {
                     ) : '-'}
                   </td>
                   <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
-                    {r.comment || <span style={{ color: 'var(--text-muted)' }}>No comment</span>}
+                    {r.comment || <span className="text-muted">No comment</span>}
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(r.created_at)}</td>
+                  <td className="text-muted-sm">{stamp(r.created_at)}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {r.hidden_at && <span className="pill rejected">Hidden</span>}

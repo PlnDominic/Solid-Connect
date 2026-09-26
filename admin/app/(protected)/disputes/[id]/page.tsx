@@ -49,7 +49,7 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
     <>
       <Link className="mono" href="/disputes">← Back to disputes</Link>
 
-      <div className="topline" style={{ marginTop: 20 }}>
+      <div className="topline mt-20" >
         <div>
           <p className="eyebrow">Dispute</p>
           <h1 className="heading">{reasonLabel[dispute.reason] ?? dispute.reason}</h1>
@@ -83,7 +83,7 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
           </div>
           <p style={{ marginTop: 16, fontSize: 13.5, lineHeight: 1.5 }}>{dispute.description || 'No description provided.'}</p>
 
-          <h2 style={{ marginTop: 28 }}>Evidence: request photos</h2>
+          <h2 className="mt-28">Evidence: request photos</h2>
           <div className="docs">
             {photos.length > 0 ? photos.map((url: string) => (
               <a className="doc" key={url} href={url} target="_blank" rel="noreferrer" style={{ padding: 0, overflow: 'hidden' }}>
@@ -92,7 +92,7 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
             )) : <div className="doc">No photos were attached to the original request.</div>}
           </div>
 
-          <div style={{ marginTop: 28 }}>
+          <div className="mt-28">
             <JobActivity events={activity.events} messages={activity.messages} actorMap={activity.actorMap} />
           </div>
         </section>

@@ -9,7 +9,7 @@ export function InviteAdminForm() {
   return (
     <form action={action} className="table-card" style={{ padding: 20, marginBottom: 16, display: 'grid', gap: 12 }}>
       <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>Invite an admin</h3>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <div className="flex-wrap-10">
         <input
           type="email"
           name="email"
@@ -35,7 +35,7 @@ export function InviteAdminForm() {
         </button>
       </div>
       {state.error && <p className="notice">{state.error}</p>}
-      {state.success && <p style={{ color: 'var(--green)', fontSize: 13, margin: 0 }}>Invite sent.</p>}
+      {state.success && <p className="text-green-sm">Invite sent.</p>}
     </form>
   );
 }

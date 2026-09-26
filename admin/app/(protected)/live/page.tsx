@@ -41,7 +41,7 @@ function PartyCell({
       </div>
       {sharing ? (
         <div style={{ marginTop: 4, fontSize: 11.5 }}>
-          <a href={mapsUrl(lat!, lng!)} target="_blank" rel="noreferrer" className="mono" style={{ color: 'var(--accent-text)' }}>
+          <a href={mapsUrl(lat!, lng!)} target="_blank" rel="noreferrer" className="mono text-accent" >
             Open in Maps
           </a>
           <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>· {formatRelativeTime(updatedAt!)}</span>
@@ -120,7 +120,7 @@ export default async function LiveJobsPage() {
               return (
                 <tr key={j.id}>
                   <td>
-                    <Link href={`/jobs/${j.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{j.title || 'Untitled'}</Link>
+                    <Link href={`/jobs/${j.id}`} className="link-accent">{j.title || 'Untitled'}</Link>
                     <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>{j.location_label ?? '-'}</div>
                   </td>
                   <td>
@@ -145,7 +145,7 @@ export default async function LiveJobsPage() {
                       accentFg="var(--blue)"
                     />
                   </td>
-                  <td style={{ fontWeight: 500 }}>{distanceKm != null ? formatDistanceKm(distanceKm) : '-'}</td>
+                  <td className="fw-500">{distanceKm != null ? formatDistanceKm(distanceKm) : '-'}</td>
                   <td>
                     <span className="pill pending">{statusLabels[j.status] ?? j.status}</span>
                   </td>

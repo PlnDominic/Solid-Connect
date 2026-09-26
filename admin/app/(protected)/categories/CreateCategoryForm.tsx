@@ -9,7 +9,7 @@ export function CreateCategoryForm() {
   return (
     <form action={action} className="table-card" style={{ padding: 20, marginBottom: 16, display: 'grid', gap: 12 }}>
       <h3 style={{ margin: 0, fontSize: 15, fontWeight: 500 }}>Add a category</h3>
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+      <div className="flex-wrap-10">
         <input name="name" required placeholder="Name (e.g. Roofing)" className="search-input" style={{ flex: 2, minWidth: 160 }} />
         <input name="abbr" required maxLength={3} placeholder="Code (e.g. RF)" className="search-input" style={{ flex: 1, minWidth: 90 }} />
         <input name="default_label" placeholder="Default label (e.g. Roofing · Leak repair)" className="search-input" style={{ flex: 2, minWidth: 200 }} />
@@ -21,7 +21,7 @@ export function CreateCategoryForm() {
         </button>
       </div>
       {state.error && <p className="notice">{state.error}</p>}
-      {state.success && <p style={{ color: 'var(--green)', fontSize: 13, margin: 0 }}>Category added.</p>}
+      {state.success && <p className="text-green-sm">Category added.</p>}
     </form>
   );
 }

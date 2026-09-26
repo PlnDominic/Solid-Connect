@@ -83,7 +83,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
             className="search-input"
           />
         </form>
-        <form style={{ display: 'flex', gap: 8 }}>
+        <form className="flex-gap-8">
           <select
             name="category"
             defaultValue={category ?? ''}
@@ -135,7 +135,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
                       {p.initials}
                     </div>
                     <div>
-                      <Link href={`/providers/${p.id}`} style={{ color: 'var(--accent-text)', fontWeight: 500 }}>{p.full_name}</Link>
+                      <Link href={`/providers/${p.id}`} className="link-accent">{p.full_name}</Link>
                       <br />
                       <span className="mono">{p.email ?? 'No email'}</span>
                     </div>
@@ -160,7 +160,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
                     <span className="pill pending">Pending</span>
                   )}
                 </td>
-                <td style={{ color: 'var(--text-muted)', fontSize: 12 }}>{stamp(p.created_at)}</td>
+                <td className="text-muted-sm">{stamp(p.created_at)}</td>
               </tr>
             )) : (
               <tr><td colSpan={7} className="empty">No providers found.</td></tr>
