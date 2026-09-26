@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { usePushRegistration } from '../hooks/usePushRegistration';
 import { useSyncAuthEmail } from '../hooks/useSyncAuthEmail';
+import { LocationGate } from '../components/LocationGate';
 import { AuthFlowScreen } from '../screens/onboarding/AuthFlowScreen';
 import { useSessionStore } from '../store/useSessionStore';
 import { CustomerTabs } from './CustomerTabs';
@@ -10,7 +11,7 @@ const Stack = createNativeStackNavigator();
 
 function MainTabs() {
   const role = useSessionStore((s) => s.profile?.role);
-  return role === 'provider' ? <ProviderTabs /> : <CustomerTabs />;
+  return <LocationGate>{role === 'provider' ? <ProviderTabs /> : <CustomerTabs />}</LocationGate>;
 }
 
 export function RootNavigator() {

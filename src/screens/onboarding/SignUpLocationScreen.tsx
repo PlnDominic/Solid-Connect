@@ -58,7 +58,7 @@ export function SignUpLocationScreen({
             </Text>
           </View>
 
-          <AreaPicker value={value} onChangeValue={onChangeValue} />
+          <AreaPicker value={value} onChangeValue={onChangeValue} autoDetect />
         </ScrollView>
 
         <View style={styles.footer}>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { LocateFixed } from 'lucide-react-native';
 import { AREAS } from '../constants/areas';
@@ -13,7 +13,16 @@ const OTHER = 'Other';
  * shared between the sign-up location step and profile editing, so there's
  * one place that knows what a valid area looks like.
  */
-export function AreaPicker({ value, onChangeValue }: { value: string; onChangeValue: (v: string) => void }) {
+export function AreaPicker({
+  value,
+  onChangeValue,
+  autoDetect = false,
+}: {
+  value: string;
+  onChangeValue: (v: string) => void;
+  /** Fill the area from the phone's location on first show, if empty. */
+  autoDetect?: boolean;
+}) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const isKnownArea = AREAS.includes(value);
@@ -30,6 +39,19 @@ export function AreaPicker({ value, onChangeValue }: { value: string; onChangeVa
     setShowOther(false);
     onChangeValue(area);
   }
+
+  useEffect(() => {
+    if (!autoDetect || value.trim().length > 0) return;
+    let cancelled = false;
+    detectNearestArea().then((result) => {
+      if (!cancelled && 'area' in result) pick(result.area);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Runs once when the step opens; later edits are the person's own.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function useCurrentLocation() {
     setDetecting(true);

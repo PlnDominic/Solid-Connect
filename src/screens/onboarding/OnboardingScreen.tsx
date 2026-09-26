@@ -5,6 +5,7 @@ import { ShieldCheck } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
+import { useLocationPermission } from '../../hooks/useLocationPermission';
 import { fonts, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -43,6 +44,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const [step, setStep] = useState(0);
+  const location = useLocationPermission();
   const fade = useRef(new Animated.Value(0)).current;
   const slideY = useRef(new Animated.Value(10)).current;
 
@@ -57,14 +59,26 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
 
   const slide = SLIDES[step];
   const isLocationStep = step === SLIDES.length - 1;
+  const locationBlocked = location.state === 'denied' && !location.canAskAgain;
   const animatedStyle = { opacity: fade, transform: [{ translateY: slideY }] };
+
+  // Location is required, so this step only continues once the phone has
+  // actually granted it (already granted counts, e.g. on a re-install).
+  async function handleCta() {
+    if (!isLocationStep) return setStep((s) => s + 1);
+    if (location.state === 'granted') return onDone();
+    if (locationBlocked) return location.openSettings();
+    if (await location.request()) onDone();
+  }
 
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.skipRow}>
-        <Pressable onPress={onDone} hitSlop={14}>
-          <Text style={styles.skip}>Skip</Text>
-        </Pressable>
+        {isLocationStep ? null : (
+          <Pressable onPress={() => setStep(SLIDES.length - 1)} hitSlop={14}>
+            <Text style={styles.skip}>Skip</Text>
+          </Pressable>
+        )}
       </View>
 
       <Animated.View style={[styles.body, animatedStyle]}>
@@ -80,21 +94,23 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
         <View style={styles.textWrap}>
           <Text style={styles.title}>{slide.title}</Text>
           <Text style={styles.copy}>{slide.body}</Text>
+          {isLocationStep && location.state === 'denied' ? (
+            <Text style={styles.deniedHint}>
+              {locationBlocked
+                ? 'Location is off for Solid Connect. Open Settings, choose Location, and allow access while using the app.'
+                : 'Solid Connect needs your location to work. Please allow access to continue.'}
+            </Text>
+          ) : null}
         </View>
       </Animated.View>
 
       <View style={styles.footer}>
         <StepDots count={SLIDES.length} activeIndex={step} />
         <Button
-          title={slide.cta}
+          title={isLocationStep && locationBlocked ? 'Open Settings' : slide.cta}
           variant={slide.isConfirmStep ? 'navy' : 'primary'}
-          onPress={() => (isLocationStep ? onDone() : setStep((s) => s + 1))}
+          onPress={handleCta}
         />
-        {isLocationStep ? (
-          <Pressable onPress={onDone}>
-            <Text style={styles.notNow}>Not now</Text>
-          </Pressable>
-        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -147,12 +163,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
 
     footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg, gap: spacing.lg },
-    notNow: {
-      textAlign: 'center',
-      fontSize: 14.5,
-      fontFamily: fonts.medium,
-      color: colors.inkFaint,
-      letterSpacing: 0.1,
-    },
+    deniedHint: { fontSize: 13.5, lineHeight: 20, fontFamily: fonts.medium, color: colors.danger },
   });
 }
