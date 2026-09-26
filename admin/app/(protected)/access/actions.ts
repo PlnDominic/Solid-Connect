@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { ADMIN_PERMISSIONS, createAdminClient, requireOwner, type AdminPermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
+import { assertOk } from '../../../lib/payments';
 
 type ActionResult = { error?: string; success?: boolean };
 
@@ -52,6 +53,21 @@ export async function setAdminRole(id: string, formData: FormData): Promise<void
   if (!VALID_ROLES.includes(role)) return;
 
   const adminClient = createAdminClient();
+  const { data: target, error: targetError } = await adminClient.from('admins').select('role, disabled_at').eq('id', id).maybeSingle();
+  assertOk(targetError, 'Reading the admin');
+  if (!target || target.role === role) return;
+  if (target.role === 'owner') {
+    // Never let the team end up with no active owner: that would lock
+    // everyone out of team management, settings and the audit log.
+    const { count, error: countError } = await adminClient
+      .from('admins')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'owner')
+      .is('disabled_at', null)
+      .neq('id', id);
+    assertOk(countError, 'Counting owners');
+    if (id === owner.id || !count) return;
+  }
   const patch: Record<string, unknown> = { role };
   // A former owner demoted to support had no permissions row (owners
   // never store any - see inviteAdmin) - default them to every scope
@@ -61,7 +77,8 @@ export async function setAdminRole(id: string, formData: FormData): Promise<void
     const { data: current } = await adminClient.from('admins').select('permissions').eq('id', id).maybeSingle();
     if (!current?.permissions?.length) patch.permissions = [...ADMIN_PERMISSIONS];
   }
-  await adminClient.from('admins').update(patch).eq('id', id);
+  const { error: roleError } = await adminClient.from('admins').update(patch).eq('id', id);
+  assertOk(roleError, 'Changing the role');
   await logAdminAction(owner, 'CHANGED_ADMIN_ROLE', { targetType: 'admin', targetId: id, note: `Set role to ${role}` });
   revalidatePath('/access');
 }
@@ -80,7 +97,8 @@ export async function setAdminPermissions(id: string, formData: FormData): Promi
   const { data: target } = await adminClient.from('admins').select('role').eq('id', id).maybeSingle();
   if (!target || target.role !== 'support') return;
 
-  await adminClient.from('admins').update({ permissions: granted }).eq('id', id);
+  const { error: permError } = await adminClient.from('admins').update({ permissions: granted }).eq('id', id);
+  assertOk(permError, 'Saving permissions');
   await logAdminAction(owner, 'CHANGED_ADMIN_PERMISSIONS', {
     targetType: 'admin',
     targetId: id,
@@ -97,7 +115,8 @@ export async function setAdminDisabled(id: string, disabled: boolean): Promise<v
   if (!owner || id === owner.id) return;
 
   const adminClient = createAdminClient();
-  await adminClient.from('admins').update({ disabled_at: disabled ? new Date().toISOString() : null }).eq('id', id);
+  const { error: disableError } = await adminClient.from('admins').update({ disabled_at: disabled ? new Date().toISOString() : null }).eq('id', id);
+  assertOk(disableError, disabled ? 'Disabling the admin' : 'Enabling the admin');
   await logAdminAction(owner, disabled ? 'DISABLED_ADMIN' : 'ENABLED_ADMIN', { targetType: 'admin', targetId: id });
   revalidatePath('/access');
 }

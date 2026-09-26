@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requireOwner, createAdminClient } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
+import { assertOk } from '../../../lib/payments';
 
 /** Owner-only: the commission rate is a platform-wide revenue policy, not
  * routine ops work, so it gets the same gate as admin-team management
@@ -15,10 +16,11 @@ export async function updateCommission(formData: FormData): Promise<void> {
   if (!Number.isFinite(raw) || raw < 0 || raw > 100) return;
 
   const adminClient = createAdminClient();
-  await adminClient
+  const { error } = await adminClient
     .from('platform_config')
     .update({ commission_percent: raw, updated_at: new Date().toISOString(), updated_by: owner.id })
     .eq('id', true);
+  assertOk(error, 'Updating the commission rate');
 
   await logAdminAction(owner, 'UPDATED_COMMISSION', { targetType: 'platform_config', note: `Set to ${raw}%` });
   revalidatePath('/settings');
@@ -57,7 +59,8 @@ export async function purgeStorageQueue(): Promise<void> {
   for (const [bucketId, { ids, paths }] of byBucket) {
     const { error } = await adminClient.storage.from(bucketId).remove(paths);
     if (error) continue; // leave these queued - the next attempt will retry them
-    await adminClient.from('storage_purge_queue').update({ purged_at: new Date().toISOString() }).in('id', ids);
+    const { error: markError } = await adminClient.from('storage_purge_queue').update({ purged_at: new Date().toISOString() }).in('id', ids);
+    assertOk(markError, 'Recording purged files');
     purgedCount += ids.length;
   }
 

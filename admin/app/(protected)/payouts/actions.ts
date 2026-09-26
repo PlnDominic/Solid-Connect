@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { requirePermission, createAdminClient } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
+import { assertOk } from '../../../lib/payments';
 
 /** Records that Solid Connect actually sent a provider their payout -
  * the second leg of the two-leg model, distinct from (and later than)
@@ -18,7 +19,7 @@ export async function markPayoutPaid(id: string, formData: FormData): Promise<vo
   if (!method) return;
 
   const adminClient = createAdminClient();
-  await adminClient
+  const { error } = await adminClient
     .from('provider_payouts')
     .update({
       status: 'paid',
@@ -29,6 +30,7 @@ export async function markPayoutPaid(id: string, formData: FormData): Promise<vo
     })
     .eq('id', id)
     .eq('status', 'pending');
+  assertOk(error, 'Marking the payout paid');
 
   await logAdminAction(admin, 'MARKED_PAYOUT_PAID', {
     targetType: 'provider_payout',

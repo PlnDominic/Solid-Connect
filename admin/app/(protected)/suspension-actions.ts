@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, requirePermission } from '../../lib/admin';
 import { logAdminAction } from '../../lib/audit';
+import { assertOk } from '../../lib/payments';
 
 /** Freezes a customer or provider account. Enforcement is minimal and
  * deliberate: the mobile app checks suspended_at once at app-launch
@@ -16,10 +17,11 @@ export async function suspendProfile(id: string, redirectPath: string, formData:
   if (!reason) return;
 
   const adminClient = createAdminClient();
-  await adminClient
+  const { error } = await adminClient
     .from('profiles')
     .update({ suspended_at: new Date().toISOString(), suspended_reason: reason, suspended_by: admin.id })
     .eq('id', id);
+  assertOk(error, 'Suspending the account');
 
   await logAdminAction(admin, 'SUSPENDED_ACCOUNT', { targetType: 'profile', targetId: id, note: reason });
   revalidatePath(redirectPath);
@@ -30,10 +32,11 @@ export async function unsuspendProfile(id: string, redirectPath: string): Promis
   if (!admin) return;
 
   const adminClient = createAdminClient();
-  await adminClient
+  const { error } = await adminClient
     .from('profiles')
     .update({ suspended_at: null, suspended_reason: null, suspended_by: null })
     .eq('id', id);
+  assertOk(error, 'Restoring the account');
 
   await logAdminAction(admin, 'UNSUSPENDED_ACCOUNT', { targetType: 'profile', targetId: id });
   revalidatePath(redirectPath);

@@ -265,23 +265,12 @@ export function useConfirmCompletion() {
         });
         return res.data.payment;
       }
-      await supabase
-        .from('jobs')
-        .update({
-          status: 'completed',
-          step: 5,
-          completed_at: new Date().toISOString(),
-          customer_confirmed_at: new Date().toISOString(),
-        })
-        .eq('id', job.id);
-      const { data: payment, error } = await supabase
-        .from('payments')
-        .update({ status: 'released', released_at: new Date().toISOString() })
-        .eq('job_id', job.id)
-        .select('*')
-        .single();
+      const { data, error } = await supabase.rpc('confirm_job_completion', {
+        p_job_id: job.id,
+        p_customer_id: job.customer_id,
+      });
       if (error) throw error;
-      return payment as Payment;
+      return (data as { payment: Payment }).payment;
     },
     onSuccess: (_payment, job) => {
       queryClient.invalidateQueries({ queryKey: ['activeJob', 'customer', job.customer_id] });

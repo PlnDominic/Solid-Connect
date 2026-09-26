@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server';
-import { requireAdmin } from '../../../../lib/admin';
+import { requirePermission } from '../../../../lib/admin';
 import { createServerSupabase } from '../../../../lib/supabase';
 import { toCsv, csvResponse } from '../../../../lib/csv';
 
 const statuses = ['all', 'pending', 'paid', 'failed'];
 
 export async function GET(request: NextRequest) {
-  const admin = await requireAdmin();
+  const admin = await requirePermission('payouts');
   if (!admin) return new Response('Forbidden', { status: 403 });
 
   const statusParam = request.nextUrl.searchParams.get('status');
