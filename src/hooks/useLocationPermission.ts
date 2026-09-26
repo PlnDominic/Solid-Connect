@@ -1,40 +1,57 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Linking, Platform } from 'react-native';
 import * as Location from 'expo-location';
 
-export type LocationPermissionState = 'checking' | 'granted' | 'denied' | 'undetermined';
+export type LocationPermissionState = 'checking' | 'granted' | 'denied' | 'undetermined' | 'services_off';
 
 /**
- * The phone's real location permission. Re-checks whenever the app comes
- * back to the foreground, so granting it from the system Settings screen
- * (after being sent there) takes effect the moment the person returns.
+ * The phone's real location access: the app permission AND the device's
+ * location switch (a granted permission is useless with location off).
+ * Re-checks when the app returns to the foreground, so changing either in
+ * Settings takes effect the moment the person comes back.
  */
 export function useLocationPermission() {
   const [state, setState] = useState<LocationPermissionState>('checking');
   const [canAskAgain, setCanAskAgain] = useState(true);
   const [attempted, setAttempted] = useState(false);
   const isWeb = Platform.OS === 'web';
+  // Each check gets a number; only the newest one may update state. On iOS
+  // the permission alert itself flips AppState to inactive/active, which
+  // starts a background re-check that can finish *after* the prompt and
+  // overwrite a fresh "granted" with the stale "undetermined".
+  const seq = useRef(0);
 
-  const apply = useCallback((p: Location.LocationPermissionResponse) => {
+  const evaluate = useCallback(async (p: Location.LocationPermissionResponse, mine: number) => {
+    let next: LocationPermissionState;
+    if (!p.granted) {
+      next = p.status === Location.PermissionStatus.UNDETERMINED ? 'undetermined' : 'denied';
+    } else if (isWeb) {
+      next = 'granted';
+    } else {
+      const on = await Location.hasServicesEnabledAsync().catch(() => true);
+      next = on ? 'granted' : 'services_off';
+    }
+    if (mine !== seq.current) return;
     setCanAskAgain(p.canAskAgain);
-    setState(p.granted ? 'granted' : p.status === Location.PermissionStatus.UNDETERMINED ? 'undetermined' : 'denied');
-  }, []);
+    setState(next);
+  }, [isWeb]);
 
   const refresh = useCallback(async () => {
+    const mine = ++seq.current;
     try {
-      apply(await Location.getForegroundPermissionsAsync());
+      await evaluate(await Location.getForegroundPermissionsAsync(), mine);
     } catch {
-      setState('denied');
+      if (mine === seq.current) setState('denied');
     }
-  }, [apply]);
+  }, [evaluate]);
 
   useEffect(() => {
     refresh();
     const sub = AppState.addEventListener('change', (next) => {
       if (next === 'active') refresh();
     });
-    // Browsers report a permission change (e.g. the person allowed it from
-    // the address bar) without the app ever leaving the foreground.
+    // Browsers report a permission change (e.g. allowed from the address
+    // bar) without the app ever leaving the foreground.
     let permissionStatus: PermissionStatus | null = null;
     if (isWeb && typeof navigator !== 'undefined' && navigator.permissions?.query) {
       navigator.permissions
@@ -51,23 +68,28 @@ export function useLocationPermission() {
     };
   }, [refresh, isWeb]);
 
-  /** Shows the system prompt. Resolves true only when access was granted. */
+  /** Shows the system prompt (or Android's "turn on location" dialog).
+   * Resolves true only when location is actually usable. */
   const request = useCallback(async (): Promise<boolean> => {
     setAttempted(true);
+    const mine = ++seq.current;
     try {
       const result = await Location.requestForegroundPermissionsAsync();
-      apply(result);
-      return result.granted;
+      if (result.granted && !isWeb && Platform.OS === 'android' && !(await Location.hasServicesEnabledAsync())) {
+        await Location.enableNetworkProviderAsync().catch(() => {});
+      }
+      await evaluate(result, mine);
+      const usable = result.granted && (isWeb || (await Location.hasServicesEnabledAsync().catch(() => true)));
+      return usable;
     } catch {
-      setState('denied');
+      if (mine === seq.current) setState('denied');
       return false;
     }
-  }, [apply]);
+  }, [evaluate, isWeb]);
 
-  // A browser never shows its location prompt a second time, and there is
-  // no system Settings screen to send someone to, so on the web a refusal
-  // is final until they change it in the address bar and reload.
-  const blocked = state === 'denied' && (!canAskAgain || isWeb);
+  // A browser never shows its prompt twice, and there's no Settings screen
+  // to send someone to, so on the web a refusal is final until reload.
+  const blocked = (state === 'denied' && (!canAskAgain || isWeb)) || (state === 'services_off' && Platform.OS === 'ios');
 
   const openSettings = useCallback(() => {
     if (isWeb) {
@@ -77,12 +99,16 @@ export function useLocationPermission() {
     Linking.openSettings().catch(() => {});
   }, [isWeb]);
 
-  /** What to tell someone whose location is off, for this platform. */
-  const helpText = blocked
-    ? isWeb
-      ? 'Your browser is blocking location. Click the lock or tune icon next to the address bar, set Location to Allow, then press Reload.'
-      : 'Location is turned off for Solid Connect. Open Settings, choose Location, and allow access while using the app.'
-    : 'Solid Connect needs your location to work. Please allow access to continue.';
+  const helpText =
+    state === 'services_off'
+      ? Platform.OS === 'ios'
+        ? 'Location Services are turned off on this phone. Open Settings > Privacy & Security > Location Services and turn them on.'
+        : 'Location is turned off on this phone. Tap the button and turn it on, or switch on Location from the quick settings.'
+      : blocked
+        ? isWeb
+          ? 'Your browser is blocking location. Click the lock or tune icon next to the address bar, set Location to Allow, then press Reload.'
+          : 'Location is turned off for this app. Open Settings, choose Location, and allow access while using the app. In Expo Go, this is the Expo Go app\'s own setting.'
+        : 'Solid Connect needs your location to work. Please allow access to continue.';
 
   return { state, canAskAgain, blocked, attempted, isWeb, helpText, request, openSettings, refresh };
 }

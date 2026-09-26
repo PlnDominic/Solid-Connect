@@ -94,7 +94,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
         <View style={styles.textWrap}>
           <Text style={styles.title}>{slide.title}</Text>
           <Text style={styles.copy}>{slide.body}</Text>
-          {isLocationStep && (location.state === 'denied' || location.attempted) ? (
+          {isLocationStep && (location.state === 'denied' || location.state === 'services_off' || location.attempted) ? (
             <Text style={styles.deniedHint}>{location.helpText}</Text>
           ) : null}
         </View>

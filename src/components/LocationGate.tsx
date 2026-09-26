@@ -40,7 +40,7 @@ export function LocationGate({ children }: { children: ReactNode }) {
           Solid Connect uses your phone's location to find verified providers near you, estimate arrival times and show
           live job tracking. It is only shared with the other person while a job is active.
         </Text>
-        {state === 'denied' || attempted ? <Text style={styles.hint}>{helpText}</Text> : null}
+        {state === 'denied' || state === 'services_off' || attempted ? <Text style={styles.hint}>{helpText}</Text> : null}
       </View>
       <View style={styles.footer}>
         <Button

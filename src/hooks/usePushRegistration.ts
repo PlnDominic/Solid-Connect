@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import * as Notifications from 'expo-notifications';
 import { savePushSubscription } from '../api/profile';
 import { registerForPushNotificationsAsync } from '../lib/pushNotifications';
+import { getNotifications } from '../lib/runtime';
 import { useSessionStore } from '../store/useSessionStore';
 
 /**
@@ -15,7 +15,8 @@ export function usePushRegistration() {
   const setProfile = useSessionStore((s) => s.setProfile);
 
   useEffect(() => {
-    if (!profile) return;
+    const Notifications = getNotifications();
+    if (!profile || !Notifications) return;
     let cancelled = false;
     (async () => {
       try {

@@ -1,5 +1,5 @@
+import { getDevicePosition } from '../lib/devicePosition';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import * as Location from 'expo-location';
 import { apiFetch, isApiConfigured } from '../lib/api';
 import { AREAS } from '../constants/areas';
 import { haversineKm } from '../lib/geo';
@@ -80,11 +80,11 @@ export type DetectAreaResult =
  * granularity here, not an approximation of a finer one.
  */
 export async function detectNearestArea(): Promise<DetectAreaResult> {
-  const { status } = await Location.requestForegroundPermissionsAsync();
-  if (status !== 'granted') return { error: 'PERMISSION_DENIED' };
+  const pos = await getDevicePosition();
+  if (!pos.ok) return { error: pos.reason === 'PERMISSION_DENIED' ? 'PERMISSION_DENIED' : 'LOCATION_UNAVAILABLE' };
 
   try {
-    const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+    const position = { coords: { latitude: pos.lat, longitude: pos.lng } };
     let nearestArea: string | null = null;
     let nearestDistanceKm = Infinity;
     for (const [name, coords] of Object.entries(AREA_COORDS)) {

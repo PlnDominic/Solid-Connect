@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Alert, Linking, Pressable, Share, StyleSheet, Text, View } from 'react-native';
-import * as Location from 'expo-location';
+import { getDevicePosition } from '../lib/devicePosition';
 import { Phone, Share2, Siren } from 'lucide-react-native';
 import { friendlySafetyError, useCreateSafetyAlert } from '../api/safety';
 import { useSessionStore } from '../store/useSessionStore';
@@ -19,19 +19,8 @@ const EMERGENCY = [
 ];
 
 async function currentPosition(): Promise<{ lat: number; lng: number } | null> {
-  try {
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) return null;
-    const last = await Location.getLastKnownPositionAsync();
-    const fresh = await Promise.race([
-      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), 6000)),
-    ]);
-    const coords = fresh?.coords ?? last?.coords;
-    return coords ? { lat: coords.latitude, lng: coords.longitude } : null;
-  } catch {
-    return null;
-  }
+  const pos = await getDevicePosition();
+  return pos.ok ? { lat: pos.lat, lng: pos.lng } : null;
 }
 
 /**
