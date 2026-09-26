@@ -44,7 +44,7 @@ export function LocationGate({ children }: { children: ReactNode }) {
       </View>
       <View style={styles.footer}>
         <Button
-          title={blocked ? (isWeb ? 'Reload' : 'Open Settings') : 'Allow location access'}
+          title={blocked ? 'Reload' : 'Turn on location'}
           variant="navy"
           onPress={() => (blocked ? openSettings() : request())}
         />

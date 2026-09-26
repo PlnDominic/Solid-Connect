@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Linking, Platform } from 'react-native';
+import { Alert, AppState, Linking, Platform } from 'react-native';
 import * as Location from 'expo-location';
 
 export type LocationPermissionState = 'checking' | 'granted' | 'denied' | 'undetermined' | 'services_off';
@@ -68,29 +68,6 @@ export function useLocationPermission() {
     };
   }, [refresh, isWeb]);
 
-  /** Shows the system prompt (or Android's "turn on location" dialog).
-   * Resolves true only when location is actually usable. */
-  const request = useCallback(async (): Promise<boolean> => {
-    setAttempted(true);
-    const mine = ++seq.current;
-    try {
-      const result = await Location.requestForegroundPermissionsAsync();
-      if (result.granted && !isWeb && Platform.OS === 'android' && !(await Location.hasServicesEnabledAsync())) {
-        await Location.enableNetworkProviderAsync().catch(() => {});
-      }
-      await evaluate(result, mine);
-      const usable = result.granted && (isWeb || (await Location.hasServicesEnabledAsync().catch(() => true)));
-      return usable;
-    } catch {
-      if (mine === seq.current) setState('denied');
-      return false;
-    }
-  }, [evaluate, isWeb]);
-
-  // A browser never shows its prompt twice, and there's no Settings screen
-  // to send someone to, so on the web a refusal is final until reload.
-  const blocked = (state === 'denied' && (!canAskAgain || isWeb)) || (state === 'services_off' && Platform.OS === 'ios');
-
   const openSettings = useCallback(() => {
     if (isWeb) {
       if (typeof window !== 'undefined') window.location.reload();
@@ -99,12 +76,85 @@ export function useLocationPermission() {
     Linking.openSettings().catch(() => {});
   }, [isWeb]);
 
+  /** A pop-up with an Open Settings button, for the cases no system dialog
+   * can fix from inside the app. */
+  const promptSettings = useCallback(
+    (title: string, message: string) => {
+      Alert.alert(title, message, [
+        { text: 'Not now', style: 'cancel' },
+        { text: 'Open Settings', onPress: openSettings },
+      ]);
+    },
+    [openSettings],
+  );
+
+  /**
+   * Turns location on, step by step, with a pop-up at each step:
+   * 1. the system "Allow location?" permission prompt;
+   * 2. on Android, the system "Turn on device location" dialog, which
+   *    switches the phone's location on right there;
+   * 3. on iPhone (where apps can't switch Location Services on), a pop-up
+   *    that opens Settings.
+   * Resolves true only when location is actually usable.
+   */
+  const request = useCallback(async (): Promise<boolean> => {
+    setAttempted(true);
+    const mine = ++seq.current;
+    try {
+      let perm = await Location.getForegroundPermissionsAsync();
+      if (!perm.granted && (perm.canAskAgain || isWeb)) {
+        perm = await Location.requestForegroundPermissionsAsync();
+      }
+
+      if (!perm.granted) {
+        await evaluate(perm, mine);
+        if (!isWeb && !perm.canAskAgain) {
+          promptSettings(
+            'Allow location access',
+            'Location access is off for this app. Open Settings, tap Location, and choose "While using the app".',
+          );
+        }
+        return false;
+      }
+      if (isWeb) {
+        await evaluate(perm, mine);
+        return true;
+      }
+
+      if (Platform.OS === 'android') {
+        // Shows Google's "Turn on device location" dialog when location (or
+        // the network provider it needs) is off; resolves at once if it's on.
+        await Location.enableNetworkProviderAsync().catch(() => {});
+      }
+
+      const on = await Location.hasServicesEnabledAsync().catch(() => true);
+      await evaluate(perm, mine);
+      if (!on) {
+        promptSettings(
+          'Turn on location',
+          Platform.OS === 'ios'
+            ? 'Location Services are off on this iPhone. Open Settings > Privacy & Security > Location Services and switch them on.'
+            : 'Location is off on this phone. Switch on Location in Settings (or from the quick settings panel), then come back.',
+        );
+        return false;
+      }
+      return true;
+    } catch {
+      if (mine === seq.current) setState('denied');
+      return false;
+    }
+  }, [evaluate, isWeb, promptSettings]);
+
+  // A browser never shows its prompt twice, and there's no Settings screen
+  // to send someone to, so on the web a refusal is final until reload.
+  const blocked = state === 'denied' && isWeb;
+
   const helpText =
     state === 'services_off'
       ? Platform.OS === 'ios'
         ? 'Location Services are turned off on this phone. Open Settings > Privacy & Security > Location Services and turn them on.'
         : 'Location is turned off on this phone. Tap the button and turn it on, or switch on Location from the quick settings.'
-      : blocked
+      : blocked || (state === 'denied' && !canAskAgain)
         ? isWeb
           ? 'Your browser is blocking location. Click the lock or tune icon next to the address bar, set Location to Allow, then press Reload.'
           : 'Location is turned off for this app. Open Settings, choose Location, and allow access while using the app. In Expo Go, this is the Expo Go app\'s own setting.'

@@ -34,7 +34,7 @@ const SLIDES: Slide[] = [
   {
     title: 'Enable your location',
     body: 'We use your location to find verified pros near you in Accra and estimate accurate arrival times.',
-    cta: 'Allow location access',
+    cta: 'Turn on location',
     heroImage: require('../../../assets/images/onboarding/onboarding-3.jpg'),
     isConfirmStep: true,
   },
@@ -62,14 +62,19 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const locationBlocked = location.blocked;
   const animatedStyle = { opacity: fade, transform: [{ translateY: slideY }] };
 
-  // Location is required, so this step only continues once the phone has
-  // actually granted it (already granted counts, e.g. on a re-install).
+  // Location is required, so this step only continues once the phone's
+  // location is actually usable (already on counts, e.g. on a re-install).
   async function handleCta() {
     if (!isLocationStep) return setStep((s) => s + 1);
     if (location.state === 'granted') return onDone();
     if (locationBlocked) return location.openSettings();
-    if (await location.request()) onDone();
+    await location.request();
   }
+
+  // Coming back from Settings with location switched on continues by itself.
+  useEffect(() => {
+    if (isLocationStep && location.attempted && location.state === 'granted') onDone();
+  }, [isLocationStep, location.attempted, location.state, onDone]);
 
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
@@ -103,7 +108,7 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
       <View style={styles.footer}>
         <StepDots count={SLIDES.length} activeIndex={step} />
         <Button
-          title={isLocationStep && locationBlocked ? (location.isWeb ? 'Reload' : 'Open Settings') : slide.cta}
+          title={isLocationStep && locationBlocked ? 'Reload' : slide.cta}
           variant={slide.isConfirmStep ? 'navy' : 'primary'}
           onPress={handleCta}
         />
