@@ -81,57 +81,157 @@ function Sparkline({ data, color = 'var(--accent)', id }: { data: number[]; colo
   );
 }
 
-/* ── donut chart ──────────────────────────────────────────── */
-function Donut({
-  segments,
-  total,
-  centerLabel,
-}: {
-  segments: { color: string; pct: number; label: string; count: number }[];
-  total: number;
-  centerLabel: string;
-}) {
-  let acc = 0;
-  const grad = segments
-    .map((s) => {
-      const start = acc;
-      acc += s.pct;
-      return `${s.color} ${start}% ${acc}%`;
-    })
-    .join(', ');
+/* ── ring gauge (stat card) ───────────────────────────────── */
+function Ring({ pct, color = 'var(--accent)', label }: { pct: number; color?: string; label: string }) {
+  const r = 26;
+  const c = 2 * Math.PI * r;
+  const clamped = Math.min(100, Math.max(0, pct));
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
-      <div className="donut-wrap">
-        <div className="donut" style={{ background: `conic-gradient(${grad || 'var(--border) 0% 100%'})` }} />
-        <div className="donut-center">
-          <div className="num">{fmt(total)}</div>
-          <div className="lbl">{centerLabel}</div>
-        </div>
-      </div>
-      <div className="donut-legend">
-        {segments.map((s) => (
-          <span key={s.label}>
-            <span className="dot" style={{ background: s.color }} />
-            {s.label}
-            <span className="count">
-              {fmt(s.count)} ({s.pct.toFixed(1)}%)
-            </span>
-          </span>
-        ))}
-      </div>
+    <div className="ring" role="img" aria-label={`${label}: ${clamped.toFixed(0)}%`}>
+      <svg viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r={r} fill="none" stroke="var(--bg-input)" strokeWidth="7" />
+        <circle
+          cx="32" cy="32" r={r} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round"
+          strokeDasharray={`${(clamped / 100) * c} ${c}`} transform="rotate(-90 32 32)"
+        />
+      </svg>
+      <span>{clamped.toFixed(0)}%</span>
     </div>
   );
 }
 
-/* ── bar chart ────────────────────────────────────────────── */
-function BarChart({ data, labels }: { data: number[]; labels: string[] }) {
+/* ── mini bars (stat card) ────────────────────────────────── */
+function MiniBars({ data, color = 'var(--accent)' }: { data: number[]; color?: string }) {
+  const max = Math.max(...data, 1);
+  return (
+    <div className="mini-bars" aria-hidden="true">
+      {data.map((v, i) => (
+        <span
+          key={i}
+          style={{ height: `${Math.max(8, (v / max) * 100)}%`, background: color, opacity: i === data.length - 1 ? 1 : 0.35 + (i / data.length) * 0.4 }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ── area / line chart with axes ──────────────────────────── */
+function AreaChart({
+  series,
+  labels,
+}: {
+  series: { data: number[]; color: string; label: string }[];
+  labels: string[];
+}) {
+  const W = 640;
+  const H = 240;
+  const pad = { l: 34, r: 10, t: 12, b: 26 };
+  const iw = W - pad.l - pad.r;
+  const ih = H - pad.t - pad.b;
+  const rawMax = Math.max(...series.flatMap((s) => s.data), 1);
+  const step = rawMax <= 4 ? 1 : Math.ceil(rawMax / 4);
+  const max = step * 4;
+  const x = (i: number) => pad.l + (labels.length === 1 ? iw / 2 : (i / (labels.length - 1)) * iw);
+  const y = (v: number) => pad.t + ih - (v / max) * ih;
+  return (
+    <div>
+      <div className="chart-legend">
+        {series.map((s) => (
+          <span key={s.label}>
+            <i style={{ background: s.color }} />
+            {s.label}
+          </span>
+        ))}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="area-chart" role="img" aria-label={series.map((s) => s.label).join(' and ')}>
+        <defs>
+          {series.map((s, idx) => (
+            <linearGradient key={idx} id={`area-fill-${idx}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={s.color} stopOpacity="0.28" />
+              <stop offset="100%" stopColor={s.color} stopOpacity="0" />
+            </linearGradient>
+          ))}
+        </defs>
+        {[0, 1, 2, 3, 4].map((g) => {
+          const gv = step * g;
+          return (
+            <g key={g}>
+              <line x1={pad.l} x2={W - pad.r} y1={y(gv)} y2={y(gv)} stroke="var(--border)" strokeDasharray={g === 0 ? undefined : '3 4'} />
+              <text x={pad.l - 8} y={y(gv) + 4} textAnchor="end" fontSize="11" fill="var(--text-muted)">{gv}</text>
+            </g>
+          );
+        })}
+        {labels.map((l, i) => (
+          <text key={i} x={x(i)} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--text-muted)">{l}</text>
+        ))}
+        {series.map((s, idx) => {
+          const pts: [number, number][] = s.data.map((v, i) => [x(i), y(v)]);
+          const line = smoothPath(pts);
+          const area = `${line} L${pts[pts.length - 1][0]},${y(0)} L${pts[0][0]},${y(0)} Z`;
+          const last = pts[pts.length - 1];
+          return (
+            <g key={idx}>
+              {idx === 0 ? <path d={area} fill={`url(#area-fill-${idx})`} /> : null}
+              <path d={line} fill="none" stroke={s.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray={idx === 0 ? undefined : '6 5'} />
+              <circle cx={last[0]} cy={last[1]} r="4.5" fill="var(--bg-card)" stroke={s.color} strokeWidth="2.5" />
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+/* ── semicircle gauge ─────────────────────────────────────── */
+function Gauge({ pct, value, caption }: { pct: number; value: string; caption: string }) {
+  const r = 80;
+  const c = Math.PI * r;
+  const clamped = Math.min(100, Math.max(0, pct));
+  const arc = `M 20 100 A ${r} ${r} 0 0 1 180 100`;
+  return (
+    <div className="gauge" role="img" aria-label={`${caption}: ${value}`}>
+      <svg viewBox="0 0 200 112">
+        <path d={arc} fill="none" stroke="var(--bg-input)" strokeWidth="16" strokeLinecap="round" />
+        <path d={arc} fill="none" stroke="var(--accent)" strokeWidth="16" strokeLinecap="round" strokeDasharray={`${(clamped / 100) * c} ${c}`} />
+      </svg>
+      <div className="gauge-value">{value}</div>
+      <div className="gauge-caption">{caption}</div>
+    </div>
+  );
+}
+
+/* ── ranked horizontal bars ───────────────────────────────── */
+function HBars({ entries, total }: { entries: { label: string; count: number; color: string }[]; total: number }) {
+  const max = Math.max(...entries.map((e) => e.count), 1);
+  return (
+    <div className="hbars">
+      {entries.map((e) => (
+        <div key={e.label} className="hbar">
+          <div className="hbar-head">
+            <span>{e.label}</span>
+            <span className="hbar-count">
+              {fmt(e.count)} <em>{total > 0 ? ((e.count / total) * 100).toFixed(0) : 0}%</em>
+            </span>
+          </div>
+          <div className="hbar-track">
+            <div style={{ width: `${(e.count / max) * 100}%`, background: e.color }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── column chart ─────────────────────────────────────────── */
+function BarChart({ data, labels, color = 'var(--accent)' }: { data: number[]; labels: string[]; color?: string }) {
   const max = Math.max(...data, 1);
   return (
     <div className="bar-chart">
       {data.map((v, i) => (
         <div key={labels[i] ?? i} className="bar-col">
+          <span className="bar-value">{v > 0 ? v : ''}</span>
           <div className="bar-track">
-            <div className="bar-fill" style={{ height: `${(v / max) * 100}%` }} title={`${labels[i]}: ${v}`} />
+            <div className="bar-fill" style={{ height: `${(v / max) * 100}%`, background: color }} title={`${labels[i]}: ${v}`} />
           </div>
           <span className="bar-label">{labels[i]}</span>
         </div>
@@ -182,7 +282,7 @@ export default async function AnalyticsPage() {
       .order('created_at', { ascending: false })
       .limit(5),
     supabase.from('provider_categories').select('category_id, categories(name)'),
-    supabase.from('payments').select('amount, status'),
+    supabase.from('payments').select('amount, status, created_at'),
     supabase.from('jobs').select('started_at'),
     supabase.from('profiles').select('created_at').eq('role', 'provider'),
     supabase.from('area_centroids').select('name'),
@@ -256,6 +356,14 @@ export default async function AnalyticsPage() {
   const providersByMonth = countByMonth((providersTimelineRes.data ?? []).map((p) => p.created_at));
   const monthLabels = months.map((m) => m.label);
 
+  const revenueBuckets: Record<string, number> = {};
+  for (const p of paymentsData) {
+    if (!p.created_at || !(p.status === 'released' || p.status === 'completed' || p.status === 'paid')) continue;
+    const key = monthKey(new Date(p.created_at));
+    revenueBuckets[key] = (revenueBuckets[key] || 0) + (p.amount ?? 0);
+  }
+  const revenueByMonth = months.map((m) => revenueBuckets[m.key] ?? 0);
+
   // Cumulative sparkline series from monthly signups / jobs
   const cumulative = (series: number[]) => {
     let sum = 0;
@@ -307,71 +415,133 @@ export default async function AnalyticsPage() {
         </div>
       ) : null}
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-card-label">Pending Verifications</div>
-          <div className="stat-card-value" style={{ color: 'var(--accent)' }}>
-            {fmt(pending)}
+      <div className="stats-grid dash-stats">
+        <div className="stat-card viz-card">
+          <div className="viz-head">
+            <div className="stat-card-label">Pending Verifications</div>
+            <span className="viz-icon" style={{ background: 'var(--accent-secondary-bg)', color: 'var(--accent-secondary-text)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" /></svg>
+            </span>
           </div>
-          <div className="stat-card-sub">Awaiting admin review</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Jobs</div>
-          <div className="stat-card-value">{fmt(jobs)}</div>
-          <div className="stat-card-trend up">{completionRate}% completed</div>
-          <div className="stat-card-sub">
-            {completed} completed, {Math.max(0, jobs - completed)} open
+          <div className="viz-body">
+            <div>
+              <div className="stat-card-value">{fmt(pending)}</div>
+              <div className="stat-card-sub">Awaiting admin review</div>
+            </div>
+            <Ring pct={Number(verificationRate)} color="var(--green)" label="Providers verified" />
           </div>
-          <Sparkline data={jobsByMonth} id="jobs" />
+          <div className="viz-foot">{verificationRate}% of providers verified</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Revenue</div>
-          <div className="stat-card-value">{currency(totalRevenue)}</div>
-          <div className="stat-card-trend up">From released payments</div>
-          <div className="stat-card-sub">{currency(pendingPayments)} pending</div>
-          <Sparkline data={jobsByMonth.map((n) => n * Math.max(1, Math.round(totalRevenue / Math.max(jobs, 1))))} id="revenue" />
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Total Providers</div>
-          <div className="stat-card-value">{fmt(providers)}</div>
-          <div className="stat-card-trend up">{verificationRate}% verified</div>
-          <div className="stat-card-sub">
-            {verified} verified, {pending} pending
+        <div className="stat-card viz-card">
+          <div className="viz-head">
+            <div className="stat-card-label">Total Jobs</div>
+            <span className="viz-icon" style={{ background: 'var(--blue-bg)', color: 'var(--blue)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+            </span>
           </div>
-          <Sparkline data={cumulative(providersByMonth)} id="providers" />
+          <div className="viz-body">
+            <div>
+              <div className="stat-card-value">{fmt(jobs)}</div>
+              <div className="stat-card-sub">{completed} completed, {Math.max(0, jobs - completed)} open</div>
+            </div>
+            <MiniBars data={jobsByMonth} color="var(--blue)" />
+          </div>
+          <div className="viz-foot">{completionRate}% completion rate</div>
+        </div>
+        <div className="stat-card viz-card">
+          <div className="viz-head">
+            <div className="stat-card-label">Revenue</div>
+            <span className="viz-icon" style={{ background: 'var(--green-bg)', color: 'var(--green)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6" /></svg>
+            </span>
+          </div>
+          <div className="viz-body">
+            <div>
+              <div className="stat-card-value">{currency(totalRevenue)}</div>
+              <div className="stat-card-sub">{currency(pendingPayments)} pending</div>
+            </div>
+          </div>
+          <Sparkline data={revenueByMonth} color="var(--green)" id="revenue" />
+          <div className="viz-foot">From released payments</div>
+        </div>
+        <div className="stat-card viz-card">
+          <div className="viz-head">
+            <div className="stat-card-label">Total Providers</div>
+            <span className="viz-icon" style={{ background: 'var(--purple-bg)', color: 'var(--purple)' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0116 0" /></svg>
+            </span>
+          </div>
+          <div className="viz-body">
+            <div>
+              <div className="stat-card-value">{fmt(providers)}</div>
+              <div className="stat-card-sub">{verified} verified, {pending} pending</div>
+            </div>
+          </div>
+          <Sparkline data={cumulative(providersByMonth)} color="var(--purple)" id="providers" />
+          <div className="viz-foot">Cumulative sign-ups, 12 months</div>
         </div>
       </div>
 
       <div className="chart-row">
         <div className="chart-panel">
           <div className="chart-panel-header">
-            <h3>Jobs Overview</h3>
+            <h3>Jobs and Sign-ups</h3>
             <span className="badge">Last 12 months</span>
           </div>
-          {jobsByMonth.some((n) => n > 0) ? (
-            <BarChart data={jobsByMonth} labels={monthLabels} />
+          {jobsByMonth.some((n) => n > 0) || providersByMonth.some((n) => n > 0) ? (
+            <AreaChart
+              labels={monthLabels}
+              series={[
+                { data: jobsByMonth, color: 'var(--accent)', label: 'Jobs started' },
+                { data: providersByMonth, color: 'var(--purple)', label: 'New providers' },
+              ]}
+            />
           ) : (
-            <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>No jobs in the last 12 months</div>
+            <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>No activity in the last 12 months</div>
           )}
         </div>
 
         <div className="chart-panel">
           <div className="chart-panel-header">
+            <h3>Job Completion</h3>
+          </div>
+          <Gauge pct={Number(completionRate)} value={`${completionRate}%`} caption={`${completed} of ${fmt(jobs)} jobs completed`} />
+          <div className="gauge-legend">
+            <span><i style={{ background: 'var(--accent)' }} />Completed <b>{fmt(completed)}</b></span>
+            <span><i style={{ background: 'var(--bg-input)', border: '1px solid var(--border)' }} />Open <b>{fmt(Math.max(0, jobs - completed))}</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div className="bottom-row" style={{ marginBottom: 16 }}>
+        <div className="chart-panel">
+          <div className="chart-panel-header">
             <h3>Provider Categories</h3>
+            <span className="badge">{fmt(providers)} providers</span>
           </div>
           {catEntries.length > 0 ? (
-            <Donut
-              total={providers}
-              centerLabel="Providers"
-              segments={catEntries.slice(0, 5).map(([cat, count], i) => ({
-                color: ['var(--accent)', 'var(--blue)', 'var(--green)', 'var(--purple)', 'var(--red)'][i],
-                pct: totalCat > 0 ? (count / totalCat) * 100 : 0,
-                label: cat,
+            <HBars
+              total={totalCat}
+              entries={catEntries.slice(0, 6).map(([label, count], i) => ({
+                label,
                 count,
+                color: ['var(--accent)', 'var(--blue)', 'var(--green)', 'var(--purple)', 'var(--accent-secondary)', 'var(--red)'][i],
               }))}
             />
           ) : (
             <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>No provider data yet</div>
+          )}
+        </div>
+
+        <div className="chart-panel">
+          <div className="chart-panel-header">
+            <h3>Monthly Sign-ups</h3>
+            <span className="badge">New providers</span>
+          </div>
+          {providersByMonth.some((n) => n > 0) ? (
+            <BarChart data={providersByMonth} labels={monthLabels} color="var(--purple)" />
+          ) : (
+            <div style={{ padding: 20, color: 'var(--text-muted)', fontSize: 13 }}>No sign-ups in the last 12 months</div>
           )}
         </div>
       </div>
