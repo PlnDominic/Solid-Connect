@@ -7,6 +7,7 @@ import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
+import { JobManageSection } from '../../components/JobManageSection';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
@@ -89,7 +90,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
               variant: 'primary' as const,
             }
           : {
-              title: 'Completed',
+              title: job.status === 'cancelled' ? 'Job cancelled' : 'Completed',
               onPress: () => {},
               loading: false,
               disabled: true,
@@ -159,6 +160,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <Text style={styles.detailsSub}>{job.location_label}</Text>
           </View>
         </View>
+
+        {profile ? <JobManageSection job={job} role="provider" userId={profile.id} /> : null}
 
         <JobQuickActions actions={quickActions} />
       </ScrollView>

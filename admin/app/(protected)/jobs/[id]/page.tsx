@@ -16,7 +16,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
 
   const { data: job } = await supabase
     .from('jobs')
-    .select('id, title, price, location_label, status, customer_id, provider_id, started_at, completed_at')
+    .select('id, title, price, location_label, status, customer_id, provider_id, started_at, completed_at, scheduled_for, cancel_reason, cancel_note, cancelled_at')
     .eq('id', id)
     .maybeSingle();
   if (!job) notFound();
@@ -44,10 +44,20 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <h1 className="heading">{job.title || 'Untitled job'}</h1>
           <p className="intro">{job.location_label ?? 'No location on file'} · {currency(job.price)}</p>
         </div>
-        <span className={`pill ${job.status === 'completed' ? 'approved' : 'pending'}`}>
+        <span className={`pill ${job.status === 'completed' ? 'approved' : job.status === 'cancelled' ? 'rejected' : 'pending'}`}>
           {job.status.replaceAll('_', ' ')}
         </span>
       </div>
+
+      {job.scheduled_for ? (
+        <p className="text-muted-md">Scheduled for {new Date(job.scheduled_for).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+      ) : null}
+      {job.status === 'cancelled' ? (
+        <p className="notice">
+          Cancelled ({job.cancel_reason?.replaceAll('_', ' ') ?? 'no reason'}){job.cancel_note ? `: ${job.cancel_note}` : ''}.
+          {job.cancel_reason === 'no_show_customer' ? ' Payment was left pending for an admin decision.' : ''}
+        </p>
+      ) : null}
 
       <div className="detail">
         <section className="panel">

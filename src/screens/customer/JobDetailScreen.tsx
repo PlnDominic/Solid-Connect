@@ -10,6 +10,7 @@ import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
+import { JobManageSection } from '../../components/JobManageSection';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
@@ -124,6 +125,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </View>
         </View>
 
+        {profile ? <JobManageSection job={job} role="customer" userId={profile.id} /> : null}
+
         <JobQuickActions actions={quickActions} />
       </ScrollView>
 
@@ -136,6 +139,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           )
         ) : job.status === 'awaiting_completion_confirmation' ? (
           <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
+        ) : job.status === 'cancelled' ? (
+          <Button title="Job cancelled" onPress={() => {}} disabled />
         ) : (
           <Button
             title={job.status === 'in_progress' ? 'Work in progress' : 'Waiting for provider to start'}

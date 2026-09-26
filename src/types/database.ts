@@ -19,7 +19,10 @@ export type JobStatus =
   | 'accepted'
   | 'in_progress'
   | 'awaiting_completion_confirmation'
-  | 'completed';
+  | 'completed'
+  | 'cancelled';
+export type JobCancelReason = 'changed_mind' | 'provider_unavailable' | 'no_show_provider' | 'no_show_customer' | 'other';
+export type RescheduleStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
 export type PaymentStatus = 'pending' | 'released' | 'refunded';
 export type VerificationStatus = 'pending' | 'approved' | 'rejected';
 export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other';
@@ -135,6 +138,22 @@ export interface Job {
   completed_at: string | null;
   provider_completed_at?: string | null;
   customer_confirmed_at?: string | null;
+  scheduled_for?: string | null;
+  cancelled_at?: string | null;
+  cancelled_by?: string | null;
+  cancel_reason?: JobCancelReason | null;
+  cancel_note?: string | null;
+}
+
+export interface JobReschedule {
+  id: string;
+  job_id: string;
+  proposed_by: string;
+  proposed_for: string;
+  note: string;
+  status: RescheduleStatus;
+  created_at: string;
+  responded_at: string | null;
 }
 
 export interface Payment {

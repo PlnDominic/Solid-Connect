@@ -5,8 +5,16 @@ import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pa
 import { SortHeader } from '../../components/SortHeader';
 
 type Props = { searchParams: Promise<{ status?: string; q?: string; page?: string; sort?: string; dir?: string }> };
-const statuses = ['all', 'in_progress', 'completed'];
-const statusLabels: Record<string, string> = { all: 'All', in_progress: 'In Progress', completed: 'Completed' };
+const statuses = ['all', 'accepted', 'in_progress', 'awaiting_completion_confirmation', 'completed', 'cancelled'];
+const statusLabels: Record<string, string> = {
+  all: 'All',
+  accepted: 'Not started',
+  in_progress: 'In Progress',
+  awaiting_completion_confirmation: 'Awaiting confirmation',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+const statusPill = (s: string) => (s === 'completed' ? 'approved' : s === 'cancelled' ? 'rejected' : 'pending');
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
 const currency = (n: number) => `GH₵${n.toLocaleString('en-US')}`;
@@ -153,8 +161,8 @@ export default async function JobsPage({ searchParams }: Props) {
                   <td className="fw-500">{currency(j.price ?? 0)}</td>
                   <td>{j.location_label ?? '-'}</td>
                   <td>
-                    <span className={`pill ${j.status === 'completed' ? 'approved' : 'pending'}`}>
-                      {j.status === 'completed' ? 'Completed' : 'In Progress'}
+                    <span className={`pill ${statusPill(j.status)}`}>
+                      {statusLabels[j.status] ?? j.status}
                     </span>
                   </td>
                   <td className="text-muted-sm">

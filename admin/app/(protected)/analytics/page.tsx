@@ -602,7 +602,7 @@ export default async function AnalyticsPage() {
                     <td className="fw-500">{currency(job.price ?? 0)}</td>
                     <td>{job.location_label || '-'}</td>
                     <td>
-                      <span className={`pill ${job.status === 'completed' ? 'approved' : 'pending'}`}>
+                      <span className={`pill ${job.status === 'completed' ? 'approved' : job.status === 'cancelled' ? 'rejected' : 'pending'}`}>
                         {job.status === 'completed' ? 'Completed' : job.status?.replaceAll('_', ' ') || 'In progress'}
                       </span>
                     </td>

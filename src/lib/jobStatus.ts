@@ -1,4 +1,4 @@
-import { Check, Clock, Wrench, type LucideIcon } from 'lucide-react-native';
+import { Check, Clock, Wrench, XCircle, type LucideIcon } from 'lucide-react-native';
 import type { ThemeColors } from '../theme/ThemeProvider';
 import type { JobStatus } from '../types/database';
 
@@ -9,7 +9,7 @@ import type { JobStatus } from '../types/database';
  * exactly the jargon writing.md warns against. One shared table, one
  * wording per status per role, used everywhere a job's status is shown.
  */
-export type JobStatusTone = 'pending' | 'active' | 'confirm';
+export type JobStatusTone = 'pending' | 'active' | 'confirm' | 'cancelled';
 
 interface JobStatusMeta {
   tone: JobStatusTone;
@@ -48,6 +48,13 @@ export const JOB_STATUS_META: Record<JobStatus, JobStatusMeta> = {
     customerHint: 'Job completed. Payment released.',
     providerHint: 'Job completed. Payment released.',
   },
+  cancelled: {
+    tone: 'cancelled',
+    customerLabel: 'Cancelled',
+    providerLabel: 'Cancelled',
+    customerHint: 'This job was cancelled.',
+    providerHint: 'This job was cancelled.',
+  },
 };
 
 export function jobStatusLabel(status: JobStatus, role: 'customer' | 'provider'): string {
@@ -66,6 +73,7 @@ export function jobStatusHint(status: JobStatus, role: 'customer' | 'provider'):
  * orange, never a slightly different one per screen. */
 export function jobStatusToneColors(tone: JobStatusTone, colors: ThemeColors): { bg: string; fg: string } {
   if (tone === 'confirm') return { bg: colors.confirmBg, fg: colors.confirm };
+  if (tone === 'cancelled') return { bg: colors.dangerBg, fg: colors.danger };
   if (tone === 'active') return { bg: colors.activeBg, fg: colors.activeDeep };
   return { bg: colors.pendingBg, fg: colors.pending };
 }
@@ -74,6 +82,7 @@ export function jobStatusToneColors(tone: JobStatusTone, colors: ThemeColors): {
  * for "waiting on someone", Check for "done". */
 export function jobStatusToneIcon(tone: JobStatusTone): LucideIcon {
   if (tone === 'confirm') return Check;
+  if (tone === 'cancelled') return XCircle;
   if (tone === 'active') return Wrench;
   return Clock;
 }

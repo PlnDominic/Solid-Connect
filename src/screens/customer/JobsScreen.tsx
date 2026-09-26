@@ -55,8 +55,8 @@ export function JobsScreen({ navigation }: { navigation: any }) {
   const { data: reviewedJobIds } = useCustomerReviewedJobIds(profile?.id ?? null);
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
-  const activeJobs = jobs.filter((j) => j.status !== 'completed');
-  const historyJobs = jobs.filter((j) => j.status === 'completed');
+  const activeJobs = jobs.filter((j) => j.status !== 'completed' && j.status !== 'cancelled');
+  const historyJobs = jobs.filter((j) => j.status === 'completed' || j.status === 'cancelled');
 
   return (
     <Screen>

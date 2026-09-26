@@ -22,6 +22,7 @@ const PILL_LABEL: Record<JobStatus, string> = {
   in_progress: 'IN PROGRESS',
   awaiting_completion_confirmation: 'AWAITING',
   completed: 'DONE',
+  cancelled: 'CANCELLED',
 };
 
 const pulseStyles = StyleSheet.create({

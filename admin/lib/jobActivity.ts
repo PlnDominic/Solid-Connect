@@ -67,4 +67,10 @@ export const EVENT_LABELS: Record<string, string> = {
   PROVIDER_COMPLETED: 'Provider marked complete',
   CUSTOMER_CONFIRMED: 'Customer confirmed completion',
   MESSAGE_HINT: 'New message',
+  STARTED: 'Work started',
+  FINISHED: 'Work finished',
+  CANCELLED: 'Job cancelled',
+  RESCHEDULE_PROPOSED: 'New time proposed',
+  RESCHEDULE_ACCEPTED: 'New time accepted',
+  RESCHEDULE_DECLINED: 'New time declined',
 };
