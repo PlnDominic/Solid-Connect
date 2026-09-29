@@ -4,7 +4,7 @@ import { ArrowUpRight, MessageCircle } from 'lucide-react-native';
 import { useJobLocation } from '../hooks/useJobLocation';
 import { coordsForLabel } from '../api/location';
 import { useProvider } from '../api/marketplace';
-import { formatDistanceKm, formatRelativeTime, haversineKm, openInMaps } from '../lib/geo';
+import { estimateEtaMinutes, formatDistanceKm, formatEta, formatRelativeTime, haversineKm, openInMaps } from '../lib/geo';
 import { Avatar } from './Avatar';
 import { JobLiveMap } from './JobLiveMap';
 import { fonts, radii, shadow, spacing } from '../theme';
@@ -89,6 +89,16 @@ export function JobTrackingCard({
   const distanceKm =
     hasOther && hasMine ? haversineKm({ lat: myPoint.lat!, lng: myPoint.lng! }, { lat: otherPoint.lat!, lng: otherPoint.lng! }) : null;
 
+  // Before work starts the provider can check in; show that instead of the
+  // generic "READY". The ETA only makes sense while they're still travelling.
+  const pillLabel =
+    job.status === 'accepted' && job.arrived_at
+      ? 'ARRIVED'
+      : job.status === 'accepted' && job.en_route_at
+        ? 'ON THE WAY'
+        : PILL_LABEL[job.status];
+  const etaMinutes = job.status === 'accepted' && job.en_route_at && !job.arrived_at ? estimateEtaMinutes(distanceKm) : null;
+
   const reference = `JOB-${job.id.slice(0, 8).toUpperCase()}`;
   const badgeColor = job.status === 'in_progress' ? colors.active : colors.pendingOnDark;
   const fallbackCenter = coordsForLabel(job.location_label);
@@ -109,7 +119,7 @@ export function JobTrackingCard({
             </Text>
           </View>
           <View style={[styles.statusPill, { backgroundColor: badgeColor }]}>
-            <Text style={styles.statusPillText} numberOfLines={1}>{PILL_LABEL[job.status]}</Text>
+            <Text style={styles.statusPillText} numberOfLines={1}>{pillLabel}</Text>
           </View>
         </View>
       </View>
@@ -131,6 +141,7 @@ export function JobTrackingCard({
           <Text style={styles.infoValue} numberOfLines={1}>
             {!hasOther ? 'Waiting…' : distanceKm != null ? `${formatDistanceKm(distanceKm)} away` : 'Sharing…'}
           </Text>
+          {etaMinutes != null ? <Text style={styles.infoSub}>Arriving {formatEta(etaMinutes)}</Text> : null}
           {hasOther ? <Text style={styles.infoSub}>Updated {formatRelativeTime(otherPoint.updatedAt!)}</Text> : null}
         </View>
       </View>

@@ -164,6 +164,8 @@ export interface Payment {
   released_at: string | null;
   created_at: string;
 }
+  en_route_at?: string | null;
+  arrived_at?: string | null;
 
 export interface Review {
   id: string;

@@ -209,6 +209,27 @@ export function useStartJob() {
   });
 }
 
+/** Provider check-ins before work starts: "on my way" then "arrived".
+ * Both go straight to Supabase RPCs (no separate-API route exists for them). */
+export function useJobCheckIn(kind: 'en_route' | 'arrived') {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (job: Job) => {
+      const { data, error } = await supabase.rpc(kind === 'en_route' ? 'mark_en_route' : 'mark_arrived', {
+        p_job_id: job.id,
+        p_provider_id: job.provider_id,
+      });
+      if (error) throw error;
+      return data as Job;
+    },
+    onSuccess: (job) => {
+      queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+      queryClient.invalidateQueries({ queryKey: ['jobs', 'provider', job.provider_id] });
+      queryClient.invalidateQueries({ queryKey: ['activeJob', 'customer', job.customer_id] });
+    },
+  });
+}
+
 export function useFinishJob() {
   const queryClient = useQueryClient();
   return useMutation({
