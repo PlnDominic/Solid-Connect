@@ -70,6 +70,7 @@ export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
             },
           },
           ProfileTab: {
+              Dispute: 'jobs/:jobId/dispute',
             screens: {
               Referral: 'referral',
               Notifications: 'notifications',
