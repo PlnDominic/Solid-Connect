@@ -15,10 +15,11 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
   if (!user) redirect('/login');
   const { data: admin } = await supabase.from('admins').select('id, email, role, disabled_at, permissions').eq('id', user.id).maybeSingle();
   if (!admin || admin.disabled_at) { await supabase.auth.signOut(); redirect('/login?error=not-admin'); }
-  const { count: openSafetyAlerts } = await supabase
-    .from('safety_alerts')
-    .select('id', { count: 'exact', head: true })
-    .eq('status', 'open');
+  const [{ count: openSafetyAlerts }, { data: config }] = await Promise.all([
+    supabase.from('safety_alerts').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+    supabase.from('platform_config').select('support_email').eq('id', true).maybeSingle(),
+  ]);
+  const supportEmail = config?.support_email || 'support@solidconnect.co';
   const initials = (admin.email ?? 'A').slice(0, 2).toUpperCase();
   // Owners implicitly hold every scope - only a support admin's own
   // permissions array actually narrows the sidebar (see NavLinks, which
@@ -37,7 +38,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
         <NavLinks permissions={permissions} isOwner={isOwner} />
         <div className="help-card">
           <p>Need help?<br />Feel free to contact</p>
-          <a href="mailto:support@solidconnect.co">Get support →</a>
+          <a href={`mailto:${supportEmail}`}>Get support →</a>
         </div>
         <div className="side-footer">
           <div className="avatar">{initials}</div>

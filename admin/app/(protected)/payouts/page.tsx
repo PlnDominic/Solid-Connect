@@ -14,6 +14,8 @@ export default async function PayoutsPage({ searchParams }: Props) {
   const status = statuses.includes(requested ?? '') ? requested! : 'pending';
   const requestedPage = parsePage(pageRaw);
   const supabase = await createServerSupabase();
+  const { data: config } = await supabase.from('platform_config').select('default_payout_method').eq('id', true).maybeSingle();
+  const defaultPayoutMethod = config?.default_payout_method ?? '';
 
   const countQuery = () => {
     let q = supabase.from('provider_payouts').select('id', { count: 'exact', head: true });
@@ -142,7 +144,7 @@ export default async function PayoutsPage({ searchParams }: Props) {
                         <select
                           name="method"
                           required
-                          defaultValue=""
+                          defaultValue={defaultPayoutMethod}
                           style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
                         >
                           <option value="" disabled>Method</option>

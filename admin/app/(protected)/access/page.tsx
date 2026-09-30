@@ -40,6 +40,7 @@ const ACTION_LABELS: Record<string, string> = {
   UNSUSPENDED_ACCOUNT: 'unsuspended an account',
   SENT_BROADCAST: 'sent a broadcast',
   UPDATED_COMMISSION: 'updated the commission rate',
+  UPDATED_PLATFORM_SETTINGS: 'updated platform settings',
   PURGED_STORAGE_QUEUE: 'purged queued storage files',
   CREATED_FEATURE_FLAG: 'created a feature flag',
   UPDATED_FEATURE_FLAG: 'updated a feature flag',
