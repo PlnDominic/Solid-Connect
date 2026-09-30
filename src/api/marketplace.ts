@@ -43,10 +43,16 @@ function matchAreaName(needle: string) {
   return AREAS.find((a) => a.toLowerCase().includes(n) || n.includes(a.toLowerCase())) ?? null;
 }
 
-/** All providers, optionally filtered by category and/or area. Uses Nest geo search when API + area coords exist. */
-export function useAllProviders(categoryName?: string | null, areaNeedle?: string | null) {
+/** All providers, optionally filtered by category and/or area. Uses Nest geo search when API + area coords exist.
+ * `options.limit` caps rows fetched (browse screens paginate locally beyond that). */
+export function useAllProviders(
+  categoryName?: string | null,
+  areaNeedle?: string | null,
+  options?: { limit?: number },
+) {
+  const limit = options?.limit;
   return useQuery({
-    queryKey: ['providers', 'all', categoryName ?? null, areaNeedle ?? null, isApiConfigured()],
+    queryKey: ['providers', 'all', categoryName ?? null, areaNeedle ?? null, isApiConfigured(), limit ?? null],
     queryFn: async (): Promise<Profile[]> => {
       const areaName = areaNeedle?.trim() ? matchAreaName(areaNeedle) : null;
       const coords = areaName ? coordsForArea(areaName) : null;
@@ -64,7 +70,8 @@ export function useAllProviders(categoryName?: string | null, areaNeedle?: strin
         .from('profiles')
         .select('*')
         .eq('role', 'provider')
-        .order('provider_rating', { ascending: false });
+        .order('provider_rating', { ascending: false })
+        .limit(limit ?? 1000);
 
       if (categoryName) {
         const { data: cat } = await supabase
