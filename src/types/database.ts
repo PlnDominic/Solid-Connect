@@ -146,6 +146,15 @@ export interface Job {
 }
 
 export interface JobReschedule {
+  // Added in supabase/migrations/0055_quote_negotiation.sql. Optional so
+  // rows cached before the migration still typecheck.
+  items?: { label: string; amount: number }[];
+  proposed_start?: string | null;
+  counter_price?: number | null;
+  counter_note?: string | null;
+  counter_at?: string | null;
+  counter_declined_at?: string | null;
+  decline_reason?: string | null;
   id: string;
   job_id: string;
   proposed_by: string;

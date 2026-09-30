@@ -15,10 +15,14 @@ export function SlotPicker({
   providerId,
   value,
   onChange,
+  label = 'When do you need them?',
+  optionalHint = 'Optional - or agree a time with the provider later.',
 }: {
   providerId: string;
   value: string | null;
   onChange: (iso: string | null) => void;
+  label?: string;
+  optionalHint?: string;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -49,12 +53,12 @@ export function SlotPicker({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>When do you need them?</Text>
+      <Text style={styles.label}>{label}</Text>
 
       {isError || days.length === 0 ? (
         <Text style={styles.hint}>
-          {isError ? 'Could not load their availability.' : 'No open times in the next two weeks.'} You can still send the request and
-          agree a time in chat.
+          {isError ? 'Could not load availability.' : 'No open times in the next two weeks.'} You can still go ahead and agree a
+          time in chat.
         </Text>
       ) : (
         <>
@@ -97,7 +101,7 @@ export function SlotPicker({
             })}
           </View>
           <Text style={styles.hint}>
-            {value ? 'Tap the time again to leave it open.' : 'Optional - or agree a time with the provider later.'}
+            {value ? 'Tap the time again to leave it open.' : optionalHint}
           </Text>
         </>
       )}
