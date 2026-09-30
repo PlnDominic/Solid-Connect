@@ -1,7 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Clock, MapPin, Search, ShieldCheck, Star, X } from 'lucide-react-native';
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { friendlyQuoteError, useCounterQuote, useDeclineQuote } from '../../api/quotes';
 import { useCancelRequest, useMyActiveRequest, useNotifications } from '../../api/requests';
+import { BottomSheet } from '../../components/BottomSheet';
+import { validateCounter } from '../../lib/quoteLogic';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
@@ -49,19 +52,67 @@ function QuoteCard({
   request,
   onAccepted,
   onChat,
+  compareSelected,
+  onToggleCompare,
 }: {
   quote: Quote;
   request: ServiceRequest;
   onAccepted: (jobId: string) => void;
   onChat: (threadId: string, peerId: string) => void;
+  compareSelected: boolean;
+  onToggleCompare: () => void;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { data: provider } = useProvider(quote.provider_id);
   const acceptQuote = useAcceptQuote();
+  const counterQuote = useCounterQuote();
+  const declineQuote = useDeclineQuote();
   const profile = useSessionStore((s) => s.profile);
+  const [sheet, setSheet] = useState<'counter' | 'decline' | null>(null);
+  const [counterText, setCounterText] = useState('');
+  const [counterNote, setCounterNote] = useState('');
+  const [declineReason, setDeclineReason] = useState('');
+  const [sheetError, setSheetError] = useState<string | null>(null);
 
   if (!provider) return null;
+
+  const items = quote.items ?? [];
+  const counterPending = quote.counter_price != null;
+  const counterDeclined = !counterPending && !!quote.counter_declined_at;
+
+  function closeSheet() {
+    setSheet(null);
+    setSheetError(null);
+  }
+
+  async function submitCounter() {
+    const amount = parseInt(counterText.replace(/[^\d]/g, ''), 10);
+    const problem = validateCounter(quote.price, amount);
+    if (problem) {
+      setSheetError(problem);
+      return;
+    }
+    try {
+      await counterQuote.mutateAsync({ quoteId: quote.id, price: amount, note: counterNote.trim() });
+      haptics.success();
+      setCounterText('');
+      setCounterNote('');
+      closeSheet();
+    } catch (e) {
+      setSheetError(friendlyQuoteError(e));
+    }
+  }
+
+  async function submitDecline() {
+    try {
+      await declineQuote.mutateAsync({ quoteId: quote.id, reason: declineReason.trim() });
+      setDeclineReason('');
+      closeSheet();
+    } catch (e) {
+      setSheetError(friendlyQuoteError(e));
+    }
+  }
 
   async function handleAccept() {
     if (!profile) return;
@@ -113,12 +164,94 @@ function QuoteCard({
         <Text style={styles.quotePrice}>GHS {quote.price.toLocaleString()}</Text>
       </View>
 
-      <Badge label={quote.eta_label} bg={colors.paperDim} fg={colors.inkMuted} icon={<Clock size={11} strokeWidth={2.4} color={colors.inkMuted} />} />
+      <View style={styles.quoteBadgeRow}>
+        <Badge label={quote.eta_label} bg={colors.paperDim} fg={colors.inkMuted} icon={<Clock size={11} strokeWidth={2.4} color={colors.inkMuted} />} />
+        {(quote.revision ?? 1) > 1 ? <Badge label="Updated" bg={colors.pendingBg} fg={colors.pending} /> : null}
+      </View>
+
+      {items.length ? (
+        <View style={styles.itemsBox}>
+          {items.map((it, i) => (
+            <View key={`${it.label}-${i}`} style={styles.itemLine}>
+              <Text style={styles.itemLabel} numberOfLines={1}>{it.label}</Text>
+              <Text style={styles.itemAmount}>GHS {it.amount.toLocaleString()}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      {quote.note ? <Text style={styles.quoteNote}>“{quote.note}”</Text> : null}
+
+      {counterPending ? (
+        <Text style={styles.counterStatus}>Your offer of GHS {quote.counter_price!.toLocaleString()} is waiting for a reply.</Text>
+      ) : counterDeclined ? (
+        <Text style={styles.counterStatus}>They declined your counter-offer; this price stands.</Text>
+      ) : null}
 
       <View style={styles.quoteActions}>
         <Button title="Accept" onPress={handleAccept} loading={acceptQuote.isPending} style={styles.halfBtn} />
         <Button title="Chat" variant="outline" onPress={handleChat} style={styles.halfBtn} />
       </View>
+      <View style={styles.quoteSecondary}>
+        <Pressable onPress={onToggleCompare} style={styles.secondaryBtn} accessibilityRole="checkbox" accessibilityState={{ checked: compareSelected }}>
+          <View style={[styles.checkbox, compareSelected && styles.checkboxOn]}>
+            {compareSelected ? <Check size={11} strokeWidth={3.2} color={colors.white} /> : null}
+          </View>
+          <Text style={styles.secondaryText}>Compare</Text>
+        </Pressable>
+        {!counterPending && !counterDeclined ? (
+          <Pressable onPress={() => { setSheetError(null); setSheet('counter'); }} style={styles.secondaryBtn} accessibilityRole="button">
+            <Text style={styles.secondaryText}>Counter</Text>
+          </Pressable>
+        ) : null}
+        <Pressable onPress={() => { setSheetError(null); setSheet('decline'); }} style={styles.secondaryBtn} accessibilityRole="button">
+          <Text style={[styles.secondaryText, { color: colors.danger }]}>Decline</Text>
+        </Pressable>
+      </View>
+
+      <BottomSheet visible={sheet === 'counter'} onClose={closeSheet}>
+        <View style={styles.sheetBody}>
+          <Text style={styles.sheetTitle}>Make a counter-offer</Text>
+          <Text style={styles.sheetSub}>
+            {provider.full_name} quoted GHS {quote.price.toLocaleString()}. Offer a lower price, up to 50% below. They can accept,
+            decline or update their quote. You can counter once.
+          </Text>
+          <TextInput
+            value={counterText}
+            onChangeText={setCounterText}
+            placeholder={String(Math.round(quote.price * 0.9))}
+            placeholderTextColor={colors.inkFaint}
+            keyboardType="number-pad"
+            style={styles.sheetInput}
+          />
+          <TextInput
+            value={counterNote}
+            onChangeText={setCounterNote}
+            placeholder="Optional note"
+            placeholderTextColor={colors.inkFaint}
+            maxLength={500}
+            style={styles.sheetInput}
+          />
+          {sheetError ? <Text style={styles.sheetError}>{sheetError}</Text> : null}
+          <Button title="Send offer" onPress={submitCounter} loading={counterQuote.isPending} disabled={!counterText} />
+        </View>
+      </BottomSheet>
+
+      <BottomSheet visible={sheet === 'decline'} onClose={closeSheet}>
+        <View style={styles.sheetBody}>
+          <Text style={styles.sheetTitle}>Decline this quote?</Text>
+          <Text style={styles.sheetSub}>{provider.full_name} will be told. You can add a reason if you like.</Text>
+          <TextInput
+            value={declineReason}
+            onChangeText={setDeclineReason}
+            placeholder="Optional reason"
+            placeholderTextColor={colors.inkFaint}
+            maxLength={300}
+            style={styles.sheetInput}
+          />
+          {sheetError ? <Text style={styles.sheetError}>{sheetError}</Text> : null}
+          <Button title="Decline quote" onPress={submitDecline} loading={declineQuote.isPending} />
+        </View>
+      </BottomSheet>
     </View>
   );
 }
@@ -136,6 +269,20 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
 
   const hasQuotes = request && request.status === 'quoted' && request.quotes.length > 0;
   const quoteCount = request?.quotes.length ?? 0;
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  // A quote that was declined, revised away or accepted can't stay selected.
+  const liveCompareIds = compareIds.filter((id) => request?.quotes.some((q) => q.id === id));
+
+  function toggleCompare(id: string) {
+    setCompareIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= 3) {
+        Alert.alert('Compare up to 3', 'Deselect a quote first to add another.');
+        return prev;
+      }
+      return [...prev, id];
+    });
+  }
   const seenQuoteCount = useRef(quoteCount);
   // Fires only on a real increase while this screen is mounted (a fresh
   // quote landing via refetch/pull-to-refresh) - not on first load, which
@@ -262,6 +409,8 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
                     onChat={(threadId, peerId) =>
                       navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })
                     }
+                    compareSelected={liveCompareIds.includes(q.id)}
+                    onToggleCompare={() => toggleCompare(q.id)}
                   />
                 ))
               : null}
@@ -274,6 +423,14 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
           />
         )}
       </ScrollView>
+      {liveCompareIds.length >= 2 ? (
+        <View style={styles.compareBar}>
+          <Button
+            title={`Compare ${liveCompareIds.length} quotes`}
+            onPress={() => navigation.navigate('CompareQuotes', { quoteIds: liveCompareIds })}
+          />
+        </View>
+      ) : null}
     </Screen>
   );
 }
@@ -338,5 +495,48 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     quoteActions: { flexDirection: 'row', gap: spacing.sm },
     halfBtn: { flex: 1, height: 46 },
+
+    quoteBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
+    itemsBox: { borderRadius: radii.md, backgroundColor: colors.paperDim, padding: spacing.md, gap: 4 },
+    itemLine: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
+    itemLabel: { flex: 1, fontSize: 13, fontFamily: fonts.medium, color: colors.inkMuted },
+    itemAmount: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    quoteNote: { fontSize: 13.5, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted, fontStyle: 'italic' },
+    counterStatus: { fontSize: 13, fontFamily: fonts.medium, color: colors.pending },
+    quoteSecondary: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 4 },
+    secondaryText: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.inkMuted },
+    checkbox: {
+      width: 18,
+      height: 18,
+      borderRadius: 5,
+      borderWidth: 1.5,
+      borderColor: colors.hairlineStrong,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    checkboxOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+    sheetBody: { padding: spacing.lg, gap: spacing.md },
+    sheetTitle: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
+    sheetSub: { fontSize: 13.5, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
+    sheetInput: {
+      height: 48,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      paddingHorizontal: spacing.md,
+      fontSize: 15,
+      fontFamily: fonts.medium,
+      color: colors.ink,
+    },
+    sheetError: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    compareBar: {
+      padding: spacing.lg,
+      paddingBottom: spacing.xl,
+      backgroundColor: colors.card,
+      borderTopWidth: 1,
+      borderTopColor: colors.hairline,
+    },
   });
 }
