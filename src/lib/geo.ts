@@ -19,6 +19,27 @@ export function formatDistanceKm(km: number): string {
   return `${km.toFixed(km < 10 ? 1 : 0)} km`;
 }
 
+const CITY_SPEED_KMH = 25;
+
+/**
+ * A rough arrival estimate from straight-line distance at an assumed city
+ * speed. Rounded up (never promise early) and never below 1 minute. This is
+ * an estimate, not routing - the UI must say "about". Null when the
+ * distance is unknown.
+ */
+export function estimateEtaMinutes(km: number | null | undefined): number | null {
+  if (km == null || !Number.isFinite(km) || km < 0) return null;
+  return Math.max(1, Math.ceil((km / CITY_SPEED_KMH) * 60));
+}
+
+/** "about 12 min" / "about 1 h 35 min". */
+export function formatEta(minutes: number): string {
+  if (minutes < 60) return `about ${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m === 0 ? `about ${h} h` : `about ${h} h ${m} min`;
+}
+
 /** "just now" / "42s ago" / "3m ago" / "2h ago" from an ISO timestamp. */
 export function formatRelativeTime(iso: string): string {
   const seconds = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));

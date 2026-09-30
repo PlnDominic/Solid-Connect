@@ -6,6 +6,7 @@ import { EditRequestScreen } from '../screens/customer/EditRequestScreen';
 import { MatchingScreen } from '../screens/customer/MatchingScreen';
 import { AllProvidersScreen } from '../screens/customer/AllProvidersScreen';
 import { ProviderDetailScreen } from '../screens/customer/ProviderDetailScreen';
+import { CompareQuotesScreen } from '../screens/customer/CompareQuotesScreen';
 import { RequestsScreen } from '../screens/customer/RequestsScreen';
 import { JobsScreen } from '../screens/customer/JobsScreen';
 import { JobDetailScreen } from '../screens/customer/JobDetailScreen';
@@ -48,6 +49,7 @@ function RequestsStack() {
     <RequestsStackNav.Navigator screenOptions={{ headerShown: false }}>
       <RequestsStackNav.Screen name="RequestsHome" component={RequestsScreen} />
       <RequestsStackNav.Screen name="EditRequest" component={EditRequestScreen} />
+      <RequestsStackNav.Screen name="CompareQuotes" component={CompareQuotesScreen} />
     </RequestsStackNav.Navigator>
   );
 }

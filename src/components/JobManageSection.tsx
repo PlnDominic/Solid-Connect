@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { googleCalendarUrl } from '../lib/jobReminders';
 import { CalendarClock } from 'lucide-react-native';
 import {
   friendlyJobError,
@@ -149,6 +150,25 @@ export function JobManageSection({ job, role, userId }: { job: Job; role: Role; 
         <Text style={styles.label}>SCHEDULE</Text>
       </View>
       <Text style={styles.value}>{job.scheduled_for ? formatWhen(job.scheduled_for) : 'No time set yet'}</Text>
+      {job.scheduled_for && notStarted ? (
+        <Pressable
+          onPress={() =>
+            Linking.openURL(
+              googleCalendarUrl({
+                title: job.title,
+                startIso: job.scheduled_for!,
+                location: job.location_label,
+                details: `Solid Connect job JOB-${job.id.slice(0, 8).toUpperCase()}`,
+              }),
+            ).catch(() => Alert.alert('Could not open your calendar', 'Try again in a moment.'))
+          }
+          accessibilityRole="button"
+          accessibilityLabel="Add this appointment to your calendar"
+          hitSlop={8}
+        >
+          <Text style={styles.calendarLink}>Add to calendar</Text>
+        </Pressable>
+      ) : null}
 
       {pending ? (
         <View style={styles.banner}>
@@ -277,6 +297,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     label: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     value: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
     sub: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted },
+    calendarLink: { fontSize: 13, fontFamily: fonts.semibold, color: colors.active },
     banner: { borderRadius: radii.md, backgroundColor: colors.pendingBg, padding: spacing.md, gap: spacing.sm },
     bannerText: { fontSize: 13, fontFamily: fonts.medium, color: colors.ink },
     row: { flexDirection: 'row', gap: 10 },

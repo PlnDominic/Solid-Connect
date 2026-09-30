@@ -1,4 +1,38 @@
-import { haversineKm, formatDistanceKm, formatRelativeTime } from '../geo';
+import { haversineKm, formatDistanceKm, formatRelativeTime, estimateEtaMinutes, formatEta } from '../geo';
+
+describe('estimateEtaMinutes', () => {
+  it('is 1 minute at minimum, never 0', () => {
+    expect(estimateEtaMinutes(0)).toBe(1);
+    expect(estimateEtaMinutes(0.05)).toBe(1);
+  });
+
+  it('assumes ~25 km/h city speed', () => {
+    expect(estimateEtaMinutes(5)).toBe(12);
+    expect(estimateEtaMinutes(25)).toBe(60);
+  });
+
+  it('rounds up so we never promise an arrival that is too early', () => {
+    expect(estimateEtaMinutes(1)).toBe(3); // 2.4 -> 3
+  });
+
+  it('returns null for missing or invalid distances', () => {
+    expect(estimateEtaMinutes(null)).toBeNull();
+    expect(estimateEtaMinutes(NaN)).toBeNull();
+    expect(estimateEtaMinutes(-1)).toBeNull();
+  });
+});
+
+describe('formatEta', () => {
+  it('shows minutes under an hour', () => {
+    expect(formatEta(1)).toBe('about 1 min');
+    expect(formatEta(12)).toBe('about 12 min');
+  });
+
+  it('shows hours and minutes from 60 minutes', () => {
+    expect(formatEta(60)).toBe('about 1 h');
+    expect(formatEta(95)).toBe('about 1 h 35 min');
+  });
+});
 
 describe('haversineKm', () => {
   it('returns 0 for the same point', () => {

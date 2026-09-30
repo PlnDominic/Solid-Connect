@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert, Siren } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useFinishJob, useJob, useStartJob } from '../../api/jobs';
+import { useFinishJob, useJob, useJobCheckIn, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { getOrCreateThread } from '../../api/chat';
 import { Avatar } from '../../components/Avatar';
@@ -28,6 +28,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const startJob = useStartJob();
   const finishJob = useFinishJob();
   useReportJobLocation(job);
+  const markEnRoute = useJobCheckIn('en_route');
+  const markArrived = useJobCheckIn('arrived');
   const [showSafety, setShowSafety] = useState(false);
 
   if (!job) return <Screen edges={['top']} />;
@@ -79,6 +81,23 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             loading: finishJob.isPending,
             disabled: false,
             // The one moment the provider actually completes an action on
+  async function handleCheckIn(mutation: typeof markEnRoute) {
+    try {
+      await mutation.mutateAsync(job!);
+    } catch (e: any) {
+      Alert.alert('Could not update', e?.message ?? 'Try again.');
+    }
+  }
+
+  // Optional steps before "Start work": tell the customer you're coming,
+  // then that you're there. Skipping them never blocks starting the job.
+  const checkIn =
+    job.status !== 'accepted' || job.arrived_at
+      ? null
+      : job.en_route_at
+        ? { title: "I've arrived", onPress: () => handleCheckIn(markArrived), loading: markArrived.isPending }
+        : { title: "I'm on my way", onPress: () => handleCheckIn(markEnRoute), loading: markEnRoute.isPending };
+
             // this screen - the brand-orange "active" variant, same accent
             // as the header, instead of the plain ink primary the other,
             // less consequential states use.
@@ -200,6 +219,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     back: {
       width: 32,
       height: 32,
+        {checkIn ? (
+          <Button
+            title={checkIn.title}
+            onPress={checkIn.onPress}
+            loading={checkIn.loading}
+            variant="outline"
+            style={{ marginBottom: spacing.sm }}
+          />
+        ) : null}
       borderRadius: radii.md,
       alignItems: 'center',
       justifyContent: 'center',

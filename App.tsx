@@ -15,6 +15,7 @@ import {
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { linking } from './src/navigation/linking';
 import { BiometricLockGate } from './src/components/BiometricLockGate';
+import { JobReminderSync } from './src/components/JobReminderSync';
 import { LocaleProvider } from './src/i18n';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 
@@ -49,6 +50,7 @@ export default function App() {
                 <RootNavigator />
               </NavigationContainer>
             </BiometricLockGate>
+              <JobReminderSync />
           </ThemeProvider>
         </LocaleProvider>
       </QueryClientProvider>

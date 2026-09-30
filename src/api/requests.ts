@@ -103,6 +103,8 @@ export function useCreateRequest() {
       preferredProviderId?: string;
     }) => {
       const photos: string[] = [];
+      /** The appointment the customer picked from the provider's open slots. */
+      preferredTime?: Date;
       for (const uri of input.photoUris ?? []) {
         photos.push(await uploadRequestPhoto(input.customerId, uri));
       }
@@ -149,6 +151,9 @@ export function useCreateRequest() {
           preferred_provider_id: input.preferredProviderId ?? null,
           request_mode: isDirect ? 'DIRECT' : 'GENERAL',
           status: isDirect ? 'awaiting_provider' : 'matching',
+          ...(input.preferredTime
+            ? { preferred_time: input.preferredTime.toISOString(), urgency: 'scheduled' }
+            : {}),
         })
         .select('*')
         .single();
@@ -547,6 +552,10 @@ export function useSendQuote() {
       note?: string;
     }) => {
       if (isApiConfigured()) {
+      /** Optional breakdown; must add up to `price` (checked in the database too). */
+      items?: { label: string; amount: number }[];
+      /** The start time the provider proposes, an ISO string. */
+      proposedStart?: string | null;
         return apiFetch<{ data: Quote }>('/api/v1/quotes', {
           method: 'POST',
           body: JSON.stringify({
@@ -569,6 +578,9 @@ export function useSendQuote() {
           badge_kind: input.badgeKind,
         })
         .select('*')
+          note: input.note ?? '',
+          items: input.items ?? [],
+          proposed_start: input.proposedStart ?? null,
         .single();
       if (error) throw error;
       await supabase

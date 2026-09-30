@@ -9,6 +9,7 @@ import { Button } from '../../components/Button';
 import { CategoryGridTile } from '../../components/CategoryTile';
 import { LocationField } from '../../components/LocationField';
 import { Screen } from '../../components/Screen';
+import { SlotPicker } from '../../components/SlotPicker';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { StepBars } from '../../components/StepDots';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -69,6 +70,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
     return fromProfile && isValidArea(fromProfile) ? fromProfile : 'Achimota';
   });
   const [photoUris, setPhotoUris] = useState<string[]>([]);
+  const [preferredTime, setPreferredTime] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [budgetFocused, setBudgetFocused] = useState(false);
 
@@ -162,6 +164,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         locationLabel: location.includes('Accra') ? location : `${location}, Accra`,
         photoUris,
         preferredProviderId,
+        preferredTime: preferredTime ? new Date(preferredTime) : undefined,
       });
       navigation.replace('Matching', {
         requestId: request.id,
@@ -278,6 +281,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           {isDirect ? (
             <View style={styles.field}>
               <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
+            </View>
+          ) : null}
+
+          {isDirect && preferredProviderId ? (
+            <View style={styles.field}>
+              <SlotPicker providerId={preferredProviderId} value={preferredTime} onChange={setPreferredTime} />
             </View>
           ) : null}
 

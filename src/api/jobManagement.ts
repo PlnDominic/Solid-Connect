@@ -15,6 +15,7 @@ const ERROR_COPY: Record<string, string> = {
   RESCHEDULE_NOT_PENDING: 'That proposal was already answered or replaced.',
   CANNOT_ANSWER_OWN_PROPOSAL: 'The other person needs to answer your proposal.',
   FORBIDDEN: 'You are not part of this job.',
+  SLOT_TAKEN: 'The provider already has a job around that time. Pick another time.',
 };
 
 /** Turns a Postgres error raised by the job-management functions into a

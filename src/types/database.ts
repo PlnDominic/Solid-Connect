@@ -146,6 +146,15 @@ export interface Job {
 }
 
 export interface JobReschedule {
+  // Added in supabase/migrations/0055_quote_negotiation.sql. Optional so
+  // rows cached before the migration still typecheck.
+  items?: { label: string; amount: number }[];
+  proposed_start?: string | null;
+  counter_price?: number | null;
+  counter_note?: string | null;
+  counter_at?: string | null;
+  counter_declined_at?: string | null;
+  decline_reason?: string | null;
   id: string;
   job_id: string;
   proposed_by: string;
@@ -164,6 +173,8 @@ export interface Payment {
   released_at: string | null;
   created_at: string;
 }
+  en_route_at?: string | null;
+  arrived_at?: string | null;
 
 export interface Review {
   id: string;
@@ -280,6 +291,21 @@ export interface Database {
       service_requests: { Row: ServiceRequest; Insert: Partial<ServiceRequest> & { customer_id: string; category_label: string }; Update: Partial<ServiceRequest> };
       quotes: { Row: Quote; Insert: Partial<Quote> & { request_id: string; provider_id: string; price: number }; Update: Partial<Quote> };
       jobs: { Row: Job; Insert: Partial<Job> & { request_id: string; quote_id: string; customer_id: string; provider_id: string; title: string; price: number; location_label: string }; Update: Partial<Job> };
+  // Added in supabase/migrations/0054_dispute_cases.sql. Optional so rows
+  // cached before the migration still typecheck.
+  provider_response?: string | null;
+  provider_responded_at?: string | null;
+  payment_already_released?: boolean;
+}
+
+// Added in 0054 - one photo a party attached to a dispute. The file lives in
+// the private dispute-evidence bucket and is shown through a signed URL.
+export interface DisputeEvidence {
+  id: string;
+  dispute_id: string;
+  author_id: string;
+  storage_path: string;
+  created_at: string;
       payments: { Row: Payment; Insert: Partial<Payment> & { job_id: string; amount: number }; Update: Partial<Payment> };
       reviews: { Row: Review; Insert: Partial<Review> & { job_id: string; provider_id: string; customer_id: string; rating: number }; Update: Partial<Review> };
       chat_threads: { Row: ChatThread; Insert: Partial<ChatThread> & { customer_id: string; provider_id: string }; Update: Partial<ChatThread> };
