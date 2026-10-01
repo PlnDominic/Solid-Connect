@@ -771,6 +771,13 @@ export function useUpdateRequest() {
 }
 
 export function useNotifications(userId: string | null) {
+  useRealtimeInvalidate({
+    channel: `notifications:${userId ?? 'none'}`,
+    table: 'notifications',
+    filter: userId ? `user_id=eq.${userId}` : undefined,
+    queryKeys: [['notifications', userId]],
+    enabled: !!userId,
+  });
   return useQuery({
     queryKey: ['notifications', userId],
     enabled: !!userId,
@@ -812,14 +819,14 @@ export function useMarkNotificationRead() {
   });
 }
 
-/** Marks every unread notification for this user read at once - the
- * "Clear all" action on the inbox screen. Always goes direct to Supabase,
- * even when the Nest API is configured: there's no batch endpoint there
- * yet, only the single-notification one useMarkNotificationRead calls. */
+/** Marks every unread notification for this user read at once. */
 export function useMarkAllNotificationsRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (userId: string) => {
+      if (isApiConfigured()) {
+        return apiFetch('/api/v1/requests/notifications/read-all', { method: 'POST' });
+      }
       const { error } = await supabase
         .from('notifications')
         .update({ read_at: new Date().toISOString() })

@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import * as Linking from 'expo-linking';
+import { makeRedirectUri } from 'expo-auth-session';
+import * as QueryParams from 'expo-auth-session/build/QueryParams';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
 
@@ -8,10 +10,35 @@ export { friendlyAuthError } from './friendlyAuthError';
 
 // Completes a pending browser-based OAuth session when the app is opened
 // via the redirect deep link (required once, at module scope, for
-// WebBrowser.openAuthSessionAsync to resolve on some platforms).
+// WebBrowser.openAuthSessionAsync to resolve on web).
 WebBrowser.maybeCompleteAuthSession();
 
-const OAUTH_REDIRECT_URL = Linking.createURL('auth/callback');
+const isExpoGo =
+  Constants.appOwnership === 'expo' ||
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+/**
+ * Redirect back into the app after Google OAuth.
+ * - Expo Go: must be exp://… (Expo Go cannot claim solidconnect://; Safari
+ *   shows "address is invalid" if it lands on a custom scheme as a page).
+ * - Dev/prod builds: solidconnect://auth/callback
+ *
+ * Supabase Site URL must stay an https:// URL (e.g. your project URL).
+ * Put deep links only under Additional Redirect URLs.
+ */
+function getOAuthRedirectUrl(): string {
+  if (isExpoGo) {
+    return makeRedirectUri({
+      path: 'auth/callback',
+      preferLocalhost: false,
+    });
+  }
+  return makeRedirectUri({
+    scheme: 'solidconnect',
+    path: 'auth/callback',
+    native: 'solidconnect://auth/callback',
+  });
+}
 
 /**
  * Current session's user id, if any - real accounts only. A lingering
@@ -77,30 +104,42 @@ export async function signOut(): Promise<void> {
 }
 
 /**
- * Google sign-in via Supabase's browser-based OAuth flow. Requires the
- * Google provider to be configured in the Supabase dashboard (Auth →
- * Providers → Google, with a Google Cloud OAuth client id/secret) - this
- * call is real, but throws a Supabase error until that's set up.
+ * Google sign-in via Supabase's browser PKCE OAuth flow. Requires the
+ * Google provider in the Supabase dashboard (Auth → Providers → Google)
+ * and this app's redirect URL in Auth → URL Configuration.
  */
 export async function signInWithGoogle() {
+  const redirectTo = getOAuthRedirectUrl();
+  if (__DEV__) {
+    // Exact value that must be allow-listed (or covered by exp://** /
+    // solidconnect://**) in the Supabase dashboard.
+    // eslint-disable-next-line no-console
+    console.log('[auth] Google OAuth redirectTo =', redirectTo);
+  }
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: OAUTH_REDIRECT_URL, skipBrowserRedirect: true },
+    options: {
+      redirectTo,
+      skipBrowserRedirect: true,
+      queryParams: { prompt: 'select_account' },
+    },
   });
   if (error) throw error;
   if (!data.url) throw new Error('Supabase did not return a Google sign-in URL.');
 
-  const result = await WebBrowser.openAuthSessionAsync(data.url, OAUTH_REDIRECT_URL);
+  const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type !== 'success' || !result.url) {
     throw new Error('Google sign-in was cancelled.');
   }
-  return setSessionFromRedirectUrl(result.url);
+  return createSessionFromUrl(result.url);
 }
 
 /**
  * Apple sign-in via the native Apple Authentication Services sheet, then
  * exchanged for a Supabase session. iOS only - requires the Apple provider
- * to be configured in the Supabase dashboard (Auth → Providers → Apple).
+ * in the Supabase dashboard (Auth → Providers → Apple). The full name is
+ * only returned on the first authorization, so we persist it immediately.
  */
 export async function signInWithApple() {
   if (Platform.OS !== 'ios') {
@@ -120,6 +159,28 @@ export async function signInWithApple() {
     token: credential.identityToken,
   });
   if (error) throw error;
+
+  if (credential.fullName) {
+    const nameParts = [
+      credential.fullName.givenName,
+      credential.fullName.middleName,
+      credential.fullName.familyName,
+    ].filter((part): part is string => Boolean(part && part.trim()));
+    if (nameParts.length > 0) {
+      const fullName = nameParts.join(' ');
+      const { data: updated, error: updateError } = await supabase.auth.updateUser({
+        data: {
+          full_name: fullName,
+          given_name: credential.fullName.givenName ?? undefined,
+          family_name: credential.fullName.familyName ?? undefined,
+        },
+      });
+      if (!updateError && updated.user) {
+        return { ...data, user: updated.user };
+      }
+    }
+  }
+
   return data;
 }
 
@@ -129,18 +190,32 @@ export async function isAppleSignInAvailable(): Promise<boolean> {
   return AppleAuthentication.isAvailableAsync();
 }
 
-// Supabase's implicit OAuth flow returns tokens in the URL fragment
-// (#access_token=...&refresh_token=...), not the query string.
-function setSessionFromRedirectUrl(redirectUrl: string) {
-  const fragment = redirectUrl.split('#')[1] ?? '';
-  const params = new URLSearchParams(fragment);
-  const access_token = params.get('access_token');
-  const refresh_token = params.get('refresh_token');
-  if (!access_token || !refresh_token) {
-    throw new Error('The sign-in redirect did not include a session.');
+/**
+ * Completes an OAuth redirect. Prefers PKCE (`?code=…` → exchangeCodeForSession);
+ * falls back to implicit tokens in the query/hash for older Supabase projects.
+ */
+async function createSessionFromUrl(url: string) {
+  const { params, errorCode } = QueryParams.getQueryParams(url);
+  if (errorCode) throw new Error(errorCode);
+
+  const oauthError = params.error_description || params.error;
+  if (oauthError) {
+    throw new Error(decodeURIComponent(oauthError.replace(/\+/g, ' ')));
   }
-  return supabase.auth.setSession({ access_token, refresh_token }).then(({ data, error }) => {
+
+  if (params.code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(params.code);
     if (error) throw error;
     return data;
-  });
+  }
+
+  const access_token = params.access_token;
+  const refresh_token = params.refresh_token;
+  if (access_token && refresh_token) {
+    const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+    if (error) throw error;
+    return data;
+  }
+
+  throw new Error('The sign-in redirect did not include a session.');
 }

@@ -13,7 +13,12 @@ export default async function SearchPage({ searchParams }: Props) {
   const q = raw ? sanitizeForFilter(raw) : '';
   const supabase = await createServerSupabase();
 
-  const [{ data: customers, error: customersError }, { data: providers, error: providersError }, { data: jobs, error: jobsError }] = q
+  const [
+    { data: customers, error: customersError },
+    { data: providers, error: providersError },
+    { data: jobs, error: jobsError },
+    { data: requests, error: requestsError },
+  ] = q
     ? await Promise.all([
         supabase
           .from('profiles')
@@ -32,18 +37,33 @@ export default async function SearchPage({ searchParams }: Props) {
           .select('id, title, price, location_label, status')
           .or(`title.ilike.%${q}%,location_label.ilike.%${q}%`)
           .limit(10),
+        supabase
+          .from('service_requests')
+          .select('id, category_label, description, location_label, status')
+          .or(`description.ilike.%${q}%,category_label.ilike.%${q}%,location_label.ilike.%${q}%`)
+          .limit(10),
       ])
-    : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
+    : [
+        { data: [], error: null },
+        { data: [], error: null },
+        { data: [], error: null },
+        { data: [], error: null },
+      ];
 
-  const errors = [customersError?.message, providersError?.message, jobsError?.message];
-  const noResults = q && (customers ?? []).length === 0 && (providers ?? []).length === 0 && (jobs ?? []).length === 0;
+  const errors = [customersError?.message, providersError?.message, jobsError?.message, requestsError?.message];
+  const noResults =
+    q &&
+    (customers ?? []).length === 0 &&
+    (providers ?? []).length === 0 &&
+    (jobs ?? []).length === 0 &&
+    (requests ?? []).length === 0;
 
   return (
     <>
       <div className="page-header">
         <div className="page-header-eyebrow">Search</div>
         <h1>{q ? `Results for "${q}"` : 'Search'}</h1>
-        <p className="page-header-sub">Across customers, providers, and jobs.</p>
+        <p className="page-header-sub">Across customers, providers, requests, and jobs.</p>
       </div>
 
       <ErrorBanner errors={errors} />
@@ -96,6 +116,33 @@ export default async function SearchPage({ searchParams }: Props) {
                       </td>
                       <td>{p.provider_category ?? '-'}</td>
                       <td className="text-muted">{p.area}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {(requests ?? []).length > 0 && (
+            <div className="table-card">
+              <div className="table-card-header"><h3>Requests</h3></div>
+              <table className="table">
+                <tbody>
+                  {(requests ?? []).map((r) => (
+                    <tr key={r.id}>
+                      <td>
+                        <Link href={`/requests/${r.id}`} className="link-accent">
+                          {r.category_label || 'Request'}
+                        </Link>
+                        <br />
+                        <span className="mono">{(r.description || '').slice(0, 80)}</span>
+                      </td>
+                      <td className="text-muted">{r.location_label}</td>
+                      <td>
+                        <span className={`pill ${r.status === 'cancelled' || r.status === 'rejected' ? 'rejected' : 'pending'}`}>
+                          {r.status.replaceAll('_', ' ')}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

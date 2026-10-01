@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Ban,
   Bell,
+  Building2,
   Camera,
   ChevronRight,
   CreditCard,
@@ -25,6 +26,7 @@ import { useSwitchRole, useUploadProfilePhoto } from '../../api/profile';
 import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
 import { signOut } from '../../lib/auth';
+import { markLandingSeen } from '../../lib/landing';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -42,6 +44,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     title: 'Account',
     rows: [
       { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
+      { label: 'Organizations', screen: 'Organizations', icon: Building2 },
       { label: 'Saved locations', screen: 'SavedLocations', icon: MapPin },
       { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
       { label: 'Payment methods', screen: 'PaymentMethods', icon: CreditCard },
@@ -81,9 +84,10 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const uploadPhoto = useUploadProfilePhoto();
   const [photoError, setPhotoError] = useState<string | null>(null);
 
-  // Ends the real Supabase session and returns to the login page. Walks up
-  // to the root stack navigator to reset onto "Auth".
+  // Ends the real Supabase session and returns to sign-in (not the
+  // first-run marketing landing). Walks up to the root stack to reset.
   async function handleSignOut() {
+    await markLandingSeen();
     await signOut();
     useSessionStore.getState().setProfile(null);
     useSessionStore.getState().setUserId(null);

@@ -348,10 +348,61 @@ for (const u of USERS) {
   console.log('ok');
 }
 
+// Admin portal owner (same shared password).
+{
+  const email = 'admin@solidconnect.test';
+  process.stdout.write(`Seeding ${email}… `);
+  const id = await findOrCreateAuthUser({
+    email,
+    password: PASSWORD,
+    full_name: 'Solid Connect Admin',
+  });
+  await admin.from('profiles').upsert(
+    {
+      id,
+      full_name: 'Solid Connect Admin',
+      initials: 'SA',
+      role: 'customer',
+      phone: '+233200000099',
+      area: 'Accra',
+    },
+    { onConflict: 'id' },
+  );
+  const { error: adminErr } = await admin.from('admins').upsert(
+    {
+      id,
+      email,
+      role: 'owner',
+      disabled_at: null,
+      permissions: [],
+    },
+    { onConflict: 'id' },
+  );
+  if (adminErr) throw adminErr;
+  const { data: adminRole } = await admin.from('roles').select('id').eq('code', 'ADMIN').maybeSingle();
+  if (adminRole?.id) {
+    await admin.from('user_roles').upsert({ user_id: id, role_id: adminRole.id }, { onConflict: 'user_id,role_id' });
+  }
+  console.log('ok');
+  created.push({
+    email,
+    full_name: 'Solid Connect Admin',
+    phone: '+233200000099',
+    role: 'admin',
+    id,
+  });
+}
+
 console.log('\n=== TEST CREDENTIALS (password for all: SolidTest123!) ===\n');
 for (const u of created) {
   const kind =
-    u.also_provider ? 'customer+provider' : u.role === 'provider' ? 'provider' : 'customer';
+    u.role === 'admin'
+      ? 'admin (owner)'
+      : u.also_provider
+        ? 'customer+provider'
+        : u.role === 'provider'
+          ? 'provider'
+          : 'customer';
   console.log(`${u.full_name} <${u.email}>`);
   console.log(`  role: ${kind}`);
   console.log(`  phone: ${u.phone}`);

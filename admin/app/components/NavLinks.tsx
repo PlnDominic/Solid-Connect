@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import type { AdminPermission } from '../../lib/admin';
 
 function NavIcon({ d }: { d: string }) {
@@ -23,6 +23,8 @@ const links: { href: string; label: string; d: string; scope?: AdminPermission; 
   { href: '/verifications', label: 'Verifications', d: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', scope: 'verifications' },
   { href: '/providers', label: 'Providers', d: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
   { href: '/customers', label: 'Customers', d: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+  { href: '/organizations', label: 'Organizations', d: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+  { href: '/requests', label: 'Requests', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
   { href: '/jobs', label: 'Jobs', d: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   { href: '/payments', label: 'Payments', d: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z' },
   { href: '/payouts', label: 'Payouts', d: 'M7 11l5-5m0 0l5 5m-5-5v12' },
@@ -41,10 +43,12 @@ const links: { href: string; label: string; d: string; scope?: AdminPermission; 
   // gate), so there's nothing to browse either.
   { href: '/feature-flags', label: 'Feature flags', d: 'M3 3v18h18M7 14l4-4 3 3 5-6', ownerOnly: true },
   { href: '/access', label: 'Team', d: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m5-4.13a4 4 0 100-8 4 4 0 000 8zm6 4c1.657 0 3-1.567 3-3.5S18.657 9 17 9m-10 0c-1.657 0-3 1.567-3 3.5S5.343 16 7 16' },
+  { href: '/access?tab=activity', label: 'Audit logs', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', ownerOnly: true },
 ];
 
 export default function NavLinks({ permissions, isOwner }: { permissions: string[]; isOwner: boolean }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const visibleLinks = links.filter((link) => {
     if (link.ownerOnly && !isOwner) return false;
     return !link.scope || permissions.includes(link.scope);
@@ -53,7 +57,18 @@ export default function NavLinks({ permissions, isOwner }: { permissions: string
   return (
     <nav className="nav">
       {visibleLinks.map(link => {
-        const isActive = pathname === link.href || pathname.startsWith(link.href + '/');
+        const [path, query] = link.href.split('?');
+        let isActive = false;
+        if (query) {
+          const wanted = new URLSearchParams(query);
+          isActive =
+            pathname === path &&
+            [...wanted.entries()].every(([key, value]) => searchParams.get(key) === value);
+        } else if (path === '/access') {
+          isActive = pathname === '/access' && searchParams.get('tab') !== 'activity';
+        } else {
+          isActive = pathname === path || pathname.startsWith(`${path}/`);
+        }
         return (
           <Link
             key={link.href}

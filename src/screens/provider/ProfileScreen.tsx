@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Ban,
   Bell,
+  Building2,
   ChevronRight,
   Camera,
   Clock,
@@ -32,6 +33,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
 import { signOut } from '../../lib/auth';
+import { markLandingSeen } from '../../lib/landing';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -54,6 +56,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
   {
     title: 'Business',
     rows: [
+      { label: 'Organizations', screen: 'Organizations', icon: Building2 },
       { label: 'Verification', screen: 'Verification', icon: ShieldCheck },
       { label: 'Portfolio', screen: 'Portfolio', icon: Images },
       { label: 'Service areas', screen: 'ServiceAreas', icon: MapPin },
@@ -96,9 +99,10 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
 
   if (!profile) return <Screen />;
 
-  // Ends the real Supabase session and returns to the login page. Walks up
-  // to the root stack navigator to reset onto "Auth".
+  // Ends the real Supabase session and returns to sign-in (not the
+  // first-run marketing landing). Walks up to the root stack to reset.
   async function handleSignOut() {
+    await markLandingSeen();
     await signOut();
     useSessionStore.getState().setProfile(null);
     useSessionStore.getState().setUserId(null);

@@ -19,7 +19,9 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Available this month</Text>
           <Text style={styles.balanceValue}>GHS {earnings.toLocaleString()}</Text>
-          <Text style={styles.balanceNote}>Released automatically when a customer confirms job completion.</Text>
+          <Text style={styles.balanceNote}>
+            Paid into escrow with Hubtel, then sent to your Mobile Money number when the customer confirms.
+          </Text>
         </View>
 
         <View style={styles.cardShadow}>
@@ -27,7 +29,7 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
           <View style={styles.row}>
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={styles.rowLabel}>Payout method</Text>
-              <Text style={styles.rowDetail}>MTN Mobile Money · •••• 4821</Text>
+              <Text style={styles.rowDetail}>{profile?.phone ? `Mobile Money · ${profile.phone}` : 'Add a phone number on your profile'}</Text>
             </View>
           </View>
           <View style={styles.rowBorder} />
@@ -41,8 +43,7 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
         </View>
 
         <Text style={styles.note}>
-          Payments are simulated in this demo - this screen shows real job/payment data from your account, but no
-          money is actually transferred.
+          Payouts use the phone number on your profile. MTN, Telecel, and AirtelTigo are sent through Hubtel after the customer confirms the job.
         </Text>
       </ScrollView>
     </Screen>

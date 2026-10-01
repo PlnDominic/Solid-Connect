@@ -38,8 +38,7 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
       <ScreenHeader title="Payment methods" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>
-          Your preferred method is saved on this device. Live MoMo/card charging is not connected yet - confirming a
-          job still only moves simulated payment rows.
+          Job payments open Hubtel checkout (Mobile Money or card). The wallet you pick here is a preference on this device; the charge itself happens in Hubtel.
         </Text>
         <View style={styles.card}>
           {METHODS.map((m, i) => (
@@ -60,7 +59,7 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
         </View>
         <View style={styles.addRow}>
           <Plus size={16} strokeWidth={2.4} color={colors.inkFaint} />
-          <Text style={styles.addLabel}>Linking a new wallet arrives with live payments</Text>
+          <Text style={styles.addLabel}>Checkout uses your Hubtel wallet at payment time</Text>
         </View>
       </ScrollView>
     </Screen>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useOpenDispute, useJobDispute } from '../../api/disputes';
 import { useJob } from '../../api/jobs';
 import { Button } from '../../components/Button';
@@ -30,7 +31,23 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
   const openDispute = useOpenDispute();
   const [reason, setReason] = useState<DisputeReason>('poor_quality');
   const [description, setDescription] = useState('');
+  const [photos, setPhotos] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  async function addPhoto() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setError('Allow photo library access to attach evidence.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    setError(null);
+    setPhotos((prev) => [...prev, result.assets[0].uri].slice(0, 4));
+  }
 
   async function handleSubmit() {
     if (!profile || !job || profile.role !== 'customer') return;
@@ -42,6 +59,7 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
         providerId: job.provider_id,
         reason,
         description,
+        photoUris: photos,
       });
     } catch (e: any) {
       setError(e?.message ?? 'Could not open that dispute. Please try again.');
@@ -108,6 +126,16 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
               multiline
               style={styles.textarea}
             />
+            <View style={styles.photoRow}>
+              {photos.map((uri) => (
+                <Image key={uri} source={{ uri }} style={styles.photo} />
+              ))}
+              {photos.length < 4 ? (
+                <Pressable onPress={addPhoto} style={styles.photoAdd}>
+                  <Text style={styles.photoAddLabel}>Add photo</Text>
+                </Pressable>
+              ) : null}
+            </View>
             {error ? <Text style={styles.error}>{error}</Text> : null}
             <Button
               title="Submit dispute"
@@ -168,6 +196,19 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       textAlignVertical: 'top',
     },
     error: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    photo: { width: 72, height: 72, borderRadius: radii.md, backgroundColor: colors.paperDim },
+    photoAdd: {
+      width: 72,
+      height: 72,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+    },
+    photoAddLabel: { fontSize: 11, fontFamily: fonts.semibold, color: colors.inkMuted, textAlign: 'center' },
     statusLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     statusValue: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
     bodyText: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerSupabase } from '../../lib/supabase';
@@ -34,7 +35,9 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
           <img src="/logo.jpeg" alt="" width={26} height={26} />
           Solid Connect
         </div>
-        <NavLinks permissions={permissions} isOwner={isOwner} />
+        <Suspense fallback={null}>
+          <NavLinks permissions={permissions} isOwner={isOwner} />
+        </Suspense>
         <div className="help-card">
           <p>Need help?<br />Feel free to contact</p>
           <a href="mailto:support@solidconnect.co">Get support →</a>
@@ -53,7 +56,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
         ) : null}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 12 }}>
           <form action="/search" style={{ flex: 1, maxWidth: 360 }}>
-            <input type="text" name="q" placeholder="Search customers, providers, jobs…" className="search-input" />
+            <input type="text" name="q" placeholder="Search customers, providers, requests, jobs…" className="search-input" />
           </form>
           <ThemeToggle initialTheme={theme} />
         </div>
