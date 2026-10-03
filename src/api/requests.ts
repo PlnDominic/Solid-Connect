@@ -3,7 +3,7 @@ import { apiFetch, isApiConfigured } from '../lib/api';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
 import { compressImage } from '../lib/imageCompression';
-import type { Quote, ServiceRequest } from '../types/database';
+import type { Profile, Quote, ServiceRequest } from '../types/database';
 
 export interface RequestWithQuotes extends ServiceRequest {
   quotes: Quote[];
@@ -259,7 +259,7 @@ export function useSimulateQuotesArriving() {
         .limit(20);
       if (pErr) throw pErr;
 
-      const ranked = (providers ?? [])
+      const ranked = ((providers ?? []) as Profile[])
         .map((p) => {
           const cat = (p.provider_category ?? '').toLowerCase();
           const area = (p.area ?? '').toLowerCase();
@@ -358,11 +358,11 @@ export function useFeedRequests(myProviderId: string | null) {
           }));
       }
 
-      const { data: me } = await supabase
+      const { data: me } = (await supabase
         .from('profiles')
         .select('provider_category,area')
         .eq('id', myProviderId as string)
-        .maybeSingle();
+        .maybeSingle()) as { data: Pick<Profile, 'provider_category' | 'area'> | null };
 
       const { data: requests, error } = await supabase
         .from('service_requests')

@@ -94,7 +94,9 @@ export async function fetchProviderCategories(providerId: string): Promise<Provi
     .select('category_id, is_primary, categories(id, name)')
     .eq('provider_id', providerId);
   if (error) throw error;
-  return (data as ProviderCategoryRow[]) ?? [];
+  // categories is a many-to-one embed, so PostgREST returns one object, not
+  // the array supabase-js infers from the select string.
+  return ((data ?? []) as unknown as ProviderCategoryRow[]);
 }
 
 /** Switches active UX mode when the account already holds that role. */
