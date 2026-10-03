@@ -26,7 +26,9 @@ export function disputeAccess(
   const open = d.status === 'open';
   const evidenceLeft = Math.max(0, MAX_EVIDENCE_PER_PARTY - myEvidenceCount);
   return {
-    canRespond: isProvider && open && !d.provider_responded_at,
+    // An unpaid-balance report is the provider's own case (0065) - there's
+    // nothing for them to respond to.
+    canRespond: isProvider && open && !d.provider_responded_at && d.reason !== 'unpaid_balance',
     canAddEvidence: isParty && open && evidenceLeft > 0,
     evidenceLeft,
   };

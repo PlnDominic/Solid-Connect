@@ -5,15 +5,18 @@ import * as Linking from 'expo-linking';
 import { useFinishJob, useJob, useJobCheckIn, usePayment, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { getOrCreateThread } from '../../api/chat';
+import { friendlyDisputeError, useJobDispute, useReportUnpaidBalance } from '../../api/disputes';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { JobManageSection } from '../../components/JobManageSection';
+import { JobPaymentCard } from '../../components/JobPaymentCard';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
+import { bookingSecured } from '../../lib/paymentStage';
 import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
@@ -29,6 +32,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const startJob = useStartJob();
   const finishJob = useFinishJob();
   const { data: payment } = usePayment(jobId);
+  const { data: dispute } = useJobDispute(jobId);
+  const reportUnpaid = useReportUnpaidBalance();
   const markEnRoute = useJobCheckIn('en_route');
   const markArrived = useJobCheckIn('arrived');
   useReportJobLocation(job);
@@ -91,10 +96,43 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     }
   }
 
+  // No travel or work until the customer's deposit is with Solid Connect
+  // (the database refuses too - DEPOSIT_REQUIRED, 0065).
+  const secured = bookingSecured(payment);
+
+  // 72 hours after finishing with the balance still unpaid (or the job not
+  // confirmed), the provider can hand it to Solid Connect.
+  const canReportUnpaid =
+    job.status === 'awaiting_completion_confirmation' &&
+    !dispute &&
+    !!job.provider_completed_at &&
+    Date.now() - new Date(job.provider_completed_at).getTime() >= 72 * 60 * 60 * 1000;
+
+  function handleReportUnpaid() {
+    Alert.alert(
+      'Report unpaid balance?',
+      'Solid Connect will contact the customer and settle it. The deposit stays held until then.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Report',
+          onPress: async () => {
+            try {
+              await reportUnpaid.mutateAsync({ jobId: job!.id });
+              navigation.navigate('Dispute', { jobId: job!.id });
+            } catch (e) {
+              Alert.alert('Could not report', friendlyDisputeError(e));
+            }
+          },
+        },
+      ],
+    );
+  }
+
   // Optional steps before "Start work": tell the customer you're coming,
   // then that you're there. Skipping them never blocks starting the job.
   const checkIn =
-    job.status !== 'accepted' || job.arrived_at
+    job.status !== 'accepted' || job.arrived_at || !secured
       ? null
       : job.en_route_at
         ? { title: "I've arrived", onPress: () => handleCheckIn(markArrived), loading: markArrived.isPending }
@@ -109,7 +147,15 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   }
 
   const primaryCta =
-    job.status === 'accepted'
+    job.status === 'accepted' && !secured
+      ? {
+          title: 'Waiting for the customer’s deposit',
+          onPress: () => {},
+          loading: false,
+          disabled: true,
+          variant: 'primary' as const,
+        }
+      : job.status === 'accepted'
       ? {
           title: 'Start work',
           onPress: handleStart,
@@ -129,6 +175,14 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             // less consequential states use.
             variant: 'active' as const,
           }
+        : canReportUnpaid
+          ? {
+              title: 'Report unpaid balance',
+              onPress: handleReportUnpaid,
+              loading: reportUnpaid.isPending,
+              disabled: false,
+              variant: 'primary' as const,
+            }
         : job.status === 'awaiting_completion_confirmation'
           ? {
               title: 'Waiting for customer',
@@ -213,8 +267,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <MapPin size={13} strokeWidth={1.8} color={colors.inkFaint} />
             <Text style={styles.detailsSub}>{job.location_label}</Text>
           </View>
-          {payment ? <Text style={styles.detailsSub}>{paymentNote(payment.status)}</Text> : null}
         </View>
+
+        {payment ? <JobPaymentCard job={job} payment={payment} role="provider" /> : null}
 
         {profile ? <JobManageSection job={job} role="provider" userId={profile.id} /> : null}
 
@@ -243,22 +298,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       <SafetySheet visible={showSafety} onClose={() => setShowSafety(false)} job={job} peerName={customer?.full_name} />
     </Screen>
   );
-}
-
-/** Whether the customer's money is in yet - the provider otherwise can't
- * tell if they're working on a job that has been paid for. */
-function paymentNote(status: string): string {
-  switch (status) {
-    case 'held':
-      return 'Customer has paid · held until they confirm the job';
-    case 'released':
-    case 'partially_refunded':
-      return 'Payment released';
-    case 'refunded':
-      return 'Payment refunded to the customer';
-    default:
-      return 'Customer has not paid yet';
-  }
 }
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {

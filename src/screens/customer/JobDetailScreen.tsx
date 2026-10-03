@@ -8,12 +8,14 @@ import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
 import { getOrCreateThread } from '../../api/chat';
 import { useJobDispute } from '../../api/disputes';
+import { paymentStep } from '../../lib/paymentStage';
 import { Avatar } from '../../components/Avatar';
 import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { JobManageSection } from '../../components/JobManageSection';
+import { JobPaymentCard } from '../../components/JobPaymentCard';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
@@ -45,10 +47,12 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
 
   useFocusEffect(
     useCallback(() => {
-      if (payment?.status === 'pending' && payment.client_reference) {
-        refreshPayment.mutate();
-      }
-    }, [payment?.status, payment?.client_reference]),
+      // Back from a Hubtel checkout (deposit or balance): pick up the result.
+      const outstanding =
+        (payment?.status === 'pending' && (payment.deposit_reference || payment.client_reference)) ||
+        (payment?.status === 'deposit_held' && payment.client_reference);
+      if (outstanding) refreshPayment.mutate();
+    }, [payment?.status, payment?.client_reference, payment?.deposit_reference]),
   );
 
   if (!job) return <Screen edges={['top']} />;
@@ -64,7 +68,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     }
   }
 
-  const escrowHeld = payment?.status === 'held' || payment?.status === 'released';
+  // What's owed to Solid Connect next: the deposit that secures the booking,
+  // then the balance once the provider has finished.
+  const step = payment ? paymentStep(payment, job.status) : null;
   // An open dispute holds the payment; confirming would be refused anyway.
   const disputeOpen = dispute?.status === 'open';
 
@@ -195,6 +201,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </View>
         </View>
 
+        {payment ? <JobPaymentCard job={job} payment={payment} role="customer" /> : null}
+
         {profile ? <JobManageSection job={job} role="customer" userId={profile.id} /> : null}
 
         <JobQuickActions actions={quickActions} />
@@ -207,18 +215,18 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           ) : (
             <Button title="Rate this job" onPress={() => navigation.navigate('RateJob', { jobId: job.id })} />
           )
-        ) : job.status === 'awaiting_completion_confirmation' ? (
-          disputeOpen ? (
-            <Button title="Payment on hold while the dispute is open" variant="outline" disabled onPress={() => {}} />
-          ) : escrowHeld ? (
-            <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
-          ) : (
-            <Button title="Pay with Hubtel" onPress={handlePay} loading={checkout.isPending} />
-          )
         ) : job.status === 'cancelled' ? (
           <Button title="Job cancelled" onPress={() => {}} disabled />
-        ) : payment?.status === 'pending' ? (
-          <Button title="Pay with Hubtel" onPress={handlePay} loading={checkout.isPending} />
+        ) : disputeOpen && job.status === 'awaiting_completion_confirmation' ? (
+          <Button title="Payment on hold while the dispute is open" variant="outline" disabled onPress={() => {}} />
+        ) : step?.kind === 'deposit' ? (
+          <Button title={`Pay deposit · GHS ${step.amount.toLocaleString()}`} onPress={handlePay} loading={checkout.isPending} />
+        ) : step?.kind === 'balance' ? (
+          <Button title={`Pay balance · GHS ${step.amount.toLocaleString()}`} onPress={handlePay} loading={checkout.isPending} />
+        ) : step?.kind === 'full' ? (
+          <Button title={`Pay GHS ${step.amount.toLocaleString()}`} onPress={handlePay} loading={checkout.isPending} />
+        ) : job.status === 'awaiting_completion_confirmation' && step?.kind === 'paid' ? (
+          <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
         ) : (
           <Button
             title={job.status === 'in_progress' ? 'Work in progress' : 'Waiting for provider to start'}

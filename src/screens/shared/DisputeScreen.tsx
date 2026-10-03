@@ -172,7 +172,11 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
     const customerEvidence = evidence.filter((e) => e.author_id === d.customer_id);
     const providerEvidence = evidence.filter((e) => e.author_id === d.provider_id);
     const timeline = disputeTimeline(d);
-    const reasonLabel = REASONS.find((r) => r.id === d.reason)?.label ?? 'Dispute';
+    const providerReport = d.reason === 'unpaid_balance';
+    const reasonLabel = providerReport ? 'Unpaid balance' : REASONS.find((r) => r.id === d.reason)?.label ?? 'Dispute';
+    const caseOwner = providerReport
+      ? isCustomer ? 'REPORTED BY THE PROVIDER' : 'YOUR REPORT'
+      : isCustomer ? 'YOUR DISPUTE' : 'CUSTOMER’S DISPUTE';
 
     return (
       <>
@@ -199,10 +203,17 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
         ) : null}
 
         <View style={styles.card}>
-          <Text style={styles.statusLabel}>{isCustomer ? 'YOUR DISPUTE' : 'CUSTOMER’S DISPUTE'} · {reasonLabel.toUpperCase()}</Text>
+          <Text style={styles.statusLabel}>{caseOwner} · {reasonLabel.toUpperCase()}</Text>
           <Text style={styles.bodyText}>{d.description || reasonLabel}</Text>
-          {renderEvidence(customerEvidence)}
+          {renderEvidence(providerReport ? providerEvidence : customerEvidence)}
         </View>
+
+        {providerReport && customerEvidence.length ? (
+          <View style={styles.card}>
+            <Text style={styles.statusLabel}>{isCustomer ? 'YOUR PHOTOS' : 'CUSTOMER’S PHOTOS'}</Text>
+            {renderEvidence(customerEvidence)}
+          </View>
+        ) : null}
 
         {d.provider_response ? (
           <View style={styles.card}>

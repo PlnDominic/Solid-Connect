@@ -65,6 +65,12 @@ export class JobsService {
         message: 'Waiting for the customer to confirm completion.',
       });
     }
+    if (msg.includes('DEPOSIT_REQUIRED')) {
+      throw new BadRequestException({
+        code: 'DEPOSIT_REQUIRED',
+        message: "The customer hasn't paid the deposit yet. You can start once Solid Connect has it.",
+      });
+    }
     if (msg.includes('JOB_NOT_STARTABLE')) {
       throw new BadRequestException({ code: 'JOB_NOT_STARTABLE', message: 'This job cannot be started.' });
     }

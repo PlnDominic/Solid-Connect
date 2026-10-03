@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { googleCalendarUrl } from '../lib/jobReminders';
+import { usePayment } from '../api/jobs';
 import { CalendarClock } from 'lucide-react-native';
 import {
   friendlyJobError,
@@ -38,6 +39,27 @@ const REASON_LABEL: Record<string, string> = {
   other: 'Cancelled',
 };
 
+/** What cancelling does to the money (0065): a customer backing out after
+ * paying the deposit loses it; otherwise whatever was paid goes back. */
+function cancelConsequence(
+  role: 'customer' | 'provider',
+  reason: JobCancelReason | null,
+  payment: { status: string; deposit_amount?: number } | null | undefined,
+): string {
+  const deposit = Number(payment?.deposit_amount ?? 0);
+  const depositPaid = payment?.status === 'deposit_held' && deposit > 0;
+  if (role === 'customer') {
+    if (!depositPaid) return 'You have not paid anything yet, so nothing is charged. The provider is told.';
+    if (reason === 'no_show_provider') return `Your GHS ${deposit.toLocaleString()} deposit is refunded because the provider did not show up.`;
+    return `You paid a GHS ${deposit.toLocaleString()} deposit. If you cancel, Solid Connect keeps it and part of it pays the provider for their time.`;
+  }
+  if (!depositPaid) return 'The customer has not paid anything yet. Cancelling often can hurt your standing.';
+  if (reason === 'no_show_customer') {
+    return `The customer did not show up, so they lose their GHS ${deposit.toLocaleString()} deposit and part of it comes to you.`;
+  }
+  return `The customer's GHS ${deposit.toLocaleString()} deposit is refunded to them. Cancelling often can hurt your standing.`;
+}
+
 function formatWhen(iso: string) {
   const d = new Date(iso);
   return `${d.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' })} at ${d.toLocaleTimeString([], {
@@ -74,6 +96,7 @@ export function JobManageSection({ job, role, userId }: { job: Job; role: Role; 
   const propose = useProposeReschedule();
   const respond = useRespondReschedule();
   const cancel = useCancelJob();
+  const { data: payment } = usePayment(job.id);
 
   const [showPicker, setShowPicker] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
@@ -253,11 +276,7 @@ export function JobManageSection({ job, role, userId }: { job: Job; role: Role; 
 
       <BottomSheet visible={showCancel} onClose={() => setShowCancel(false)}>
         <Text style={styles.sheetTitle}>Cancel this job?</Text>
-        <Text style={styles.sheetBody}>
-          {role === 'customer'
-            ? 'Your payment is refunded in full and the provider is told.'
-            : 'The customer is refunded and told. Cancelling often can hurt your standing.'}
-        </Text>
+        <Text style={styles.sheetBody}>{cancelConsequence(role, reason, payment)}</Text>
         {reasons.map((r) => (
           <Pressable
             key={r.key}

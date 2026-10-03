@@ -6,8 +6,14 @@ import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pa
 import { setPaymentStatus } from './actions';
 
 type Props = { searchParams: Promise<{ status?: string; page?: string; sort?: string; dir?: string }> };
-const statuses = ['all', 'pending', 'held', 'released', 'refunded', 'partially_refunded'];
-const statusLabel: Record<string, string> = { partially_refunded: 'Partially refunded' };
+const statuses = ['all', 'pending', 'deposit_held', 'held', 'released', 'refunded', 'partially_refunded', 'forfeited'];
+// 0065: a booking's deposit, then the balance, both paid to Solid Connect.
+const statusLabel: Record<string, string> = {
+  partially_refunded: 'Partially refunded',
+  deposit_held: 'Deposit paid',
+  held: 'Paid in full',
+  forfeited: 'Deposit kept',
+};
 const label = (s: string) => statusLabel[s] ?? s[0].toUpperCase() + s.slice(1);
 const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;
 const stamp = (date: string | null) => (date ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date)) : '-');
@@ -57,7 +63,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
 
   let dataQuery = supabase
     .from('payments')
-    .select('id, job_id, amount, status, released_at, created_at, refund_reason, refund_amount');
+    .select('id, job_id, amount, deposit_amount, status, released_at, created_at, refund_reason, refund_amount');
   if (status !== 'all') dataQuery = dataQuery.eq('status', status);
   const { data: payments, error: listError } = await dataQuery.order(sort, { ascending: dir === 'asc' }).range(from, to);
 
@@ -148,14 +154,26 @@ export default async function PaymentsPage({ searchParams }: Props) {
                       <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>
                         {p.status === 'partially_refunded'
                           ? `Refunded ${currency(p.refund_amount ?? 0)} of ${currency(p.amount)}`
-                          : 'Refunded'}
+                          : p.status === 'forfeited'
+                            ? 'Deposit kept'
+                            : p.refund_amount
+                              ? `Refund due ${currency(p.refund_amount)}`
+                              : 'Refunded'}
                         : {p.refund_reason}
                       </div>
                     )}
                   </td>
                   <td>{job ? nameMap[job.customer_id] ?? '-' : '-'}</td>
                   <td>{job ? nameMap[job.provider_id] ?? '-' : '-'}</td>
-                  <td className="fw-500">{currency(p.amount)}</td>
+                  <td className="fw-500">
+                    {currency(p.amount)}
+                    {(p.deposit_amount ?? 0) > 0 && (
+                      <div style={{ color: 'var(--text-muted)', fontSize: 11.5, fontWeight: 400, marginTop: 2 }}>
+                        Deposit {currency(p.deposit_amount)}
+                        {p.status === 'pending' ? ' · nothing received' : p.status === 'deposit_held' || p.status === 'forfeited' ? ' · deposit received' : ''}
+                      </div>
+                    )}
+                  </td>
                   <td>
                     <span className={`pill ${p.status === 'released' ? 'approved' : p.status === 'refunded' ? 'rejected' : 'pending'}`}>
                       {label(p.status)}

@@ -26,6 +26,39 @@ export async function updateCommission(formData: FormData): Promise<void> {
   revalidatePath('/settings');
 }
 
+/** Owner-only, same tier as commission: how much of the price a customer
+ * pays Solid Connect up front to secure a booking, and what share of a
+ * forfeited deposit (customer cancelled after paying it) goes to the
+ * provider. A 0% deposit turns deposits off - one payment, as before. Only
+ * affects bookings made after the change (see 0065). */
+export async function updateDepositPolicy(formData: FormData): Promise<void> {
+  const owner = await requireOwner();
+  if (!owner) return;
+
+  const deposit = Number(formData.get('deposit_percent'));
+  const compensation = Number(formData.get('cancel_compensation_percent'));
+  const valid = (n: number) => Number.isFinite(n) && n >= 0 && n <= 100;
+  if (!valid(deposit) || !valid(compensation)) return;
+
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from('platform_config')
+    .update({
+      deposit_percent: deposit,
+      cancel_compensation_percent: compensation,
+      updated_at: new Date().toISOString(),
+      updated_by: owner.id,
+    })
+    .eq('id', true);
+  assertOk(error, 'Updating the deposit policy');
+
+  await logAdminAction(owner, 'UPDATED_DEPOSIT_POLICY', {
+    targetType: 'platform_config',
+    note: `Deposit ${deposit}%, provider share of a forfeited deposit ${compensation}%`,
+  });
+  revalidatePath('/settings');
+}
+
 const PAYOUT_METHODS = ['', 'MTN MoMo', 'Vodafone Cash', 'AirtelTigo Money', 'Bank transfer'] as const;
 
 /** Owner-only, same tier as the commission rate: the support email is

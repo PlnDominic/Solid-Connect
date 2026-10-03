@@ -32,13 +32,17 @@ export async function resolveDispute(id: string, formData: FormData): Promise<vo
   if (refundAmount > 0 && dispute.job_id) {
     const { data: payment, error: paymentError } = await adminClient
       .from('payments')
-      .select('id, amount')
+      .select('id, amount, deposit_amount, status')
       .eq('job_id', dispute.job_id)
       .maybeSingle();
     assertOk(paymentError, 'Reading the payment');
 
     if (payment) {
-      const isFull = refundAmount >= payment.amount;
+      // With deposits (0065) Solid Connect may only hold the deposit so far;
+      // a "full" refund is everything actually received.
+      const depositOnly = payment.status === 'deposit_held' && (payment.deposit_amount ?? 0) > 0;
+      const received = depositOnly ? payment.deposit_amount : payment.amount;
+      const isFull = refundAmount >= received;
       await applyPaymentStatus(adminClient, {
         paymentId: payment.id,
         status: isFull ? 'refunded' : 'partially_refunded',
@@ -47,7 +51,18 @@ export async function resolveDispute(id: string, formData: FormData): Promise<vo
         refundAmount,
         clearReleasedAtOnRefund: true,
       });
-      refundNote = isFull ? ' (refunded in full)' : ` (partially refunded GH₵${refundAmount} of GH₵${payment.amount})`;
+      if (isFull && depositOnly) {
+        const { error: depositError } = await adminClient
+          .from('payments')
+          .update({ refund_amount: received })
+          .eq('id', payment.id);
+        assertOk(depositError, 'Recording the deposit refund');
+      }
+      refundNote = isFull
+        ? depositOnly
+          ? ` (deposit of GH₵${received} refunded)`
+          : ' (refunded in full)'
+        : ` (partially refunded GH₵${refundAmount} of GH₵${payment.amount})`;
     }
   }
 

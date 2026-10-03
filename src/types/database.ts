@@ -23,9 +23,19 @@ export type JobStatus =
   | 'cancelled';
 export type JobCancelReason = 'changed_mind' | 'provider_unavailable' | 'no_show_provider' | 'no_show_customer' | 'other';
 export type RescheduleStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
-export type PaymentStatus = 'pending' | 'held' | 'released' | 'refunded' | 'partially_refunded';
+// 0065: deposit_held = booking secured by the deposit; forfeited = customer
+// cancelled after paying it.
+export type PaymentStatus =
+  | 'pending'
+  | 'deposit_held'
+  | 'held'
+  | 'released'
+  | 'refunded'
+  | 'partially_refunded'
+  | 'forfeited';
 export type VerificationStatus = 'pending' | 'approved' | 'rejected';
-export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other';
+// unpaid_balance is only ever opened by the provider (report_unpaid_balance, 0065).
+export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other' | 'unpaid_balance';
 export type DisputeStatus = 'open' | 'resolved';
 
 export type MoMoNetwork = 'MTN' | 'Telecel' | 'AirtelTigo';
@@ -207,6 +217,12 @@ export interface Payment {
   checkout_url?: string | null;
   paid_at?: string | null;
   channel?: string | null;
+  // Added in 0065. Optional so rows cached before the migration still typecheck.
+  deposit_amount?: number;
+  deposit_reference?: string | null;
+  deposit_paid_at?: string | null;
+  refund_amount?: number | null;
+  refund_reason?: string | null;
 }
 
 export interface Review {

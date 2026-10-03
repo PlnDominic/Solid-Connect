@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { SettingsClient } from './SettingsClient';
-import { purgeStorageQueue, updateCommission, updatePlatformSettings } from './actions';
+import { purgeStorageQueue, updateCommission, updateDepositPolicy, updatePlatformSettings } from './actions';
 
 const DEFAULT_SUPPORT_EMAIL = 'support@solidconnect.co';
 const PAYOUT_METHODS = ['MTN MoMo', 'Vodafone Cash', 'AirtelTigo Money', 'Bank transfer'];
@@ -24,7 +24,7 @@ export default async function SettingsPage() {
   // silently does nothing.
   const [{ data: me }, { data: config }, { count: pendingPurgeCount }, { count: teamCount }] = await Promise.all([
     supabase.from('admins').select('email, role, disabled_at, created_at').eq('id', user?.id ?? '').maybeSingle(),
-    supabase.from('platform_config').select('commission_percent, support_email, default_payout_method').eq('id', true).maybeSingle(),
+    supabase.from('platform_config').select('commission_percent, deposit_percent, cancel_compensation_percent, support_email, default_payout_method').eq('id', true).maybeSingle(),
     supabase.from('storage_purge_queue').select('id', { count: 'exact', head: true }).is('purged_at', null),
     supabase.from('admins').select('id', { count: 'exact', head: true }).is('disabled_at', null),
   ]);
@@ -61,6 +61,49 @@ export default async function SettingsPage() {
               />
               <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>%</span>
               <button className="btn" style={{ padding: '10px 20px', marginLeft: 8 }}>Save</button>
+            </form>
+          </div>
+        )}
+
+        {isOwner && (
+          <div className="chart-panel">
+            <div className="chart-panel-header">
+              <h3>Deposits</h3>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+              Customers pay Solid Connect a deposit to secure a booking and the balance after the work, never the
+              provider directly. Set the deposit to 0% to turn deposits off. Changes apply to new bookings. Owner-only.
+            </p>
+            <form action={updateDepositPolicy} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                <span style={{ width: 260, color: 'var(--text-secondary)' }}>Deposit, % of the job price</span>
+                <input
+                  name="deposit_percent"
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="100"
+                  defaultValue={config?.deposit_percent ?? 30}
+                  style={{ width: 90, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}
+                />
+                <span style={{ color: 'var(--text-muted)' }}>%</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+                <span style={{ width: 260, color: 'var(--text-secondary)' }}>Provider&apos;s share when a customer cancels after paying</span>
+                <input
+                  name="cancel_compensation_percent"
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="100"
+                  defaultValue={config?.cancel_compensation_percent ?? 50}
+                  style={{ width: 90, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}
+                />
+                <span style={{ color: 'var(--text-muted)' }}>%</span>
+              </label>
+              <div>
+                <button className="btn" style={{ padding: '10px 20px' }}>Save</button>
+              </div>
             </form>
           </div>
         )}

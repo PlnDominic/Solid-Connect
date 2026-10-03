@@ -13,6 +13,9 @@ const ERROR_COPY: Record<string, string> = {
   RESPONSE_TOO_LONG: 'Keep your response under 2,000 characters.',
   EVIDENCE_LIMIT: 'You can attach up to 5 photos.',
   FORBIDDEN: 'You are not part of this dispute.',
+  TOO_EARLY_TO_REPORT: 'You can report an unpaid balance 72 hours after finishing the job.',
+  DISPUTE_EXISTS: 'This job already has a dispute open with Solid Connect.',
+  JOB_NOT_AWAITING_PAYMENT: 'This job is not waiting on the customer.',
 };
 
 export function friendlyDisputeError(err: unknown): string {
@@ -116,6 +119,26 @@ export function useAddDisputeEvidence() {
     },
     onSuccess: (_r, input) => {
       queryClient.invalidateQueries({ queryKey: ['dispute', 'evidence', input.disputeId] });
+    },
+  });
+}
+
+/** Provider escalation (0065): 72h after finishing, if the balance still
+ * isn't paid and the job confirmed, hand it to Solid Connect. Opens the
+ * job's dispute with reason unpaid_balance. */
+export function useReportUnpaidBalance() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { jobId: string; note?: string }) => {
+      const { data, error } = await supabase.rpc('report_unpaid_balance', {
+        p_job_id: input.jobId,
+        p_note: input.note ?? '',
+      });
+      if (error) throw error;
+      return data as Dispute;
+    },
+    onSuccess: (dispute) => {
+      queryClient.invalidateQueries({ queryKey: ['dispute', 'job', dispute.job_id] });
     },
   });
 }

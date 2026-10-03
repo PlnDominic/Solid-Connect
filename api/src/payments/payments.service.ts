@@ -2,15 +2,24 @@ import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundEx
 import { SupabaseService } from '../supabase/supabase.service';
 import { HubtelService } from './hubtel.service';
 import { clientReferenceFromCallback, momoChannel, toMsisdn } from './hubtel.util';
+import { nextCharge, stageReference } from './payment.stage';
 
 type PaymentRow = {
   id: string;
   job_id: string;
   amount: number;
+  deposit_amount: number | null;
   status: string;
   client_reference: string | null;
+  deposit_reference: string | null;
   checkout_url: string | null;
 };
+
+const NOT_DUE_MESSAGES = {
+  PAID: 'This job is already paid.',
+  BALANCE_NOT_DUE: 'The balance is due once the provider has finished the job.',
+  NOT_PAYABLE: 'This job cannot be paid right now.',
+} as const;
 
 @Injectable()
 export class PaymentsService {
@@ -31,11 +40,17 @@ export class PaymentsService {
     }
 
     const payment = await this.loadPayment(jobId);
-    if (payment.status === 'held' || payment.status === 'released') {
-      return { payment, checkoutUrl: null as string | null, alreadyPaid: true };
+    // Deposit to secure the booking, then the balance once the work is done -
+    // both to Solid Connect, never to the provider.
+    const charge = nextCharge(payment, job.status);
+    if (charge.kind === 'none') {
+      if (charge.reason === 'PAID') {
+        return { payment, checkoutUrl: null as string | null, alreadyPaid: true, stage: null };
+      }
+      throw new BadRequestException({ code: charge.reason, message: NOT_DUE_MESSAGES[charge.reason] });
     }
 
-    const clientReference = `sc_${payment.id.replace(/-/g, '')}`;
+    const clientReference = stageReference(payment.id, charge.kind);
     const callback = this.hubtel.callbackUrl();
     if (!callback) {
       throw new BadRequestException({
@@ -45,8 +60,8 @@ export class PaymentsService {
     }
     const returnUrl = this.hubtel.returnUrl();
     const session = await this.hubtel.initiateCheckout({
-      amount: Number(payment.amount),
-      description: `Solid Connect · ${job.title ?? 'Job'}`.slice(0, 100),
+      amount: charge.amount,
+      description: `Solid Connect · ${charge.kind === 'deposit' ? 'Deposit' : charge.kind === 'balance' ? 'Balance' : 'Payment'} · ${job.title ?? 'Job'}`.slice(0, 100),
       clientReference,
       callbackUrl: callback,
       returnUrl,
@@ -57,15 +72,21 @@ export class PaymentsService {
       .from('payments')
       .update({
         gateway: 'hubtel',
-        client_reference: session.clientReference,
+        ...(charge.kind === 'deposit'
+          ? { deposit_reference: session.clientReference }
+          : { client_reference: session.clientReference, gateway_transaction_id: session.checkoutId }),
         checkout_url: session.checkoutUrl,
-        gateway_transaction_id: session.checkoutId,
       })
       .eq('id', payment.id)
-      .eq('status', 'pending');
+      .eq('status', payment.status);
     if (error) throw new BadRequestException({ code: 'PAYMENT_SAVE_FAILED', message: error.message });
 
-    return { payment: { ...payment, client_reference: session.clientReference }, checkoutUrl: session.checkoutUrl, alreadyPaid: false };
+    return {
+      payment,
+      checkoutUrl: session.checkoutUrl,
+      alreadyPaid: false,
+      stage: { kind: charge.kind, amount: charge.amount },
+    };
   }
 
   /** Customer returned from Hubtel — confirm with their status API. */
@@ -75,8 +96,14 @@ export class PaymentsService {
       throw new ForbiddenException({ code: 'NOT_JOB_CUSTOMER', message: 'Only the customer can refresh this payment.' });
     }
     const payment = await this.loadPayment(jobId);
-    if (payment.status !== 'pending' || !payment.client_reference) return payment;
-    await this.captureIfPaid(payment.client_reference);
+    // Check whichever checkout is outstanding.
+    if (payment.status === 'pending' && payment.deposit_reference) {
+      await this.captureIfPaid(payment.deposit_reference);
+    } else if ((payment.status === 'pending' || payment.status === 'deposit_held') && payment.client_reference) {
+      await this.captureIfPaid(payment.client_reference);
+    } else {
+      return payment;
+    }
     return this.loadPayment(jobId);
   }
 
@@ -96,7 +123,7 @@ export class PaymentsService {
     if (payment.status !== 'held' && payment.status !== 'released') {
       throw new BadRequestException({
         code: 'PAYMENT_REQUIRED',
-        message: 'Pay with Hubtel before confirming completion.',
+        message: 'Pay the balance to Solid Connect before confirming completion.',
       });
     }
   }
@@ -162,27 +189,31 @@ export class PaymentsService {
   }
 
   private async captureIfPaid(clientReference: string) {
+    // References come from Hubtel's callback; only ever our own sd_/sc_ form.
+    if (!/^s[cd]_[a-f0-9]{32}$/.test(clientReference)) return;
+    const isDeposit = clientReference.startsWith('sd_');
     const { data: payment } = await this.supabase.client
       .from('payments')
-      .select('id, status, client_reference')
-      .eq('client_reference', clientReference)
+      .select('id, status')
+      .eq(isDeposit ? 'deposit_reference' : 'client_reference', clientReference)
       .maybeSingle();
-    if (!payment || payment.status !== 'pending') return;
+    if (!payment) return;
+    const from = isDeposit ? ['pending'] : ['pending', 'deposit_held'];
+    if (!from.includes(payment.status)) return;
 
     const check = await this.hubtel.isReferencePaid(clientReference);
     if (!check.paid) return;
 
+    const now = new Date().toISOString();
     await this.supabase.client
       .from('payments')
-      .update({
-        status: 'held',
-        paid_at: new Date().toISOString(),
-        gateway: 'hubtel',
-        gateway_transaction_id: check.transactionId,
-        channel: check.channel,
-      })
+      .update(
+        isDeposit
+          ? { status: 'deposit_held', deposit_paid_at: now, deposit_transaction_id: check.transactionId, gateway: 'hubtel', channel: check.channel }
+          : { status: 'held', paid_at: now, gateway: 'hubtel', gateway_transaction_id: check.transactionId, channel: check.channel },
+      )
       .eq('id', payment.id)
-      .eq('status', 'pending');
+      .eq('status', payment.status);
   }
 
   private async loadJob(jobId: string) {
@@ -199,7 +230,7 @@ export class PaymentsService {
   private async loadPayment(jobId: string): Promise<PaymentRow> {
     const { data, error } = await this.supabase.client
       .from('payments')
-      .select('id, job_id, amount, status, client_reference, checkout_url')
+      .select('id, job_id, amount, deposit_amount, status, client_reference, deposit_reference, checkout_url')
       .eq('job_id', jobId)
       .maybeSingle();
     if (error) throw new BadRequestException({ code: 'PAYMENT_LOOKUP_FAILED', message: error.message });

@@ -8,6 +8,8 @@ export function assertOk(error: { message: string } | null | undefined, what: st
   if (error) throw new Error(`${what} failed: ${error.message}`);
 }
 
+// Statuses an admin can set by hand. deposit_held / held / forfeited (0065)
+// only ever come from Hubtel or cancel_job.
 export type PaymentStatus = 'pending' | 'released' | 'refunded' | 'partially_refunded';
 
 type ApplyArgs = {

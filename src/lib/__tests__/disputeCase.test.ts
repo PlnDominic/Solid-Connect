@@ -64,3 +64,12 @@ describe('evidencePath', () => {
     expect(evidencePath('d1', 'u1', 1700000000000, 2)).toBe('d1/u1/1700000000000-2.jpg');
   });
 });
+
+describe('disputeAccess for an unpaid-balance report', () => {
+  it('has no provider response step, but both sides can add photos', () => {
+    const report: Dispute = { ...base, reason: 'unpaid_balance' };
+    expect(disputeAccess(report, 'prov', 0).canRespond).toBe(false);
+    expect(disputeAccess(report, 'prov', 0).canAddEvidence).toBe(true);
+    expect(disputeAccess(report, 'cust', 0).canAddEvidence).toBe(true);
+  });
+});

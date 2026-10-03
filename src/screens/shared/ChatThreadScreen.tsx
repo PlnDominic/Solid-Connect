@@ -185,6 +185,24 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           keyExtractor={(m) => m.id}
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm, flexGrow: 1 }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+          ListHeaderComponent={
+            // Customers never pay providers directly - every payment goes
+            // through Solid Connect (deposit, then balance).
+            <Text
+              style={{
+                alignSelf: 'center',
+                textAlign: 'center',
+                maxWidth: 300,
+                marginBottom: spacing.sm,
+                color: colors.inkFaint,
+                fontFamily: fonts.medium,
+                fontSize: 12,
+                lineHeight: 17,
+              }}
+            >
+              Payments only go through Solid Connect. Never pay or ask for payment directly in chat.
+            </Text>
+          }
           ListEmptyComponent={
             messagesLoading ? (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
