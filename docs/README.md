@@ -26,7 +26,7 @@ this repo today is an earlier-stage prototype and differs in real ways:
 | Matching | PostGIS spatial queries, weighted ranking (skill/distance/availability/rating/etc., §8) | Not implemented - `useTopProviders`/`useAllProviders` just sort by `provider_rating` |
 | Payments | Modular gateway integration, commission split, possible escrow (§10) | Not implemented - no payment flow exists yet |
 | Web portals | Next.js business portal + admin portal (§13, §19) | Not started - mobile-only right now |
-| Organizations/projects | Full B2B workforce-marketplace module (§6.3, §12) | Not modeled in the current schema |
+| Organizations/projects | Full B2B workforce-marketplace module (§6.3, §12) | Phase K: `organizations`, members, projects, workforce requests, recurring (see `docs/phase-k-acceptance.md`) |
 | Verification levels | 5-stage (registered → identity → profession → experience → Solid Connect verified/certified, §9) | Schema has a single `provider_verified` boolean plus `provider_certified` |
 
 None of this means the document is wrong for the prototype - it means the

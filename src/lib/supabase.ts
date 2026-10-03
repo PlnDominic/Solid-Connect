@@ -40,7 +40,13 @@ export const supabase = createClient(
       storage: AsyncStorage,
       autoRefreshToken: true,
       persistSession: true,
+      // No browser page URL to parse on native; OAuth completes via
+      // exchangeCodeForSession / setSession in src/lib/auth.ts instead.
       detectSessionInUrl: false,
+      // Required for Google (and other browser) OAuth: the redirect returns
+      // a one-time `code`, and supabase-js stores the PKCE verifier in
+      // AsyncStorage so exchangeCodeForSession can finish the session.
+      flowType: 'pkce',
     },
   }
 );

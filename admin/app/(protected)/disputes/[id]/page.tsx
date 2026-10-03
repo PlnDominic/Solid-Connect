@@ -33,12 +33,13 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
     .eq('id', dispute.job_id)
     .maybeSingle();
 
-  const [{ data: customer }, { data: provider }, { data: request }, activity] = await Promise.all([
+  const [{ data: customer }, { data: provider }, { data: request }, { data: evidence }, activity] = await Promise.all([
     supabase.from('profiles').select('full_name, phone').eq('id', dispute.customer_id).maybeSingle(),
     supabase.from('profiles').select('full_name, phone').eq('id', dispute.provider_id).maybeSingle(),
     job?.request_id
       ? supabase.from('service_requests').select('photos').eq('id', job.request_id).maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase.from('dispute_evidence').select('id, photo_url').eq('dispute_id', dispute.id),
     getJobActivity(supabase, dispute.job_id),
   ]);
 
@@ -82,6 +83,15 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
           <p style={{ marginTop: 16, fontSize: 13.5, lineHeight: 1.5 }}>{dispute.description || 'No description provided.'}</p>
+
+          <h2 className="mt-28">Evidence: dispute photos</h2>
+          <div className="docs">
+            {(evidence ?? []).length > 0 ? (evidence ?? []).map((item: { id: string; photo_url: string }) => (
+              <a className="doc" key={item.id} href={item.photo_url} target="_blank" rel="noreferrer" style={{ padding: 0, overflow: 'hidden' }}>
+                <img src={item.photo_url} alt="Dispute evidence" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </a>
+            )) : <div className="doc">No photos were attached to this dispute.</div>}
+          </div>
 
           <h2 className="mt-28">Evidence: request photos</h2>
           <div className="docs">

@@ -18,7 +18,8 @@ export type PushPermissionStatus = 'granted' | 'denied' | 'skipped';
  * Requests OS notification permission and, if granted, the device's Expo
  * push token. The token needs an EAS projectId (run `eas init`); until then
  * this yields a null token instead of throwing. Delivery is done
- * server-side by the notifications_send_push trigger (migration 0043).
+ * server-side: the insert trigger queues push_outbox and the API drains it
+ * through Expo, which delivers via FCM on Android and APNs on iOS.
  * Where push isn't available (Expo Go on Android, web) it reports 'skipped'.
  */
 export async function registerForPushNotificationsAsync(): Promise<{

@@ -4,11 +4,15 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PaymentsService } from '../payments/payments.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class JobsService {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly payments: PaymentsService,
+  ) {}
 
   private assertParticipant(job: { customer_id: string; provider_id: string }, userId: string) {
     if (job.customer_id !== userId && job.provider_id !== userId) {
@@ -101,6 +105,7 @@ export class JobsService {
   }
 
   async confirm(jobId: string, customerId: string) {
+    await this.payments.assertHeldIfGatewayLive(jobId);
     const { data, error } = await this.supabase.client.rpc('confirm_job_completion', {
       p_job_id: jobId,
       p_customer_id: customerId,
@@ -119,6 +124,7 @@ export class JobsService {
       }
       throw new BadRequestException({ code: 'CONFIRM_FAILED', message: error.message });
     }
+    await this.payments.disburse(jobId);
     return data as { job: Record<string, unknown>; payment: Record<string, unknown> };
   }
 }

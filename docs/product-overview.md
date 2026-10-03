@@ -134,5 +134,5 @@ Create organization -> Add members and roles -> Create project
   -> Payment and reporting -> Maintain provider relationship
 ```
 
-> Organizations/projects are not modeled in the current schema - see
-> [../docs/README.md](./README.md#current-implementation-vs-this-target-architecture).
+> Organizations/projects shipped in Phase K — see
+> [phase-k-acceptance.md](./phase-k-acceptance.md).

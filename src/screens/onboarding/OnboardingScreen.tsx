@@ -40,10 +40,17 @@ const SLIDES: Slide[] = [
   },
 ];
 
-export function OnboardingScreen({ onDone }: { onDone: () => void }) {
+export function OnboardingScreen({
+  onGetStarted,
+  onSignIn,
+}: {
+  onGetStarted: () => void;
+  onSignIn: () => void;
+}) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const [step, setStep] = useState(0);
+  const [requesting, setRequesting] = useState(false);
   const location = useLocationPermission();
   const fade = useRef(new Animated.Value(0)).current;
   const slideY = useRef(new Animated.Value(10)).current;
@@ -62,24 +69,45 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
   const locationBlocked = location.blocked;
   const animatedStyle = { opacity: fade, transform: [{ translateY: slideY }] };
 
-  // Location is required, so this step only continues once the phone's
-  // location is actually usable (already on counts, e.g. on a re-install).
+  // Location is required on the last slide. Already-granted counts (e.g.
+  // reinstall). Otherwise the button asks the OS, then continues.
   async function handleCta() {
-    if (!isLocationStep) return setStep((s) => s + 1);
-    if (location.state === 'granted') return onDone();
-    if (locationBlocked) return location.openSettings();
-    await location.request();
+    if (!isLocationStep) {
+      setStep((s) => s + 1);
+      return;
+    }
+    if (location.state === 'granted') {
+      onGetStarted();
+      return;
+    }
+    if (locationBlocked) {
+      location.openSettings();
+      return;
+    }
+    setRequesting(true);
+    try {
+      const granted = await location.request();
+      if (granted) onGetStarted();
+    } finally {
+      setRequesting(false);
+    }
   }
 
   // Coming back from Settings with location switched on continues by itself.
   useEffect(() => {
-    if (isLocationStep && location.attempted && location.state === 'granted') onDone();
-  }, [isLocationStep, location.attempted, location.state, onDone]);
+    if (isLocationStep && location.attempted && location.state === 'granted') {
+      onGetStarted();
+    }
+  }, [isLocationStep, location.attempted, location.state, onGetStarted]);
 
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.skipRow}>
-        {isLocationStep ? null : (
+        {isLocationStep ? (
+          <Pressable onPress={onSignIn} hitSlop={14}>
+            <Text style={styles.skip}>Sign in</Text>
+          </Pressable>
+        ) : (
           <Pressable onPress={() => setStep(SLIDES.length - 1)} hitSlop={14}>
             <Text style={styles.skip}>Skip</Text>
           </Pressable>
@@ -111,6 +139,8 @@ export function OnboardingScreen({ onDone }: { onDone: () => void }) {
           title={isLocationStep && locationBlocked ? 'Reload' : slide.cta}
           variant={slide.isConfirmStep ? 'navy' : 'primary'}
           onPress={handleCta}
+          loading={requesting}
+          disabled={requesting}
         />
       </View>
     </SafeAreaView>

@@ -16,6 +16,10 @@ import { RequestsModule } from './requests/requests.module';
 import { QuotesModule } from './quotes/quotes.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ChatModule } from './chat/chat.module';
+import { PaymentsModule } from './payments/payments.module';
+import { TrustModule } from './trust/trust.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { OrganizationsModule } from './organizations/organizations.module';
 
 @Module({
   imports: [
@@ -36,6 +40,10 @@ import { ChatModule } from './chat/chat.module';
     QuotesModule,
     JobsModule,
     ChatModule,
+    PaymentsModule,
+    TrustModule,
+    NotificationsModule,
+    OrganizationsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: ApiExceptionFilter },

@@ -17,6 +17,7 @@ import { Apple, ArrowRight, Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { GoogleMark } from '../../components/GoogleMark';
+import { isAppleSignInAvailable } from '../../lib/auth';
 import { fonts, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -58,9 +59,20 @@ export function SignInScreen({
   const [showPassword, setShowPassword] = useState(false);
   const [focused, setFocused] = useState<'id' | 'pw' | null>(null);
   const [segWidth, setSegWidth] = useState(0);
+  const [appleAvailable, setAppleAvailable] = useState(false);
   const passwordRef = useRef<TextInput>(null);
   const busy = !!loading;
   const canSubmit = identifier.trim().length > 0 && password.length > 0 && !busy;
+
+  useEffect(() => {
+    let alive = true;
+    void isAppleSignInAvailable().then((available) => {
+      if (alive) setAppleAvailable(available);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Entrance: header content fades down, the card rises.
   const enter = useRef(new Animated.Value(0)).current;
@@ -254,22 +266,24 @@ export function SignInScreen({
               </View>
 
               <View style={styles.socialRow}>
-                <Pressable
-                  onPress={onApple}
-                  disabled={busy}
-                  style={({ pressed }) => [styles.social, styles.socialApple, pressed && !busy && styles.pressed]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Continue with Apple"
-                >
-                  {loading === 'apple' ? (
-                    <ActivityIndicator color={isDark ? colors.black : '#FFFFFF'} />
-                  ) : (
-                    <>
-                      <Apple size={18} strokeWidth={0} fill={isDark ? colors.black : '#FFFFFF'} color={isDark ? colors.black : '#FFFFFF'} />
-                      <Text style={[styles.socialLabel, styles.socialLabelApple]}>Apple</Text>
-                    </>
-                  )}
-                </Pressable>
+                {appleAvailable ? (
+                  <Pressable
+                    onPress={onApple}
+                    disabled={busy}
+                    style={({ pressed }) => [styles.social, styles.socialApple, pressed && !busy && styles.pressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Continue with Apple"
+                  >
+                    {loading === 'apple' ? (
+                      <ActivityIndicator color={isDark ? colors.black : '#FFFFFF'} />
+                    ) : (
+                      <>
+                        <Apple size={18} strokeWidth={0} fill={isDark ? colors.black : '#FFFFFF'} color={isDark ? colors.black : '#FFFFFF'} />
+                        <Text style={[styles.socialLabel, styles.socialLabelApple]}>Apple</Text>
+                      </>
+                    )}
+                  </Pressable>
+                ) : null}
                 <Pressable
                   onPress={onGoogle}
                   disabled={busy}

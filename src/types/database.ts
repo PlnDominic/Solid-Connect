@@ -23,7 +23,7 @@ export type JobStatus =
   | 'cancelled';
 export type JobCancelReason = 'changed_mind' | 'provider_unavailable' | 'no_show_provider' | 'no_show_customer' | 'other';
 export type RescheduleStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
-export type PaymentStatus = 'pending' | 'released' | 'refunded';
+export type PaymentStatus = 'pending' | 'held' | 'released' | 'refunded' | 'partially_refunded';
 export type VerificationStatus = 'pending' | 'approved' | 'rejected';
 export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other';
 export type DisputeStatus = 'open' | 'resolved';
@@ -95,6 +95,9 @@ export interface ServiceRequest {
   request_mode?: RequestMode;
   customer_budget?: number | null;
   rejection_reason?: string | null;
+  /** Phase K: set when the request is placed for an organization. */
+  organization_id?: string | null;
+  project_id?: string | null;
 }
 
 export interface AppNotification {
@@ -121,6 +124,15 @@ export interface Quote {
   note?: string;
   revision?: number;
   updated_at?: string;
+  // Added in supabase/migrations/0055_quote_negotiation.sql. Optional so
+  // rows cached before the migration still typecheck.
+  items?: { label: string; amount: number }[];
+  proposed_start?: string | null;
+  counter_price?: number | null;
+  counter_note?: string | null;
+  counter_at?: string | null;
+  counter_declined_at?: string | null;
+  decline_reason?: string | null;
 }
 
 export interface Job {
@@ -139,6 +151,8 @@ export interface Job {
   provider_completed_at?: string | null;
   customer_confirmed_at?: string | null;
   scheduled_for?: string | null;
+  en_route_at?: string | null;
+  arrived_at?: string | null;
   cancelled_at?: string | null;
   cancelled_by?: string | null;
   cancel_reason?: JobCancelReason | null;
@@ -146,15 +160,6 @@ export interface Job {
 }
 
 export interface JobReschedule {
-  // Added in supabase/migrations/0055_quote_negotiation.sql. Optional so
-  // rows cached before the migration still typecheck.
-  items?: { label: string; amount: number }[];
-  proposed_start?: string | null;
-  counter_price?: number | null;
-  counter_note?: string | null;
-  counter_at?: string | null;
-  counter_declined_at?: string | null;
-  decline_reason?: string | null;
   id: string;
   job_id: string;
   proposed_by: string;
@@ -172,9 +177,12 @@ export interface Payment {
   status: PaymentStatus;
   released_at: string | null;
   created_at: string;
+  gateway?: string | null;
+  client_reference?: string | null;
+  checkout_url?: string | null;
+  paid_at?: string | null;
+  channel?: string | null;
 }
-  en_route_at?: string | null;
-  arrived_at?: string | null;
 
 export interface Review {
   id: string;
@@ -250,6 +258,21 @@ export interface Dispute {
   resolution_note: string | null;
   resolved_at: string | null;
   created_at: string;
+  // Added in supabase/migrations/0054_dispute_cases.sql. Optional so rows
+  // cached before the migration still typecheck.
+  provider_response?: string | null;
+  provider_responded_at?: string | null;
+  payment_already_released?: boolean;
+}
+
+// Added in 0054 - one photo a party attached to a dispute. The file lives in
+// the private dispute-evidence bucket and is shown through a signed URL.
+export interface DisputeEvidence {
+  id: string;
+  dispute_id: string;
+  author_id: string;
+  storage_path: string;
+  created_at: string;
 }
 
 // Added in supabase/migrations/0024_job_live_location.sql - one upserted row
@@ -291,21 +314,6 @@ export interface Database {
       service_requests: { Row: ServiceRequest; Insert: Partial<ServiceRequest> & { customer_id: string; category_label: string }; Update: Partial<ServiceRequest> };
       quotes: { Row: Quote; Insert: Partial<Quote> & { request_id: string; provider_id: string; price: number }; Update: Partial<Quote> };
       jobs: { Row: Job; Insert: Partial<Job> & { request_id: string; quote_id: string; customer_id: string; provider_id: string; title: string; price: number; location_label: string }; Update: Partial<Job> };
-  // Added in supabase/migrations/0054_dispute_cases.sql. Optional so rows
-  // cached before the migration still typecheck.
-  provider_response?: string | null;
-  provider_responded_at?: string | null;
-  payment_already_released?: boolean;
-}
-
-// Added in 0054 - one photo a party attached to a dispute. The file lives in
-// the private dispute-evidence bucket and is shown through a signed URL.
-export interface DisputeEvidence {
-  id: string;
-  dispute_id: string;
-  author_id: string;
-  storage_path: string;
-  created_at: string;
       payments: { Row: Payment; Insert: Partial<Payment> & { job_id: string; amount: number }; Update: Partial<Payment> };
       reviews: { Row: Review; Insert: Partial<Review> & { job_id: string; provider_id: string; customer_id: string; rating: number }; Update: Partial<Review> };
       chat_threads: { Row: ChatThread; Insert: Partial<ChatThread> & { customer_id: string; provider_id: string }; Update: Partial<ChatThread> };

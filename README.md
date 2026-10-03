@@ -72,6 +72,11 @@ See `docs/roadmap-and-risks.md` for the fuller gap list and sequencing.
 - [Phase D gap](./docs/phase-d-gap.md) / [acceptance](./docs/phase-d-acceptance.md) — requests, matching, provider opportunity feed
 - [Phase E gap](./docs/phase-e-gap.md) / [acceptance](./docs/phase-e-acceptance.md) — quotes create/revise/accept → job
 - [Phase F gap](./docs/phase-f-gap.md) / [acceptance](./docs/phase-f-acceptance.md) — jobs, events, chat, completion
+- [Phase G gap](./docs/phase-g-gap.md) / [acceptance](./docs/phase-g-acceptance.md) — Hubtel checkout, escrow, commission payout
+- [Phase H gap](./docs/phase-h-gap.md) / [acceptance](./docs/phase-h-acceptance.md) — reviews, ratings, disputes, evidence
+- [Phase I gap](./docs/phase-i-gap.md) / [acceptance](./docs/phase-i-acceptance.md) — in-app inbox, Expo push (FCM and APNs), preferences
+- [Phase J gap](./docs/phase-j-gap.md) / [acceptance](./docs/phase-j-acceptance.md) — admin portal (requests, dashboard cards, audit nav)
+- [Phase K gap](./docs/phase-k-gap.md) / [acceptance](./docs/phase-k-acceptance.md) — organizations, members, projects, workforce & recurring
 
 > This phase-report trail stops at F (migration `0015`). Everything from
 > `0016` onward - direct provider requests, live location, the entire

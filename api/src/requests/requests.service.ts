@@ -105,6 +105,8 @@ export class RequestsService {
         preferred_provider_id: dto.preferredProviderId ?? null,
         request_mode: isDirect ? 'DIRECT' : 'GENERAL',
         status: isDirect ? 'awaiting_provider' : 'matching',
+        organization_id: dto.organizationId ?? null,
+        project_id: dto.projectId ?? null,
       })
       .select('*')
       .single();
@@ -265,6 +267,18 @@ export class RequestsService {
       throw new BadRequestException({ code: 'NOTIFICATIONS_FAILED', message: error.message });
     }
     return data ?? [];
+  }
+
+  async markAllNotificationsRead(userId: string) {
+    const { error } = await this.supabase.client
+      .from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .is('read_at', null);
+    if (error) {
+      throw new BadRequestException({ code: 'NOTIFICATION_UPDATE_FAILED', message: error.message });
+    }
+    return { ok: true };
   }
 
   async markNotificationRead(userId: string, notificationId: string) {

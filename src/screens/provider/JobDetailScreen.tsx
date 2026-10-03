@@ -57,6 +57,23 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     }
   }
 
+  async function handleCheckIn(mutation: typeof markEnRoute) {
+    try {
+      await mutation.mutateAsync(job!);
+    } catch (e: any) {
+      Alert.alert('Could not update', e?.message ?? 'Try again.');
+    }
+  }
+
+  // Optional steps before "Start work": tell the customer you're coming,
+  // then that you're there. Skipping them never blocks starting the job.
+  const checkIn =
+    job.status !== 'accepted' || job.arrived_at
+      ? null
+      : job.en_route_at
+        ? { title: "I've arrived", onPress: () => handleCheckIn(markArrived), loading: markArrived.isPending }
+        : { title: "I'm on my way", onPress: () => handleCheckIn(markEnRoute), loading: markEnRoute.isPending };
+
   async function handleFinish() {
     try {
       await finishJob.mutateAsync(job!);
@@ -81,23 +98,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             loading: finishJob.isPending,
             disabled: false,
             // The one moment the provider actually completes an action on
-  async function handleCheckIn(mutation: typeof markEnRoute) {
-    try {
-      await mutation.mutateAsync(job!);
-    } catch (e: any) {
-      Alert.alert('Could not update', e?.message ?? 'Try again.');
-    }
-  }
-
-  // Optional steps before "Start work": tell the customer you're coming,
-  // then that you're there. Skipping them never blocks starting the job.
-  const checkIn =
-    job.status !== 'accepted' || job.arrived_at
-      ? null
-      : job.en_route_at
-        ? { title: "I've arrived", onPress: () => handleCheckIn(markArrived), loading: markArrived.isPending }
-        : { title: "I'm on my way", onPress: () => handleCheckIn(markEnRoute), loading: markEnRoute.isPending };
-
             // this screen - the brand-orange "active" variant, same accent
             // as the header, instead of the plain ink primary the other,
             // less consequential states use.
@@ -192,6 +192,15 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       </ScrollView>
 
       <View style={styles.footer}>
+        {checkIn ? (
+          <Button
+            title={checkIn.title}
+            onPress={checkIn.onPress}
+            loading={checkIn.loading}
+            variant="outline"
+            style={{ marginBottom: spacing.sm }}
+          />
+        ) : null}
         <Button
           title={primaryCta.title}
           onPress={primaryCta.onPress}
@@ -219,15 +228,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     back: {
       width: 32,
       height: 32,
-        {checkIn ? (
-          <Button
-            title={checkIn.title}
-            onPress={checkIn.onPress}
-            loading={checkIn.loading}
-            variant="outline"
-            style={{ marginBottom: spacing.sm }}
-          />
-        ) : null}
       borderRadius: radii.md,
       alignItems: 'center',
       justifyContent: 'center',

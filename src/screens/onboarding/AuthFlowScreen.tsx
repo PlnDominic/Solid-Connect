@@ -10,6 +10,7 @@ import {
   signInWithPassword,
   signUpWithPassword,
 } from '../../lib/auth';
+import { hasSeenLanding, markLandingSeen } from '../../lib/landing';
 import { LEGAL_VERSION } from '../../lib/legal';
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
 import { isSupabaseConfigured } from '../../lib/supabase';
@@ -52,15 +53,14 @@ const TOTAL_STEPS = 10;
 
 /**
  * Orchestrates the cold-start flow. Real accounts only - no anonymous
- * session. A device with an already-active Supabase session (a genuine
- * prior login) skips straight past splash/onboarding/auth; everyone else
- * gets splash -> onboarding -> the login page, with "Create an account"
- * leading into name -> phone -> location -> email -> role -> password.
- * Choosing "provider" adds one more stop first - which trade - since that
- * drives the marketplace's category filter; customers skip straight from
- * role to password. Role (and trade) are chosen before the account exists,
- * so they're just held in state until the password step actually creates
- * the account and the profile row together.
+ * session.
+ *
+ * - Signed-in with a profile → Main (never the marketing landing).
+ * - Returning / signed-out device → splash is skipped; login/signup only.
+ * - First install → splash → landing (location + Get started / Sign in).
+ *
+ * "Create an account" then runs name → phone → area → email → role →
+ * password (providers pick a trade before password).
  */
 export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const { colors } = useTheme();
@@ -115,6 +115,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       try {
         const userId = await getCurrentUserId();
         if (userId) {
+          // Signed-in users never see the marketing landing.
+          await markLandingSeen();
           const profile = await fetchProfile(userId);
           if (profile) {
             setProfile(profile);
@@ -122,9 +124,15 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
             onDone();
             return;
           }
+          // Session exists but the profile is unfinished - continue signup,
+          // do not send them through splash/landing again.
+          setBootstrapping(false);
+          setPhase('signup-role');
+          return;
         }
         setBootstrapping(false);
-        setPhase('splash');
+        const seenLanding = await hasSeenLanding();
+        setPhase(seenLanding ? 'signin' : 'splash');
       } catch (e: any) {
         setError(friendlyAuthError(e, 'Something went wrong connecting to Solid Connect.'));
         setPhase('error');
@@ -132,6 +140,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function finishLanding(next: 'signin' | 'signup-name') {
+    await markLandingSeen();
+    setPhase(next);
+  }
 
   async function handleChooseRole(role: Role) {
     setSelectedRole(role);
@@ -299,8 +312,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     try {
       const result = await signInWithApple();
       if (!result.user) throw new Error('Apple sign-in did not return an account.');
-      const meta = result.user.user_metadata;
-      if (meta?.full_name) setFullName(String(meta.full_name));
+      const meta = result.user.user_metadata ?? {};
+      const appleName =
+        meta.full_name ||
+        [meta.given_name, meta.family_name].filter(Boolean).join(' ').trim();
+      if (appleName) setFullName(String(appleName));
       if (result.user.email) setEmail(result.user.email);
       await afterSignIn(result.user.id);
     } catch (e: any) {
@@ -325,7 +341,12 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   }
 
   if (phase === 'onboarding') {
-    return <OnboardingScreen onDone={() => setPhase('signin')} />;
+    return (
+      <OnboardingScreen
+        onGetStarted={() => void finishLanding('signup-name')}
+        onSignIn={() => void finishLanding('signin')}
+      />
+    );
   }
 
   if (phase === 'signup-name') {
