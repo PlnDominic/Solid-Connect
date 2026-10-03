@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch, isApiConfigured } from '../lib/api';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { compressImage } from '../lib/imageCompression';
 import { evidencePath } from '../lib/disputeCase';
@@ -147,6 +148,18 @@ export function useOpenDispute() {
       reason: DisputeReason;
       description: string;
     }) => {
+      // Evidence photos are attached afterwards with useAddDisputeEvidence.
+      if (isApiConfigured()) {
+        const res = await apiFetch<{ data: Dispute }>(`/api/v1/disputes`, {
+          method: 'POST',
+          body: JSON.stringify({
+            jobId: input.jobId,
+            reason: input.reason,
+            description: input.description.trim(),
+          }),
+        });
+        return res.data;
+      }
       const { data, error } = await supabase
         .from('disputes')
         .insert({

@@ -65,6 +65,15 @@ export class CreateRequestDto {
   @IsOptional()
   @IsUUID()
   preferredProviderId?: string;
+
+  /** Phase K: request placed on behalf of an organization. */
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  projectId?: string;
 }
 
 export class RejectDirectRequestDto {

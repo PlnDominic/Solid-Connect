@@ -51,19 +51,20 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   }
 
   function handleCall() {
-    if (!customer?.phone) {
+    const phone = customer?.phone;
+    if (!customer || !phone) {
       Alert.alert('Phone number unavailable', 'No phone number is registered for this customer.');
       return;
     }
     Alert.alert(
       `Call ${customer.full_name}?`,
-      `Dial ${customer.phone} to coordinate directions or job details directly. Standard cellular rates apply.`,
+      `Dial ${phone} to coordinate directions or job details directly. Standard cellular rates apply.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Call',
           onPress: () => {
-            const cleaned = customer.phone.replace(/[^\d+]/g, '');
+            const cleaned = phone.replace(/[^\d+]/g, '');
             Linking.openURL(`tel:${cleaned}`).catch(() => {
               Alert.alert('Unable to dial', 'Your device could not open the phone dialer.');
             });

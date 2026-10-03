@@ -45,7 +45,7 @@ export function VoiceNoteRecorder({
 
       await recorder.prepareToRecordAsync();
       recorder.record();
-      haptics.selection();
+      haptics.light();
     } catch {
       Alert.alert('Could not start recording', 'Please try again.');
     }
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     height: 48,
-    borderRadius: radii.full,
+    borderRadius: radii.pill,
     borderWidth: 1,
     gap: spacing.md,
   },

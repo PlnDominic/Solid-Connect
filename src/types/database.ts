@@ -23,7 +23,7 @@ export type JobStatus =
   | 'cancelled';
 export type JobCancelReason = 'changed_mind' | 'provider_unavailable' | 'no_show_provider' | 'no_show_customer' | 'other';
 export type RescheduleStatus = 'pending' | 'accepted' | 'declined' | 'cancelled';
-export type PaymentStatus = 'pending' | 'released' | 'refunded';
+export type PaymentStatus = 'pending' | 'held' | 'released' | 'refunded' | 'partially_refunded';
 export type VerificationStatus = 'pending' | 'approved' | 'rejected';
 export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other';
 export type DisputeStatus = 'open' | 'resolved';
@@ -120,6 +120,9 @@ export interface ServiceRequest {
   request_mode?: RequestMode;
   customer_budget?: number | null;
   rejection_reason?: string | null;
+  /** Phase K: set when the request is placed for an organization. */
+  organization_id?: string | null;
+  project_id?: string | null;
 }
 
 export interface AppNotification {
@@ -199,6 +202,11 @@ export interface Payment {
   status: PaymentStatus;
   released_at: string | null;
   created_at: string;
+  gateway?: string | null;
+  client_reference?: string | null;
+  checkout_url?: string | null;
+  paid_at?: string | null;
+  channel?: string | null;
 }
 
 export interface Review {

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiFetch, isApiConfigured } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import type { CustomerReview, Profile, Review } from '../types/database';
 
@@ -55,6 +56,17 @@ export function useSubmitReview() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { jobId: string; providerId: string; customerId: string; rating: number; comment?: string }) => {
+      if (isApiConfigured()) {
+        await apiFetch('/api/v1/reviews', {
+          method: 'POST',
+          body: JSON.stringify({
+            jobId: input.jobId,
+            rating: input.rating,
+            comment: input.comment?.trim() || undefined,
+          }),
+        });
+        return;
+      }
       const { error } = await supabase.from('reviews').insert({
         job_id: input.jobId,
         provider_id: input.providerId,

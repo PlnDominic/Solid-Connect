@@ -163,7 +163,9 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Available this month</Text>
           <Text style={styles.balanceValue}>GHS {earnings.toLocaleString()}</Text>
-          <Text style={styles.balanceNote}>Released automatically when a customer confirms job completion.</Text>
+          <Text style={styles.balanceNote}>
+            Paid into escrow with Hubtel, then sent to your Mobile Money number when the customer confirms.
+          </Text>
         </View>
 
         {/* Payout Method Card */}

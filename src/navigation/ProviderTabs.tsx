@@ -26,6 +26,8 @@ import { BlockedUsersScreen } from '../screens/shared/BlockedUsersScreen';
 import { LegalScreen } from '../screens/shared/LegalScreen';
 import { DisputeScreen } from '../screens/shared/DisputeScreen';
 import { ReceiptScreen } from '../screens/shared/ReceiptScreen';
+import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
+import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
 import { TabBar } from './TabBar';
 
 const FeedStackNav = createNativeStackNavigator();
@@ -78,6 +80,8 @@ function ProfileStack() {
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
       <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
+      <ProfileStackNav.Screen name="Organizations" component={OrganizationsScreen} />
+      <ProfileStackNav.Screen name="OrganizationDetail" component={OrganizationDetailScreen} />
       <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
       <ProfileStackNav.Screen name="Verification" component={VerificationScreen} />
       <ProfileStackNav.Screen name="Portfolio" component={PortfolioScreen} />

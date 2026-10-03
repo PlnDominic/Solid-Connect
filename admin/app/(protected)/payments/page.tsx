@@ -6,7 +6,7 @@ import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pa
 import { setPaymentStatus } from './actions';
 
 type Props = { searchParams: Promise<{ status?: string; page?: string; sort?: string; dir?: string }> };
-const statuses = ['all', 'pending', 'released', 'refunded', 'partially_refunded'];
+const statuses = ['all', 'pending', 'held', 'released', 'refunded', 'partially_refunded'];
 const statusLabel: Record<string, string> = { partially_refunded: 'Partially refunded' };
 const label = (s: string) => statusLabel[s] ?? s[0].toUpperCase() + s.slice(1);
 const currency = (n: number) => `GH₵${(n ?? 0).toLocaleString('en-US')}`;

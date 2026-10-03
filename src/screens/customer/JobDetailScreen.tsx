@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ChevronLeft, MapPin, MessageCircle, Phone, Receipt, ShieldAlert, Siren, Star } from 'lucide-react-native';
-import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
-import * as Linking from 'expo-linking';
-import { useConfirmCompletion, useJob } from '../../api/jobs';
+import { Alert, Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useConfirmCompletion, useJob, usePayment } from '../../api/jobs';
+import { useHubtelCheckout, useRefreshHubtelPayment } from '../../api/payments';
 import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
 import { getOrCreateThread } from '../../api/chat';
@@ -30,12 +31,37 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: provider } = useProvider(job?.provider_id);
   const { data: review } = useJobReview(jobId);
   const confirmCompletion = useConfirmCompletion();
+  const { data: payment } = usePayment(jobId);
+  const checkout = useHubtelCheckout(jobId);
+  const refreshPayment = useRefreshHubtelPayment(jobId);
   useReportJobLocation(job);
 
   const [showPayment, setShowPayment] = useState(false);
   const [showSafety, setShowSafety] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (payment?.status === 'pending' && payment.client_reference) {
+        refreshPayment.mutate();
+      }
+    }, [payment?.status, payment?.client_reference]),
+  );
 
   if (!job) return <Screen edges={['top']} />;
+
+  async function handlePay() {
+    setPayError(null);
+    try {
+      const res = await checkout.mutateAsync();
+      const url = res.data.checkoutUrl;
+      if (url) await Linking.openURL(url);
+    } catch (e: unknown) {
+      setPayError(e instanceof Error ? e.message : 'Could not start Hubtel checkout.');
+    }
+  }
+
+  const escrowHeld = payment?.status === 'held' || payment?.status === 'released';
 
   async function handleConfirm() {
     if (!job) return;
@@ -57,19 +83,20 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   }
 
   function handleCall() {
-    if (!provider?.phone) {
+    const phone = provider?.phone;
+    if (!provider || !phone) {
       Alert.alert('Phone number unavailable', 'No phone number is registered for this provider.');
       return;
     }
     Alert.alert(
       `Call ${provider.full_name}?`,
-      `Dial ${provider.phone} to coordinate job details directly. Standard cellular rates apply.`,
+      `Dial ${phone} to coordinate job details directly. Standard cellular rates apply.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Call',
           onPress: () => {
-            const cleaned = provider.phone.replace(/[^\d+]/g, '');
+            const cleaned = phone.replace(/[^\d+]/g, '');
             Linking.openURL(`tel:${cleaned}`).catch(() => {
               Alert.alert('Unable to dial', 'Your device could not open the phone dialer.');
             });
@@ -170,9 +197,15 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <Button title="Rate this job" onPress={() => navigation.navigate('RateJob', { jobId: job.id })} />
           )
         ) : job.status === 'awaiting_completion_confirmation' ? (
-          <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
+          escrowHeld ? (
+            <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
+          ) : (
+            <Button title="Pay with Hubtel" onPress={handlePay} loading={checkout.isPending} />
+          )
         ) : job.status === 'cancelled' ? (
           <Button title="Job cancelled" onPress={() => {}} disabled />
+        ) : payment?.status === 'pending' ? (
+          <Button title="Pay with Hubtel" onPress={handlePay} loading={checkout.isPending} />
         ) : (
           <Button
             title={job.status === 'in_progress' ? 'Work in progress' : 'Waiting for provider to start'}
@@ -185,13 +218,19 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       <BottomSheet visible={showPayment} onClose={() => setShowPayment(false)}>
         <Text style={styles.sheetTitle}>Confirm job completion</Text>
         <Text style={styles.sheetBody}>
-          Releasing payment tells us the work is done. You can still open a dispute for 48 hours.
+          This releases the Hubtel payment to the provider, minus platform commission. You can still open a dispute for 48 hours.
         </Text>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Button title="Not yet" variant="outline" onPress={() => setShowPayment(false)} style={{ flex: 1, height: 48 }} />
           <Button title="Confirm" onPress={handleConfirm} loading={confirmCompletion.isPending} style={{ flex: 1, height: 48 }} />
         </View>
       </BottomSheet>
+
+      {payError ? (
+        <Text style={{ color: colors.danger, textAlign: 'center', paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
+          {payError}
+        </Text>
+      ) : null}
 
       <SafetySheet visible={showSafety} onClose={() => setShowSafety(false)} job={job} peerName={provider?.full_name} />
     </Screen>

@@ -295,6 +295,14 @@ export default async function AnalyticsPage() {
     jobsTimelineRes,
     providersTimelineRes,
     areaCoverageRes,
+    usersRes,
+    customersRes,
+    openRequestsRes,
+    activeJobsRes,
+    openDisputesRes,
+    commissionRes,
+    payoutCommissionRes,
+    organizationsRes,
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'provider'),
     supabase
@@ -321,6 +329,20 @@ export default async function AnalyticsPage() {
     supabase.from('jobs').select('started_at').gte('started_at', windowStart),
     supabase.from('profiles').select('created_at').eq('role', 'provider').gte('created_at', windowStart),
     supabase.rpc('admin_area_coverage'),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+    supabase
+      .from('service_requests')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['open', 'matching', 'awaiting_provider', 'quoted']),
+    supabase
+      .from('jobs')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['accepted', 'in_progress', 'awaiting_completion_confirmation']),
+    supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+    supabase.from('platform_config').select('commission_percent').eq('id', true).maybeSingle(),
+    supabase.from('provider_payouts').select('commission_amount'),
+    supabase.from('organizations').select('*', { count: 'exact', head: true }).eq('status', 'active'),
   ]);
 
   const queryErrors = [
@@ -336,15 +358,34 @@ export default async function AnalyticsPage() {
     jobsTimelineRes,
     providersTimelineRes,
     areaCoverageRes,
+    usersRes,
+    customersRes,
+    openRequestsRes,
+    activeJobsRes,
+    openDisputesRes,
+    commissionRes,
+    payoutCommissionRes,
+    organizationsRes,
   ]
     .map((r) => r.error?.message)
     .filter(Boolean);
 
   const providers = providersRes.count ?? 0;
+  const organizations = organizationsRes.count ?? 0;
   const verified = verifiedRes.count ?? 0;
   const pending = pendingRes.count ?? 0;
   const jobs = jobsRes.count ?? 0;
   const completed = completedRes.count ?? 0;
+  const registeredUsers = usersRes.count ?? 0;
+  const customers = customersRes.count ?? 0;
+  const openRequests = openRequestsRes.count ?? 0;
+  const activeJobs = activeJobsRes.count ?? 0;
+  const openDisputes = openDisputesRes.count ?? 0;
+  const commissionPercent = Number(commissionRes.data?.commission_percent ?? 15);
+  const platformCommission = (payoutCommissionRes.data ?? []).reduce(
+    (sum, row) => sum + (Number((row as { commission_amount?: number }).commission_amount) || 0),
+    0,
+  );
   const recentJobs = recentJobsRes.data ?? [];
   const recentReviews = recentReviewsRes.data ?? [];
   const reviewJobIds = [...new Set(recentReviews.map((r) => r.job_id).filter(Boolean))] as string[];
@@ -443,6 +484,44 @@ export default async function AnalyticsPage() {
           Some metrics failed to load: {queryErrors[0]}
         </div>
       ) : null}
+
+      <div className="stats-grid" style={{ marginBottom: 16 }}>
+        <div className="stat-card">
+          <div className="stat-card-label">Registered users</div>
+          <div className="stat-card-value">{fmt(registeredUsers)}</div>
+          <div className="stat-card-sub">{fmt(customers)} customers · {fmt(providers)} providers</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Open requests</div>
+          <div className="stat-card-value">{fmt(openRequests)}</div>
+          <div className="stat-card-sub">Matching, quoted, or awaiting a provider</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Active jobs</div>
+          <div className="stat-card-value">{fmt(activeJobs)}</div>
+          <div className="stat-card-sub">{fmt(completed)} completed all-time</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Open disputes</div>
+          <div className="stat-card-value">{fmt(openDisputes)}</div>
+          <div className="stat-card-sub">Needs admin resolution</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Platform commission</div>
+          <div className="stat-card-value">{currency(platformCommission)}</div>
+          <div className="stat-card-sub">From payouts at {commissionPercent}%</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Verified providers</div>
+          <div className="stat-card-value">{fmt(verified)}</div>
+          <div className="stat-card-sub">{fmt(pending)} verification pending</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-label">Organizations</div>
+          <div className="stat-card-value">{fmt(organizations)}</div>
+          <div className="stat-card-sub">Active business accounts</div>
+        </div>
+      </div>
 
       <div className="stats-grid dash-stats">
         <div className="stat-card viz-card">

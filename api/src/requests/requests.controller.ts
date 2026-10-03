@@ -41,6 +41,13 @@ export class RequestsController {
     return { data, meta: { unread: data.filter((n) => !n.read_at).length } };
   }
 
+  @Post('notifications/read-all')
+  @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
+  async readAllNotifications(@CurrentUser() user: RequestUser) {
+    const data = await this.requests.markAllNotificationsRead(user.id);
+    return { data, meta: {} };
+  }
+
   @Patch('notifications/:id/read')
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async readNotification(@CurrentUser() user: RequestUser, @Param('id') id: string) {

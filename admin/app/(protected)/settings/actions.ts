@@ -26,6 +26,41 @@ export async function updateCommission(formData: FormData): Promise<void> {
   revalidatePath('/settings');
 }
 
+const PAYOUT_METHODS = ['', 'MTN MoMo', 'Vodafone Cash', 'AirtelTigo Money', 'Bank transfer'] as const;
+
+/** Owner-only, same tier as the commission rate: the support email is
+ * shown across the panel (this page, the sidebar) and the default payout
+ * method pre-selects the dropdown every "Mark paid" action on /payouts
+ * starts from, so both are platform-wide policy rather than routine ops. */
+export async function updatePlatformSettings(formData: FormData): Promise<void> {
+  const owner = await requireOwner();
+  if (!owner) return;
+
+  const supportEmail = String(formData.get('support_email') ?? '').trim();
+  const defaultPayoutMethod = String(formData.get('default_payout_method') ?? '');
+  if (!supportEmail || !/^\S+@\S+\.\S+$/.test(supportEmail)) return;
+  if (!PAYOUT_METHODS.includes(defaultPayoutMethod as (typeof PAYOUT_METHODS)[number])) return;
+
+  const adminClient = createAdminClient();
+  const { error } = await adminClient
+    .from('platform_config')
+    .update({
+      support_email: supportEmail,
+      default_payout_method: defaultPayoutMethod || null,
+      updated_at: new Date().toISOString(),
+      updated_by: owner.id,
+    })
+    .eq('id', true);
+  assertOk(error, 'Updating platform settings');
+
+  await logAdminAction(owner, 'UPDATED_PLATFORM_SETTINGS', {
+    targetType: 'platform_config',
+    note: `Support email: ${supportEmail}; default payout method: ${defaultPayoutMethod || 'none'}`,
+  });
+  revalidatePath('/settings');
+  revalidatePath('/payouts');
+}
+
 /**
  * Physically deletes the storage objects run_data_retention_cleanup()
  * (0035) queued but couldn't delete itself - Supabase's storage.

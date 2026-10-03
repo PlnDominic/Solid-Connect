@@ -33,14 +33,33 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
     .eq('id', dispute.job_id)
     .maybeSingle();
 
-  const [{ data: customer }, { data: provider }, { data: request }, activity] = await Promise.all([
+  const [{ data: customer }, { data: provider }, { data: request }, { data: evidence }, activity] = await Promise.all([
     supabase.from('profiles').select('full_name, phone').eq('id', dispute.customer_id).maybeSingle(),
     supabase.from('profiles').select('full_name, phone').eq('id', dispute.provider_id).maybeSingle(),
     job?.request_id
       ? supabase.from('service_requests').select('photos').eq('id', job.request_id).maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase
+      .from('dispute_evidence')
+      .select('id, author_id, storage_path')
+      .eq('dispute_id', dispute.id)
+      .order('created_at', { ascending: true }),
     getJobActivity(supabase, dispute.job_id),
   ]);
+
+  // The bucket is private (0054); admins read it through short-lived links.
+  const evidenceRows = (evidence ?? []) as { id: string; author_id: string; storage_path: string }[];
+  const { data: signed } = evidenceRows.length
+    ? await supabase.storage.from('dispute-evidence').createSignedUrls(evidenceRows.map((e) => e.storage_path), 60 * 60)
+    : { data: [] };
+  const signedByPath = new Map((signed ?? []).map((s) => [s.path, s.signedUrl]));
+  const evidencePhotos = evidenceRows
+    .map((e) => ({
+      id: e.id,
+      url: signedByPath.get(e.storage_path) ?? null,
+      side: e.author_id === dispute.customer_id ? 'Customer' : 'Provider',
+    }))
+    .filter((e): e is { id: string; url: string; side: string } => !!e.url);
 
   const photos = request?.photos ?? [];
   const resolve = resolveDispute.bind(null, dispute.id);
@@ -82,6 +101,15 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
           <p style={{ marginTop: 16, fontSize: 13.5, lineHeight: 1.5 }}>{dispute.description || 'No description provided.'}</p>
+
+          <h2 className="mt-28">Evidence: dispute photos</h2>
+          <div className="docs">
+            {evidencePhotos.length > 0 ? evidencePhotos.map((item) => (
+              <a className="doc" key={item.id} href={item.url} target="_blank" rel="noreferrer" title={`${item.side} evidence`} style={{ padding: 0, overflow: 'hidden' }}>
+                <img src={item.url} alt={`${item.side} evidence`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </a>
+            )) : <div className="doc">No photos were attached to this dispute.</div>}
+          </div>
 
           <h2 className="mt-28">Evidence: request photos</h2>
           <div className="docs">
