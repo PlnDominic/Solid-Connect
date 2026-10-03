@@ -34,6 +34,21 @@ export function useMyBlocks(userId: string | null | undefined) {
   });
 }
 
+/** Everyone the signed-in person has blocked or been blocked by, so
+ * provider lists and search can leave them out. */
+export function useBlockPartners(userId: string | null | undefined) {
+  return useQuery({
+    queryKey: ['blockPartners', userId],
+    queryFn: async (): Promise<Set<string>> => {
+      const { data, error } = await supabase.rpc('my_block_partners');
+      if (error) return new Set();
+      return new Set(((data ?? []) as (string | { my_block_partners: string })[]).map((r) => (typeof r === 'string' ? r : r.my_block_partners)));
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+}
+
 export function useBlockUser(userId: string | null | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -42,7 +57,10 @@ export function useBlockUser(userId: string | null | undefined) {
       // Already blocked is fine: the goal state is reached.
       if (error && error.code !== '23505') throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blocks', userId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blocks', userId] });
+      queryClient.invalidateQueries({ queryKey: ['blockPartners', userId] });
+    },
   });
 }
 
@@ -57,7 +75,10 @@ export function useUnblockUser(userId: string | null | undefined) {
         .eq('blocked_id', blockedId);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['blocks', userId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blocks', userId] });
+      queryClient.invalidateQueries({ queryKey: ['blockPartners', userId] });
+    },
   });
 }
 

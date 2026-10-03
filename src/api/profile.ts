@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { becomeProvider, switchActiveRole, syncIdentity } from './identity';
 import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/imageCompression';
 import { useSessionStore } from '../store/useSessionStore';
 import type { Profile, Role } from '../types/database';
 import { isApiConfigured } from '../lib/api';
@@ -178,7 +179,8 @@ export async function updateOwnProfile(
  * client cache of the old URL can't mask the update.
  */
 export async function uploadOwnProfilePhoto(userId: string, imageUri: string): Promise<Profile> {
-  const response = await fetch(imageUri);
+  const compressedUri = await compressImage(imageUri);
+  const response = await fetch(compressedUri);
   const arrayBuffer = await response.arrayBuffer();
   const path = `${userId}/${Date.now()}.jpg`;
   const { error: uploadError } = await supabase.storage

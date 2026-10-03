@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/imageCompression';
 import type { ChatMessage, ChatThread, Role } from '../types/database';
 
 export async function getOrCreateThread(input: {
@@ -176,12 +177,19 @@ export function useSendMessage() {
       senderRole: Role;
       text?: string;
       imageUrl?: string;
+      audioUrl?: string;
+      audioDurationSeconds?: number;
     }) => {
       const text = input.text?.trim() || undefined;
       if (isApiConfigured()) {
         const res = await apiFetch<{ data: ChatMessage }>(`/api/v1/chat/threads/${input.threadId}/messages`, {
           method: 'POST',
-          body: JSON.stringify({ text, imageUrl: input.imageUrl }),
+          body: JSON.stringify({
+            text,
+            imageUrl: input.imageUrl,
+            audioUrl: input.audioUrl,
+            audioDurationSeconds: input.audioDurationSeconds,
+          }),
         });
         return res.data;
       }
@@ -193,6 +201,8 @@ export function useSendMessage() {
           sender_role: input.senderRole,
           text: text ?? null,
           image_url: input.imageUrl ?? null,
+          audio_url: input.audioUrl ?? null,
+          audio_duration_seconds: input.audioDurationSeconds ?? null,
         })
         .select('*')
         .single();
@@ -213,12 +223,26 @@ export function useSendMessage() {
  * request photo uploads elsewhere in this codebase) and returns its
  * public URL - the caller still has to actually send it as a message. */
 export async function uploadChatPhoto(senderId: string, imageUri: string): Promise<string> {
-  const response = await fetch(imageUri);
+  const compressedUri = await compressImage(imageUri);
+  const response = await fetch(compressedUri);
   const arrayBuffer = await response.arrayBuffer();
   const path = `${senderId}/${Date.now()}.jpg`;
   const { error } = await supabase.storage.from('chat-photos').upload(path, arrayBuffer, { contentType: 'image/jpeg' });
   if (error) throw error;
   const { data } = supabase.storage.from('chat-photos').getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/** Uploads a recorded voice note to the chat-audio bucket under the sender's
+ * own folder and returns its public URL. */
+export async function uploadChatAudio(senderId: string, audioUri: string): Promise<string> {
+  const response = await fetch(audioUri);
+  const arrayBuffer = await response.arrayBuffer();
+  const ext = audioUri.split('.').pop() || 'm4a';
+  const path = `${senderId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from('chat-audio').upload(path, arrayBuffer, { contentType: 'audio/m4a' });
+  if (error) throw error;
+  const { data } = supabase.storage.from('chat-audio').getPublicUrl(path);
   return data.publicUrl;
 }
 

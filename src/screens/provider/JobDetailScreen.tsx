@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert, Siren } from 'lucide-react-native';
+import { ChevronLeft, MapPin, MessageCircle, Phone, Receipt, ShieldAlert, Siren } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import * as Linking from 'expo-linking';
 import { useFinishJob, useJob, useJobCheckIn, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { getOrCreateThread } from '../../api/chat';
@@ -27,9 +28,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: customer } = useProvider(job?.customer_id);
   const startJob = useStartJob();
   const finishJob = useFinishJob();
-  useReportJobLocation(job);
   const markEnRoute = useJobCheckIn('en_route');
   const markArrived = useJobCheckIn('arrived');
+  useReportJobLocation(job);
   const [showSafety, setShowSafety] = useState(false);
 
   if (!job) return <Screen edges={['top']} />;
@@ -49,6 +50,29 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     });
   }
 
+  function handleCall() {
+    if (!customer?.phone) {
+      Alert.alert('Phone number unavailable', 'No phone number is registered for this customer.');
+      return;
+    }
+    Alert.alert(
+      `Call ${customer.full_name}?`,
+      `Dial ${customer.phone} to coordinate directions or job details directly. Standard cellular rates apply.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Call',
+          onPress: () => {
+            const cleaned = customer.phone.replace(/[^\d+]/g, '');
+            Linking.openURL(`tel:${cleaned}`).catch(() => {
+              Alert.alert('Unable to dial', 'Your device could not open the phone dialer.');
+            });
+          },
+        },
+      ],
+    );
+  }
+
   async function handleStart() {
     try {
       await startJob.mutateAsync(job!);
@@ -56,6 +80,23 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       Alert.alert('Could not start', e?.message ?? 'Try again.');
     }
   }
+
+  async function handleCheckIn(mutation: typeof markEnRoute) {
+    try {
+      await mutation.mutateAsync(job!);
+    } catch (e: any) {
+      Alert.alert('Could not update', e?.message ?? 'Try again.');
+    }
+  }
+
+  // Optional steps before "Start work": tell the customer you're coming,
+  // then that you're there. Skipping them never blocks starting the job.
+  const checkIn =
+    job.status !== 'accepted' || job.arrived_at
+      ? null
+      : job.en_route_at
+        ? { title: "I've arrived", onPress: () => handleCheckIn(markArrived), loading: markArrived.isPending }
+        : { title: "I'm on my way", onPress: () => handleCheckIn(markEnRoute), loading: markEnRoute.isPending };
 
   async function handleFinish() {
     try {
@@ -81,23 +122,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             loading: finishJob.isPending,
             disabled: false,
             // The one moment the provider actually completes an action on
-  async function handleCheckIn(mutation: typeof markEnRoute) {
-    try {
-      await mutation.mutateAsync(job!);
-    } catch (e: any) {
-      Alert.alert('Could not update', e?.message ?? 'Try again.');
-    }
-  }
-
-  // Optional steps before "Start work": tell the customer you're coming,
-  // then that you're there. Skipping them never blocks starting the job.
-  const checkIn =
-    job.status !== 'accepted' || job.arrived_at
-      ? null
-      : job.en_route_at
-        ? { title: "I've arrived", onPress: () => handleCheckIn(markArrived), loading: markArrived.isPending }
-        : { title: "I'm on my way", onPress: () => handleCheckIn(markEnRoute), loading: markEnRoute.isPending };
-
             // this screen - the brand-orange "active" variant, same accent
             // as the header, instead of the plain ink primary the other,
             // less consequential states use.
@@ -121,6 +145,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
 
   const quickActions: JobQuickAction[] = [
     { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
+    ...(job.status !== 'completed' && job.status !== 'cancelled' && customer?.phone
+      ? [{ key: 'call', label: 'Call', icon: Phone, onPress: handleCall }]
+      : []),
     ...(job.status === 'completed'
       ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
       : []),
@@ -192,6 +219,15 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       </ScrollView>
 
       <View style={styles.footer}>
+        {checkIn ? (
+          <Button
+            title={checkIn.title}
+            onPress={checkIn.onPress}
+            loading={checkIn.loading}
+            variant="outline"
+            style={{ marginBottom: spacing.sm }}
+          />
+        ) : null}
         <Button
           title={primaryCta.title}
           onPress={primaryCta.onPress}
@@ -219,15 +255,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     back: {
       width: 32,
       height: 32,
-        {checkIn ? (
-          <Button
-            title={checkIn.title}
-            onPress={checkIn.onPress}
-            loading={checkIn.loading}
-            variant="outline"
-            style={{ marginBottom: spacing.sm }}
-          />
-        ) : null}
       borderRadius: radii.md,
       alignItems: 'center',
       justifyContent: 'center',

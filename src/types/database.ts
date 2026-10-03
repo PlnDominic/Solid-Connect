@@ -28,6 +28,24 @@ export type VerificationStatus = 'pending' | 'approved' | 'rejected';
 export type DisputeReason = 'not_completed' | 'poor_quality' | 'overcharged' | 'no_show' | 'other';
 export type DisputeStatus = 'open' | 'resolved';
 
+export type MoMoNetwork = 'MTN' | 'Telecel' | 'AirtelTigo';
+
+export interface MoMoPayoutDetails {
+  type: 'momo';
+  network: MoMoNetwork;
+  phone: string;
+  accountName: string;
+}
+
+export interface BankPayoutDetails {
+  type: 'bank';
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}
+
+export type ProviderPayoutAccount = MoMoPayoutDetails | BankPayoutDetails;
+
 export interface Profile {
   id: string;
   role: Role;
@@ -61,6 +79,13 @@ export interface Profile {
   terms_accepted_at?: string | null;
   terms_version?: string | null;
   notification_prefs?: Record<string, boolean>;
+  // Added in supabase/migrations/0059_provider_payout_account.sql.
+  payout_account?: ProviderPayoutAccount | null;
+  // Added in supabase/migrations/0062_two_sided_reviews.sql - the mirror of
+  // provider_rating/provider_jobs_count for how customers behave, fed by the
+  // apply_customer_review() trigger. Optional so old cached rows typecheck.
+  customer_rating?: number;
+  customer_reviews_count?: number;
 }
 
 export interface Category {
@@ -121,6 +146,15 @@ export interface Quote {
   note?: string;
   revision?: number;
   updated_at?: string;
+  // Added in supabase/migrations/0055_quote_negotiation.sql. Optional so
+  // rows cached before the migration still typecheck.
+  items?: { label: string; amount: number }[];
+  proposed_start?: string | null;
+  counter_price?: number | null;
+  counter_note?: string | null;
+  counter_at?: string | null;
+  counter_declined_at?: string | null;
+  decline_reason?: string | null;
 }
 
 export interface Job {
@@ -139,6 +173,8 @@ export interface Job {
   provider_completed_at?: string | null;
   customer_confirmed_at?: string | null;
   scheduled_for?: string | null;
+  en_route_at?: string | null;
+  arrived_at?: string | null;
   cancelled_at?: string | null;
   cancelled_by?: string | null;
   cancel_reason?: JobCancelReason | null;
@@ -146,15 +182,6 @@ export interface Job {
 }
 
 export interface JobReschedule {
-  // Added in supabase/migrations/0055_quote_negotiation.sql. Optional so
-  // rows cached before the migration still typecheck.
-  items?: { label: string; amount: number }[];
-  proposed_start?: string | null;
-  counter_price?: number | null;
-  counter_note?: string | null;
-  counter_at?: string | null;
-  counter_declined_at?: string | null;
-  decline_reason?: string | null;
   id: string;
   job_id: string;
   proposed_by: string;
@@ -173,10 +200,22 @@ export interface Payment {
   released_at: string | null;
   created_at: string;
 }
-  en_route_at?: string | null;
-  arrived_at?: string | null;
 
 export interface Review {
+  id: string;
+  job_id: string;
+  provider_id: string;
+  customer_id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+}
+
+// Added in supabase/migrations/0062_two_sided_reviews.sql - the provider's
+// rating of the customer on a completed job. reviews carries unique(job_id)
+// (customer → provider), so the other direction gets its own table with the
+// same per-job uniqueness.
+export interface CustomerReview {
   id: string;
   job_id: string;
   provider_id: string;
@@ -212,6 +251,8 @@ export interface ChatMessage {
   text: string | null;
   read_at?: string | null;
   image_url?: string | null;
+  audio_url?: string | null;
+  audio_duration_seconds?: number | null;
   created_at: string;
 }
 
@@ -249,6 +290,21 @@ export interface Dispute {
   status: DisputeStatus;
   resolution_note: string | null;
   resolved_at: string | null;
+  created_at: string;
+  // Added in supabase/migrations/0054_dispute_cases.sql. Optional so rows
+  // cached before the migration still typecheck.
+  provider_response?: string | null;
+  provider_responded_at?: string | null;
+  payment_already_released?: boolean;
+}
+
+// Added in 0054 - one photo a party attached to a dispute. The file lives in
+// the private dispute-evidence bucket and is shown through a signed URL.
+export interface DisputeEvidence {
+  id: string;
+  dispute_id: string;
+  author_id: string;
+  storage_path: string;
   created_at: string;
 }
 
@@ -291,23 +347,9 @@ export interface Database {
       service_requests: { Row: ServiceRequest; Insert: Partial<ServiceRequest> & { customer_id: string; category_label: string }; Update: Partial<ServiceRequest> };
       quotes: { Row: Quote; Insert: Partial<Quote> & { request_id: string; provider_id: string; price: number }; Update: Partial<Quote> };
       jobs: { Row: Job; Insert: Partial<Job> & { request_id: string; quote_id: string; customer_id: string; provider_id: string; title: string; price: number; location_label: string }; Update: Partial<Job> };
-  // Added in supabase/migrations/0054_dispute_cases.sql. Optional so rows
-  // cached before the migration still typecheck.
-  provider_response?: string | null;
-  provider_responded_at?: string | null;
-  payment_already_released?: boolean;
-}
-
-// Added in 0054 - one photo a party attached to a dispute. The file lives in
-// the private dispute-evidence bucket and is shown through a signed URL.
-export interface DisputeEvidence {
-  id: string;
-  dispute_id: string;
-  author_id: string;
-  storage_path: string;
-  created_at: string;
       payments: { Row: Payment; Insert: Partial<Payment> & { job_id: string; amount: number }; Update: Partial<Payment> };
       reviews: { Row: Review; Insert: Partial<Review> & { job_id: string; provider_id: string; customer_id: string; rating: number }; Update: Partial<Review> };
+      customer_reviews: { Row: CustomerReview; Insert: Partial<CustomerReview> & { job_id: string; provider_id: string; customer_id: string; rating: number }; Update: Partial<CustomerReview> };
       chat_threads: { Row: ChatThread; Insert: Partial<ChatThread> & { customer_id: string; provider_id: string }; Update: Partial<ChatThread> };
       chat_messages: { Row: ChatMessage; Insert: Partial<ChatMessage> & { thread_id: string; sender_id: string; sender_role: Role }; Update: Partial<ChatMessage> };
       saved_providers: { Row: SavedProvider; Insert: SavedProvider; Update: Partial<SavedProvider> };

@@ -4,7 +4,10 @@ import type { LinkingOptions } from '@react-navigation/native';
 import { getNotifications } from '../lib/runtime';
 
 // Only the destinations the app actually lets someone share externally:
-// a provider's profile, a job (and its receipt), and the referral screen.
+// a provider's profile, a job (and its receipt), the referral screen, and
+// referral invite links (solidconnect://referral?code=XXXX, which open the
+// Referral screen; the code itself is captured by AuthFlowScreen's link
+// listener and claimed after sign-up).
 // Chat threads are deliberately left out - ChatThreadScreen needs both a
 // threadId and a peerId, and a raw shared URL can only ever carry the
 // former, so a link into a specific conversation would need a lookup this
@@ -67,10 +70,10 @@ export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
             screens: {
               JobDetail: 'jobs/:jobId',
               Receipt: 'jobs/:jobId/receipt',
+              Dispute: 'jobs/:jobId/dispute',
             },
           },
           ProfileTab: {
-              Dispute: 'jobs/:jobId/dispute',
             screens: {
               Referral: 'referral',
               Notifications: 'notifications',

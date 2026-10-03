@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import * as Linking from 'expo-linking';
 import { createOrUpdateOwnProfile, fetchProfile, savePushSubscription } from '../../api/profile';
 import { useCategories } from '../../api/marketplace';
+import { claimReferral, popPendingReferralCode, stashPendingReferralCode } from '../../api/referrals';
 import {
   friendlyAuthError,
   getCurrentUserId,
@@ -82,8 +84,47 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [roleError, setRoleError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
+  // Invite code carried from a "solidconnect://referral?code=..." link
+  // (or typed on sign-in) until an account exists to claim it with -
+  // see claimReferralAfterAuth below.
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const setProfile = useSessionStore((s) => s.setProfile);
   const setBootstrapping = useSessionStore((s) => s.setBootstrapping);
+
+  // Grab an invite code off the opening URL (cold start) and any link
+  // tapped while the flow is already on screen (warm start), and stash it
+  // in storage too so an app kill mid-sign-up (e.g. after confirming
+  // email) doesn't lose the friend's credit.
+  useEffect(() => {
+    function rememberCode(url: string | null) {
+      const code = url?.match(/[?&]code=([A-Za-z0-9]+)/)?.[1];
+      if (!code) return;
+      const upper = code.toUpperCase();
+      setReferralCode(upper);
+      stashPendingReferralCode(upper).catch(() => {});
+    }
+    Linking.getInitialURL()
+      .then(rememberCode)
+      .catch(() => {});
+    const sub = Linking.addEventListener('url', ({ url }) => rememberCode(url));
+    return () => sub.remove();
+  }, []);
+
+  /**
+   * Claims the held invite code once an account exists. Best-effort: a
+   * failure (window closed, bad code, already referred) must never block
+   * sign-in - the friend's credit is just missed this time.
+   */
+  async function claimReferralAfterAuth() {
+    const code = referralCode ?? (await popPendingReferralCode());
+    if (!code) return;
+    setReferralCode(null);
+    try {
+      await claimReferral(code);
+    } catch {
+      // Deliberately swallowed - see docstring.
+    }
+  }
 
   // Only recorded when the checkbox on the role step was actually ticked -
   // omitted (not falsely dated) otherwise, so createOrUpdateOwnProfile's
@@ -152,6 +193,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       if (userId) {
         const profile = await createOrUpdateOwnProfile(userId, role, { fullName, phone, email, area, ...termsMeta() });
         setProfile(profile);
+        await claimReferralAfterAuth();
         setPhase('signup-notifications');
         return;
       }
@@ -178,6 +220,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
           ...termsMeta(),
         });
         setProfile(profile);
+        await claimReferralAfterAuth();
         setPhase('signup-notifications');
         return;
       }
@@ -215,6 +258,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         ...termsMeta(),
       });
       setProfile(profile);
+      await claimReferralAfterAuth();
       setPhase('signup-notifications');
     } catch (e: any) {
       setPasswordError(friendlyAuthError(e, 'Could not create your account. Please try again.'));
@@ -255,6 +299,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     const profile = await fetchProfile(userId);
     if (profile) {
       setProfile(profile);
+      await claimReferralAfterAuth();
       onDone();
       return;
     }

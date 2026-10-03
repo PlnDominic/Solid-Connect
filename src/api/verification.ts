@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/imageCompression';
 import type { ProviderVerification } from '../types/database';
 
 /**
@@ -43,7 +44,8 @@ export function useSubmitVerification() {
     mutationFn: async ({ providerId, imageUris }: { providerId: string; imageUris: string[] }) => {
       const paths: string[] = [];
       for (let i = 0; i < imageUris.length; i++) {
-        const response = await fetch(imageUris[i]);
+        const compressedUri = await compressImage(imageUris[i]);
+        const response = await fetch(compressedUri);
         const arrayBuffer = await response.arrayBuffer();
         const path = docPath(providerId, i);
         const { error: uploadError } = await supabase.storage

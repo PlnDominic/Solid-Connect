@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderEarningsThisMonth, useProviderJobs } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
+import { useProviderReviewedJobIds } from '../../api/reviews';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
 import { JobStatusBadge } from '../../components/JobStatusBadge';
@@ -13,7 +14,7 @@ import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Job } from '../../types/database';
 
-function JobRow({ job, onPress }: { job: Job; onPress: () => void }) {
+function JobRow({ job, onPress, needsRating }: { job: Job; onPress: () => void; needsRating?: boolean }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { data: customer } = useProvider(job.customer_id);
@@ -33,6 +34,7 @@ function JobRow({ job, onPress }: { job: Job; onPress: () => void }) {
       </View>
       <View style={styles.cardBottom}>
         <JobStatusBadge status={job.status} role="provider" />
+        {needsRating ? <Text style={styles.rateNudge}>Rate customer</Text> : null}
         <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
       </View>
     </Pressable>
@@ -45,6 +47,7 @@ export function JobsScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: jobs = [], isLoading: jobsLoading, refetch } = useProviderJobs(profile?.id ?? null);
   const { data: earnings } = useProviderEarningsThisMonth(profile?.id ?? null);
+  const { data: reviewedJobIds } = useProviderReviewedJobIds(profile?.id ?? null);
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   const activeJobs = jobs.filter((j) => j.status !== 'completed' && j.status !== 'cancelled');
@@ -100,9 +103,17 @@ export function JobsScreen({ navigation }: { navigation: any }) {
                   <Text style={styles.sectionCount}>{historyJobs.length}</Text>
                 </View>
                 <View style={styles.cardList}>
-                  {historyJobs.map((job) => (
-                    <JobRow key={job.id} job={job} onPress={() => navigation.navigate('JobDetail', { jobId: job.id })} />
-                  ))}
+                  {historyJobs.map((job) => {
+                    const needsRating = reviewedJobIds ? !reviewedJobIds.has(job.id) : false;
+                    return (
+                      <JobRow
+                        key={job.id}
+                        job={job}
+                        needsRating={needsRating}
+                        onPress={() => navigation.navigate(needsRating ? 'RateCustomer' : 'JobDetail', { jobId: job.id })}
+                      />
+                    );
+                  })}
                 </View>
               </View>
             ) : null}
@@ -151,6 +162,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     cardTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
     cardMeta: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
     cardBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
-    cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.sm },
+    rateNudge: { fontSize: 12, fontFamily: fonts.extrabold, color: colors.ink },
   });
 }

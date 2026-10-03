@@ -5,6 +5,7 @@ import { RequestDetailScreen } from '../screens/provider/RequestDetailScreen';
 import { RequestsScreen } from '../screens/provider/RequestsScreen';
 import { JobsScreen } from '../screens/provider/JobsScreen';
 import { JobDetailScreen } from '../screens/provider/JobDetailScreen';
+import { RateCustomerScreen } from '../screens/provider/RateCustomerScreen';
 import { ProfileScreen } from '../screens/provider/ProfileScreen';
 import { EarningsScreen } from '../screens/provider/EarningsScreen';
 import { PayoutDetailsScreen } from '../screens/provider/PayoutDetailsScreen';
@@ -52,6 +53,7 @@ function JobsStack() {
     <JobsStackNav.Navigator screenOptions={{ headerShown: false }}>
       <JobsStackNav.Screen name="JobsHome" component={JobsScreen} />
       <JobsStackNav.Screen name="JobDetail" component={JobDetailScreen} />
+      <JobsStackNav.Screen name="RateCustomer" component={RateCustomerScreen} />
       <JobsStackNav.Screen name="Dispute" component={DisputeScreen} />
       <JobsStackNav.Screen name="Receipt" component={ReceiptScreen} />
     </JobsStackNav.Navigator>

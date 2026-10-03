@@ -1,8 +1,11 @@
 import { useMemo } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ChevronRight, Wallet } from 'lucide-react-native';
 import { summarizePayouts, useProviderPayouts, type PayoutRow } from '../../api/earnings';
+import { usePayoutAccount } from '../../api/payouts';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { formatPayoutAccountSummary } from '../../lib/payouts';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -24,6 +27,8 @@ export function EarningsScreen({ navigation }: { navigation: any }) {
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const { data: payouts = [], isLoading, isRefetching, refetch } = useProviderPayouts(profile?.id);
+  const { data: payoutAccount } = usePayoutAccount(profile?.id);
+  const accountSummary = formatPayoutAccountSummary(payoutAccount);
   const summary = useMemo(() => summarizePayouts(payouts), [payouts]);
   const maxMonth = Math.max(...summary.months.map((m) => m.net), 1);
 
@@ -53,6 +58,24 @@ export function EarningsScreen({ navigation }: { navigation: any }) {
             <Text style={styles.note}>After commission</Text>
           </View>
         </View>
+
+        <Pressable
+          onPress={() => navigation.navigate('PayoutDetails')}
+          style={styles.payoutNavCard}
+          accessibilityRole="button"
+          accessibilityLabel="Manage payout account"
+        >
+          <View style={styles.payoutNavIcon}>
+            <Wallet size={18} color={colors.ink} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={styles.payoutNavTitle}>Payout destination</Text>
+            <Text style={styles.payoutNavSubtitle}>
+              {payoutAccount ? `${accountSummary.title} · ${accountSummary.masked}` : 'Tap to configure MoMo or bank account'}
+            </Text>
+          </View>
+          <ChevronRight size={18} color={colors.inkFaint} strokeWidth={2.2} />
+        </Pressable>
 
         <View style={styles.card}>
           <Text style={styles.label}>LAST 6 MONTHS</Text>
@@ -137,5 +160,25 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     chipPaid: { backgroundColor: colors.confirmBg },
     chipFailed: { backgroundColor: colors.dangerBg },
     chipText: { fontSize: 11, fontFamily: fonts.semibold, color: colors.pending },
+    payoutNavCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      padding: spacing.md,
+      paddingHorizontal: spacing.lg,
+      ...shadow.card,
+    },
+    payoutNavIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radii.md,
+      backgroundColor: colors.paperDim,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    payoutNavTitle: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.ink },
+    payoutNavSubtitle: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
   });
 }

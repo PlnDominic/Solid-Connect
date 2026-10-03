@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/imageCompression';
 import type { Quote, ServiceRequest } from '../types/database';
 
 export interface RequestWithQuotes extends ServiceRequest {
@@ -78,7 +79,8 @@ export function useMyActiveRequest(customerId: string | null) {
 }
 
 async function uploadRequestPhoto(customerId: string, imageUri: string): Promise<string> {
-  const response = await fetch(imageUri);
+  const compressedUri = await compressImage(imageUri);
+  const response = await fetch(compressedUri);
   const arrayBuffer = await response.arrayBuffer();
   const path = `${customerId}/${Date.now()}.jpg`;
   const { error: uploadError } = await supabase.storage
@@ -101,10 +103,10 @@ export function useCreateRequest() {
       locationLabel: string;
       photoUris?: string[];
       preferredProviderId?: string;
-    }) => {
-      const photos: string[] = [];
       /** The appointment the customer picked from the provider's open slots. */
       preferredTime?: Date;
+    }) => {
+      const photos: string[] = [];
       for (const uri of input.photoUris ?? []) {
         photos.push(await uploadRequestPhoto(input.customerId, uri));
       }
@@ -149,11 +151,11 @@ export function useCreateRequest() {
           customer_budget: input.budget,
           location_label: input.locationLabel,
           preferred_provider_id: input.preferredProviderId ?? null,
-          request_mode: isDirect ? 'DIRECT' : 'GENERAL',
-          status: isDirect ? 'awaiting_provider' : 'matching',
           ...(input.preferredTime
             ? { preferred_time: input.preferredTime.toISOString(), urgency: 'scheduled' }
             : {}),
+          request_mode: isDirect ? 'DIRECT' : 'GENERAL',
+          status: isDirect ? 'awaiting_provider' : 'matching',
         })
         .select('*')
         .single();
@@ -550,12 +552,12 @@ export function useSendQuote() {
       badgeLabel: string;
       badgeKind: 'certified' | 'verified';
       note?: string;
-    }) => {
-      if (isApiConfigured()) {
       /** Optional breakdown; must add up to `price` (checked in the database too). */
       items?: { label: string; amount: number }[];
       /** The start time the provider proposes, an ISO string. */
       proposedStart?: string | null;
+    }) => {
+      if (isApiConfigured()) {
         return apiFetch<{ data: Quote }>('/api/v1/quotes', {
           method: 'POST',
           body: JSON.stringify({
@@ -576,11 +578,11 @@ export function useSendQuote() {
           eta_label: input.etaLabel,
           badge_label: input.badgeLabel,
           badge_kind: input.badgeKind,
-        })
-        .select('*')
           note: input.note ?? '',
           items: input.items ?? [],
           proposed_start: input.proposedStart ?? null,
+        })
+        .select('*')
         .single();
       if (error) throw error;
       await supabase

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ChevronLeft, MapPin, MessageCircle, Receipt, ShieldAlert, Siren, Star } from 'lucide-react-native';
-import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ChevronLeft, MapPin, MessageCircle, Phone, Receipt, ShieldAlert, Siren, Star } from 'lucide-react-native';
+import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import * as Linking from 'expo-linking';
 import { useConfirmCompletion, useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
@@ -55,8 +56,34 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId: thread.id, peerId: job.provider_id } });
   }
 
+  function handleCall() {
+    if (!provider?.phone) {
+      Alert.alert('Phone number unavailable', 'No phone number is registered for this provider.');
+      return;
+    }
+    Alert.alert(
+      `Call ${provider.full_name}?`,
+      `Dial ${provider.phone} to coordinate job details directly. Standard cellular rates apply.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Call',
+          onPress: () => {
+            const cleaned = provider.phone.replace(/[^\d+]/g, '');
+            Linking.openURL(`tel:${cleaned}`).catch(() => {
+              Alert.alert('Unable to dial', 'Your device could not open the phone dialer.');
+            });
+          },
+        },
+      ],
+    );
+  }
+
   const quickActions: JobQuickAction[] = [
     { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
+    ...(job.status !== 'completed' && job.status !== 'cancelled' && provider?.phone
+      ? [{ key: 'call', label: 'Call', icon: Phone, onPress: handleCall }]
+      : []),
     ...(job.status === 'completed'
       ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
       : []),

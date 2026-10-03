@@ -6,6 +6,8 @@ import { House, LayoutGrid, ClipboardList, Briefcase, MessageCircle, User } from
 import { useLocale, type TranslationKey } from '../i18n';
 import { fonts } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
+import { useSessionStore } from '../store/useSessionStore';
+import { useUnreadChatCount, useUnreadNotificationCount } from '../api/badges';
 
 const routeIcons: Record<string, LucideIcon> = {
   HomeTab: House,
@@ -30,10 +32,26 @@ const routeLabelKeys: Record<string, TranslationKey> = {
 
 const ICON_SIZE = 22;
 
+/** Which tab carries which unread counter, if any. The TabBar renders on
+ * every screen for the whole session, so the counters live in tiny,
+ * cheap hooks (src/api/badges.ts) rather than the screen-level queries. */
+function useTabBadges(): Record<string, number> {
+  const profile = useSessionStore((s) => s.profile);
+  const userId = profile?.id ?? null;
+  const chat = useUnreadChatCount(userId, profile?.role ?? 'customer');
+  const notifications = useUnreadNotificationCount(userId);
+  if (!profile) return {};
+  return {
+    ChatTab: chat.data ?? 0,
+    ProfileTab: notifications.data ?? 0,
+  };
+}
+
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
   const { t } = useLocale();
   const styles = makeStyles(colors);
+  const badgeCounts = useTabBadges();
   return (
     <SafeAreaView edges={['bottom']} style={styles.wrap} pointerEvents="box-none">
       <View style={styles.bar}>
@@ -57,11 +75,19 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               accessibilityLabel={label}
             >
               {focused && <View style={styles.activePill} />}
-              <Icon
-                size={ICON_SIZE}
-                strokeWidth={focused ? 2.4 : 1.8}
-                color={focused ? colors.white : colors.textDim}
-              />
+              <View>
+                <Icon
+                  size={ICON_SIZE}
+                  strokeWidth={focused ? 2.4 : 1.8}
+                  color={focused ? colors.white : colors.textDim}
+                />
+                {(badgeCounts[route.name] ?? 0) > 0 ? (
+                  <View
+                    style={[styles.badge, { backgroundColor: focused ? colors.white : colors.ink }]}
+                    accessibilityLabel={`${badgeCounts[route.name]} unread`}
+                  />
+                ) : null}
+              </View>
               <Text
                 style={[styles.label, { color: focused ? colors.white : colors.textDim }]}
                 numberOfLines={1}
@@ -119,6 +145,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       letterSpacing: 0.2,
       zIndex: 1,
       textAlign: 'center',
+    },
+    badge: {
+      position: 'absolute',
+      top: -1,
+      right: -3,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      zIndex: 2,
     },
   });
 }

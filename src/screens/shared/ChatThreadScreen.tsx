@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowUp, Check, CheckCheck, ChevronLeft, ImagePlus, MoreVertical } from 'lucide-react-native';
+import { ArrowUp, Check, CheckCheck, ChevronLeft, ImagePlus, MoreVertical, Phone } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as Linking from 'expo-linking';
 import {
   ActivityIndicator,
   Alert,
@@ -14,12 +15,14 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
-import { useMarkThreadRead, useMessages, useSendMessage, uploadChatPhoto } from '../../api/chat';
+import { useMarkThreadRead, useMessages, useSendMessage, uploadChatPhoto, uploadChatAudio } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
 import { friendlySafetyError, useBlockUser, useMyBlocks, useUnblockUser } from '../../api/safety';
 import { Avatar } from '../../components/Avatar';
 import { ReportSheet } from '../../components/ReportSheet';
 import { Screen } from '../../components/Screen';
+import { VoiceNoteBubble } from '../../components/VoiceNoteBubble';
+import { VoiceNoteRecorder } from '../../components/VoiceNoteRecorder';
 import { useTypingIndicator } from '../../hooks/useTypingIndicator';
 import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -87,6 +90,30 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
     ]);
   }
 
+  function handleCallPeer() {
+    if (!peer?.phone) {
+      Alert.alert('Phone number unavailable', 'This user does not have a phone number on file.');
+      return;
+    }
+    const name = peer.full_name || 'this contact';
+    Alert.alert(
+      `Call ${name}?`,
+      `Dial ${peer.phone} to coordinate directly. Standard cellular rates apply.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Call',
+          onPress: () => {
+            const cleaned = peer.phone!.replace(/[^\d+]/g, '');
+            Linking.openURL(`tel:${cleaned}`).catch(() => {
+              Alert.alert('Could not dial', 'Your device could not open the phone dialer.');
+            });
+          },
+        },
+      ],
+    );
+  }
+
   async function handlePickPhoto() {
     if (!profile) return;
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -125,9 +152,22 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           <Text style={styles.peerName} numberOfLines={1}>{peer?.full_name}</Text>
           {peerTyping ? <Text style={styles.typingLabel}>typing…</Text> : null}
         </View>
-        <Pressable onPress={openMenu} hitSlop={12} style={styles.back} accessibilityRole="button" accessibilityLabel="Report or block">
-          <MoreVertical size={18} strokeWidth={2.2} color={colors.ink} />
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {peer?.phone ? (
+            <Pressable
+              onPress={handleCallPeer}
+              hitSlop={12}
+              style={styles.back}
+              accessibilityRole="button"
+              accessibilityLabel={`Call ${peer.full_name}`}
+            >
+              <Phone size={17} strokeWidth={2.2} color={colors.ink} />
+            </Pressable>
+          ) : null}
+          <Pressable onPress={openMenu} hitSlop={12} style={styles.back} accessibilityRole="button" accessibilityLabel="Report or block">
+            <MoreVertical size={18} strokeWidth={2.2} color={colors.ink} />
+          </Pressable>
+        </View>
       </View>
       <ReportSheet
         visible={reporting}
@@ -166,8 +206,20 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
                   {item.image_url ? (
                     <Image source={{ uri: item.image_url }} style={styles.bubbleImage} resizeMode="cover" />
                   ) : null}
+                  {item.audio_url ? (
+                    <VoiceNoteBubble
+                      audioUrl={item.audio_url}
+                      durationSeconds={item.audio_duration_seconds}
+                      isMine={mine}
+                    />
+                  ) : null}
                   {item.text ? (
-                    <Text style={[mine ? styles.bubbleTextMine : styles.bubbleTextTheirs, item.image_url && { marginTop: spacing.sm }]}>
+                    <Text
+                      style={[
+                        mine ? styles.bubbleTextMine : styles.bubbleTextTheirs,
+                        (item.image_url || item.audio_url) && { marginTop: spacing.sm },
+                      ]}
+                    >
                       {item.text}
                     </Text>
                   ) : null}
@@ -219,15 +271,37 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             style={styles.input}
             onSubmitEditing={handleSend}
           />
-          <Pressable
-            style={styles.sendBtn}
-            onPress={handleSend}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Send message"
-          >
-            <ArrowUp size={18} strokeWidth={2.4} color={colors.white} />
-          </Pressable>
+          {text.trim().length > 0 ? (
+            <Pressable
+              style={styles.sendBtn}
+              onPress={handleSend}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Send message"
+            >
+              <ArrowUp size={18} strokeWidth={2.4} color={colors.white} />
+            </Pressable>
+          ) : (
+            <VoiceNoteRecorder
+              onFinishRecording={async ({ uri, durationSeconds }) => {
+                if (!profile) return;
+                try {
+                  const audioUrl = await uploadChatAudio(profile.id, uri);
+                  await sendMessage.mutateAsync({
+                    threadId,
+                    senderId: profile.id,
+                    senderRole: profile.role,
+                    audioUrl,
+                    audioDurationSeconds: durationSeconds,
+                  });
+                  requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
+                } catch {
+                  Alert.alert("Couldn't send voice note", 'Please try again.');
+                }
+              }}
+              disabled={uploadingPhoto || sendMessage.isPending}
+            />
+          )}
         </View>
         )}
       </KeyboardAvoidingView>

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/imageCompression';
 import type { ProviderPortfolioPhoto } from '../types/database';
 
 /** A provider's portfolio photos, newest first. Public table - no auth required to read. */
@@ -38,7 +39,8 @@ export function useUploadPortfolioPhoto() {
       imageUri: string;
       mediaType?: 'photo' | 'video';
     }) => {
-      const response = await fetch(imageUri);
+      const uploadUri = mediaType === 'photo' ? await compressImage(imageUri) : imageUri;
+      const response = await fetch(uploadUri);
       const arrayBuffer = await response.arrayBuffer();
       const ext = mediaType === 'video' ? 'mp4' : 'jpg';
       const contentType = mediaType === 'video' ? 'video/mp4' : 'image/jpeg';
