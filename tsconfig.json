@@ -5,5 +5,5 @@
     "skipLibCheck": true,
     "types": ["jest"]
   },
-  "exclude": ["node_modules", "admin", "api", "dist", ".expo"]
+  "exclude": ["node_modules", "admin", "api", "dist", ".expo", "Local-Drop-Shipping"]
 }

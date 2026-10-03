@@ -49,3 +49,6 @@ yarn-error.*
 
 # subagent-driven-development scratch workspaces
 .superpowers/
+
+# separate project with its own git repo
+Local-Drop-Shipping/
