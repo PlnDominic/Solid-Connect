@@ -101,23 +101,10 @@ export class TrustService {
       .single();
     if (error) throw new BadRequestException({ code: 'DISPUTE_FAILED', message: error.message });
 
-    const urls = (dto.evidenceUrls ?? []).slice(0, 4);
-    if (urls.length) {
-      const { error: evErr } = await this.supabase.client.from('dispute_evidence').insert(
-        urls.map((photo_url) => ({ dispute_id: dispute.id, uploaded_by: customerId, photo_url })),
-      );
-      if (evErr) throw new BadRequestException({ code: 'EVIDENCE_FAILED', message: evErr.message });
-    }
-
-    await this.supabase.client.from('notifications').insert({
-      user_id: job.provider_id,
-      type: 'DISPUTE_OPENED',
-      title: 'A dispute was opened',
-      body: 'The customer opened a dispute on a job. Solid Connect will review it.',
-      data: { jobId: job.id, disputeId: dispute.id },
-    });
-
-    return { ...dispute, evidence: urls };
+    // The provider's notification comes from the disputes_after_insert
+    // trigger (0054), and photos are attached afterwards by the app into the
+    // private dispute-evidence bucket, so neither happens here.
+    return dispute;
   }
 
   async jobDispute(jobId: string, userId: string) {
@@ -127,7 +114,7 @@ export class TrustService {
     }
     const { data, error } = await this.supabase.client
       .from('disputes')
-      .select('*, dispute_evidence(id, photo_url, created_at)')
+      .select('*, dispute_evidence(id, author_id, storage_path, created_at)')
       .eq('job_id', jobId)
       .maybeSingle();
     if (error) throw new BadRequestException({ code: 'DISPUTE_LOOKUP_FAILED', message: error.message });

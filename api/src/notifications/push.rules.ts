@@ -21,6 +21,9 @@ export function isExpoPushToken(token: string | null | undefined): boolean {
 }
 
 export function pushDeepLink(data: Record<string, unknown> | null | undefined): string {
+  // A notification may name its own screen (disputes do, see 0054).
+  const url = data?.url;
+  if (typeof url === 'string' && url.startsWith('solidconnect://')) return url;
   const jobId = data?.jobId;
   if (typeof jobId === 'string' && jobId.length > 0) return `solidconnect://jobs/${jobId}`;
   return 'solidconnect://notifications';

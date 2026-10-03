@@ -39,9 +39,27 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
     job?.request_id
       ? supabase.from('service_requests').select('photos').eq('id', job.request_id).maybeSingle()
       : Promise.resolve({ data: null }),
-    supabase.from('dispute_evidence').select('id, photo_url').eq('dispute_id', dispute.id),
+    supabase
+      .from('dispute_evidence')
+      .select('id, author_id, storage_path')
+      .eq('dispute_id', dispute.id)
+      .order('created_at', { ascending: true }),
     getJobActivity(supabase, dispute.job_id),
   ]);
+
+  // The bucket is private (0054); admins read it through short-lived links.
+  const evidenceRows = (evidence ?? []) as { id: string; author_id: string; storage_path: string }[];
+  const { data: signed } = evidenceRows.length
+    ? await supabase.storage.from('dispute-evidence').createSignedUrls(evidenceRows.map((e) => e.storage_path), 60 * 60)
+    : { data: [] };
+  const signedByPath = new Map((signed ?? []).map((s) => [s.path, s.signedUrl]));
+  const evidencePhotos = evidenceRows
+    .map((e) => ({
+      id: e.id,
+      url: signedByPath.get(e.storage_path) ?? null,
+      side: e.author_id === dispute.customer_id ? 'Customer' : 'Provider',
+    }))
+    .filter((e): e is { id: string; url: string; side: string } => !!e.url);
 
   const photos = request?.photos ?? [];
   const resolve = resolveDispute.bind(null, dispute.id);
@@ -86,9 +104,9 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
 
           <h2 className="mt-28">Evidence: dispute photos</h2>
           <div className="docs">
-            {(evidence ?? []).length > 0 ? (evidence ?? []).map((item: { id: string; photo_url: string }) => (
-              <a className="doc" key={item.id} href={item.photo_url} target="_blank" rel="noreferrer" style={{ padding: 0, overflow: 'hidden' }}>
-                <img src={item.photo_url} alt="Dispute evidence" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {evidencePhotos.length > 0 ? evidencePhotos.map((item) => (
+              <a className="doc" key={item.id} href={item.url} target="_blank" rel="noreferrer" title={`${item.side} evidence`} style={{ padding: 0, overflow: 'hidden' }}>
+                <img src={item.url} alt={`${item.side} evidence`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </a>
             )) : <div className="doc">No photos were attached to this dispute.</div>}
           </div>

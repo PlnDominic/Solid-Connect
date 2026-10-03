@@ -10,7 +10,7 @@ Scope: Reviews and disputes
 | Review + dispute rules | `api/src/trust/trust.rules.ts` |
 | `POST /reviews`, `GET /reviews?providerId=` | `api/src/trust/*` |
 | `POST /disputes`, `GET /jobs/:jobId/dispute` | same |
-| Evidence table | `supabase/migrations/0048_dispute_evidence.sql` |
+| Evidence table | `supabase/migrations/0054_dispute_cases.sql` (private `dispute-evidence` bucket) |
 | Rate job via Nest when the API is configured | `src/api/reviews.ts` |
 | Dispute form with photos | `src/screens/shared/DisputeScreen.tsx` |
 | Admin shows dispute photos | `admin/app/(protected)/disputes/[id]/page.tsx` |

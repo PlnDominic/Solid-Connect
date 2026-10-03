@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsIn, IsInt, IsOptional, IsString, IsUrl, IsUUID, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { IsIn, IsInt, IsOptional, IsString, IsUUID, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 const REASONS = ['not_completed', 'poor_quality', 'overcharged', 'no_show', 'other'] as const;
 
@@ -30,10 +30,4 @@ export class CreateDisputeDto {
   @MinLength(8)
   @MaxLength(1000)
   description!: string;
-
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(4)
-  @IsUrl({ require_protocol: true }, { each: true })
-  evidenceUrls?: string[];
 }

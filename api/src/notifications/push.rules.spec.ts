@@ -20,6 +20,8 @@ describe('push rules', () => {
     expect(isExpoPushToken('not-a-token')).toBe(false);
     expect(pushDeepLink({ jobId: 'job-1' })).toBe('solidconnect://jobs/job-1');
     expect(pushDeepLink({})).toBe('solidconnect://notifications');
+    expect(pushDeepLink({ jobId: 'job-1', url: 'solidconnect://jobs/job-1/dispute' })).toBe('solidconnect://jobs/job-1/dispute');
+    expect(pushDeepLink({ jobId: 'job-1', url: 'https://evil.example' })).toBe('solidconnect://jobs/job-1');
   });
 
   it('treats a missing ticket and a dead device as failures', () => {

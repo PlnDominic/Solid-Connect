@@ -12,5 +12,5 @@ Scope: Reviews, ratings, complaints, evidence, dispute administration
 ## After
 
 - Nest owns review and dispute creation: completed job, one review, 1–5 stars, 48-hour dispute window.
-- Customers can attach up to four photos. Those land in `dispute_evidence` and show on the admin dispute page.
+- Both sides can attach up to five photos each. They are stored in the private `dispute-evidence` bucket, recorded in `dispute_evidence`, and show on the admin dispute page through signed links.
 - The provider is notified when a dispute is opened.
