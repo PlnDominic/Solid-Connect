@@ -19,7 +19,11 @@ export class QuotesService {
     if (profile.provider_certified) {
       return { badge_label: 'Certified', badge_kind: 'certified' as const };
     }
-    return { badge_label: 'Identity verified', badge_kind: 'verified' as const };
+    // Only claim verification the provider actually has (see 0064).
+    if (profile.provider_verified) {
+      return { badge_label: 'Identity verified', badge_kind: 'verified' as const };
+    }
+    return { badge_label: 'Not yet verified', badge_kind: 'unverified' as const };
   }
 
   async create(providerId: string, dto: CreateQuoteDto) {
@@ -100,6 +104,8 @@ export class QuotesService {
         price: dto.price,
         eta_label: dto.etaLabel ?? 'Today, 2 hrs',
         note: dto.note ?? '',
+        items: dto.items ?? [],
+        proposed_start: dto.proposedStart ?? null,
         revision: 1,
         ...badge,
         status: 'sent',

@@ -15,6 +15,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { SlotPicker } from '../../components/SlotPicker';
 import { haptics } from '../../lib/haptics';
 import { buildQuoteDraft, etaLabelFor, MAX_QUOTE_ITEMS, type DraftRow } from '../../lib/quoteLogic';
+import { quoteBadgeFor } from '../../lib/quoteBadge';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -104,8 +105,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
           providerId: profile.id,
           price: draft.price,
           etaLabel: etaLabelFor(proposedStart),
-          badgeLabel: profile.provider_certified ? 'Certified' : 'Identity verified',
-          badgeKind: profile.provider_certified ? 'certified' : 'verified',
+          ...quoteBadgeFor(profile),
           note: note.trim(),
           items: draft.items,
           proposedStart,

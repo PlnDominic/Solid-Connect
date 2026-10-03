@@ -3,7 +3,7 @@ import { apiFetch, isApiConfigured } from '../lib/api';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
 import { compressImage } from '../lib/imageCompression';
-import type { Profile, Quote, ServiceRequest } from '../types/database';
+import type { BadgeKind, Profile, Quote, ServiceRequest } from '../types/database';
 
 export interface RequestWithQuotes extends ServiceRequest {
   quotes: Quote[];
@@ -551,7 +551,7 @@ export function useSendQuote() {
       price: number;
       etaLabel: string;
       badgeLabel: string;
-      badgeKind: 'certified' | 'verified';
+      badgeKind: BadgeKind;
       note?: string;
       /** Optional breakdown; must add up to `price` (checked in the database too). */
       items?: { label: string; amount: number }[];
@@ -566,6 +566,8 @@ export function useSendQuote() {
             price: input.price,
             etaLabel: input.etaLabel,
             note: input.note,
+            items: input.items ?? [],
+            proposedStart: input.proposedStart ?? null,
           }),
         }).then((r) => r.data);
       }

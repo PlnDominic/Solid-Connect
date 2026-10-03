@@ -282,21 +282,15 @@ export function useProviderEarningsThisMonth(providerId: string | null) {
       const monthStart = new Date();
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
-      const { data: myJobs, error: jErr } = await supabase
-        .from('jobs')
-        .select('id')
-        .eq('provider_id', providerId as string);
-      if (jErr) throw jErr;
-      const jobIds = (myJobs ?? []).map((j) => j.id);
-      if (!jobIds.length) return 0;
+      // What the provider actually takes home - net of commission, the same
+      // figure the Earnings screen shows - not the gross job price.
       const { data, error } = await supabase
-        .from('payments')
-        .select('amount')
-        .eq('status', 'released')
-        .gte('released_at', monthStart.toISOString())
-        .in('job_id', jobIds);
+        .from('provider_payouts')
+        .select('net_amount')
+        .eq('provider_id', providerId as string)
+        .gte('created_at', monthStart.toISOString());
       if (error) throw error;
-      return (data ?? []).reduce((sum, p) => sum + p.amount, 0);
+      return (data ?? []).reduce((sum, p) => sum + Number(p.net_amount), 0);
     },
     enabled: !!providerId,
   });

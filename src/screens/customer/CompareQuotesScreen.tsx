@@ -115,7 +115,7 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
                   {providers[i]?.provider_distance_km != null ? `${providers[i]!.provider_distance_km} km` : '—'}
                 </Text>
               ))}
-              {row('Verification', (q) => <Text style={styles.value}>{q.badge_kind === 'certified' ? 'Certified' : 'Verified'}</Text>)}
+              {row('Verification', (q) => <Text style={styles.value}>{q.badge_kind === 'certified' ? 'Certified' : q.badge_kind === 'verified' ? 'Verified' : 'Not yet verified'}</Text>)}
               {row('Note', (q) => (q.note ? <Text style={styles.small}>“{q.note}”</Text> : <Text style={styles.dim}>—</Text>))}
               {row('', (q) => (
                 <Button title="Accept" onPress={() => handleAccept(q)} loading={acceptQuote.isPending} style={styles.acceptBtn} />

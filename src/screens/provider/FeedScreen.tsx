@@ -24,6 +24,7 @@ import { useProviderJobs } from '../../api/jobs';
 import { isApiConfigured } from '../../lib/api';
 import { formatDistanceKm, openInMaps } from '../../lib/geo';
 import { haptics } from '../../lib/haptics';
+import { quoteBadgeFor } from '../../lib/quoteBadge';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { BottomSheet } from '../../components/BottomSheet';
@@ -174,8 +175,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
         providerId: profile.id,
         price: numeric,
         etaLabel: 'Today, 2 hrs',
-        badgeLabel: profile.provider_certified ? 'Certified' : 'Identity verified',
-        badgeKind: profile.provider_certified ? 'certified' : 'verified',
+        ...quoteBadgeFor(profile),
       });
       haptics.success();
       setQuoteTargetId(null);

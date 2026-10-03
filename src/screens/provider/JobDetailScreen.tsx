@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ChevronLeft, MapPin, MessageCircle, Phone, Receipt, ShieldAlert, Siren } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import * as Linking from 'expo-linking';
-import { useFinishJob, useJob, useJobCheckIn, useStartJob } from '../../api/jobs';
+import { useFinishJob, useJob, useJobCheckIn, usePayment, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { getOrCreateThread } from '../../api/chat';
 import { Avatar } from '../../components/Avatar';
@@ -28,6 +28,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: customer } = useProvider(job?.customer_id);
   const startJob = useStartJob();
   const finishJob = useFinishJob();
+  const { data: payment } = usePayment(jobId);
   const markEnRoute = useJobCheckIn('en_route');
   const markArrived = useJobCheckIn('arrived');
   useReportJobLocation(job);
@@ -212,6 +213,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <MapPin size={13} strokeWidth={1.8} color={colors.inkFaint} />
             <Text style={styles.detailsSub}>{job.location_label}</Text>
           </View>
+          {payment ? <Text style={styles.detailsSub}>{paymentNote(payment.status)}</Text> : null}
         </View>
 
         {profile ? <JobManageSection job={job} role="provider" userId={profile.id} /> : null}
@@ -241,6 +243,22 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       <SafetySheet visible={showSafety} onClose={() => setShowSafety(false)} job={job} peerName={customer?.full_name} />
     </Screen>
   );
+}
+
+/** Whether the customer's money is in yet - the provider otherwise can't
+ * tell if they're working on a job that has been paid for. */
+function paymentNote(status: string): string {
+  switch (status) {
+    case 'held':
+      return 'Customer has paid · held until they confirm the job';
+    case 'released':
+    case 'partially_refunded':
+      return 'Payment released';
+    case 'refunded':
+      return 'Payment refunded to the customer';
+    default:
+      return 'Customer has not paid yet';
+  }
 }
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {

@@ -14,7 +14,7 @@ export type RequestStatus =
   | 'rejected';
 export type RequestMode = 'GENERAL' | 'DIRECT';
 export type QuoteStatus = 'sent' | 'accepted' | 'declined';
-export type BadgeKind = 'certified' | 'verified';
+export type BadgeKind = 'certified' | 'verified' | 'unverified';
 export type JobStatus =
   | 'accepted'
   | 'in_progress'

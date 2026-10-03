@@ -145,12 +145,12 @@ function QuoteCard({
                   <ShieldCheck size={10} strokeWidth={2.8} color={colors.white} />
                   <Text style={styles.badgeTextOnDark}>CERTIFIED</Text>
                 </View>
-              ) : (
+              ) : quote.badge_kind === 'verified' ? (
                 <View style={[styles.badge, styles.badgeVerified]}>
                   <ShieldCheck size={10} strokeWidth={2.8} color={colors.confirm} />
                   <Text style={styles.badgeTextVerified}>VERIFIED</Text>
                 </View>
-              )}
+              ) : null}
             </View>
             <View style={styles.quoteMetaRow}>
               <Star color={colors.ink} fill={colors.ink} size={11} strokeWidth={2} />
