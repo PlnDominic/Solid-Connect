@@ -21,16 +21,17 @@
 -- flyers), so reads are open to any signed-in user; writes happen only
 -- through the SECURITY DEFINER generator below so a user can never grab
 -- or overwrite someone else's code.
-create table public.referral_codes (
+create table if not exists public.referral_codes (
   user_id uuid primary key references public.profiles(id) on delete cascade,
   code text not null unique,
   created_at timestamptz not null default now()
 );
 
-create index referral_codes_user_idx on public.referral_codes(user_id);
+create index if not exists referral_codes_user_idx on public.referral_codes(user_id);
 
 alter table public.referral_codes enable row level security;
 
+drop policy if exists "authenticated can look up referral codes" on public.referral_codes;
 create policy "authenticated can look up referral codes"
   on public.referral_codes for select
   to authenticated
@@ -40,7 +41,7 @@ create policy "authenticated can look up referral codes"
 -- The ledger. referred_id is unique: an account can be referred at most
 -- once, ever. reward_amount is stamped when the reward is earned so a
 -- later change to the program's rate can't rewrite history.
-create table public.referrals (
+create table if not exists public.referrals (
   id uuid primary key default gen_random_uuid(),
   referrer_id uuid not null references public.profiles(id) on delete cascade,
   referred_id uuid not null unique references public.profiles(id) on delete cascade,
@@ -53,11 +54,12 @@ create table public.referrals (
   created_at timestamptz not null default now()
 );
 
-create index referrals_referrer_idx on public.referrals(referrer_id);
-create index referrals_referred_idx on public.referrals(referred_id);
+create index if not exists referrals_referrer_idx on public.referrals(referrer_id);
+create index if not exists referrals_referred_idx on public.referrals(referred_id);
 
 alter table public.referrals enable row level security;
 
+drop policy if exists "parties can read their own referrals" on public.referrals;
 create policy "parties can read their own referrals"
   on public.referrals for select
   to authenticated

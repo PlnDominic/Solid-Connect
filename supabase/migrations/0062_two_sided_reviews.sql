@@ -17,7 +17,7 @@ alter table public.profiles
   add column if not exists customer_reviews_count integer not null default 0;
 
 -- Every rating is anchored to a completed job both sides actually shared.
-create table public.customer_reviews (
+create table if not exists public.customer_reviews (
   id uuid primary key default gen_random_uuid(),
   job_id uuid not null references public.jobs(id) on delete cascade,
   provider_id uuid not null references public.profiles(id),
@@ -28,10 +28,10 @@ create table public.customer_reviews (
   unique (job_id)
 );
 
-create index customer_reviews_customer_idx on public.customer_reviews(customer_id);
+create index if not exists customer_reviews_customer_idx on public.customer_reviews(customer_id);
 
 -- Same running-average shape as apply_review() in 0001_init.sql.
-create function public.apply_customer_review() returns trigger
+create or replace function public.apply_customer_review() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   update public.profiles p
@@ -45,17 +45,20 @@ begin
 end;
 $$;
 
+drop trigger if exists customer_reviews_apply_after_insert on public.customer_reviews;
 create trigger customer_reviews_apply_after_insert
   after insert on public.customer_reviews
   for each row execute function public.apply_customer_review();
 
 alter table public.customer_reviews enable row level security;
 
+drop policy if exists "customer reviews are publicly readable" on public.customer_reviews;
 create policy "customer reviews are publicly readable" on public.customer_reviews
   for select using (true);
 
 -- Mirror of "customers review their own completed jobs": the provider
 -- may rate the customer of a job they actually worked on.
+drop policy if exists "providers review their own completed jobs" on public.customer_reviews;
 create policy "providers review their own completed jobs" on public.customer_reviews
   for insert with check (auth.uid() = provider_id);
 
@@ -64,7 +67,7 @@ create policy "providers review their own completed jobs" on public.customer_rev
 -- number of threads where my counterpart has at least one message I
 -- haven't read - the same definition ChatThreadScreen's mark_thread_read
 -- uses (stamps read_at on the other participant's messages).
-create function public.count_unread_threads(p_user_id uuid, p_role text)
+create or replace function public.count_unread_threads(p_user_id uuid, p_role text)
 returns integer
 language sql security definer set search_path = public stable as $$
   select count(*)::int
