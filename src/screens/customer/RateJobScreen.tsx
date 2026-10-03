@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react-native';
-import { Pressable, ScrollView, Text, View, TextInput, StyleSheet } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View, TextInput, StyleSheet } from 'react-native';
 import { useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useSubmitReview } from '../../api/reviews';
@@ -30,7 +30,12 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
 
   async function handleSubmit() {
     if (!job || !profile || rating === 0) return;
-    await submitReview.mutateAsync({ jobId: job.id, providerId: job.provider_id, customerId: profile.id, rating, comment });
+    try {
+      await submitReview.mutateAsync({ jobId: job.id, providerId: job.provider_id, customerId: profile.id, rating, comment });
+    } catch (e: unknown) {
+      Alert.alert('Could not send your rating', e instanceof Error ? e.message : 'Please try again.');
+      return;
+    }
     navigation.navigate('JobsHome');
   }
 

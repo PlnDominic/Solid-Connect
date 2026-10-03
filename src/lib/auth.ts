@@ -80,10 +80,34 @@ export async function getCurrentUserId(): Promise<string | null> {
  * clicks the confirmation link - callers should handle that case rather
  * than assume an active session.
  */
-export async function signUpWithPassword(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+/** What the sign-up screens collected before the account existed. */
+export type SignUpMetadata = { full_name?: string; phone?: string; area?: string };
+
+/**
+ * Creates the auth account. The sign-up details ride along as user
+ * metadata so they survive email confirmation: the person often confirms
+ * from their mail app and comes back to a fresh app launch, by which time
+ * the screens' in-memory state is gone (see getSignUpMetadata).
+ */
+export async function signUpWithPassword(email: string, password: string, metadata: SignUpMetadata = {}) {
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: metadata } });
   if (error) throw error;
   return data;
+}
+
+/** The details stored by signUpWithPassword (or the name an OAuth provider
+ * gave), plus the account's email. */
+export async function getSignUpMetadata(): Promise<SignUpMetadata & { email?: string }> {
+  const { data } = await supabase.auth.getSession();
+  const user = data.session?.user;
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+  return {
+    full_name: str(meta.full_name),
+    phone: str(meta.phone),
+    area: str(meta.area),
+    email: str(user?.email),
+  };
 }
 
 /** Sign in with an existing account by email or phone, plus password. */

@@ -3,6 +3,7 @@ import {
   ArrayMaxSize,
   IsArray,
   IsInt,
+  IsISO8601,
   IsOptional,
   IsString,
   IsUUID,
@@ -20,7 +21,9 @@ export class CreateRequestDto {
   @MinLength(1)
   categoryLabel!: string;
 
+  /** Providers quote from this, so it must actually describe the job. */
   @IsString()
+  @MinLength(10)
   @MaxLength(2000)
   description!: string;
 
@@ -65,6 +68,11 @@ export class CreateRequestDto {
   @IsOptional()
   @IsUUID()
   preferredProviderId?: string;
+
+  /** The appointment the customer picked from the provider's open slots (ISO). */
+  @IsOptional()
+  @IsISO8601()
+  preferredTime?: string;
 
   /** Phase K: request placed on behalf of an organization. */
   @IsOptional()

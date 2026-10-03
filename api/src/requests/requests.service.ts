@@ -85,6 +85,12 @@ export class RequestsService {
       }
     }
 
+    // A slot in the past is meaningless as an appointment; drop it.
+    const preferredTime =
+      dto.preferredTime && new Date(dto.preferredTime).getTime() > Date.now()
+        ? new Date(dto.preferredTime).toISOString()
+        : null;
+
     const locationLabel = dto.locationLabel.includes('Accra')
       ? dto.locationLabel
       : `${dto.locationLabel}, Accra`;
@@ -103,6 +109,7 @@ export class RequestsService {
         location_label: locationLabel,
         match_radius_meters: dto.matchRadiusMeters ?? 10000,
         preferred_provider_id: dto.preferredProviderId ?? null,
+        ...(preferredTime ? { preferred_time: preferredTime, urgency: 'scheduled' } : {}),
         request_mode: isDirect ? 'DIRECT' : 'GENERAL',
         status: isDirect ? 'awaiting_provider' : 'matching',
         organization_id: dto.organizationId ?? null,

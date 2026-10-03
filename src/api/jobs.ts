@@ -4,11 +4,6 @@ import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
 import type { Job, Payment } from '../types/database';
 
-function jobTitleFromCategoryLabel(categoryLabel: string) {
-  const parts = categoryLabel.split('·').map((p) => p.trim());
-  return parts[1] ?? parts[0] ?? categoryLabel;
-}
-
 export function useAcceptQuote() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -21,53 +16,16 @@ export function useAcceptQuote() {
         return res.data.job as Job;
       }
 
-      const { data: quote, error: qErr } = await supabase
-        .from('quotes')
-        .select('*')
-        .eq('id', input.quoteId)
-        .single();
-      if (qErr) throw qErr;
-      const { data: request, error: rErr } = await supabase
-        .from('service_requests')
-        .select('*')
-        .eq('id', input.requestId)
-        .single();
-      if (rErr) throw rErr;
-
-      await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quote.id);
-      await supabase
-        .from('quotes')
-        .update({ status: 'declined' })
-        .eq('request_id', input.requestId)
-        .neq('id', quote.id);
-      await supabase.from('service_requests').update({ status: 'accepted' }).eq('id', input.requestId);
-
-      const { data: job, error: jErr } = await supabase
-        .from('jobs')
-        .insert({
-          request_id: input.requestId,
-          quote_id: quote.id,
-          customer_id: input.customerId,
-          provider_id: quote.provider_id,
-          title: jobTitleFromCategoryLabel(request.category_label),
-          price: quote.price,
-          location_label: request.location_label,
-          step: 1,
-          status: 'accepted',
-        })
-        .select('*')
-        .single();
-      if (jErr) throw jErr;
-
-      await supabase.from('payments').insert({ job_id: job.id, amount: quote.price, status: 'pending' });
-      await supabase
-        .from('chat_threads')
-        .upsert(
-          { request_id: input.requestId, provider_id: quote.provider_id, customer_id: input.customerId, job_id: job.id },
-          { onConflict: 'request_id,provider_id' },
-        );
-
-      return job as Job;
+      // One transaction in the database: accept this quote, decline the
+      // others, create the job, its pending payment and chat thread.
+      // Doing these as separate client writes could strand a request as
+      // "accepted" with no job if a later step failed (e.g. a double booking).
+      const { data, error } = await supabase.rpc('accept_quote', {
+        p_quote_id: input.quoteId,
+        p_customer_id: input.customerId,
+      });
+      if (error) throw error;
+      return (data as { job: Job }).job;
     },
     onSuccess: (job) => {
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest', job.customer_id] });

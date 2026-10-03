@@ -2,6 +2,8 @@ import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { Check, Search } from 'lucide-react-native';
 import { useRequestOpportunities, useServiceRequest, useSimulateQuotesArriving } from '../../api/requests';
 import { isApiConfigured } from '../../lib/api';
+import { useFeatureFlag } from '../../hooks/useFeatureFlag';
+import { useSessionStore } from '../../store/useSessionStore';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -16,6 +18,11 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
   const { data: request } = useServiceRequest(requestId);
   const { data: opportunities } = useRequestOpportunities(requestId);
   const simulate = useSimulateQuotesArriving();
+  // The "simulate quotes" shortcuts fake quotes from demo providers. Real
+  // customers must never see them - turn the demo_tools flag on in the
+  // admin panel (Settings -> Feature flags) for demos only.
+  const profileId = useSessionStore((s) => s.profile?.id);
+  const demoTools = useFeatureFlag('demo_tools', profileId);
   const matchedCount = opportunities?.count ?? route.params?.matchedCount ?? 0;
   const isDirect =
     Boolean(route.params?.direct) ||
@@ -28,7 +35,11 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
   const providerLabel = preferredProviderName ?? matchedProviderName;
 
   async function handleSimulate() {
-    await simulate.mutateAsync(requestId);
+    try {
+      await simulate.mutateAsync(requestId);
+    } catch {
+      return;
+    }
     navigation.navigate('RequestsTab', { screen: 'RequestsHome' });
   }
 
@@ -74,18 +85,20 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
             <Button title="Back to home" variant="outline" onPress={goHome} />
           </View>
 
-          <Pressable
-            onPress={handleSimulate}
-            disabled={simulate.isPending}
-            style={({ pressed }) => [
-              styles.simulateLink,
-              pressed && !simulate.isPending && styles.simulateBtnPressed,
-            ]}
-          >
-            <Text style={styles.simulateLinkLabel}>
-              {simulate.isPending ? 'Sending quote…' : 'Demo: simulate provider quote'}
-            </Text>
-          </Pressable>
+          {demoTools ? (
+            <Pressable
+              onPress={handleSimulate}
+              disabled={simulate.isPending}
+              style={({ pressed }) => [
+                styles.simulateLink,
+                pressed && !simulate.isPending && styles.simulateBtnPressed,
+              ]}
+            >
+              <Text style={styles.simulateLinkLabel}>
+                {simulate.isPending ? 'Sending quote…' : 'Demo: simulate provider quote'}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </Screen>
     );
@@ -124,15 +137,19 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
             : 'Providers nearby are reviewing your request. Most reply within 30 minutes.'}
         </Text>
 
-        <Pressable
-          onPress={handleSimulate}
-          disabled={simulate.isPending}
-          style={({ pressed }) => [styles.simulateBtn, pressed && !simulate.isPending && styles.simulateBtnPressed]}
-        >
-          <Text style={styles.simulateLabel}>
-            {simulate.isPending ? 'Matching...' : 'Skip ahead: 3 quotes just came in'}
-          </Text>
-        </Pressable>
+        {demoTools ? (
+          <Pressable
+            onPress={handleSimulate}
+            disabled={simulate.isPending}
+            style={({ pressed }) => [styles.simulateBtn, pressed && !simulate.isPending && styles.simulateBtnPressed]}
+          >
+            <Text style={styles.simulateLabel}>
+              {simulate.isPending ? 'Matching...' : 'Skip ahead: 3 quotes just came in'}
+            </Text>
+          </Pressable>
+        ) : (
+          <Button title="View my requests" variant="outline" onPress={goRequests} />
+        )}
       </View>
     </Screen>
   );

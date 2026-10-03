@@ -129,6 +129,7 @@ export function useCreateRequest() {
             ...(input.preferredProviderId
               ? { preferredProviderId: input.preferredProviderId }
               : {}),
+            ...(input.preferredTime ? { preferredTime: input.preferredTime.toISOString() } : {}),
           }),
         });
         return {

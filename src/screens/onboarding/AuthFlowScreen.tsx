@@ -10,6 +10,7 @@ import {
   signInWithApple,
   signInWithGoogle,
   signInWithPassword,
+  getSignUpMetadata,
   signUpWithPassword,
 } from '../../lib/auth';
 import { hasSeenLanding, markLandingSeen } from '../../lib/landing';
@@ -168,7 +169,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
           // Session exists but the profile is unfinished - continue signup,
           // do not send them through splash/landing again.
           setBootstrapping(false);
-          setPhase('signup-role');
+          await resumeUnfinishedSignUp();
           return;
         }
         setBootstrapping(false);
@@ -255,7 +256,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     setPasswordLoading(true);
     setPasswordError(null);
     try {
-      const result = await signUpWithPassword(email, password);
+      const result = await signUpWithPassword(email, password, {
+        full_name: fullName.trim(),
+        phone: phone.trim(),
+        area: area.trim(),
+      });
       if (!result.session || !result.user) {
         // "Confirm email" is on in this Supabase project - the account
         // exists but has no session yet.
@@ -318,7 +323,29 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     }
     // Authenticated but never finished the role step (e.g. confirmed email
     // in a different session, or a first-time Google/Apple sign-in).
-    setPhase('signup-role');
+    await resumeUnfinishedSignUp();
+  }
+
+  /**
+   * Picks sign-up back up for an account with no profile yet. What was typed
+   * before the account existed may only survive as auth metadata (an app
+   * restart while confirming email wipes this screen's state), so restore
+   * it from there; without a name, ask for the details again rather than
+   * create a nameless profile.
+   */
+  async function resumeUnfinishedSignUp() {
+    let name = fullName.trim();
+    try {
+      const meta = await getSignUpMetadata();
+      name = name || meta.full_name || '';
+      if (meta.full_name && !fullName.trim()) setFullName(meta.full_name);
+      if (meta.phone && !phone.trim()) setPhone(meta.phone);
+      if (meta.area && !area.trim()) setArea(meta.area);
+      if (meta.email && !email.trim()) setEmail(meta.email);
+    } catch {
+      // Fall through to asking for the details.
+    }
+    setPhase(name ? 'signup-role' : 'signup-name');
   }
 
   async function handleSignInPassword(identifier: string, password: string, method: 'email' | 'phone') {

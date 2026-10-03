@@ -18,6 +18,7 @@ import { useTheme } from '../../theme/ThemeProvider';
 import type { Category } from '../../types/database';
 
 const MAX_PHOTOS = 4;
+const MIN_DESCRIPTION = 10;
 
 function bandFor(category: Category | null) {
   const min = category?.budget_min ?? 200;
@@ -126,6 +127,17 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
     return null;
   }
 
+  // Providers quote from this text, so it has to describe this job - never
+  // fall back to the sample sentence in the placeholder.
+  function validateDetails(): string | null {
+    const budgetError = validateBudget();
+    if (budgetError) return budgetError;
+    if (description.trim().length < MIN_DESCRIPTION) {
+      return 'Describe the work in a few words so providers can quote accurately.';
+    }
+    return null;
+  }
+
   async function pickPhoto() {
     if (photoUris.length >= MAX_PHOTOS) return;
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -148,9 +160,9 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
       setError('Enter a valid location for this request.');
       return;
     }
-    const budgetError = validateBudget();
-    if (budgetError) {
-      setError(budgetError);
+    const detailsError = validateDetails();
+    if (detailsError) {
+      setError(detailsError);
       return;
     }
     setError(null);
@@ -159,7 +171,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         customerId: profile.id,
         categoryId: category.id,
         categoryLabel: category.default_label,
-        description: description.trim() || placeholderDescription,
+        description: description.trim(),
         budget,
         locationLabel: location.includes('Accra') ? location : `${location}, Accra`,
         photoUris,
@@ -184,9 +196,9 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
       return;
     }
     if (step === 2) {
-      const budgetError = validateBudget();
-      if (budgetError) {
-        setError(budgetError);
+      const detailsError = validateDetails();
+      if (detailsError) {
+        setError(detailsError);
         return;
       }
       setError(null);

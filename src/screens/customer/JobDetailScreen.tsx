@@ -7,6 +7,7 @@ import { useHubtelCheckout, useRefreshHubtelPayment } from '../../api/payments';
 import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
 import { getOrCreateThread } from '../../api/chat';
+import { useJobDispute } from '../../api/disputes';
 import { Avatar } from '../../components/Avatar';
 import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
@@ -34,11 +35,13 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: payment } = usePayment(jobId);
   const checkout = useHubtelCheckout(jobId);
   const refreshPayment = useRefreshHubtelPayment(jobId);
+  const { data: dispute } = useJobDispute(jobId);
   useReportJobLocation(job);
 
   const [showPayment, setShowPayment] = useState(false);
   const [showSafety, setShowSafety] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -62,10 +65,18 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   }
 
   const escrowHeld = payment?.status === 'held' || payment?.status === 'released';
+  // An open dispute holds the payment; confirming would be refused anyway.
+  const disputeOpen = dispute?.status === 'open';
 
   async function handleConfirm() {
     if (!job) return;
-    await confirmCompletion.mutateAsync(job);
+    setConfirmError(null);
+    try {
+      await confirmCompletion.mutateAsync(job);
+    } catch (e: unknown) {
+      setConfirmError(e instanceof Error ? e.message : 'Could not confirm completion. Please try again.');
+      return;
+    }
     setShowPayment(false);
     navigation.navigate('RateJob', { jobId: job.id });
   }
@@ -197,7 +208,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <Button title="Rate this job" onPress={() => navigation.navigate('RateJob', { jobId: job.id })} />
           )
         ) : job.status === 'awaiting_completion_confirmation' ? (
-          escrowHeld ? (
+          disputeOpen ? (
+            <Button title="Payment on hold while the dispute is open" variant="outline" disabled onPress={() => {}} />
+          ) : escrowHeld ? (
             <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
           ) : (
             <Button title="Pay with Hubtel" onPress={handlePay} loading={checkout.isPending} />
@@ -220,6 +233,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         <Text style={styles.sheetBody}>
           This releases the Hubtel payment to the provider, minus platform commission. You can still open a dispute for 48 hours.
         </Text>
+        {confirmError ? <Text style={{ color: colors.danger, marginBottom: spacing.sm }}>{confirmError}</Text> : null}
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Button title="Not yet" variant="outline" onPress={() => setShowPayment(false)} style={{ flex: 1, height: 48 }} />
           <Button title="Confirm" onPress={handleConfirm} loading={confirmCompletion.isPending} style={{ flex: 1, height: 48 }} />

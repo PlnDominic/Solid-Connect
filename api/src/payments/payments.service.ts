@@ -87,11 +87,13 @@ export class PaymentsService {
     return { ok: true };
   }
 
-  /** When Hubtel is live, confirmation cannot release an unpaid row. */
+  /** When Hubtel is live, confirmation cannot release an unpaid row. Only a
+   * payment Hubtel actually captured (`held`) - or one already released -
+   * counts as paid. */
   async assertHeldIfGatewayLive(jobId: string) {
     if (!this.hubtel.isConfigured()) return;
     const payment = await this.loadPayment(jobId);
-    if (payment.status === 'pending') {
+    if (payment.status !== 'held' && payment.status !== 'released') {
       throw new BadRequestException({
         code: 'PAYMENT_REQUIRED',
         message: 'Pay with Hubtel before confirming completion.',

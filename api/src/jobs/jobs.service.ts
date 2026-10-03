@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -120,6 +121,12 @@ export class JobsService {
         throw new BadRequestException({
           code: 'JOB_NOT_READY',
           message: 'Provider has not marked the job finished yet.',
+        });
+      }
+      if (msg.includes('PAYMENT_DISPUTED')) {
+        throw new ConflictException({
+          code: 'PAYMENT_DISPUTED',
+          message: 'This job has an open dispute. Payment stays on hold until Solid Connect resolves it.',
         });
       }
       throw new BadRequestException({ code: 'CONFIRM_FAILED', message: error.message });
