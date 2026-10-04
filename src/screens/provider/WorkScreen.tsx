@@ -45,7 +45,7 @@ function StatusBadge({ status }: { status: ProviderRequestStatus }) {
   const { colors } = useTheme();
   switch (status) {
     case 'awaiting_response':
-      return <Badge label="Awaiting your response" bg={colors.navyBg} fg={colors.navy} icon={<Clock size={11} strokeWidth={2.6} color={colors.navy} />} />;
+      return <Badge label="Awaiting your response" bg={colors.activeBg} fg={colors.activeDeep} icon={<Clock size={11} strokeWidth={2.6} color={colors.activeDeep} />} />;
     case 'quote_sent':
       return <Badge label="Quote sent" bg={colors.confirmBg} fg={colors.confirm} icon={<Check size={11} strokeWidth={3} color={colors.confirm} />} />;
     case 'quote_accepted':

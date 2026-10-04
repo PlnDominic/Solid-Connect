@@ -169,7 +169,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-    chipPrimary: { borderWidth: 2, borderColor: colors.navy },
+    chipPrimary: { borderWidth: 2, borderColor: colors.activeDeep },
     chipLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.white },
   });

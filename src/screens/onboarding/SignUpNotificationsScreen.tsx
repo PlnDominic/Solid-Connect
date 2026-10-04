@@ -26,7 +26,7 @@ export function SignUpNotificationsScreen({
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.body}>
         <View style={styles.stamp}>
-          <Bell size={15} strokeWidth={2.4} color={colors.navy} />
+          <Bell size={15} strokeWidth={2.4} color={colors.activeDeep} />
         </View>
 
         <View style={styles.textWrap}>
@@ -38,7 +38,7 @@ export function SignUpNotificationsScreen({
       </View>
 
       <View style={styles.footer}>
-        <Button title="Enable notifications" variant="navy" onPress={onEnable} loading={loading} disabled={loading} />
+        <Button title="Enable notifications" variant="active" onPress={onEnable} loading={loading} disabled={loading} />
         <Button title="Not now" variant="ghost" onPress={onSkip} disabled={loading} />
       </View>
     </SafeAreaView>
@@ -56,9 +56,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       height: 30,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.navyBg,
+      backgroundColor: colors.activeBg,
       borderWidth: 1,
-      borderColor: colors.navy,
+      borderColor: colors.active,
       borderRadius: radii.pill,
     },
 

@@ -32,7 +32,7 @@ const ORANGE_DEEP = '#C85A08';
 const ORANGE_SOFT = '#FFE1C4';
 
 /**
- * The login page: a deep-navy brand header (mark, promise, what makes the
+ * The login page: a brand-orange header (mark, promise, what makes the
  * marketplace trustworthy) with the form on an elevated card that rises
  * over it. Email-or-phone + password, plus Apple and Google.
  */

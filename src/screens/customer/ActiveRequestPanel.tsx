@@ -26,7 +26,7 @@ function RequestStatusBadge({ kind, count }: { kind: 'awaiting' | 'matching' | '
   const { colors } = useTheme();
   switch (kind) {
     case 'awaiting':
-      return <Badge label="Awaiting provider response" bg={colors.navyBg} fg={colors.navy} icon={<Clock size={11} strokeWidth={2.6} color={colors.navy} />} />;
+      return <Badge label="Awaiting provider response" bg={colors.activeBg} fg={colors.activeDeep} icon={<Clock size={11} strokeWidth={2.6} color={colors.activeDeep} />} />;
     case 'matching':
       return <Badge label="Matching providers" bg={colors.pendingBg} fg={colors.pending} icon={<Search size={11} strokeWidth={2.6} color={colors.pending} />} />;
     case 'rejected':
@@ -464,7 +464,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: 6,
     },
     badgeVerified: { backgroundColor: colors.confirmBg },
-    badgeCertified: { backgroundColor: colors.navy },
+    badgeCertified: { backgroundColor: colors.activeDeep },
     badgeTextVerified: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
     badgeTextOnDark: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
 

@@ -119,7 +119,7 @@ export function OnboardingScreen({
           <Image source={slide.heroImage} style={styles.photo} resizeMode="cover" />
           {slide.isConfirmStep ? (
             <View style={styles.stamp}>
-              <ShieldCheck size={15} strokeWidth={2.4} color={colors.navy} />
+              <ShieldCheck size={15} strokeWidth={2.4} color={colors.activeDeep} />
             </View>
           ) : null}
         </View>
@@ -137,7 +137,7 @@ export function OnboardingScreen({
         <StepDots count={SLIDES.length} activeIndex={step} />
         <Button
           title={isLocationStep && locationBlocked ? 'Reload' : slide.cta}
-          variant={slide.isConfirmStep ? 'navy' : 'primary'}
+          variant="active"
           onPress={handleCta}
           loading={requesting}
           disabled={requesting}
@@ -174,7 +174,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.card,
       borderWidth: 1,
-      borderColor: colors.navy,
+      borderColor: colors.active,
       borderRadius: radii.pill,
     },
 

@@ -468,7 +468,7 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl },
-    balanceCard: { borderRadius: radii.xxl, backgroundColor: colors.navy, padding: spacing.xl, gap: 6 },
+    balanceCard: { borderRadius: radii.xxl, backgroundColor: colors.activeDeep, padding: spacing.xl, gap: 6 },
     balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: fontSizes.md, fontFamily: fonts.medium },
     balanceValue: { color: colors.white, fontSize: fontSizes.display, fontFamily: fonts.extrabold, fontVariant: ['tabular-nums'] },
     balanceNote: { color: 'rgba(255,255,255,0.65)', fontSize: fontSizes.sm, fontFamily: fonts.medium, marginTop: 4 },

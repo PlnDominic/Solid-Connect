@@ -369,7 +369,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
                       icon={<Check size={11} strokeWidth={3} color={colors.confirm} />}
                     />
                   ) : r.request_mode === 'DIRECT' || r.status === 'awaiting_provider' ? (
-                    <Badge label="Direct request" bg={colors.navyBg} fg={colors.navy} />
+                    <Badge label="Direct request" bg={colors.activeBg} fg={colors.activeDeep} />
                   ) : (
                     <Badge
                       label={r.category_label.split('·')[0]?.trim() ?? ''}
@@ -692,7 +692,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       width: 40,
       height: 40,
       borderRadius: radii.lg,
-      backgroundColor: colors.navyBg,
+      backgroundColor: colors.activeBg,
       alignItems: 'center',
       justifyContent: 'center',
     },

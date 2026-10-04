@@ -89,7 +89,7 @@ export function SignUpScreen({
 
         <Button
           title="Continue as customer"
-          variant="navy"
+          variant="active"
           onPress={() => onSelectRole('customer')}
           loading={loading === 'customer'}
           disabled={!!loading || !termsAccepted}

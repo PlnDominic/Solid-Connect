@@ -293,7 +293,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         {badgeKind === 'certified' ? (
           <Badge label="Solid Connect verified" bg={colors.confirmBg} fg={colors.confirmDeep} />
         ) : badgeKind === 'verified' ? (
-          <Badge label={trustLabel} bg={colors.navyBg} fg={colors.navy} />
+          <Badge label={trustLabel} bg={colors.activeBg} fg={colors.activeDeep} />
         ) : null}
 
         <View style={styles.divider} />

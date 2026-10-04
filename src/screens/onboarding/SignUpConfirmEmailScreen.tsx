@@ -31,7 +31,7 @@ export function SignUpConfirmEmailScreen({ email, onGoToSignIn }: { email: strin
 
       <View style={styles.body}>
         <View style={styles.stamp}>
-          <MailCheck size={15} strokeWidth={2.4} color={colors.navy} />
+          <MailCheck size={15} strokeWidth={2.4} color={colors.activeDeep} />
         </View>
 
         <View style={styles.textWrap}>
@@ -79,9 +79,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       height: 30,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.navyBg,
+      backgroundColor: colors.activeBg,
       borderWidth: 1,
-      borderColor: colors.navy,
+      borderColor: colors.active,
       borderRadius: radii.pill,
     },
 

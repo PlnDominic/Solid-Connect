@@ -216,7 +216,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               {profile.provider_certified || profile.verification_level === 'SOLID_CONNECT_VERIFIED' ? (
                 <Badge
                   label="Solid Connect certified"
-                  bg={colors.navy}
+                  bg={colors.activeDeep}
                   fg={colors.white}
                   icon={<ShieldCheck size={11} strokeWidth={2.8} color={colors.white} />}
                 />
@@ -321,7 +321,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 6,
       overflow: 'hidden',
     },
-    heroPlaceholder: { backgroundColor: colors.navy },
+    heroPlaceholder: { backgroundColor: colors.activeDeep },
     // Solid scrim (not a true gradient - no gradient dependency in this
     // project) over the lower two-thirds of the hero, enough contrast for
     // white text over any photo without needing a new library.

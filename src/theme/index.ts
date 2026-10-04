@@ -83,10 +83,6 @@ export const colors = {
   activeDeep: '#C85A08',
   activeBg: '#FCE9DA',
 
-  // Deep navy - used for the "Solid Connect" hero card background on Home,
-  // and as the brand accent on onboarding/login (Button's "navy" variant).
-  navy: '#13284A',
-  navyBg: '#E9EDF3',
 
   white: '#FFFFFF',
   black: '#0B0B0A',

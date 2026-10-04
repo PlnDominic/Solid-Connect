@@ -118,7 +118,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     lead: { fontSize: fontSizes.md, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
     codeCard: {
       borderRadius: radii.xl,
-      backgroundColor: colors.navy,
+      backgroundColor: colors.activeDeep,
       padding: spacing.xl,
       gap: spacing.sm,
     },

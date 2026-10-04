@@ -260,7 +260,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 6,
       overflow: 'hidden',
     },
-    heroPlaceholder: { backgroundColor: colors.navy },
+    heroPlaceholder: { backgroundColor: colors.activeDeep },
     heroScrim: { backgroundColor: 'rgba(11,11,10,0.38)' },
 
     heroAvatarBadgeWrap: {

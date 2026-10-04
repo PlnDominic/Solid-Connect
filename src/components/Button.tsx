@@ -2,15 +2,14 @@ import { ActivityIndicator, Pressable, Text, StyleSheet, ViewStyle } from 'react
 import { fonts, fontSizes, radii } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
-type Variant = 'primary' | 'navy' | 'active' | 'outline' | 'ghost';
+type Variant = 'primary' | 'active' | 'outline' | 'ghost';
 
 /**
  * Filled CTAs (`primary` and `active`) are brand orange with a white label
  * in both light and dark themes - the same "active" accent as a picked
  * filter, category or chip. `primary` is kept as an alias so existing call
- * sites need no change. `navy` is the brand-navy variant used on
- * onboarding/login (matches the Home hero card). Secondary actions use
- * `outline` or `ghost` and stay neutral.
+ * sites need no change. Secondary actions use `outline` or `ghost` and
+ * stay neutral.
  */
 export function Button({
   title,
@@ -30,10 +29,9 @@ export function Button({
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const isPrimary = variant === 'primary';
-  const isNavy = variant === 'navy';
   const isActive = variant === 'active';
   const isOutline = variant === 'outline';
-  const isFilled = isPrimary || isNavy || isActive;
+  const isFilled = isPrimary || isActive;
   return (
     <Pressable
       onPress={onPress}
@@ -41,7 +39,6 @@ export function Button({
       style={({ pressed }) => [
         styles.base,
         (isPrimary || isActive) && styles.active,
-        isNavy && styles.navy,
         isOutline && styles.outline,
         variant === 'ghost' && styles.ghost,
         (disabled || loading) && styles.disabled,
@@ -71,14 +68,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 20,
-    },
-    navy: {
-      backgroundColor: colors.navy,
-      shadowColor: colors.black,
-      shadowOpacity: 0.2,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 3,
     },
     active: {
       backgroundColor: colors.active,
