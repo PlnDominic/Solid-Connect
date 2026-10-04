@@ -116,18 +116,19 @@ begin
   -- Deposit nudges: a booking whose deposit still isn't paid, about 3 and
   -- 24 hours after it was made. Nothing can start until it is.
   for r in
-    select j.id, j.customer_id, j.title, j.created_at, p.deposit_amount
+    -- jobs has no created_at; the payment row is created with the booking.
+    select j.id, j.customer_id, j.title, p.created_at as booked_at, p.deposit_amount
     from public.jobs j
     join public.payments p on p.job_id = j.id
     where j.status = 'accepted'
       and p.status = 'pending'
       and p.deposit_amount > 0
-      and j.created_at < now() - interval '3 hours'
+      and p.created_at < now() - interval '3 hours'
   loop
     select count(*) into v_sent from public.notifications n
     where n.user_id = r.customer_id and n.type = 'DEPOSIT_REMINDER' and n.data ->> 'jobId' = r.id::text;
 
-    if v_sent = 0 or (v_sent = 1 and r.created_at < now() - interval '24 hours'
+    if v_sent = 0 or (v_sent = 1 and r.booked_at < now() - interval '24 hours'
        and not exists (
          select 1 from public.notifications n
          where n.user_id = r.customer_id and n.type = 'DEPOSIT_REMINDER'

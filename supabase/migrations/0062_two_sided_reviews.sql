@@ -91,5 +91,16 @@ grant execute on function public.count_unread_threads(uuid, text) to authenticat
 -- customer_reviews drives the "rate this customer" prompt on the
 -- provider's Jobs list; notifications already refresh on a 15s poll but
 -- the badge should move instantly too.
-alter publication supabase_realtime add table public.customer_reviews;
-alter publication supabase_realtime add table public.notifications;
+-- Guarded like 0049/0061: re-running must not fail if a table is already
+-- published (or the publication doesn't exist locally).
+do $$
+begin
+  begin
+    alter publication supabase_realtime add table public.customer_reviews;
+  exception when duplicate_object then null; when undefined_object then null;
+  end;
+  begin
+    alter publication supabase_realtime add table public.notifications;
+  exception when duplicate_object then null; when undefined_object then null;
+  end;
+end $$;

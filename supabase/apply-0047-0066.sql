@@ -1812,8 +1812,19 @@ grant execute on function public.count_unread_threads(uuid, text) to authenticat
 -- customer_reviews drives the "rate this customer" prompt on the
 -- provider's Jobs list; notifications already refresh on a 15s poll but
 -- the badge should move instantly too.
-alter publication supabase_realtime add table public.customer_reviews;
-alter publication supabase_realtime add table public.notifications;
+-- Guarded like 0049/0061: re-running must not fail if a table is already
+-- published (or the publication doesn't exist locally).
+do $$
+begin
+  begin
+    alter publication supabase_realtime add table public.customer_reviews;
+  exception when duplicate_object then null; when undefined_object then null;
+  end;
+  begin
+    alter publication supabase_realtime add table public.notifications;
+  exception when duplicate_object then null; when undefined_object then null;
+  end;
+end $$;
 
 -- ===== 0063_confirm_completion_payment_guard.sql =====
 -- Money guards on confirm_job_completion (last defined in 0047).
@@ -2085,6 +2096,18 @@ begin
 
   if exists (select 1 from public.disputes d where d.job_id = j.id and d.status = 'open') then
     raise exception 'PAYMENT_DISPUTED' using errcode = '55000';
+  end if;
+
+  -- With a deposit, the customer confirms only once the balance is in too.
+  -- Otherwise calling this directly would close the job with only the
+  -- deposit paid - and take away the provider's unpaid-balance report,
+  -- which needs the job still awaiting confirmation. The API (service_role)
+  -- runs its own gateway check first.
+  if auth.role() <> 'service_role' and exists (
+    select 1 from public.payments p2
+    where p2.job_id = j.id and p2.deposit_amount > 0 and p2.status not in ('held', 'released')
+  ) then
+    raise exception 'BALANCE_REQUIRED' using errcode = '55000';
   end if;
 
   update public.jobs
@@ -2585,18 +2608,19 @@ begin
   -- Deposit nudges: a booking whose deposit still isn't paid, about 3 and
   -- 24 hours after it was made. Nothing can start until it is.
   for r in
-    select j.id, j.customer_id, j.title, j.created_at, p.deposit_amount
+    -- jobs has no created_at; the payment row is created with the booking.
+    select j.id, j.customer_id, j.title, p.created_at as booked_at, p.deposit_amount
     from public.jobs j
     join public.payments p on p.job_id = j.id
     where j.status = 'accepted'
       and p.status = 'pending'
       and p.deposit_amount > 0
-      and j.created_at < now() - interval '3 hours'
+      and p.created_at < now() - interval '3 hours'
   loop
     select count(*) into v_sent from public.notifications n
     where n.user_id = r.customer_id and n.type = 'DEPOSIT_REMINDER' and n.data ->> 'jobId' = r.id::text;
 
-    if v_sent = 0 or (v_sent = 1 and r.created_at < now() - interval '24 hours'
+    if v_sent = 0 or (v_sent = 1 and r.booked_at < now() - interval '24 hours'
        and not exists (
          select 1 from public.notifications n
          where n.user_id = r.customer_id and n.type = 'DEPOSIT_REMINDER'

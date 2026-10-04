@@ -132,6 +132,18 @@ begin
     raise exception 'PAYMENT_DISPUTED' using errcode = '55000';
   end if;
 
+  -- With a deposit, the customer confirms only once the balance is in too.
+  -- Otherwise calling this directly would close the job with only the
+  -- deposit paid - and take away the provider's unpaid-balance report,
+  -- which needs the job still awaiting confirmation. The API (service_role)
+  -- runs its own gateway check first.
+  if auth.role() <> 'service_role' and exists (
+    select 1 from public.payments p2
+    where p2.job_id = j.id and p2.deposit_amount > 0 and p2.status not in ('held', 'released')
+  ) then
+    raise exception 'BALANCE_REQUIRED' using errcode = '55000';
+  end if;
+
   update public.jobs
   set
     status = 'completed',
