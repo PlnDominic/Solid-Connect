@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { createClient } from '../../lib/supabase-browser';
 import './polish.css';
 
@@ -17,6 +17,19 @@ export default function LoginPage() {
   const [error, setError] = useState(''); const [pending, setPending] = useState(false); const [showPassword, setShowPassword] = useState(false);
   async function signIn(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setError(''); setPending(true); const { error: authError } = await createClient().auth.signInWithPassword({ email, password }); if (authError) { setError(authError.message); setPending(false); return; } window.location.assign('/verifications'); }
   async function sendReset(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setError(''); setPending(true); const { error: authError } = await createClient().auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` }); setPending(false); if (authError) { setError(authError.message); return; } setMode('sent'); }
+  // Auth emails whose redirect isn't on Supabase's allow list fall back to
+  // the project Site URL - this page. Hand their payload to the page that
+  // can use it instead of silently showing the sign-in form: a PKCE
+  // `?code=` belongs to the reset page; tokens, a token_hash or an error
+  // in the link belong to the invite / setup page.
+  useEffect(() => {
+    const { search, hash } = window.location;
+    const query = new URLSearchParams(search);
+    const fragment = new URLSearchParams(hash.replace(/^#/, ''));
+    if (query.get('code')) window.location.replace(`/reset-password${search}${hash}`);
+    else if (fragment.get('access_token') || fragment.get('error') || query.get('token_hash') || query.get('error'))
+      window.location.replace(`/auth/accept-invite${search}${hash}`);
+  }, []);
   function switchMode(next: Mode) { setError(''); setPending(false); setMode(next); }
   const emailField = <label className="reference-input"><MailIcon /><input name="email" value={email} onChange={event => setEmail(event.target.value)} type="email" autoComplete="email" placeholder="Email" aria-label="Email" required /></label>;
 

@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import type { EmailOtpType, SupabaseClient } from '@supabase/supabase-js';
 import '../../login/polish.css';
 
-type Stage = 'checking' | 'set-password' | 'invalid';
+type Stage = 'checking' | 'confirm' | 'set-password' | 'invalid';
 
 /** Landing page for admin invite and setup-link emails.
  *
@@ -14,13 +14,22 @@ type Stage = 'checking' | 'set-password' | 'invalid';
  * default @supabase/ssr browser client is PKCE-only and rejects that, so
  * this page reads the hash itself and installs the session - which also
  * writes the auth cookies the protected layout checks. A `token_hash`
- * query (custom email templates) is verified the same way. The invitee
- * then picks a password, since an invited account starts without one. */
+ * query (the recommended invite email template) is only redeemed when the
+ * person clicks Accept: email security scanners open links before people
+ * do, and redeeming on load would let them burn the one-time token. The
+ * invitee then picks a password, since an invited account starts without
+ * one. */
 function createInviteClient(): SupabaseClient {
   return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     isSingleton: false,
     auth: { detectSessionInUrl: false },
   });
+}
+
+/** Supabase's wording for a spent or stale one-time link, made actionable. */
+function friendlyLinkError(message: string): string {
+  if (!message || /expired|invalid|not found/i.test(message)) return 'This link has expired or was already used - each link works only once.';
+  return message;
 }
 
 export default function AcceptInvitePage() {
@@ -32,6 +41,7 @@ export default function AcceptInvitePage() {
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
+  const [otp, setOtp] = useState<{ tokenHash: string; type: EmailOtpType } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,8 +60,9 @@ export default function AcceptInvitePage() {
           const { error: sessionError } = await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
           if (sessionError) failure = sessionError.message;
         } else if (tokenHash && type) {
-          const { error: otpError } = await client.auth.verifyOtp({ token_hash: tokenHash, type });
-          if (otpError) failure = otpError.message;
+          window.history.replaceState(null, '', window.location.pathname);
+          if (!cancelled) { setOtp({ tokenHash, type }); setStage('confirm'); }
+          return;
         }
       }
       // Keep tokens out of the address bar and browser history.
@@ -63,13 +74,24 @@ export default function AcceptInvitePage() {
         setEmail(user.email ?? '');
         setStage('set-password');
       } else {
-        setReason(failure || 'This link is invalid or has already been used.');
+        setReason(friendlyLinkError(failure));
         setStage('invalid');
       }
     }
     establishSession();
     return () => { cancelled = true; };
   }, [client]);
+
+  async function acceptInvite() {
+    if (!otp) return;
+    setPending(true);
+    const { error: otpError } = await client.auth.verifyOtp({ token_hash: otp.tokenHash, type: otp.type });
+    const { data: { user } } = await client.auth.getUser();
+    setPending(false);
+    if (otpError || !user) { setReason(friendlyLinkError(otpError?.message ?? '')); setStage('invalid'); return; }
+    setEmail(user.email ?? '');
+    setStage('set-password');
+  }
 
   async function savePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -90,6 +112,13 @@ export default function AcceptInvitePage() {
           <>
             <h1 id="invite-title">Checking your invite…</h1>
             <p className="reference-subtitle">One moment while we confirm your link.</p>
+          </>
+        )}
+        {stage === 'confirm' && (
+          <>
+            <h1 id="invite-title">You&apos;re invited.</h1>
+            <p className="reference-subtitle">Accept to join the Solid Connect admin team<br />and set your password.</p>
+            <button type="button" className="reference-submit" style={{ width: '100%' }} disabled={pending} onClick={acceptInvite}>{pending ? 'Accepting…' : 'Accept invite'}</button>
           </>
         )}
         {stage === 'invalid' && (
