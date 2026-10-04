@@ -5,13 +5,12 @@ import { useTheme } from '../theme/ThemeProvider';
 type Variant = 'primary' | 'navy' | 'active' | 'outline' | 'ghost';
 
 /**
- * Primary CTAs stay ink. `navy` is the brand-navy variant used on
- * onboarding/login (matches the Home hero card) - it's a branding choice,
- * not the confirm-green accent, which stays reserved elsewhere for actions
- * that themselves complete a verification/payment moment. `active` is the
- * brand-orange variant - used sparingly, only where a screen wants its own
- * primary action to read as the same "active" accent as a picked filter or
- * category, e.g. the New Request flow's own Continue/Post button.
+ * Filled CTAs (`primary` and `active`) are brand orange with a white label
+ * in both light and dark themes - the same "active" accent as a picked
+ * filter, category or chip. `primary` is kept as an alias so existing call
+ * sites need no change. `navy` is the brand-navy variant used on
+ * onboarding/login (matches the Home hero card). Secondary actions use
+ * `outline` or `ghost` and stay neutral.
  */
 export function Button({
   title,
@@ -41,9 +40,8 @@ export function Button({
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,
-        isPrimary && styles.primary,
+        (isPrimary || isActive) && styles.active,
         isNavy && styles.navy,
-        isActive && styles.active,
         isOutline && styles.outline,
         variant === 'ghost' && styles.ghost,
         (disabled || loading) && styles.disabled,
@@ -52,10 +50,10 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? colors.paper : isFilled ? colors.white : colors.ink} />
+        <ActivityIndicator color={isFilled ? colors.white : colors.ink} />
       ) : (
         <Text
-          style={[styles.label, { color: isPrimary ? colors.paper : isFilled ? colors.white : colors.ink }]}
+          style={[styles.label, { color: isFilled ? colors.white : colors.ink }]}
           numberOfLines={1}
         >
           {title}
@@ -73,14 +71,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 20,
-    },
-    primary: {
-      backgroundColor: colors.ink,
-      shadowColor: colors.black,
-      shadowOpacity: 0.16,
-      shadowRadius: 10,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 3,
     },
     navy: {
       backgroundColor: colors.navy,
