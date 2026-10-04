@@ -18,8 +18,11 @@ import { Platform } from 'react-native';
  * standing in for one consistent system-adjacent face across iOS and
  * Android. Cards read as receipts/statements - ruled hairlines, stamped
  * confirmation marks, transaction-reference rows - never soft illustrated
- * tiles. Depth comes from hairline rules, not glow shadows; real elevation
- * is reserved for genuinely floating layers (sheets, modals).
+ * tiles. Content cards may lift off the page with the soft `shadow.card`
+ * (best on a `paperDim` page, white cards on top) - never a colored glow.
+ * Rows inside a card still separate with hairline rules, and the heavier
+ * `shadow.sheet` stays reserved for genuinely floating layers (sheets,
+ * modals).
  *
  * STORY: A customer sees a provider's verification the way they'd see a
  * mobile-money payment confirm: unambiguous, numbered, stamped. A provider
@@ -50,7 +53,8 @@ export const colors = {
   inkFaint: 'rgba(21,24,26,0.42)',
   inkFainter: 'rgba(21,24,26,0.26)',
 
-  // Hairline rules do the separation work that shadows do elsewhere.
+  // Hairline rules separate rows and sections inside a card; between a
+  // card and the page, `shadow.card` may do the separating instead.
   hairline: '#E3E3E1',
   hairlineStrong: '#CBCBC7',
 
@@ -144,8 +148,8 @@ export const fonts = {
 };
 
 export const shadow = {
-  // Reserved for genuinely floating layers only (sheets, modals) - in-flow
-  // content separates with a hairline, never a shadow standing in for one.
+  // Reserved for genuinely floating layers only (sheets, modals). In-flow
+  // cards use the lighter `card` shadow below, never this one.
   sheet: {
     shadowColor: '#0B0B0A',
     shadowOpacity: 0.16,
@@ -154,7 +158,8 @@ export const shadow = {
     elevation: 10,
   },
   // Standard elevated-card shadow: no border, shadow does the separating.
-  // Used for any passive content card sitting directly on `paper`/`card`.
+  // Used for content cards sitting on `paper` or `paperDim` (the dimmed
+  // page reads more raised - see the New Request flow).
   card: {
     shadowColor: '#0B0B0A',
     shadowOpacity: 0.1,
