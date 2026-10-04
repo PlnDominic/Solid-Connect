@@ -17,10 +17,6 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified } from '../../lib/verification';
 import type { ChatMessage, ChatThread, Profile } from '../../types/database';
 
-const LIST_FILTERS: FilterOption[] = [
-  { id: 'all', label: 'All' },
-  { id: 'unread', label: 'Unread' },
-];
 
 async function fetchLatestMessage(threadId: string): Promise<ChatMessage | null> {
   const { data, error } = await supabase
@@ -158,6 +154,12 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
       });
   }, [threads, peerById, latestResults, role, profile?.id]);
 
+  const unreadCount = previews.filter((p) => p.unread).length;
+  const filters: FilterOption[] = [
+    { id: 'all', label: previews.length ? `All · ${previews.length}` : 'All' },
+    { id: 'unread', label: unreadCount ? `Unread · ${unreadCount}` : 'Unread' },
+  ];
+
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return previews.filter((p) => {
@@ -183,7 +185,7 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
         />
       </View>
       <View style={styles.filtersWrap}>
-        <FilterChips options={LIST_FILTERS} value={filter} onChange={setFilter} />
+        <FilterChips options={filters} value={filter} onChange={setFilter} />
       </View>
       <ScrollView
         refreshControl={
@@ -243,7 +245,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       marginBottom: spacing.md,
     },
     searchInput: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.ink },
-    filtersWrap: { paddingBottom: spacing.md },
+    // FilterChips bleeds to the screen edge by pulling back this padding,
+    // so the first chip ("All") lines up with the search bar.
+    filtersWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
     row: {
       flexDirection: 'row',
       gap: spacing.md,

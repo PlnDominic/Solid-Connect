@@ -266,8 +266,20 @@ export function useMarkThreadRead() {
       if (error) throw error;
       return input.threadId;
     },
-    onSuccess: (threadId) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', threadId] });
+    // Opening a chat should read as read straight away on the Chats list
+    // (its unread dot and bold preview come from this cached latest
+    // message), not only once something happens to refetch it.
+    onMutate: (input) => {
+      queryClient.setQueryData<ChatMessage | null>(['latestMessage', input.threadId], (latest) =>
+        latest && latest.sender_id !== input.readerId && !latest.read_at
+          ? { ...latest, read_at: new Date().toISOString() }
+          : latest,
+      );
+    },
+    onSettled: (_data, _error, input) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', input.threadId] });
+      queryClient.invalidateQueries({ queryKey: ['latestMessage', input.threadId] });
+      queryClient.invalidateQueries({ queryKey: ['unreadChatCount'] });
     },
   });
 }
