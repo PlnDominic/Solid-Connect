@@ -5,7 +5,7 @@ import { compressImage } from '../lib/imageCompression';
 import { useSessionStore } from '../store/useSessionStore';
 import type { Profile, Role } from '../types/database';
 import { isApiConfigured } from '../lib/api';
-import { PROFILE_COLUMNS, withOwnPhone } from './profileColumns';
+import { PROFILE_COLUMNS, withOwnPrivate } from './profileColumns';
 
 export interface SignUpDetails {
   fullName: string;
@@ -41,13 +41,13 @@ function rethrowFriendly(error: { code?: string; message: string }): never {
 export async function fetchProfile(id: string): Promise<Profile | null> {
   const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', id).maybeSingle();
   if (error) throw error;
-  return data ? withOwnPhone(data as unknown as Profile) : null;
+  return data ? withOwnPrivate(data as unknown as Profile) : null;
 }
 
 /**
  * Early sign-up pre-checks, run before advancing off the phone/email step.
- * Email is a plain lookup (profiles are publicly readable, 0001); phone goes
- * through phone_in_use() since the column itself is hidden (0073). Not the real guard (a race between this check and
+ * Both go through database functions (phone_in_use, email_in_use) since
+ * the columns themselves are hidden from app users (0073, 0076). Not the real guard (a race between this check and
  * account creation is still possible): phone is enforced for real by the
  * unique constraint in 0004_phone_unique.sql, email by Supabase auth's own
  * uniqueness on auth.users. Callers should fail open on a lookup error
@@ -70,11 +70,18 @@ export async function isPhoneTaken(phone: string, excludeId?: string): Promise<b
 }
 
 export async function isEmailTaken(email: string, excludeId?: string): Promise<boolean> {
-  let query = supabase.from('profiles').select('id').eq('email', email).limit(1);
-  if (excludeId) query = query.neq('id', excludeId);
-  const { data, error } = await query;
+  // email isn't readable since 0076 - ask the database instead.
+  const { data, error } = await supabase.rpc('email_in_use', { p_email: email, p_exclude: excludeId ?? null });
+  if (error?.code === 'PGRST202') {
+    // Database not migrated to 0076 yet: the column is still readable.
+    let query = supabase.from('profiles').select('id').eq('email', email).limit(1);
+    if (excludeId) query = query.neq('id', excludeId);
+    const { data: rows, error: lookupError } = await query;
+    if (lookupError) throw lookupError;
+    return (rows?.length ?? 0) > 0;
+  }
   if (error) throw error;
-  return (data?.length ?? 0) > 0;
+  return data === true;
 }
 
 /**
@@ -132,7 +139,7 @@ export async function createOrUpdateOwnProfile(
     const refreshed = await fetchProfile(userId);
     if (refreshed) return refreshed;
   }
-  return withOwnPhone(data as unknown as Profile);
+  return withOwnPrivate(data as unknown as Profile, useSessionStore.getState().profile);
 }
 
 /**
@@ -178,7 +185,7 @@ export async function updateOwnProfile(
     const refreshed = await fetchProfile(userId);
     if (refreshed) return refreshed;
   }
-  return withOwnPhone(data as unknown as Profile);
+  return withOwnPrivate(data as unknown as Profile, useSessionStore.getState().profile);
 }
 
 /**
@@ -204,7 +211,7 @@ export async function uploadOwnProfilePhoto(userId: string, imageUri: string): P
     .select(PROFILE_COLUMNS)
     .single();
   if (error) throw error;
-  return withOwnPhone(data as unknown as Profile);
+  return withOwnPrivate(data as unknown as Profile, useSessionStore.getState().profile);
 }
 
 /** Syncs profiles.email once Supabase auth's own email is confirmed changed. */
@@ -253,7 +260,7 @@ export async function switchOwnRole(userId: string, role: Role): Promise<Profile
     .select(PROFILE_COLUMNS)
     .single();
   if (error) throw error;
-  return withOwnPhone(data as unknown as Profile);
+  return withOwnPrivate(data as unknown as Profile, useSessionStore.getState().profile);
 }
 
 export function useProfile(userId: string | null) {

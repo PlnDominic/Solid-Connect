@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
-import { withPhones } from '../../../lib/phones';
+import { withContacts, idsByContact, idMatchClause } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 import { SortHeader } from '../../components/SortHeader';
@@ -24,9 +24,12 @@ export default async function ProvidersPage({ searchParams }: Props) {
   // Two separate builders rather than one branching on a flag: a ternary
   // between two differently-selected queries collapses TS's inferred row
   // type to their common subset ({id}), breaking property access below.
+  // Email and phone are matched through the admin-only lookup (both
+  // columns are hidden from signed-in users, 0073/0076).
+  const contactMatch = term ? idMatchClause(await idsByContact(supabase, term)) : '';
   const countQuery = () => {
     let q2 = supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'provider');
-    if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,provider_category.ilike.%${term}%,area.ilike.%${term}%`);
+    if (term) q2 = q2.or(`full_name.ilike.%${term}%,provider_category.ilike.%${term}%,area.ilike.%${term}%${contactMatch}`);
     if (category) q2 = q2.eq('provider_category', category);
     return q2;
   };
@@ -34,10 +37,10 @@ export default async function ProvidersPage({ searchParams }: Props) {
     let q2 = supabase
       .from('profiles')
       .select(
-        'id, full_name, initials, area, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at, suspended_at',
+        'id, full_name, initials, area, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at, suspended_at',
       )
       .eq('role', 'provider');
-    if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,provider_category.ilike.%${term}%,area.ilike.%${term}%`);
+    if (term) q2 = q2.or(`full_name.ilike.%${term}%,provider_category.ilike.%${term}%,area.ilike.%${term}%${contactMatch}`);
     if (category) q2 = q2.eq('provider_category', category);
     return q2;
   };
@@ -59,7 +62,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
 
   const errors = [countError?.message, listError?.message, categoryError?.message];
 
-  const rows = await withPhones(supabase, providers ?? []);
+  const rows = await withContacts(supabase, providers ?? []);
   const categories = [...new Set((categoryRows ?? []).map(p => p.provider_category).filter(Boolean))].sort();
 
   return (

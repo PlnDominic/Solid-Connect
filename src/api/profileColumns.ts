@@ -4,20 +4,21 @@ import type { Profile } from '../types/database';
 
 /**
  * Every profiles column the app may read - all of them except `phone`
- * (0073) and `payout_account` (0075), which app users can't select (so a
- * `select('*')` on profiles now fails outright). A phone number comes only
- * from contact_phone(): your own, or the other person's while you share an
- * active job. A provider reads their own payout account through
- * my_payout_account() - see usePayoutAccount.
+ * (0073), `payout_account` (0075), `email` and `push_token` (0076), which
+ * app users can't select (so a `select('*')` on profiles now fails
+ * outright). Your own phone, email and push token come from
+ * my_private_profile() (see withOwnPrivate); the other person's phone only
+ * from contact_phone(), while you share an active job; a provider's own
+ * payout account from my_payout_account() (see usePayoutAccount).
  * Add new profiles columns here once their migration grants them.
  */
 export const PROFILE_COLUMNS =
-  'id,role,full_name,initials,area,is_seed,provider_category,provider_rating,provider_jobs_count,provider_distance_km,provider_verified,provider_certified,created_at,email,push_token,push_permission_status,photo_url,tagline,verification_level,location,availability_mode,suspended_at,suspended_reason,suspended_by,terms_accepted_at,terms_version,notification_prefs,customer_rating,customer_reviews_count';
+  'id,role,full_name,initials,area,is_seed,provider_category,provider_rating,provider_jobs_count,provider_distance_km,provider_verified,provider_certified,created_at,push_permission_status,photo_url,tagline,verification_level,location,availability_mode,suspended_at,suspended_reason,suspended_by,terms_accepted_at,terms_version,notification_prefs,customer_rating,customer_reviews_count';
 
 /** A profiles row read with PROFILE_COLUMNS, typed as a Profile whose
  * phone is unknown (null) - use contact_phone() when a number is needed. */
 export function asProfile(row: unknown): Profile {
-  return { ...(row as object), phone: null } as Profile;
+  return { ...(row as object), phone: null, email: null, push_token: null } as Profile;
 }
 
 /** The phone number on `userId`'s profile, if the caller may see it, else null. */
@@ -37,11 +38,44 @@ export async function fetchContactPhone(userId: string): Promise<string | null> 
   return typeof data === 'string' && data ? data : null;
 }
 
-/** Adds the signed-in person's own phone to their profile row (the row
- * itself never carries it - see PROFILE_COLUMNS). */
-export async function withOwnPhone<T extends { id: string }>(row: T): Promise<T & { phone: string | null }> {
-  const phone = await fetchContactPhone(row.id).catch(() => null);
-  return { ...row, phone };
+type PrivateFields = { phone: string | null; email: string | null; push_token: string | null };
+
+async function fetchOwnPrivate(userId: string): Promise<PrivateFields> {
+  const { data, error } = await supabase.rpc('my_private_profile');
+  if (error?.code === 'PGRST202') {
+    // Database not migrated to 0076 yet: email and push_token are still
+    // readable directly; phone has its own fallback (fetchContactPhone).
+    const phone = await fetchContactPhone(userId);
+    const { data: row, error: rowError } = await supabase
+      .from('profiles')
+      .select('email,push_token')
+      .eq('id', userId)
+      .maybeSingle();
+    if (rowError) throw rowError;
+    const r = (row ?? {}) as { email?: string | null; push_token?: string | null };
+    return { phone, email: r.email ?? null, push_token: r.push_token ?? null };
+  }
+  if (error) throw error;
+  const d = (data ?? {}) as Partial<PrivateFields>;
+  return { phone: d.phone ?? null, email: d.email ?? null, push_token: d.push_token ?? null };
+}
+
+/**
+ * Adds the signed-in person's own phone, email and push token to their
+ * profile row (the row itself never carries them - see PROFILE_COLUMNS).
+ * With `fallback` (the profile already in memory, after a save that
+ * succeeded) a failed lookup keeps those values instead of throwing.
+ */
+export async function withOwnPrivate<T extends { id: string }>(
+  row: T,
+  fallback?: Partial<PrivateFields> | null,
+): Promise<T & PrivateFields> {
+  try {
+    return { ...row, ...(await fetchOwnPrivate(row.id)) };
+  } catch (e) {
+    if (!fallback) throw e;
+    return { ...row, phone: fallback.phone ?? null, email: fallback.email ?? null, push_token: fallback.push_token ?? null };
+  }
 }
 
 /** The other person's phone, only while you share an active job (else null). */

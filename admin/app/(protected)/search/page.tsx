@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
-import { idsByPhone } from '../../../lib/phones';
+import { idsByContact, idMatchClause, withContacts } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 
 type Props = { searchParams: Promise<{ q?: string }> };
@@ -14,29 +14,29 @@ export default async function SearchPage({ searchParams }: Props) {
   const q = raw ? sanitizeForFilter(raw) : '';
   const supabase = await createServerSupabase();
 
-  // Phone search goes through the admin-only lookup (phone isn't
-  // selectable, 0073); matches are folded in as an id filter.
-  const phoneIds = q ? await idsByPhone(supabase, q) : [];
-  const phoneMatch = phoneIds.length ? `,id.in.(${phoneIds.join(',')})` : '';
+  // Email and phone search go through the admin-only lookup (both columns
+  // are hidden from signed-in users, 0073/0076); matches are folded in as
+  // an id filter.
+  const contactMatch = q ? idMatchClause(await idsByContact(supabase, q)) : '';
 
   const [
-    { data: customers, error: customersError },
-    { data: providers, error: providersError },
+    { data: customerRows, error: customersError },
+    { data: providerRows, error: providersError },
     { data: jobs, error: jobsError },
     { data: requests, error: requestsError },
   ] = q
     ? await Promise.all([
         supabase
           .from('profiles')
-          .select('id, full_name, initials, email, area')
+          .select('id, full_name, initials, area')
           .eq('role', 'customer')
-          .or(`full_name.ilike.%${q}%,email.ilike.%${q}%${phoneMatch}`)
+          .or(`full_name.ilike.%${q}%${contactMatch}`)
           .limit(10),
         supabase
           .from('profiles')
-          .select('id, full_name, initials, email, provider_category, area')
+          .select('id, full_name, initials, provider_category, area')
           .eq('role', 'provider')
-          .or(`full_name.ilike.%${q}%,email.ilike.%${q}%,provider_category.ilike.%${q}%${phoneMatch}`)
+          .or(`full_name.ilike.%${q}%,provider_category.ilike.%${q}%${contactMatch}`)
           .limit(10),
         supabase
           .from('jobs')
@@ -55,6 +55,14 @@ export default async function SearchPage({ searchParams }: Props) {
         { data: [], error: null },
         { data: [], error: null },
       ];
+
+  const [customers, providers] = await Promise.all([
+    withContacts(supabase, (customerRows ?? []) as { id: string; full_name: string; initials: string; area: string | null }[]),
+    withContacts(
+      supabase,
+      (providerRows ?? []) as { id: string; full_name: string; initials: string; provider_category: string | null; area: string | null }[],
+    ),
+  ]);
 
   const errors = [customersError?.message, providersError?.message, jobsError?.message, requestsError?.message];
   const noResults =

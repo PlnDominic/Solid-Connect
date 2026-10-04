@@ -20,7 +20,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   if (!request) notFound();
 
   const [{ data: customer }, { data: preferred }, { data: quotes }, { data: opportunities }, { data: job }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, email, area').eq('id', request.customer_id).maybeSingle(),
+    supabase.from('profiles').select('id, full_name, area').eq('id', request.customer_id).maybeSingle(),
     request.preferred_provider_id
       ? supabase.from('profiles').select('id, full_name').eq('id', request.preferred_provider_id).maybeSingle()
       : Promise.resolve({ data: null }),

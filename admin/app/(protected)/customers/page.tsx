@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
-import { withPhones } from '../../../lib/phones';
+import { withContacts, idsByContact, idMatchClause } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 import { SortHeader } from '../../components/SortHeader';
@@ -24,14 +24,17 @@ export default async function CustomersPage({ searchParams }: Props) {
   // Two separate builders rather than one branching on a flag: a ternary
   // between two differently-selected queries collapses TS's inferred row
   // type to their common subset ({id}), breaking property access below.
+  // Email and phone are matched through the admin-only lookup (both
+  // columns are hidden from signed-in users, 0073/0076).
+  const contactMatch = term ? idMatchClause(await idsByContact(supabase, term)) : '';
   const countQuery = () => {
     let q2 = supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'customer');
-    if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,area.ilike.%${term}%`);
+    if (term) q2 = q2.or(`full_name.ilike.%${term}%,area.ilike.%${term}%${contactMatch}`);
     return q2;
   };
   const dataQuery = () => {
-    let q2 = supabase.from('profiles').select('id, full_name, initials, area, email, created_at').eq('role', 'customer');
-    if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,area.ilike.%${term}%`);
+    let q2 = supabase.from('profiles').select('id, full_name, initials, area, created_at').eq('role', 'customer');
+    if (term) q2 = q2.or(`full_name.ilike.%${term}%,area.ilike.%${term}%${contactMatch}`);
     return q2;
   };
 
@@ -44,7 +47,7 @@ export default async function CustomersPage({ searchParams }: Props) {
 
   const { data: customers, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
-  const rows = await withPhones(supabase, customers ?? []);
+  const rows = await withContacts(supabase, customers ?? []);
 
   // Job counts for just the rows on this page.
   const customerIds = rows.map(c => c.id);

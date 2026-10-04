@@ -23,8 +23,8 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   if (!job) notFound();
 
   const [{ data: customer }, { data: provider }, { data: location }, activity] = await Promise.all([
-    supabase.from('profiles').select('full_name, initials, email, area').eq('id', job.customer_id).maybeSingle(),
-    supabase.from('profiles').select('full_name, initials, email').eq('id', job.provider_id).maybeSingle(),
+    supabase.from('profiles').select('full_name, initials, area').eq('id', job.customer_id).maybeSingle(),
+    supabase.from('profiles').select('full_name, initials').eq('id', job.provider_id).maybeSingle(),
     supabase.from('job_locations').select('*').eq('job_id', job.id).maybeSingle(),
     getJobActivity(supabase, job.id),
   ]);

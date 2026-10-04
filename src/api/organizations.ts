@@ -168,6 +168,11 @@ export function useCreateRecurringService(orgId: string) {
 
 /** Look up a profile id by email for invites (service-role not available on device). */
 export async function findProfileIdByEmail(email: string): Promise<string | null> {
-  const { data } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
-  return data?.id ?? null;
+  // email isn't readable since 0076; profile_id_by_email answers just this.
+  const { data, error } = await supabase.rpc('profile_id_by_email', { p_email: email.trim() });
+  if (error?.code === 'PGRST202') {
+    const { data: row } = await supabase.from('profiles').select('id').ilike('email', email.trim()).maybeSingle();
+    return row?.id ?? null;
+  }
+  return typeof data === 'string' ? data : null;
 }

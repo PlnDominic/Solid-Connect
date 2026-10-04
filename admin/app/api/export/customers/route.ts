@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { requireAdmin } from '../../../../lib/admin';
 import { createServerSupabase } from '../../../../lib/supabase';
 import { toCsv, csvResponse } from '../../../../lib/csv';
-import { withPhones } from '../../../../lib/phones';
+import { idMatchClause, idsByContact, withContacts } from '../../../../lib/phones';
 
 const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
 
@@ -13,18 +13,19 @@ export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get('q');
   const term = q ? sanitizeForFilter(q) : '';
   const supabase = await createServerSupabase();
+  const contactMatch = term ? idMatchClause(await idsByContact(supabase, term)) : '';
 
   let query = supabase
     .from('profiles')
-    .select('id, full_name, email, area, created_at')
+    .select('id, full_name, area, created_at')
     .eq('role', 'customer')
     .order('created_at', { ascending: false })
     .limit(5000);
-  if (term) query = query.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,area.ilike.%${term}%`);
+  if (term) query = query.or(`full_name.ilike.%${term}%,area.ilike.%${term}%${contactMatch}`);
 
   const { data, error } = await query;
   if (error) return new Response(error.message, { status: 500 });
 
-  const csv = toCsv(['full_name', 'email', 'phone', 'area', 'created_at'], await withPhones(supabase, data ?? []));
+  const csv = toCsv(['full_name', 'email', 'phone', 'area', 'created_at'], await withContacts(supabase, data ?? []));
   return csvResponse('customers.csv', csv);
 }

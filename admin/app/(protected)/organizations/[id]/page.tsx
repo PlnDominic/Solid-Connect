@@ -17,10 +17,10 @@ export default async function OrganizationDetailPage({ params }: { params: Promi
 
   const [{ data: owner }, { data: members }, { data: projects }, { data: requests }, { data: recurring }] =
     await Promise.all([
-      supabase.from('profiles').select('id, full_name, email').eq('id', org.owner_id).maybeSingle(),
+      supabase.from('profiles').select('id, full_name').eq('id', org.owner_id).maybeSingle(),
       supabase
         .from('organization_members')
-        .select('profile_id, role, created_at, profiles(id, full_name, email)')
+        .select('profile_id, role, created_at, profiles(id, full_name)')
         .eq('organization_id', id)
         .order('created_at', { ascending: true }),
       supabase.from('projects').select('*').eq('organization_id', id).order('created_at', { ascending: false }),

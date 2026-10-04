@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
+import { contactsFor } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 import { completeAccountDeletion, dismissAccountDeletion } from './actions';
@@ -36,14 +37,16 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
   const userIds = [...new Set(rows.map((r) => r.user_id))];
 
   const { data: people, error: peopleError } = userIds.length
-    ? await supabase.from('profiles').select('id, full_name, email, role').in('id', userIds)
-    : { data: [] as { id: string; full_name: string; email: string | null; role: string }[], error: null };
+    ? await supabase.from('profiles').select('id, full_name, role').in('id', userIds)
+    : { data: [] as { id: string; full_name: string; role: string }[], error: null };
+  // email is hidden from signed-in users (0076) - admin-only lookup.
+  const contacts = await contactsFor(supabase, userIds);
 
   const errors = [countError?.message, listError?.message, peopleError?.message];
 
   const peopleMap: Record<string, { full_name: string; email: string | null; role: string }> = {};
   people?.forEach((p) => {
-    peopleMap[p.id] = p;
+    peopleMap[p.id] = { ...p, email: contacts[p.id]?.email ?? null };
   });
 
   return (
