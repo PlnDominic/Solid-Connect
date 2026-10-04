@@ -21,7 +21,7 @@
 .reference-input button { border:0; background:none; color:var(--text-muted); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:var(--r-pill); margin:-4px -8px -4px 2px; flex-shrink:0; }
 .reference-input button:hover { color:var(--text-primary); }
 
-.forgot-link { justify-self:end; margin:0 2px 4px; color:var(--text-secondary); font-size:var(--fs-sm); font-weight:600; text-decoration:none; }
+.forgot-link { justify-self:end; margin:0 2px 4px; padding:0; border:0; background:none; cursor:pointer; color:var(--text-secondary); font-size:var(--fs-sm); font-weight:600; text-decoration:none; }
 .forgot-link:hover { text-decoration:underline; color:var(--text-primary); }
 
 /* Submit = the app's primary Button: brand orange, white label, orange lift. */
@@ -29,6 +29,13 @@
 .reference-submit:hover { background:var(--active-deep); }
 .reference-submit:active { opacity:.88; transform:scale(.985); }
 .reference-submit:disabled { opacity:.55; cursor:wait; }
+
+/* Reset-password flow: inline text buttons and the "sent" state. */
+.text-link { padding:0; border:0; background:none; cursor:pointer; color:var(--text-primary); font:inherit; font-weight:600; text-decoration:underline; text-underline-offset:2px; }
+.reset-back-button { width:100%; }
+.reset-link-button { display:flex; align-items:center; justify-content:center; margin-top:4px; text-decoration:none; }
+.reference-subtitle strong { color:var(--text-primary); font-weight:600; word-break:break-all; }
+.reset-hint { margin:0 2px; color:var(--text-muted); font-size:var(--fs-xs); }
 
 .reference-card .notice { text-align:left; margin:4px 0 0; }
 .login-foot { margin-top:20px; color:var(--text-muted); font-size:var(--fs-xs); font-weight:500; }

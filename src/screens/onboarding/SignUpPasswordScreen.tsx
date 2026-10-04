@@ -24,6 +24,9 @@ export function SignUpPasswordScreen({
   onSubmit,
   loading,
   errorMessage,
+  title = 'Create a password',
+  subtitle = "You'll use this to sign in next time.",
+  submitLabel = 'Create account',
 }: {
   totalSteps: number;
   activeIndex: number;
@@ -31,6 +34,10 @@ export function SignUpPasswordScreen({
   onSubmit: (password: string) => void;
   loading?: boolean;
   errorMessage?: string | null;
+  /** Overridden when this screen sets a new password after a reset. */
+  title?: string;
+  subtitle?: string;
+  submitLabel?: string;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -59,14 +66,14 @@ export function SignUpPasswordScreen({
           >
             <ChevronLeft size={20} strokeWidth={2.4} color={colors.ink} />
           </Pressable>
-          <StepDots count={totalSteps} activeIndex={activeIndex} />
+          {totalSteps > 0 ? <StepDots count={totalSteps} activeIndex={activeIndex} /> : null}
           <View style={styles.backSpacer} />
         </View>
 
         <View style={styles.body}>
           <View style={styles.textWrap}>
-            <Text style={styles.title}>Create a password</Text>
-            <Text style={styles.subtitle}>You'll use this to sign in next time.</Text>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
           </View>
 
           <View style={styles.fields}>
@@ -149,7 +156,7 @@ export function SignUpPasswordScreen({
         </View>
 
         <View style={styles.footer}>
-          <Button title="Create account" onPress={() => onSubmit(password)} disabled={!isValid} loading={loading} />
+          <Button title={submitLabel} onPress={() => onSubmit(password)} disabled={!isValid} loading={loading} />
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
