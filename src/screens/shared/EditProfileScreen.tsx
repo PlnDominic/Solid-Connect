@@ -210,11 +210,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   fill: { flex: 1 },
   body: { padding: spacing.lg, gap: spacing.xl },
   field: { gap: spacing.sm },
-  label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkFaint },
+  label: { fontSize: 15, fontFamily: fonts.semibold, color: colors.inkFaint },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  labelCount: { fontSize: 11.5, fontFamily: fonts.medium, color: colors.inkFainter },
+  labelCount: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFainter },
   input: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: fonts.medium,
     color: colors.ink,
     borderWidth: 1,
@@ -225,8 +225,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     paddingHorizontal: spacing.lg,
   },
   inputMultiline: { minHeight: 72, textAlignVertical: 'top' },
-  notice: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.confirm, lineHeight: 18 },
-  errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+  notice: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.confirm, lineHeight: 21 },
+  errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
   footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.lg },
 });
 }

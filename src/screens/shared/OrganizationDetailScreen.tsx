@@ -234,11 +234,11 @@ export function OrganizationDetailScreen({ navigation, route }: { navigation: an
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxxl },
-    meta: { fontFamily: fonts.regular, fontSize: 14, color: colors.inkMuted },
-    lead: { fontFamily: fonts.regular, fontSize: 15, color: colors.ink, lineHeight: 22 },
+    meta: { fontFamily: fonts.regular, fontSize: 16, color: colors.inkMuted },
+    lead: { fontFamily: fonts.regular, fontSize: 17, color: colors.ink, lineHeight: 25 },
     section: {
       fontFamily: fonts.semibold,
-      fontSize: 13,
+      fontSize: 15,
       letterSpacing: 0.6,
       textTransform: 'uppercase',
       color: colors.inkMuted,
@@ -251,19 +251,19 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.md,
       paddingVertical: 12,
       fontFamily: fonts.regular,
-      fontSize: 16,
+      fontSize: 18,
       color: colors.ink,
       backgroundColor: colors.surface,
     },
     area: { minHeight: 88, textAlignVertical: 'top' },
-    error: { fontFamily: fonts.regular, color: colors.danger, fontSize: 14 },
-    ok: { fontFamily: fonts.regular, color: colors.confirm, fontSize: 14 },
+    error: { fontFamily: fonts.regular, color: colors.danger, fontSize: 16 },
+    ok: { fontFamily: fonts.regular, color: colors.confirm, fontSize: 16 },
     row: {
       paddingVertical: spacing.sm,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.hairline,
     },
-    rowTitle: { fontFamily: fonts.semibold, fontSize: 15, color: colors.ink },
-    rowSub: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkMuted, marginTop: 2 },
+    rowTitle: { fontFamily: fonts.semibold, fontSize: 17, color: colors.ink },
+    rowSub: { fontFamily: fonts.regular, fontSize: 15, color: colors.inkMuted, marginTop: 2 },
   });
 }

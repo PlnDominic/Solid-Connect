@@ -75,7 +75,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.paperDim,
     },
-    label: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-    area: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    label: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
+    area: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

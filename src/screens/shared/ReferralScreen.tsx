@@ -115,15 +115,15 @@ export function ReferralScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    lead: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    lead: { fontSize: 16, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
     codeCard: {
       borderRadius: radii.xl,
       backgroundColor: colors.navy,
       padding: spacing.xl,
       gap: spacing.sm,
     },
-    codeLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.8 },
-    codeValue: { fontSize: 28, fontFamily: fonts.mono, color: colors.white, letterSpacing: 2 },
+    codeLabel: { fontSize: 12.5, fontFamily: fonts.extrabold, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.8 },
+    codeValue: { fontSize: 31, fontFamily: fonts.mono, color: colors.white, letterSpacing: 2 },
     shareBtn: {
       height: 52,
       borderRadius: radii.lg,
@@ -134,7 +134,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 8,
       opacity: 1,
     },
-    shareLabel: { fontSize: 15, fontFamily: fonts.bold, color: colors.paper },
+    shareLabel: { fontSize: 17, fontFamily: fonts.bold, color: colors.paper },
     statsRow: { flexDirection: 'row', gap: spacing.md },
     statCard: {
       flex: 1,
@@ -146,18 +146,18 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       gap: 2,
     },
-    statValue: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink },
-    statLabel: { fontSize: 11, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.4 },
+    statValue: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink },
+    statLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.4 },
     cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, overflow: 'hidden' },
     card: { borderRadius: radii.lg, overflow: 'hidden' },
     row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.sm },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    rowDetail: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    rowLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
+    rowDetail: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
     statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.hairlineStrong },
     statusDotEarned: { backgroundColor: colors.successStrong },
     emptyRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 2 },
-    emptyText: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
-    note: { fontSize: 12, lineHeight: 18, fontFamily: fonts.medium, color: colors.inkFaint },
+    emptyText: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
+    note: { fontSize: 14, lineHeight: 21, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

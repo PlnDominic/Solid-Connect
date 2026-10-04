@@ -45,7 +45,7 @@ export function LanguageScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
     cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
     card: { borderRadius: radii.lg, overflow: 'hidden' },
     row: {
@@ -56,6 +56,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
     },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    rowLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
   });
 }

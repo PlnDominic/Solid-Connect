@@ -74,11 +74,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     card: { borderRadius: radii.lg, overflow: 'hidden' },
     contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
     rowBorder: { height: 1, backgroundColor: colors.hairline },
-    contactLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    contactValue: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
-    sectionTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    contactLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
+    contactValue: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
+    sectionTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
     faqCard: { borderRadius: radii.lg, backgroundColor: colors.card, padding: spacing.md, gap: 6, ...shadow.card },
-    faqQ: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    faqA: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    faqQ: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
+    faqA: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
   });
 }

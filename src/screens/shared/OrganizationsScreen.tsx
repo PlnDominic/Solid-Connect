@@ -98,7 +98,7 @@ export function OrganizationsScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-    lead: { fontFamily: fonts.regular, fontSize: 15, color: colors.inkMuted, lineHeight: 22 },
+    lead: { fontFamily: fonts.regular, fontSize: 17, color: colors.inkMuted, lineHeight: 25 },
     card: {
       backgroundColor: colors.surface,
       borderRadius: radii.lg,
@@ -109,7 +109,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     section: {
       fontFamily: fonts.semibold,
-      fontSize: 13,
+      fontSize: 15,
       letterSpacing: 0.6,
       textTransform: 'uppercase',
       color: colors.inkMuted,
@@ -122,11 +122,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.md,
       paddingVertical: 12,
       fontFamily: fonts.regular,
-      fontSize: 16,
+      fontSize: 18,
       color: colors.ink,
       backgroundColor: colors.bg,
     },
-    error: { fontFamily: fonts.regular, color: colors.danger ?? '#b42318', fontSize: 14 },
+    error: { fontFamily: fonts.regular, color: colors.danger ?? '#b42318', fontSize: 16 },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -137,7 +137,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.hairline,
     },
-    rowTitle: { fontFamily: fonts.semibold, fontSize: 16, color: colors.ink },
-    rowSub: { fontFamily: fonts.regular, fontSize: 13, color: colors.inkMuted, marginTop: 2 },
+    rowTitle: { fontFamily: fonts.semibold, fontSize: 18, color: colors.ink },
+    rowSub: { fontFamily: fonts.regular, fontSize: 15, color: colors.inkMuted, marginTop: 2 },
   });
 }

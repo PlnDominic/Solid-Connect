@@ -69,7 +69,7 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
     card: {
       borderRadius: radii.lg,
       backgroundColor: colors.card,
@@ -85,8 +85,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
     },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    rowDetail: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    rowLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
+    rowDetail: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
     radio: {
       width: 20,
       height: 20,
@@ -99,6 +99,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     radioActive: { borderColor: colors.ink },
     radioDot: { width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.ink },
     addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: spacing.md },
-    addLabel: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    addLabel: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

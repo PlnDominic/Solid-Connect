@@ -35,7 +35,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.lg,
       gap: spacing.sm,
     },
-    title: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-    bodyText: { fontSize: 13.5, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    title: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
+    bodyText: { fontSize: 15.5, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
   });
 }

@@ -178,6 +178,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.card,
     },
-    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+    errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
   });
 }

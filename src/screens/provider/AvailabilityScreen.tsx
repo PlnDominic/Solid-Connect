@@ -103,8 +103,8 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-    section: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink, marginTop: spacing.sm },
+    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    section: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink, marginTop: spacing.sm },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,
@@ -125,7 +125,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-    chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.paper },
   });
 }

@@ -96,8 +96,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    name: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    name: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    meta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    meta: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

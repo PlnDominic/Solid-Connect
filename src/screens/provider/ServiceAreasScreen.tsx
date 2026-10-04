@@ -156,9 +156,9 @@ export function ServiceAreasScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-    section: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    hint: { fontSize: 12, fontFamily: fonts.regular, color: colors.inkFaint },
+    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    section: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
+    hint: { fontSize: 14, fontFamily: fonts.regular, color: colors.inkFaint },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,
@@ -170,7 +170,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
     chipPrimary: { borderWidth: 2, borderColor: colors.navy },
-    chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.paper },
   });
 }

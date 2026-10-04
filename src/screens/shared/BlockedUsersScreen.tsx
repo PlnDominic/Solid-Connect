@@ -56,7 +56,7 @@ export function BlockedUsersScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md },
-    empty: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
+    empty: { fontSize: 16, lineHeight: 25, fontFamily: fonts.regular, color: colors.inkMuted },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -65,7 +65,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.md,
     },
-    name: { flex: 1, fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
+    name: { flex: 1, fontSize: 17, fontFamily: fonts.semibold, color: colors.ink },
     btn: { height: 40, paddingHorizontal: 16 },
   });
 }

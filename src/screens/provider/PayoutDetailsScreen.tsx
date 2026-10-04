@@ -469,9 +469,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl },
     balanceCard: { borderRadius: radii.xxl, backgroundColor: colors.navy, padding: spacing.xl, gap: 6 },
-    balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 13, fontFamily: fonts.medium },
-    balanceValue: { color: colors.white, fontSize: 28, fontFamily: fonts.extrabold, fontVariant: ['tabular-nums'] },
-    balanceNote: { color: 'rgba(255,255,255,0.65)', fontSize: 12, fontFamily: fonts.medium, marginTop: 4 },
+    balanceLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 15, fontFamily: fonts.medium },
+    balanceValue: { color: colors.white, fontSize: 31, fontFamily: fonts.extrabold, fontVariant: ['tabular-nums'] },
+    balanceNote: { color: 'rgba(255,255,255,0.65)', fontSize: 14, fontFamily: fonts.medium, marginTop: 4 },
 
     sectionHeaderRow: {
       flexDirection: 'row',
@@ -481,9 +481,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       marginTop: spacing.sm,
       marginBottom: 2,
     },
-    sectionLabel: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    sectionLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     editActionRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    editActionText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
+    editActionText: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
 
     cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
     card: { borderRadius: radii.lg, overflow: 'hidden' },
@@ -509,7 +509,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'space-between',
       gap: spacing.sm,
     },
-    methodTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    methodTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
     activePill: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -519,9 +519,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.pill,
       backgroundColor: colors.confirmBg,
     },
-    activePillText: { fontSize: 11, fontFamily: fonts.bold, color: colors.confirm },
-    methodNumber: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.inkMuted },
-    methodHolder: { fontSize: 12.5, fontFamily: fonts.regular, color: colors.inkFaint },
+    activePillText: { fontSize: 13, fontFamily: fonts.bold, color: colors.confirm },
+    methodNumber: { fontSize: 15.5, fontFamily: fonts.semibold, color: colors.inkMuted },
+    methodHolder: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkFaint },
 
     infoRow: {
       flexDirection: 'row',
@@ -531,7 +531,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingVertical: spacing.md,
       backgroundColor: colors.paperDim,
     },
-    infoRowText: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted, flex: 1 },
+    infoRowText: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted, flex: 1 },
 
     emptyCard: {
       flexDirection: 'row',
@@ -547,8 +547,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    emptyTitle: { fontSize: 14.5, fontFamily: fonts.bold, color: colors.ink },
-    emptyDetail: { fontSize: 12, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 17 },
+    emptyTitle: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink },
+    emptyDetail: { fontSize: 14, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 20 },
     addBtn: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -558,18 +558,18 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: 12,
       borderRadius: radii.md,
     },
-    addBtnText: { color: colors.white, fontSize: 12.5, fontFamily: fonts.bold },
+    addBtnText: { color: colors.white, fontSize: 14.5, fontFamily: fonts.bold },
 
     detailRow: { padding: spacing.md, paddingHorizontal: spacing.lg },
-    detailTitle: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    detailDesc: { fontSize: 12, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 17, marginTop: 2 },
+    detailTitle: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
+    detailDesc: { fontSize: 14, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 20, marginTop: 2 },
     rowBorder: { height: 1, backgroundColor: colors.hairline },
 
     disclaimerNote: {
-      fontSize: 12,
+      fontSize: 14,
       fontFamily: fonts.regular,
       color: colors.inkFaint,
-      lineHeight: 18,
+      lineHeight: 21,
       marginTop: spacing.sm,
       paddingHorizontal: 2,
     },
@@ -581,8 +581,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'space-between',
       paddingBottom: spacing.sm,
     },
-    modalTitle: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
-    modalSubtitle: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkFaint, marginTop: 2 },
+    modalTitle: { fontSize: 20, fontFamily: fonts.bold, color: colors.ink },
+    modalSubtitle: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkFaint, marginTop: 2 },
     modalCloseBtn: {
       width: 32,
       height: 32,
@@ -614,13 +614,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.ink,
       ...shadow.card,
     },
-    typeTabText: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.ink },
+    typeTabText: { fontSize: 15.5, fontFamily: fonts.semibold, color: colors.ink },
     typeTabTextActive: { color: colors.white },
 
     formStack: { gap: spacing.md, paddingTop: spacing.sm },
     fieldGroup: { gap: 6 },
-    fieldLabel: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.ink },
-    fieldHint: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkFaint },
+    fieldLabel: { fontSize: 14.5, fontFamily: fonts.bold, color: colors.ink },
+    fieldHint: { fontSize: 13.5, fontFamily: fonts.regular, color: colors.inkFaint },
 
     networkGrid: { flexDirection: 'row', gap: spacing.sm },
     networkChip: {
@@ -639,7 +639,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.ink,
       borderColor: colors.ink,
     },
-    networkChipText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
+    networkChipText: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
     networkChipTextActive: { color: colors.white },
 
     bankScroll: { gap: spacing.xs, paddingVertical: 4 },
@@ -655,7 +655,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.ink,
       borderColor: colors.ink,
     },
-    bankChipText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.ink },
+    bankChipText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.ink },
     bankChipTextActive: { color: colors.white },
 
     textInput: {
@@ -664,7 +664,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.md,
       paddingHorizontal: spacing.md,
       paddingVertical: Platform.OS === 'ios' ? spacing.md : spacing.sm,
-      fontSize: 15,
+      fontSize: 17,
       fontFamily: fonts.medium,
       color: colors.ink,
       backgroundColor: colors.paper,
@@ -679,7 +679,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.md,
       marginTop: spacing.sm,
     },
-    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger, flex: 1 },
+    errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger, flex: 1 },
     modalActionRow: { paddingTop: spacing.lg, paddingBottom: spacing.md },
   });
 }

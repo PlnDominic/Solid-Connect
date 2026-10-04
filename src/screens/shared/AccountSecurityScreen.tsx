@@ -210,11 +210,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 4,
       marginBottom: spacing.sm,
     },
-    label: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
-    value: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
+    label: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
+    value: { fontSize: 17, fontFamily: fonts.semibold, color: colors.ink },
     toggleRow: { flexDirection: 'row', alignItems: 'center' },
-    rowDetail: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
-    section: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
+    rowDetail: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    section: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
     dangerSection: { color: colors.danger, marginTop: spacing.xl },
     reasonInput: { minHeight: 80, textAlignVertical: 'top', paddingTop: spacing.md },
     input: {
@@ -224,10 +224,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       paddingHorizontal: spacing.md,
-      fontSize: 15,
+      fontSize: 17,
       fontFamily: fonts.regular,
       color: colors.ink,
     },
-    error: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    error: { fontSize: 15, fontFamily: fonts.medium, color: colors.danger },
   });
 }

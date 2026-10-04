@@ -173,10 +173,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: spacing.sm,
       alignItems: 'flex-start',
     },
-    statusTitle: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
-    statusDetail: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
-    label: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkFaint },
-    note: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
+    statusTitle: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
+    statusDetail: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    label: { fontSize: 15, fontFamily: fonts.semibold, color: colors.inkFaint },
+    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
     rejectionNote: {
       flexDirection: 'row',
       gap: spacing.sm,
@@ -184,8 +184,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.lg,
       backgroundColor: colors.dangerBg,
     },
-    rejectionNoteTitle: { fontSize: 13, fontFamily: fonts.bold, color: colors.danger },
-    rejectionNoteText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 18 },
+    rejectionNoteTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.danger },
+    rejectionNoteText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 21 },
     thumbRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     thumbWrap: { width: 84, height: 84 },
     thumb: { width: 84, height: 84, borderRadius: radii.md, backgroundColor: colors.paperDim },
@@ -211,6 +211,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.card,
     },
-    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+    errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
   });
 }
