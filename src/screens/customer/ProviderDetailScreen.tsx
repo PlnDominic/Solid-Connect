@@ -273,7 +273,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         <View style={styles.metaRow}>
           <Text style={styles.categoryLabel} numberOfLines={1}>{servicesLabel}</Text>
           <View style={styles.ratingPill}>
-            <Star color={colors.ink} fill={colors.ink} size={13} strokeWidth={2} />
+            <Star color={colors.active} fill={colors.active} size={13} strokeWidth={2} />
             <Text style={styles.ratingText}>{provider.provider_rating.toFixed(1)}</Text>
           </View>
         </View>
@@ -378,7 +378,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         <View style={styles.footerInfo}>
           <Text style={styles.footerLabel}>Rating</Text>
           <View style={styles.footerRatingRow}>
-            <Star color={colors.ink} fill={colors.ink} size={13} strokeWidth={2} />
+            <Star color={colors.active} fill={colors.active} size={13} strokeWidth={2} />
             <Text style={styles.footerValue}>{provider.provider_rating.toFixed(1)} · {provider.provider_jobs_count} jobs</Text>
           </View>
         </View>

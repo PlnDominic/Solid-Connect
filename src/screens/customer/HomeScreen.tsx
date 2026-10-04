@@ -55,7 +55,7 @@ function TopProviderCard({ provider, onPress }: { provider: Profile; onPress: ()
           </View>
         </View>
         <View style={styles.cardMetaRow}>
-          <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
+          <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
           <Text style={styles.cardMeta}>{provider.provider_rating.toFixed(1)}</Text>
           <View style={styles.metaDot} />
           <MapPin color={colors.inkFaint} size={10} strokeWidth={2} />

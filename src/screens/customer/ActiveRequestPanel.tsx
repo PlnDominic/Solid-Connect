@@ -149,7 +149,7 @@ function QuoteCard({
               ) : null}
             </View>
             <View style={styles.quoteMetaRow}>
-              <Star color={colors.ink} fill={colors.ink} size={11} strokeWidth={2} />
+              <Star color={colors.active} fill={colors.active} size={11} strokeWidth={2} />
               <Text style={styles.quoteMeta}>{provider.provider_rating.toFixed(1)}</Text>
               <Text style={styles.quoteMetaDim}>· {provider.provider_jobs_count} jobs ·</Text>
               <MapPin color={colors.inkFaint} size={11} strokeWidth={2} />

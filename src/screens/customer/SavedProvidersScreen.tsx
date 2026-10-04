@@ -31,7 +31,7 @@ function SavedProviderRow({
         <Text style={styles.name} numberOfLines={1}>{provider.full_name}</Text>
         <View style={styles.metaRow}>
           <Text style={styles.meta}>{provider.provider_category} ·</Text>
-          <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
+          <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
           <Text style={styles.meta}>{provider.provider_rating.toFixed(1)} · {provider.provider_distance_km} km</Text>
         </View>
       </View>

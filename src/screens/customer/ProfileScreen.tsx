@@ -207,7 +207,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                     <Text style={styles.savedName} numberOfLines={1}>{p.full_name}</Text>
                     <View style={styles.savedMetaRow}>
                       <Text style={styles.savedMeta}>{p.provider_category} ·</Text>
-                      <Star color={colors.ink} fill={colors.ink} size={10} strokeWidth={2} />
+                      <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
                       <Text style={styles.savedMeta}>{p.provider_rating.toFixed(1)} · {p.provider_distance_km} km</Text>
                     </View>
                   </View>

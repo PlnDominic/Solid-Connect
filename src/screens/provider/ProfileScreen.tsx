@@ -237,7 +237,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               <Text style={styles.statementLabel}>Rating</Text>
               <View style={styles.statementRatingValue}>
                 <Text style={styles.statementValue}>{profile.provider_rating.toFixed(1)}</Text>
-                <Star color={colors.ink} fill={colors.ink} size={14} strokeWidth={2} />
+                <Star color={colors.active} fill={colors.active} size={14} strokeWidth={2} />
               </View>
             </View>
             <View style={[styles.statementRow, styles.statementRowBorder]}>
@@ -266,7 +266,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                   {dist.map((d) => (
                     <View key={d.stars} style={styles.distRow}>
                       <Text style={styles.distLabel}>{d.stars}</Text>
-                      <Star color={colors.inkFaint} fill={colors.inkFaint} size={10} strokeWidth={2} />
+                      <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
                       <View style={styles.distTrack}>
                         <View style={[styles.distFill, { width: `${(d.count / maxCount) * 100}%` }]} />
                       </View>
