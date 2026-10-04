@@ -21,19 +21,19 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     title: 'Post a job in minutes',
-    body: "Describe what you need fixed and we'll match you with verified plumbers, electricians and artisans near you.",
+    body: "Describe what you need fixed and we'll connect you with plumbers, electricians and artisans near you - verified pros carry a badge.",
     cta: 'Next',
     heroImage: require('../../../assets/images/onboarding/onboarding-1.png'),
   },
   {
-    title: 'Compare quotes from verified pros',
-    body: 'See ratings, prices and availability side by side, then chat directly with the provider you choose.',
+    title: 'Compare quotes side by side',
+    body: "See ratings, prices, availability and who's verified, then chat directly with the provider you choose.",
     cta: 'Next',
     heroImage: require('../../../assets/images/onboarding/onboarding-2.jpg'),
   },
   {
     title: 'Enable your location',
-    body: 'We use your location to find verified pros near you in Accra and estimate accurate arrival times.',
+    body: 'We use your location to find pros near you in Accra and estimate arrival times.',
     cta: 'Turn on location',
     heroImage: require('../../../assets/images/onboarding/onboarding-3.jpg'),
     isConfirmStep: true,

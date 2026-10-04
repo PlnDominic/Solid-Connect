@@ -121,7 +121,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
       return {
         eyebrow: 'QUOTES READY',
         title: `${activeRequest.quotes.length} ${activeRequest.quotes.length === 1 ? 'quote' : 'quotes'} for ${activeRequest.category_label}`,
-        detail: 'Compare verified providers and choose who to hire.',
+        detail: 'Compare prices, ratings and verification, then choose who to hire.',
         action: 'Review quotes',
       };
     }

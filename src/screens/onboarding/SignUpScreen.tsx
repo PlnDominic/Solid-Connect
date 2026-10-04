@@ -6,6 +6,7 @@ import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
 import { LEGAL_SECTIONS } from '../../lib/legal';
+import { LegalDocLinks } from '../../components/LegalDocLinks';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Role } from '../../types/database';
@@ -80,7 +81,7 @@ export function SignUpScreen({
             <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
               {termsAccepted ? <Check size={12} strokeWidth={3} color={colors.white} /> : null}
             </View>
-            <Text style={styles.termsText}>I agree to the Terms & Privacy Policy</Text>
+            <Text style={styles.termsText}>I'm 18 or older and agree to the Terms & Privacy Policy</Text>
           </Pressable>
           <Pressable onPress={() => setShowLegal(true)} hitSlop={8}>
             <Text style={styles.termsLink}>View</Text>
@@ -112,6 +113,7 @@ export function SignUpScreen({
               <Text style={styles.legalCardBody}>{section.body}</Text>
             </View>
           ))}
+          <LegalDocLinks />
         </ScrollView>
         <Button title="Close" variant="outline" onPress={() => setShowLegal(false)} />
       </BottomSheet>

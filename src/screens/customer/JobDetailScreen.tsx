@@ -209,6 +209,14 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       </ScrollView>
 
       <View style={styles.footer}>
+        {/* Say what the deposit commits them to before they pay it, not only
+            when they later try to cancel (see JobManageSection). */}
+        {step?.kind === 'deposit' && payment ? (
+          <Text style={styles.depositNote}>
+            The GHS {Math.max(Number(payment.amount) - step.amount, 0).toLocaleString()} balance is due after the work is done. If you
+            cancel after paying, the deposit is not refunded unless the provider doesn't show up.
+          </Text>
+        ) : null}
         {job.status === 'completed' ? (
           review === undefined ? null : review ? (
             <Button title="Job rated — thank you" variant="outline" onPress={() => {}} disabled />
@@ -299,6 +307,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     progressLabel: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.extrabold, letterSpacing: -0.1 },
     progressStep: { fontSize: fontSizes.sm, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
     progressNote: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
+    depositNote: { fontSize: fontSizes.xs, lineHeight: 17, fontFamily: fonts.medium, color: colors.inkMuted, marginBottom: spacing.sm },
 
     detailsCard: {
       borderRadius: radii.lg,

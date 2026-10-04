@@ -17,7 +17,9 @@ import { Apple, ArrowRight, Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { GoogleMark } from '../../components/GoogleMark';
+import { openLegalDoc } from '../../components/LegalDocLinks';
 import { isAppleSignInAvailable } from '../../lib/auth';
+import { legalDocUrl } from '../../lib/legal';
 import { fonts, fontSizes, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -25,7 +27,7 @@ type IdentifierMethod = 'email' | 'phone';
 
 const logo = require('../../../assets/images/logo.jpeg');
 
-// Brand constants for the header. The header is always the brand orange,
+// Brand constants for the header. The header is always the logo orange,
 // in light and dark mode alike, so these don't come from the theme.
 const ORANGE = '#F27511';
 const ORANGE_DEEP = '#C85A08';
@@ -127,7 +129,7 @@ export function SignInScreen({
                 Trusted hands,{'\n'}
                 <Text style={styles.headlineAccent}>on demand.</Text>
               </Text>
-              <Text style={styles.subhead}>Sign in to book verified pros across Accra, or to manage your jobs.</Text>
+              <Text style={styles.subhead}>Sign in to book local pros across Accra, or to manage your jobs.</Text>
 
             </Animated.View>
 
@@ -266,7 +268,7 @@ export function SignInScreen({
                   <>
                     <Text style={styles.primaryLabel}>Sign in</Text>
                     <View style={styles.primaryArrow}>
-                      <ArrowRight size={16} strokeWidth={2.6} color={ORANGE} />
+                      <ArrowRight size={16} strokeWidth={2.6} color={colors.active} />
                     </View>
                   </>
                 )}
@@ -322,7 +324,21 @@ export function SignInScreen({
               </Pressable>
             </Animated.View>
 
-            <Text style={styles.legal}>By continuing you agree to our Terms and Privacy Policy.</Text>
+            {legalDocUrl('terms') ? (
+              <Text style={styles.legal}>
+                By continuing you agree to our{' '}
+                <Text style={styles.legalLink} onPress={() => openLegalDoc('terms')} accessibilityRole="link">
+                  Terms
+                </Text>{' '}
+                and{' '}
+                <Text style={styles.legalLink} onPress={() => openLegalDoc('privacy')} accessibilityRole="link">
+                  Privacy Policy
+                </Text>
+                .
+              </Text>
+            ) : (
+              <Text style={styles.legal}>By continuing you agree to our Terms and Privacy Policy.</Text>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -429,7 +445,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
     fields: { gap: spacing.md },
     fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted, marginBottom: 6, letterSpacing: 0.1 },
     fieldLabelRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-    forgot: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: isDark ? ORANGE : ORANGE_DEEP, marginBottom: 6 },
+    forgot: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: isDark ? ORANGE : colors.activeDeep, marginBottom: 6 },
     field: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -452,12 +468,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
     primary: {
       height: 56,
       borderRadius: 16,
-      backgroundColor: ORANGE,
+      backgroundColor: colors.active,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 12,
-      shadowColor: ORANGE_DEEP,
+      shadowColor: colors.activeDeep,
       shadowOpacity: 0.35,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 8 },
@@ -496,8 +512,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
 
     signupRow: { alignItems: 'center', paddingTop: spacing.xs },
     link: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
-    linkStrong: { fontFamily: fonts.bold, color: isDark ? ORANGE : ORANGE_DEEP },
+    linkStrong: { fontFamily: fonts.bold, color: isDark ? ORANGE : colors.activeDeep },
 
+    legalLink: { fontFamily: fonts.semibold, color: colors.inkMuted, textDecorationLine: 'underline' },
     legal: {
       textAlign: 'center',
       fontSize: fontSizes.xs,

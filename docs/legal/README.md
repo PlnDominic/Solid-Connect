@@ -53,3 +53,19 @@ The dispute filing window (48 hours after job completion) is no longer a
 placeholder — it's enforced directly on `disputes`' own insert policy
 (`0035_retention_dispute_window_feature_flags.sql`), and the mobile dispute
 screen reflects it once the window has closed.
+
+## Publishing (once counsel has approved)
+
+The plumbing is built but switched off, so nothing here is public yet:
+
+1. Edit these files to the approved wording (remove the DRAFT banners and
+   placeholders). `admin/scripts/sync-legal.mjs` copies them into the admin
+   bundle on every `npm run build` in `admin/`.
+2. Admin deploy: set `LEGAL_PAGES_PUBLISHED=true`. The documents then serve,
+   signed out, at `/legal/terms`, `/legal/privacy`, `/legal/refunds` and
+   `/legal/providers` (404 until then).
+3. App build: set `EXPO_PUBLIC_LEGAL_URL=https://<admin-domain>/legal`. The
+   sign-in footer, the sign-up consent sheet and Terms & privacy then link
+   to the full documents; while it's unset they show only the in-app summary.
+4. Use `https://<admin-domain>/legal/privacy` as the privacy policy URL in
+   App Store Connect and Google Play Console.

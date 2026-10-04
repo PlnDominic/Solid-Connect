@@ -65,7 +65,7 @@ const MAP_HTML = `<!DOCTYPE html>
   .pin.now { box-shadow: 0 0 0 2px #F27511, 0 2px 8px rgba(0,0,0,.18); }
   .pin.pro { gap: 8px; padding: 4px 12px 4px 4px; }
   .pro .av { position: relative; flex: none; width: 34px; height: 34px; border-radius: 50%; background: #FCE9DA;
-             color: #C85A08; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+             color: #BD5309; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
   .pro .av img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; display: block; }
   .pro .nowdot { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 50%;
                  background: #0E6B45; border: 2px solid #fff; }
@@ -77,12 +77,12 @@ const MAP_HTML = `<!DOCTYPE html>
   .pin.sel .av { background: #fff; }
   .pin.req .sk { color: rgba(255,255,255,.75); }
   .req .av, .req .av img { border-radius: 9px; }
-  .req .av { background: #F27511; color: #fff; }
-  .pin.req.sel .av { background: #fff; color: #C85A08; }
+  .req .av { background: #BD5309; color: #fff; }
+  .pin.req.sel .av { background: #fff; color: #BD5309; }
   .pin.req { background: #15181A; color: #fff; }
   .pin.req:after { border-top-color: #15181A; }
-  .pin.sel { background: #F27511; color: #fff; z-index: 1000; }
-  .pin.sel:after { border-top-color: #F27511; }
+  .pin.sel { background: #BD5309; color: #fff; z-index: 1000; }
+  .pin.sel:after { border-top-color: #BD5309; }
   .pin.sel .star, .pin.sel .tick { color: #fff; }
   .live { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
   .live .ring { position: relative; width: 40px; height: 40px; }

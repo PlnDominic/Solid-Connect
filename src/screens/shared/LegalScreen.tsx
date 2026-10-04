@@ -1,7 +1,8 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { LEGAL_SECTIONS } from '../../lib/legal';
+import { LegalDocLinks } from '../../components/LegalDocLinks';
+import { LEGAL_SECTIONS, legalDocUrl } from '../../lib/legal';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -19,6 +20,12 @@ export function LegalScreen({ navigation }: { navigation: any }) {
             <Text style={styles.bodyText}>{section.body}</Text>
           </View>
         ))}
+        {legalDocUrl('terms') ? (
+          <View style={styles.card}>
+            <Text style={styles.title}>Full documents</Text>
+            <LegalDocLinks />
+          </View>
+        ) : null}
       </ScrollView>
     </Screen>
   );
