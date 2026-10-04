@@ -39,6 +39,7 @@ const ORANGE_SOFT = '#FFE1C4';
 export function SignInScreen({
   onSubmit,
   onGoToSignUp,
+  onForgotPassword,
   onGoogle,
   onApple,
   loading,
@@ -46,6 +47,8 @@ export function SignInScreen({
 }: {
   onSubmit: (identifier: string, password: string, method: IdentifierMethod) => void;
   onGoToSignUp: () => void;
+  /** Gets the typed email, if any, to prefill the reset form. */
+  onForgotPassword: (email?: string) => void;
   onGoogle: () => void;
   onApple: () => void;
   loading?: 'password' | 'google' | 'apple' | null;
@@ -196,7 +199,17 @@ export function SignInScreen({
                 </View>
 
                 <View>
-                  <Text style={styles.fieldLabel}>Password</Text>
+                  <View style={styles.fieldLabelRow}>
+                    <Text style={styles.fieldLabel}>Password</Text>
+                    <Pressable
+                      onPress={() => onForgotPassword(method === 'email' ? identifier.trim() : undefined)}
+                      disabled={busy}
+                      hitSlop={10}
+                      accessibilityRole="link"
+                    >
+                      <Text style={styles.forgot}>Forgot password?</Text>
+                    </Pressable>
+                  </View>
                   <View style={[styles.field, focused === 'pw' && styles.fieldFocused]}>
                     <Lock size={19} strokeWidth={2} color={focused === 'pw' ? colors.ink : colors.inkFaint} />
                     <TextInput
@@ -415,6 +428,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
 
     fields: { gap: spacing.md },
     fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted, marginBottom: 6, letterSpacing: 0.1 },
+    fieldLabelRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+    forgot: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: isDark ? ORANGE : ORANGE_DEEP, marginBottom: 6 },
     field: {
       flexDirection: 'row',
       alignItems: 'center',

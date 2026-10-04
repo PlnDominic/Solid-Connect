@@ -5,8 +5,12 @@ import { createOrUpdateOwnProfile, fetchProfile, savePushSubscription } from '..
 import { useCategories } from '../../api/marketplace';
 import { claimReferral, popPendingReferralCode, stashPendingReferralCode } from '../../api/referrals';
 import {
+  completePasswordResetFromUrl,
   friendlyAuthError,
   getCurrentUserId,
+  isPasswordResetUrl,
+  signOut,
+  updatePassword,
   signInWithApple,
   signInWithGoogle,
   signInWithPassword,
@@ -22,6 +26,7 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Profile, Role } from '../../types/database';
+import { ForgotPasswordScreen } from './ForgotPasswordScreen';
 import { OnboardingScreen } from './OnboardingScreen';
 import { SignInScreen } from './SignInScreen';
 import { SignUpCategoryScreen } from './SignUpCategoryScreen';
@@ -49,6 +54,8 @@ type Phase =
   | 'signup-category'
   | 'signup-notifications'
   | 'signin'
+  | 'forgot-password'
+  | 'reset-password'
   | 'error';
 
 // 3 onboarding info slides + name + phone + location + email + role +
@@ -87,6 +94,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [signInLoading, setSignInLoading] = useState<'password' | 'google' | 'apple' | null>(null);
   const [signInErr, setSignInErr] = useState<string | null>(null);
+  const [resetEmail, setResetEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [area, setArea] = useState('');
@@ -113,6 +121,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   // email) doesn't lose the friend's credit.
   useEffect(() => {
     function rememberCode(url: string | null) {
+      // A reset-password link carries an auth `code`, not an invite code.
+      if (isPasswordResetUrl(url)) return;
       const code = url?.match(/[?&]code=([A-Za-z0-9]+)/)?.[1];
       if (!code) return;
       const upper = code.toUpperCase();
@@ -122,7 +132,10 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     Linking.getInitialURL()
       .then(rememberCode)
       .catch(() => {});
-    const sub = Linking.addEventListener('url', ({ url }) => rememberCode(url));
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      if (isPasswordResetUrl(url)) void openPasswordResetLink(url);
+      else rememberCode(url);
+    });
     return () => sub.remove();
   }, []);
 
@@ -170,6 +183,15 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     }
     (async () => {
       try {
+        // Opened from the reset-password email: finish that before anything
+        // else, or the session it creates would skip straight into the app
+        // without the new password ever being set.
+        const initialUrl = await Linking.getInitialURL().catch(() => null);
+        if (initialUrl && isPasswordResetUrl(initialUrl)) {
+          setBootstrapping(false);
+          await openPasswordResetLink(initialUrl);
+          return;
+        }
         const userId = await getCurrentUserId();
         if (userId) {
           // Signed-in users never see the marketing landing.
@@ -404,6 +426,40 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     }
   }
 
+  /** The reset email's link: it signs the person in, then they set a new password. */
+  async function openPasswordResetLink(url: string) {
+    setSignInErr(null);
+    try {
+      await completePasswordResetFromUrl(url);
+      setPasswordError(null);
+      setPhase('reset-password');
+    } catch (e: any) {
+      setSignInErr(friendlyAuthError(e, 'This reset link has expired. Request a new one.'));
+      setPhase('signin');
+    }
+  }
+
+  async function handleResetPassword(password: string) {
+    setPasswordLoading(true);
+    setPasswordError(null);
+    try {
+      await updatePassword(password);
+      const userId = await getCurrentUserId();
+      if (!userId) throw new Error('Your reset session ended. Request a new reset email.');
+      await afterSignIn(userId);
+    } catch (e: any) {
+      setPasswordError(friendlyAuthError(e, 'Could not update your password. Please try again.'));
+    } finally {
+      setPasswordLoading(false);
+    }
+  }
+
+  /** Leaving the new-password step drops the reset session - it was only for that. */
+  async function cancelPasswordReset() {
+    await signOut().catch(() => {});
+    setPhase('signin');
+  }
+
   async function handleGoogle() {
     setSignInLoading('google');
     setSignInErr(null);
@@ -569,6 +625,35 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return <SignUpConfirmEmailScreen email={email} onGoToSignIn={() => setPhase('signin')} />;
   }
 
+  if (phase === 'forgot-password') {
+    return (
+      <ForgotPasswordScreen
+        initialEmail={resetEmail}
+        onBack={() => setPhase('signin')}
+        onVerified={() => {
+          setPasswordError(null);
+          setPhase('reset-password');
+        }}
+      />
+    );
+  }
+
+  if (phase === 'reset-password') {
+    return (
+      <SignUpPasswordScreen
+        totalSteps={0}
+        activeIndex={0}
+        title="Set a new password"
+        subtitle="Choose a new password for your account. You'll be signed in once it's saved."
+        submitLabel="Save and sign in"
+        onBack={() => void cancelPasswordReset()}
+        onSubmit={handleResetPassword}
+        loading={passwordLoading}
+        errorMessage={passwordError}
+      />
+    );
+  }
+
   if (phase === 'signup-notifications') {
     return (
       <SignUpNotificationsScreen onEnable={handleEnableNotifications} onSkip={handleSkipNotifications} loading={notifLoading} />
@@ -579,6 +664,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     <SignInScreen
       onSubmit={handleSignInPassword}
       onGoToSignUp={() => setPhase('signup-name')}
+      onForgotPassword={(typedEmail) => {
+        setSignInErr(null);
+        setResetEmail(typedEmail ?? '');
+        setPhase('forgot-password');
+      }}
       onGoogle={handleGoogle}
       onApple={handleApple}
       loading={signInLoading}

@@ -127,6 +127,57 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
+/** Where the link in the password-reset email sends someone back into the app. */
+function getPasswordResetRedirectUrl(): string {
+  if (isExpoGo) {
+    return makeRedirectUri({ path: 'auth/reset-password', preferLocalhost: false });
+  }
+  return makeRedirectUri({
+    scheme: 'solidconnect',
+    path: 'auth/reset-password',
+    native: 'solidconnect://auth/reset-password',
+  });
+}
+
+/**
+ * Emails a password reset. The email carries both a link back into the app
+ * (handled by completePasswordResetFromUrl) and, when the Supabase "Reset
+ * Password" template includes {{ .Token }}, a code for
+ * verifyPasswordResetCode - the code works even when the email is opened on
+ * another device. Supabase answers the same whether or not the address has
+ * an account, so this never reveals who is signed up.
+ */
+export async function sendPasswordResetEmail(email: string): Promise<void> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: getPasswordResetRedirectUrl() });
+  if (error) throw error;
+}
+
+/** Trades the code from the reset email for a session, so the password can be changed. */
+export async function verifyPasswordResetCode(email: string, code: string) {
+  const { data, error } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
+  if (error) throw error;
+  if (!data.user) throw new Error('That code did not open an account. Request a new one.');
+  return data.user;
+}
+
+/** True for a URL opened from the reset-password email's link. */
+export function isPasswordResetUrl(url: string | null | undefined): boolean {
+  return !!url && /auth\/reset-password/.test(url);
+}
+
+/** Completes the reset email's link (a PKCE `code`, or tokens) into a session. */
+export async function completePasswordResetFromUrl(url: string) {
+  const data = await createSessionFromUrl(url);
+  if (!data.user) throw new Error('This reset link has expired. Request a new one.');
+  return data.user;
+}
+
+/** Sets a new password for the signed-in account (used after a reset). */
+export async function updatePassword(password: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}
+
 /**
  * Google sign-in via Supabase's browser PKCE OAuth flow. Requires the
  * Google provider in the Supabase dashboard (Auth → Providers → Google)

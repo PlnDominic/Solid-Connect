@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-// Defence in depth: every admin route except the login page requires a
+// Defence in depth: every admin route except the login and
+// reset-password pages (both reached signed out) requires a
 // valid Supabase session before any page or server action code runs.
 // Whether that user is an active admin (and holds the right scope) is
 // still enforced in the protected layout and in each action's guard.
@@ -34,5 +35,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!login|_next/static|_next/image|favicon.ico|logo\.jpeg|.*\.(?:png|jpg|jpeg|svg|ico|webp)$).*)'],
+  matcher: ['/((?!login|reset-password|_next/static|_next/image|favicon.ico|logo\.jpeg|.*\.(?:png|jpg|jpeg|svg|ico|webp)$).*)'],
 };
