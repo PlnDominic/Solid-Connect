@@ -1,8 +1,7 @@
 -- Solid Connect - service categories
 -- Real reference data the app needs to function (category picker, request
--- forms, etc.) - split out from seed.sql, which also has fake demo
--- providers/customers/requests you likely don't want on a production
--- project. Safe to run on its own.
+-- forms, etc.). The old demo seed.sql (fake providers, customers and
+-- requests) has been removed - see supabase/cleanup/. Safe to run on its own.
 
 insert into public.categories (id, name, abbr, default_label, sort_order) values
   ('plumbing',   'Plumbing',   'PL', 'Plumbing · Pipe repair',    1),

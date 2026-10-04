@@ -1,15 +1,15 @@
-import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Check, Search } from 'lucide-react-native';
-import { useRequestOpportunities, useServiceRequest, useSimulateQuotesArriving } from '../../api/requests';
+import { useRequestOpportunities, useServiceRequest } from '../../api/requests';
 import { isApiConfigured } from '../../lib/api';
-import { useFeatureFlag } from '../../hooks/useFeatureFlag';
-import { useSessionStore } from '../../store/useSessionStore';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
+// Same visual language as NewRequestScreen, which hands off here: dimmed
+// page, raised white cards, one large heading, actions pinned at the foot.
 export function MatchingScreen({ navigation, route }: { navigation: any; route: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -17,12 +17,6 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
   const preferredProviderName: string | undefined = route.params?.preferredProviderName;
   const { data: request } = useServiceRequest(requestId);
   const { data: opportunities } = useRequestOpportunities(requestId);
-  const simulate = useSimulateQuotesArriving();
-  // The "simulate quotes" shortcuts fake quotes from demo providers. Real
-  // customers must never see them - turn the demo_tools flag on in the
-  // admin panel (Settings -> Feature flags) for demos only.
-  const profileId = useSessionStore((s) => s.profile?.id);
-  const demoTools = useFeatureFlag('demo_tools', profileId);
   const matchedCount = opportunities?.count ?? route.params?.matchedCount ?? 0;
   const isDirect =
     Boolean(route.params?.direct) ||
@@ -34,14 +28,12 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
   )?.[0]?.profiles?.full_name;
   const providerLabel = preferredProviderName ?? matchedProviderName;
 
-  async function handleSimulate() {
-    try {
-      await simulate.mutateAsync(requestId);
-    } catch {
-      return;
-    }
-    navigation.navigate('ActivityTab', { screen: 'ActivityHome' });
-  }
+  const budgetLabel =
+    request?.budget_min == null
+      ? '—'
+      : request.budget_max != null && request.budget_max !== request.budget_min
+        ? `GHS ${request.budget_min}–${request.budget_max}`
+        : `GHS ${request.budget_min}`;
 
   function goHome() {
     navigation.navigate('HomeTab', { screen: 'Home' });
@@ -51,212 +43,193 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
     navigation.navigate('ActivityTab', { screen: 'ActivityHome' });
   }
 
-  if (isDirect) {
-    return (
-      <Screen edges={['top']}>
-        <ScreenHeader title="Request sent" onBack={goHome} />
+  const title = isDirect ? 'Request sent' : matchedCount > 0 ? 'Providers notified' : 'Finding providers';
+  const subtitle = isDirect
+    ? providerLabel
+      ? `Sent only to ${providerLabel}. They can accept and start at your budget, or decline with a reason.`
+      : 'Sent to your selected provider. They can accept or decline.'
+    : matchedCount > 0
+      ? `${matchedCount} provider${matchedCount === 1 ? '' : 's'} nearby can now see your request and send quotes.`
+      : 'Providers nearby are reviewing your request. Most reply within 30 minutes.';
 
-        <View style={styles.successBody}>
-          <View style={styles.successIcon}>
-            <Check size={28} strokeWidth={2.4} color={colors.paper} />
-          </View>
-          <Text style={styles.successTitle}>Request sent</Text>
-          <Text style={styles.successSubtitle}>
-            {providerLabel
-              ? `Sent only to ${providerLabel}. They can accept (starts the job at your budget) or decline with a reason.`
-              : 'Sent to your selected provider. They can accept or decline — no open matching.'}
-          </Text>
-
-          <View style={styles.successCard}>
-            <Text style={styles.successCardLabel}>DETAILS</Text>
-            <Text style={styles.successCardTitle}>
-              {request?.category_label ?? 'Service request'}
-            </Text>
-            {providerLabel ? (
-              <Text style={styles.successCardMeta}>Provider · {providerLabel}</Text>
-            ) : null}
-            <Text style={styles.successCardMeta}>
-              {request?.location_label ?? 'Accra'} · GHS {request?.budget_min}-{request?.budget_max}
-            </Text>
-          </View>
-
-          <View style={styles.successActions}>
-            <Button title="View my requests" onPress={goRequests} />
-            <Button title="Back to home" variant="outline" onPress={goHome} />
-          </View>
-
-          {demoTools ? (
-            <Pressable
-              onPress={handleSimulate}
-              disabled={simulate.isPending}
-              style={({ pressed }) => [
-                styles.simulateLink,
-                pressed && !simulate.isPending && styles.simulateBtnPressed,
-              ]}
-            >
-              <Text style={styles.simulateLinkLabel}>
-                {simulate.isPending ? 'Sending quote…' : 'Demo: simulate provider quote'}
-              </Text>
-            </Pressable>
-          ) : null}
-        </View>
-      </Screen>
-    );
-  }
+  const nextSteps = isDirect
+    ? [
+        `${providerLabel ?? 'The provider'} reviews your request.`,
+        'Their answer shows up in Activity.',
+        'Once accepted, chat and track the job from Activity.',
+      ]
+    : [
+        'Providers nearby review your request.',
+        'Quotes show up in Activity as they arrive.',
+        'Compare quotes and hire the one you like.',
+      ];
 
   return (
-    <Screen edges={['top']}>
-      <ScreenHeader title="Finding providers" onBack={goHome} />
+    <Screen bg={colors.paperDim}>
+      <ScreenHeader title={isDirect ? 'Request sent' : 'Finding providers'} onBack={goHome} />
 
-      <View style={styles.summaryWrap}>
-        <View style={styles.summary}>
-          <Text style={styles.summaryTitle}>
-            {request?.category_label} · {request?.location_label}
+      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        <View style={styles.hero}>
+          <View style={[styles.statusIcon, isDirect ? styles.statusIconDone : styles.statusIconActive]}>
+            {isDirect ? (
+              <Check size={30} strokeWidth={2.6} color={colors.white} />
+            ) : (
+              <Search size={28} strokeWidth={2.2} color={colors.active} />
+            )}
+          </View>
+          <Text style={styles.title} accessibilityRole="header">
+            {title}
           </Text>
-          <Text style={styles.summarySub}>
-            Requested just now · Budget GHS {request?.budget_min}-{request?.budget_max}
-          </Text>
-          {isApiConfigured() ? (
-            <Text style={styles.summarySub}>
-              {matchedCount > 0
-                ? `${matchedCount} eligible provider${matchedCount === 1 ? '' : 's'} notified`
-                : 'Matching nearby providers…'}
-            </Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Your request</Text>
+          <Row label="Service" value={request?.category_label ?? '—'} styles={styles} />
+          {isDirect && providerLabel ? <Row label="Provider" value={providerLabel} styles={styles} /> : null}
+          <Row label="Area" value={request?.location_label ?? '—'} styles={styles} />
+          <Row label="Budget" value={budgetLabel} mono styles={styles} />
+          {!isDirect && isApiConfigured() ? (
+            <Row
+              label="Status"
+              value={matchedCount > 0 ? `${matchedCount} notified` : 'Matching…'}
+              accent
+              styles={styles}
+            />
           ) : null}
         </View>
-      </View>
 
-      <View style={styles.body}>
-        <View style={styles.icon}>
-          <Search size={20} strokeWidth={1.8} color={colors.inkFaint} />
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>What happens next</Text>
+          {nextSteps.map((text, i) => (
+            <View key={text} style={styles.step}>
+              <View style={styles.stepNumber}>
+                <Text style={styles.stepNumberText}>{i + 1}</Text>
+              </View>
+              <Text style={styles.stepText}>{text}</Text>
+            </View>
+          ))}
         </View>
-        <Text style={styles.title}>{matchedCount > 0 ? 'Providers notified' : 'No quotes yet'}</Text>
-        <Text style={styles.subtitle}>
-          {matchedCount > 0
-            ? 'Eligible providers nearby can now see your request and send quotes.'
-            : 'Providers nearby are reviewing your request. Most reply within 30 minutes.'}
-        </Text>
+      </ScrollView>
 
-        {demoTools ? (
-          <Pressable
-            onPress={handleSimulate}
-            disabled={simulate.isPending}
-            style={({ pressed }) => [styles.simulateBtn, pressed && !simulate.isPending && styles.simulateBtnPressed]}
-          >
-            <Text style={styles.simulateLabel}>
-              {simulate.isPending ? 'Matching...' : 'Skip ahead: 3 quotes just came in'}
-            </Text>
-          </Pressable>
-        ) : (
-          <Button title="View my requests" variant="outline" onPress={goRequests} />
-        )}
+      <View style={styles.footer}>
+        <Button title="View my requests" variant="active" onPress={goRequests} />
+        <Button title="Back to home" variant="outline" onPress={goHome} />
       </View>
     </Screen>
   );
 }
 
+type Styles = ReturnType<typeof makeStyles>;
+
+function Row({
+  label,
+  value,
+  mono = false,
+  accent = false,
+  styles,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  accent?: boolean;
+  styles: Styles;
+}) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text
+        style={[styles.rowValue, mono && styles.rowValueMono, accent && styles.rowValueAccent]}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    summaryWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
-    summary: {
-      padding: spacing.md,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      backgroundColor: colors.card,
-      gap: 3,
-    },
-    summaryTitle: { color: colors.ink, fontSize: 14, fontFamily: fonts.bold },
-    summarySub: { color: colors.inkMuted, fontSize: 12, fontFamily: fonts.medium },
+    body: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.xl },
 
-    body: {
-      flex: 1,
+    hero: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.md, paddingHorizontal: spacing.sm },
+    statusIcon: {
+      width: 72,
+      height: 72,
+      borderRadius: radii.pill,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: spacing.xxl,
-      gap: spacing.md,
+      marginBottom: spacing.sm,
     },
-    icon: {
-      width: 56,
-      height: 56,
+    // Still searching reads as the "active" accent; a sent direct request
+    // is a confirmed state, so it takes the reserved confirm green.
+    statusIconActive: { backgroundColor: colors.activeBg },
+    statusIconDone: { backgroundColor: colors.confirm },
+    title: {
+      fontSize: 27,
+      lineHeight: 33,
+      fontFamily: fonts.extrabold,
+      color: colors.ink,
+      letterSpacing: -0.6,
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 16.5,
+      lineHeight: 24,
+      fontFamily: fonts.regular,
+      color: colors.inkMuted,
+      textAlign: 'center',
+    },
+
+    // Raised white card on the dimmed page - shadow does the separating.
+    card: {
+      borderRadius: radii.xxxl,
+      backgroundColor: colors.card,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      ...shadow.card,
+    },
+    cardTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink, paddingVertical: spacing.sm },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: spacing.lg,
+      paddingVertical: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.hairline,
+    },
+    rowLabel: { fontSize: 16, fontFamily: fonts.medium, color: colors.inkMuted },
+    rowValue: { flexShrink: 1, fontSize: 16, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
+    rowValueMono: { fontFamily: fonts.mono },
+    rowValueAccent: { color: colors.active },
+
+    step: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: spacing.md,
+      paddingVertical: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.hairline,
+    },
+    stepNumber: {
+      width: 26,
+      height: 26,
       borderRadius: radii.pill,
       backgroundColor: colors.paperDim,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: spacing.sm,
     },
-    title: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink, textAlign: 'center' },
-    subtitle: {
-      fontSize: 14,
-      lineHeight: 21,
-      fontFamily: fonts.regular,
-      color: colors.inkMuted,
-      textAlign: 'center',
-    },
-    simulateBtn: {
-      marginTop: spacing.lg,
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.lg,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairlineStrong,
-      backgroundColor: colors.card,
-    },
-    simulateBtnPressed: { opacity: 0.85 },
-    simulateLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
+    stepNumberText: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
+    stepText: { flex: 1, fontSize: 16, lineHeight: 23, fontFamily: fonts.regular, color: colors.ink, paddingTop: 1 },
 
-    successBody: {
-      flex: 1,
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.xxl,
-      alignItems: 'center',
-      gap: spacing.md,
-    },
-    successIcon: {
-      width: 64,
-      height: 64,
-      borderRadius: radii.pill,
-      backgroundColor: colors.ink,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: spacing.sm,
-    },
-    successTitle: {
-      fontSize: 22,
-      fontFamily: fonts.bold,
-      color: colors.ink,
-      letterSpacing: -0.4,
-      textAlign: 'center',
-    },
-    successSubtitle: {
-      fontSize: 15,
-      lineHeight: 22,
-      fontFamily: fonts.regular,
-      color: colors.inkMuted,
-      textAlign: 'center',
-      paddingHorizontal: spacing.md,
-    },
-    successCard: {
-      alignSelf: 'stretch',
-      marginTop: spacing.md,
+    footer: {
       padding: spacing.lg,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      backgroundColor: colors.card,
-      gap: 4,
+      paddingBottom: spacing.xl,
+      backgroundColor: colors.paper,
+      borderTopWidth: 1,
+      borderTopColor: colors.hairline,
+      gap: spacing.sm,
     },
-    successCardLabel: {
-      fontSize: 10.5,
-      fontFamily: fonts.extrabold,
-      color: colors.inkFaint,
-      letterSpacing: 0.6,
-      marginBottom: 4,
-    },
-    successCardTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-    successCardMeta: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkMuted },
-    successActions: { alignSelf: 'stretch', gap: spacing.sm, marginTop: spacing.lg },
-    simulateLink: { marginTop: spacing.md, paddingVertical: spacing.sm },
-    simulateLinkLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
   });
 }

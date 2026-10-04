@@ -15,12 +15,6 @@ export type FeedItem = ServiceRequest & {
   distanceMeters?: number | null;
 };
 
-const SEED_QUOTES = [
-  { provider_id: '22222222-2222-4222-8222-222222222222', price: 480, eta_label: 'Today, 2 hrs', badge_label: 'Certified', badge_kind: 'certified' as const },
-  { provider_id: '11111111-1111-4111-8111-111111111111', price: 520, eta_label: 'Tomorrow', badge_label: 'Identity verified', badge_kind: 'verified' as const },
-  { provider_id: '44444444-4444-4444-8444-444444444444', price: 390, eta_label: 'Today, 5 hrs', badge_label: 'Identity verified', badge_kind: 'verified' as const },
-];
-
 /** Open request statuses that belong on the customer Requests feed. */
 const ACTIVE_REQUEST_STATUSES = [
   'open',
@@ -201,108 +195,6 @@ export function useRequestOpportunities(requestId: string | null) {
   });
 
   return query;
-}
-
-/**
- * Prefers Nest quote create for matched/demo providers when API configured;
- * else inserts quotes client-side for empty-market demos.
- */
-export function useSimulateQuotesArriving() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (requestId: string) => {
-      const { data: request, error: reqErr } = await supabase
-        .from('service_requests')
-        .select('*')
-        .eq('id', requestId)
-        .single();
-      if (reqErr) throw reqErr;
-
-      // Direct request: only the preferred provider may "reply"
-      if (request.preferred_provider_id) {
-        const { data: provider } = await supabase
-          .from('profiles')
-          .select('id, provider_certified')
-          .eq('id', request.preferred_provider_id)
-          .maybeSingle();
-        if (!provider) throw new Error('Preferred provider not found');
-        const { error: insertErr } = await supabase.from('quotes').insert({
-          request_id: requestId,
-          provider_id: provider.id,
-          price: Math.max(150, request.budget_min ?? 300),
-          eta_label: 'Today, 2 hrs',
-          badge_label: provider.provider_certified ? 'Certified' : 'Identity verified',
-          badge_kind: provider.provider_certified ? 'certified' : 'verified',
-        });
-        if (insertErr) throw insertErr;
-        await supabase
-          .from('request_opportunities')
-          .update({ status: 'QUOTED' })
-          .eq('request_id', requestId)
-          .eq('provider_id', provider.id);
-        const { error: updateErr } = await supabase
-          .from('service_requests')
-          .update({ status: 'quoted' })
-          .eq('id', requestId);
-        if (updateErr) throw updateErr;
-        return;
-      }
-
-      const trade = (request.category_label.split('·')[0] ?? '').trim().toLowerCase();
-      const areaNeedle = (request.location_label ?? '').split(',')[0]?.trim().toLowerCase() ?? '';
-
-      const { data: providers, error: pErr } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'provider')
-        .eq('provider_verified', true)
-        .order('provider_rating', { ascending: false })
-        .limit(20);
-      if (pErr) throw pErr;
-
-      const ranked = ((providers ?? []) as Profile[])
-        .map((p) => {
-          const cat = (p.provider_category ?? '').toLowerCase();
-          const area = (p.area ?? '').toLowerCase();
-          const parts = cat.split('·').map((t) => t.trim()).filter(Boolean);
-          let score = p.provider_rating * 10;
-          if (trade && (parts.some((t) => t.includes(trade) || trade.includes(t)) || cat.includes(trade))) {
-            score += 30;
-          }
-          if (areaNeedle && area.includes(areaNeedle)) score += 20;
-          if (p.provider_certified) score += 5;
-          if (p.provider_distance_km != null) score += Math.max(0, 10 - p.provider_distance_km);
-          return { p, score };
-        })
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 3);
-
-      const rows =
-        ranked.length > 0
-          ? ranked.map(({ p }, i) => ({
-              request_id: requestId,
-              provider_id: p.id,
-              price: Math.max(150, (request.budget_min ?? 300) + i * 40),
-              eta_label: i === 0 ? 'Today, 2 hrs' : i === 1 ? 'Today, 5 hrs' : 'Tomorrow',
-              badge_label: p.provider_certified ? 'Certified' : 'Identity verified',
-              badge_kind: (p.provider_certified ? 'certified' : 'verified') as 'certified' | 'verified',
-            }))
-          : SEED_QUOTES.map((q) => ({ request_id: requestId, ...q }));
-
-      // Demo helper still inserts via Supabase (service uses seed IDs / multi-provider).
-      // Production quoting goes through Nest POST /quotes from RequestDetailScreen.
-      const { error: insertErr } = await supabase.from('quotes').insert(rows);
-      if (insertErr) throw insertErr;
-      const { error: updateErr } = await supabase
-        .from('service_requests')
-        .update({ status: 'quoted' })
-        .eq('id', requestId);
-      if (updateErr) throw updateErr;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] });
-    },
-  });
 }
 
 /** A single request by id - shared by the customer's Matching screen and the

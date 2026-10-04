@@ -46,7 +46,7 @@ None confirmed as binding yet - app name "Solid Connect" is the only fixed brand
 
 - `src/theme/index.ts` - current design tokens (colors, radii, spacing, fonts, shadows).
 - `src/screens/**`, `src/components/**` - current screen and component implementations (incumbent visual system; anti-reference for the redesign per user's replace-the-look direction).
-- `supabase/migrations/0001_init.sql`, `supabase/seed/seed.sql` - real schema and demo seed data (categories, sample providers, sample requests) to design real states around.
+- `supabase/migrations/0001_init.sql`, `supabase/seed/categories.sql` - real schema and service categories. The demo seed data (sample providers, customers, requests) was removed once the app went to production; see `supabase/cleanup/`.
 - No real photography, logos beyond `assets/icon.png`/adaptive icon set, testimonials, or pricing evidence exists. Do not fabricate these; use clearly-placeholder content where the design needs it.
 
 ## Product Principles
