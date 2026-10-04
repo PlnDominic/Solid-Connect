@@ -7,29 +7,36 @@ const STORAGE_KEY = 'solid-connect:color-scheme';
 export type ThemeScheme = 'light' | 'dark';
 export type ThemeColors = typeof lightColors;
 
-/** Near-monochrome dark invert of the receipt/MoMo light palette. */
+/**
+ * Near-monochrome dark invert of the receipt/MoMo light palette.
+ *
+ * Shadows don't read on a near-black page, so in dark mode elevation comes
+ * from surface lightness instead: page (paper) darkest, dimmed page and
+ * recessed fills (paperDim) a step up, cards (card) lightest. A card must
+ * stay lighter than both, or it sinks into the page.
+ */
 export const darkColors: ThemeColors = {
   ...lightColors,
   paper: '#0B0B0A',
-  paperDim: '#1C1C1C',
-  card: '#1C1C1C',
+  paperDim: '#161615',
+  card: '#242423',
   ink: '#F2F2F1',
   inkMuted: 'rgba(242,242,241,0.62)',
   inkFaint: 'rgba(242,242,241,0.42)',
   inkFainter: 'rgba(242,242,241,0.26)',
-  hairline: '#2E2E2C',
-  hairlineStrong: '#3C3C3A',
+  hairline: '#34342F',
+  hairlineStrong: '#46463F',
   confirmBg: '#0E2A1C',
   pendingBg: '#2A2208',
   activeBg: '#3A2410',
   dangerBg: '#2A1410',
   navyBg: '#1A2434',
   bg: '#0B0B0A',
-  surface: '#1C1C1C',
-  tile: '#1C1C1C',
-  tileBorder: '#2E2E2C',
-  hairlineSoft: '#1C1C1C',
-  inputBorder: '#2E2E2C',
+  surface: '#242423',
+  tile: '#161615',
+  tileBorder: '#34342F',
+  hairlineSoft: '#161615',
+  inputBorder: '#34342F',
   textPrimary: '#F2F2F1',
   textHeading: '#F2F2F1',
   textBody: 'rgba(242,242,241,0.62)',

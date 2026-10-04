@@ -76,9 +76,9 @@ export function AreaPicker({
     <View style={{ gap: spacing.lg }}>
       <Pressable onPress={useCurrentLocation} disabled={detecting} style={styles.locateRow} hitSlop={8}>
         {detecting ? (
-          <ActivityIndicator size="small" color={colors.ink} />
+          <ActivityIndicator size="small" color={colors.active} />
         ) : (
-          <LocateFixed size={15} strokeWidth={2.2} color={colors.ink} />
+          <LocateFixed size={15} strokeWidth={2.2} color={colors.active} />
         )}
         <Text style={styles.locateLabel}>{detecting ? 'Finding your area…' : 'Use my current location'}</Text>
       </Pressable>
@@ -118,7 +118,7 @@ export function isValidArea(value: string): boolean {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     locateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, alignSelf: 'flex-start' },
-    locateLabel: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.ink, textDecorationLine: 'underline' },
+    locateLabel: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,

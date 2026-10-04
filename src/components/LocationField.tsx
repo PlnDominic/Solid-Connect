@@ -109,7 +109,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
     chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.white },
-    saveLink: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink, textDecorationLine: 'underline' },
+    saveLink: { fontSize: 13, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
     saveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     saveInput: {
       flex: 1,
@@ -122,7 +122,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       fontFamily: fonts.regular,
       color: colors.ink,
     },
-    saveAction: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink },
+    saveAction: { fontSize: 13, fontFamily: fonts.bold, color: colors.active },
     saveActionDisabled: { color: colors.inkFainter },
     saveCancel: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
   });
