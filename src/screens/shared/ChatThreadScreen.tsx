@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import {
   ContactDetailsBlockedError,
+  useHasActiveJobWith,
   useMarkThreadRead,
   useMessages,
   useSendMessage,
@@ -46,6 +47,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   const { data: messages = [], isLoading: messagesLoading } = useMessages(threadId);
   const sendMessage = useSendMessage();
   const markRead = useMarkThreadRead();
+  const { data: hasActiveJob = false } = useHasActiveJobWith(profile?.id, peerId, profile?.role);
   const { peerTyping, notifyTyping } = useTypingIndicator(threadId, profile?.id);
   const [text, setText] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -167,7 +169,8 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           {peerTyping ? <Text style={styles.typingLabel}>typing…</Text> : null}
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          {peer?.phone ? (
+          {/* Calling is only offered once a job is booked between them. */}
+          {peer?.phone && hasActiveJob ? (
             <Pressable
               onPress={handleCallPeer}
               hitSlop={12}

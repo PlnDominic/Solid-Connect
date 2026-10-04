@@ -169,6 +169,32 @@ export function useLatestMessage(threadId: string | null | undefined) {
   return query;
 }
 
+/**
+ * True while these two people have a booked job under way (accepted, in
+ * progress or awaiting sign-off). Calling from a chat is only offered then:
+ * before a booking, the phone number would let them take the deal off
+ * Solid Connect - the same reason chat blocks contact details.
+ */
+export function useHasActiveJobWith(myId: string | null | undefined, peerId: string | null | undefined, myRole: Role | null | undefined) {
+  return useQuery({
+    queryKey: ['activeJobWith', myId, peerId],
+    enabled: !!myId && !!peerId && !!myRole,
+    queryFn: async (): Promise<boolean> => {
+      const customerId = myRole === 'customer' ? myId : peerId;
+      const providerId = myRole === 'customer' ? peerId : myId;
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('customer_id', customerId as string)
+        .eq('provider_id', providerId as string)
+        .in('status', ['accepted', 'in_progress', 'awaiting_completion_confirmation'])
+        .limit(1);
+      if (error) throw error;
+      return (data ?? []).length > 0;
+    },
+  });
+}
+
 /** Thrown when a message holds a phone number or account details. */
 export class ContactDetailsBlockedError extends Error {
   constructor(public kind: ContactDetailKind) {
