@@ -2,6 +2,7 @@ import { getDevicePosition } from '../lib/devicePosition';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
 import { AREAS } from '../constants/areas';
+import { AREA_COORDS, coordsForLabel } from '../lib/areaCoords';
 import { haversineKm } from '../lib/geo';
 import type { Profile } from '../types/database';
 
@@ -22,49 +23,18 @@ type AvailabilityResponse = {
 };
 type SearchResponse = { data: Profile[] };
 
-const AREA_COORDS: Record<string, { lng: number; lat: number }> = {
-  Achimota: { lng: -0.232, lat: 5.627 },
-  'Trasacco Valley': { lng: -0.158, lat: 5.635 },
-  'Airport Residential': { lng: -0.177, lat: 5.605 },
-  Cantonments: { lng: -0.173, lat: 5.575 },
-  Osu: { lng: -0.183, lat: 5.558 },
-  Spintex: { lng: -0.098, lat: 5.636 },
-  Tema: { lng: -0.017, lat: 5.669 },
-  Dansoman: { lng: -0.266, lat: 5.548 },
-};
-
-export function coordsForArea(name: string) {
-  return AREA_COORDS[name] ?? null;
-}
-
-// Same substring match marketplace.ts's own (module-private) matchAreaName
-// uses for provider search - free-text location labels ("Achimota, Accra")
-// need to resolve to one of the known named areas before they mean coords.
-function matchAreaName(needle: string): string | null {
-  const n = needle.trim().toLowerCase();
-  return AREAS.find((a) => a.toLowerCase().includes(n) || n.includes(a.toLowerCase())) ?? null;
-}
+export { coordsForArea, coordsForLabel } from '../lib/areaCoords';
 
 /** Approximate straight-line distance between two free-text location
  * labels, each resolved to its nearest known named area - this app never
- * models a precise address, only "which of these 8 neighborhoods", so
- * this is exactly as precise as location gets anywhere else in the app.
- * Null if either label doesn't match a known area. */
+ * models a precise address, only "which neighbourhood", so this is exactly
+ * as precise as location gets anywhere else in the app. Null if either
+ * label doesn't match a known area. */
 export function distanceBetweenLabelsKm(fromLabel: string, toLabel: string): number | null {
-  const fromArea = matchAreaName(fromLabel);
-  const toArea = matchAreaName(toLabel);
-  if (!fromArea || !toArea) return null;
-  const from = coordsForArea(fromArea);
-  const to = coordsForArea(toArea);
+  const from = coordsForLabel(fromLabel);
+  const to = coordsForLabel(toLabel);
   if (!from || !to) return null;
   return haversineKm({ lat: from.lat, lng: from.lng }, { lat: to.lat, lng: to.lng });
-}
-
-/** Coordinates for a free-text location label, via the same area match -
- * used to open a request's neighborhood in the device's own Maps app. */
-export function coordsForLabel(label: string): { lat: number; lng: number } | null {
-  const area = matchAreaName(label);
-  return area ? coordsForArea(area) : null;
 }
 
 export type DetectAreaResult =
@@ -87,7 +57,10 @@ export async function detectNearestArea(): Promise<DetectAreaResult> {
     const position = { coords: { latitude: pos.lat, longitude: pos.lng } };
     let nearestArea: string | null = null;
     let nearestDistanceKm = Infinity;
-    for (const [name, coords] of Object.entries(AREA_COORDS)) {
+    // Snaps to the quick-pick areas (AreaPicker's chips), as before.
+    for (const name of AREAS) {
+      const coords = AREA_COORDS[name];
+      if (!coords) continue;
       const distanceKm = haversineKm(
         { lat: position.coords.latitude, lng: position.coords.longitude },
         { lat: coords.lat, lng: coords.lng },

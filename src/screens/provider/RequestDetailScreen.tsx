@@ -160,7 +160,8 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
   }
 
   return (
-    <Screen>
+    // A dimmed page so the white cards lift off it (see shadow.card).
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title={title} onBack={() => navigation.navigate('Feed')} />
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.summary}>
@@ -175,17 +176,24 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
             <Text style={styles.directHint}>Accept to start the job at this budget, or decline with a reason.</Text>
           ) : null}
         </View>
-        <Text style={styles.desc}>{request.description}</Text>
-
-        {request.photos?.length ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoRow}>
-            {request.photos.map((uri, i) => (
-              <Pressable key={uri} onPress={() => imageViewer.open(request.photos, i)}>
-                <Image source={{ uri }} style={styles.photo} />
-              </Pressable>
-            ))}
-          </ScrollView>
-        ) : null}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Job details</Text>
+          <Text style={styles.desc}>{request.description}</Text>
+          {request.photos?.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoRow}>
+              {request.photos.map((uri, i) => (
+                <Pressable
+                  key={uri}
+                  onPress={() => imageViewer.open(request.photos, i)}
+                  accessibilityRole="imagebutton"
+                  accessibilityLabel={`Job photo ${i + 1} of ${request.photos.length}`}
+                >
+                  <Image source={{ uri }} style={styles.photo} />
+                </Pressable>
+              ))}
+            </ScrollView>
+          ) : null}
+        </View>
 
         {myQuote?.status === 'declined' ? (
           <View style={styles.summary}>
@@ -227,7 +235,8 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
 
         {(!isDirect || !awaiting) && quoteOpen ? (
           <>
-            <View style={{ gap: 7 }}>
+            <View style={[styles.card, styles.cardFields]}>
+              <Text style={styles.cardTitle}>Your quote</Text>
               <Text style={styles.fieldLabel}>{hasBreakdown ? 'Price breakdown' : 'Your price'}</Text>
               {hasBreakdown ? (
                 <View style={styles.priceField}>
@@ -283,7 +292,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
                   style={styles.addRow}
                   accessibilityRole="button"
                 >
-                  <Plus size={14} strokeWidth={2.4} color={colors.inkMuted} />
+                  <Plus size={16} strokeWidth={2.4} color={colors.inkMuted} />
                   <Text style={styles.addRowText}>Add a line item</Text>
                 </Pressable>
               ) : null}
@@ -291,16 +300,18 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
             </View>
 
             {profile ? (
-              <SlotPicker
-                providerId={profile.id}
-                value={proposedStart}
-                onChange={setProposedStart}
-                label="You can start"
-                optionalHint="Optional - leave blank to stay flexible."
-              />
+              <View style={styles.card}>
+                <SlotPicker
+                  providerId={profile.id}
+                  value={proposedStart}
+                  onChange={setProposedStart}
+                  label="You can start"
+                  optionalHint="Optional - leave blank to stay flexible."
+                />
+              </View>
             ) : null}
 
-            <View style={{ gap: 7 }}>
+            <View style={[styles.card, styles.cardFields]}>
               <Text style={styles.fieldLabel}>Note to the customer</Text>
               <TextInput
                 value={note}
@@ -317,7 +328,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
         ) : null}
 
         {showReject ? (
-          <View style={{ gap: 7 }}>
+          <View style={[styles.card, styles.cardFields]}>
             <Text style={styles.fieldLabel}>Reason for declining</Text>
             <TextInput
               value={rejectReason}
@@ -367,21 +378,31 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    body: { padding: spacing.lg, gap: spacing.xl },
-    summary: {
-      borderRadius: radii.lg,
+    body: { padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing.xxxl },
+    // Every section is a white card lifted off the paperDim page.
+    card: {
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
-      padding: spacing.md,
-      gap: 3,
+      padding: spacing.lg,
+      gap: spacing.sm,
       ...shadow.card,
     },
-    summaryTitle: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
-    summarySub: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
-    directHint: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.ink, marginTop: 4 },
-    desc: { fontSize: fontSizes.sm, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
-    photoRow: { gap: spacing.sm },
-    photo: { width: 96, height: 96, borderRadius: radii.md, backgroundColor: colors.paperDim },
-    fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
+    cardFields: { gap: spacing.md },
+    cardTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    summary: {
+      borderRadius: radii.xxxl,
+      backgroundColor: colors.card,
+      padding: spacing.lg,
+      gap: 6,
+      ...shadow.card,
+    },
+    summaryTitle: { fontSize: fontSizes.lg, lineHeight: 24, fontFamily: fonts.bold, color: colors.ink },
+    summarySub: { fontSize: fontSizes.md, lineHeight: 22, fontFamily: fonts.medium, color: colors.inkMuted },
+    directHint: { fontSize: fontSizes.md, lineHeight: 22, fontFamily: fonts.medium, color: colors.ink, marginTop: 4 },
+    desc: { fontSize: fontSizes.md, lineHeight: 25, fontFamily: fonts.regular, color: colors.ink },
+    photoRow: { gap: spacing.sm, paddingTop: spacing.xs },
+    photo: { width: 112, height: 112, borderRadius: radii.lg, backgroundColor: colors.paperDim },
+    fieldLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: 0.2 },
     priceField: {
       height: 52,
       borderRadius: radii.lg,
@@ -392,45 +413,46 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       paddingHorizontal: spacing.md,
     },
-    priceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: fontSizes.md, fontFamily: fonts.medium },
-    priceInput: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.ink },
+    priceCurrency: { color: colors.inkMuted, marginRight: 6, fontSize: fontSizes.lg, fontFamily: fonts.medium },
+    priceInput: { flex: 1, fontSize: fontSizes.lg, fontFamily: fonts.semibold, color: colors.ink },
     reasonInput: {
-      minHeight: 88,
+      minHeight: 100,
       borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       padding: spacing.md,
-      fontSize: fontSizes.sm,
-      lineHeight: 20,
+      fontSize: fontSizes.md,
+      lineHeight: 22,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',
     },
     itemRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     itemInput: {
-      height: 44,
+      height: 48,
       borderRadius: radii.md,
       borderWidth: 1,
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       paddingHorizontal: spacing.md,
-      fontSize: fontSizes.sm,
+      fontSize: fontSizes.md,
       fontFamily: fonts.medium,
       color: colors.ink,
     },
-    itemAmount: { width: 90 },
+    itemAmount: { width: 100 },
     addRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 },
-    addRowText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted },
-    hint: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
-    formError: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
+    addRowText: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.inkMuted },
+    hint: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.medium, color: colors.inkMuted },
+    formError: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.danger },
     counterCard: {
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.pendingBg,
-      padding: spacing.md,
+      padding: spacing.lg,
       gap: spacing.sm,
+      ...shadow.card,
     },
-    counterTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    counterTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
     counterActions: { flexDirection: 'row', gap: spacing.sm },
     counterBtn: { flex: 1, height: 44 },
     readonlyField: {

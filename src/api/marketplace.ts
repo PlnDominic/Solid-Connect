@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { AREAS } from '../constants/areas';
+import { matchAreaName } from '../lib/areaCoords';
 import { coordsForArea, searchProvidersGeo } from './location';
 import { isApiConfigured } from '../lib/api';
 import { supabase } from '../lib/supabase';
@@ -38,10 +38,6 @@ export function useTopProviders() {
   });
 }
 
-function matchAreaName(needle: string) {
-  const n = needle.trim().toLowerCase();
-  return AREAS.find((a) => a.toLowerCase().includes(n) || n.includes(a.toLowerCase())) ?? null;
-}
 
 /** All providers, optionally filtered by category and/or area. Uses Nest geo search when API + area coords exist.
  * `options.limit` caps rows fetched (browse screens paginate locally beyond that). */
