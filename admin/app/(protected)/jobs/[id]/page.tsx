@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
+import { phonesFor } from '../../../../lib/phones';
 import { getJobActivity } from '../../../../lib/jobActivity';
 import { formatDistanceKm, formatRelativeTime, haversineKm, mapsUrl } from '../../../../lib/geo';
 import { JobActivity } from '../../../components/JobActivity';
@@ -22,11 +23,12 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   if (!job) notFound();
 
   const [{ data: customer }, { data: provider }, { data: location }, activity] = await Promise.all([
-    supabase.from('profiles').select('full_name, initials, phone, email, area').eq('id', job.customer_id).maybeSingle(),
-    supabase.from('profiles').select('full_name, initials, phone, email').eq('id', job.provider_id).maybeSingle(),
+    supabase.from('profiles').select('full_name, initials, email, area').eq('id', job.customer_id).maybeSingle(),
+    supabase.from('profiles').select('full_name, initials, email').eq('id', job.provider_id).maybeSingle(),
     supabase.from('job_locations').select('*').eq('job_id', job.id).maybeSingle(),
     getJobActivity(supabase, job.id),
   ]);
+  const phones = await phonesFor(supabase, [job.customer_id, job.provider_id]);
 
   const isActive = ACTIVE_STATUSES.includes(job.status);
   const hasBoth = location?.provider_lat != null && location?.customer_lat != null;
@@ -131,11 +133,11 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
           <div className="facts" style={{ gridTemplateColumns: '1fr' }}>
             <div>
               <label>Customer phone</label>
-              <strong>{customer?.phone ?? 'Not provided'}</strong>
+              <strong>{phones[job.customer_id] ?? 'Not provided'}</strong>
             </div>
             <div>
               <label>Provider phone</label>
-              <strong>{provider?.phone ?? 'Not provided'}</strong>
+              <strong>{phones[job.provider_id] ?? 'Not provided'}</strong>
             </div>
           </div>
         </aside>

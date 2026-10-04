@@ -5,6 +5,7 @@ import { compressImage } from '../lib/imageCompression';
 import { useSessionStore } from '../store/useSessionStore';
 import type { Profile, Role } from '../types/database';
 import { isApiConfigured } from '../lib/api';
+import { PROFILE_COLUMNS, withOwnPhone } from './profileColumns';
 
 export interface SignUpDetails {
   fullName: string;
@@ -38,26 +39,34 @@ function rethrowFriendly(error: { code?: string; message: string }): never {
 }
 
 export async function fetchProfile(id: string): Promise<Profile | null> {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', id).maybeSingle();
   if (error) throw error;
-  return data;
+  return data ? withOwnPhone(data as unknown as Profile) : null;
 }
 
 /**
- * Early sign-up pre-checks, run before advancing off the phone/email step -
- * profiles are publicly readable (see 0001_init.sql policies), so this is
- * just a plain lookup. Not the real guard (a race between this check and
+ * Early sign-up pre-checks, run before advancing off the phone/email step.
+ * Email is a plain lookup (profiles are publicly readable, 0001); phone goes
+ * through phone_in_use() since the column itself is hidden (0073). Not the real guard (a race between this check and
  * account creation is still possible): phone is enforced for real by the
  * unique constraint in 0004_phone_unique.sql, email by Supabase auth's own
  * uniqueness on auth.users. Callers should fail open on a lookup error
  * rather than block sign-up on the pre-check itself.
  */
 export async function isPhoneTaken(phone: string, excludeId?: string): Promise<boolean> {
-  let query = supabase.from('profiles').select('id').eq('phone', phone).limit(1);
-  if (excludeId) query = query.neq('id', excludeId);
-  const { data, error } = await query;
+  // phone isn't readable since 0073 - ask the database instead, which
+  // answers yes/no without saying whose number it is.
+  const { data, error } = await supabase.rpc('phone_in_use', { p_phone: phone, p_exclude: excludeId ?? null });
+  if (error?.code === 'PGRST202') {
+    // Database not migrated to 0073 yet: the column is still readable.
+    let query = supabase.from('profiles').select('id').eq('phone', phone).limit(1);
+    if (excludeId) query = query.neq('id', excludeId);
+    const { data: rows, error: lookupError } = await query;
+    if (lookupError) throw lookupError;
+    return (rows?.length ?? 0) > 0;
+  }
   if (error) throw error;
-  return (data?.length ?? 0) > 0;
+  return data === true;
 }
 
 export async function isEmailTaken(email: string, excludeId?: string): Promise<boolean> {
@@ -103,7 +112,7 @@ export async function createOrUpdateOwnProfile(
       },
       { onConflict: 'id' }
     )
-    .select('*')
+    .select(PROFILE_COLUMNS)
     .single();
   if (error) rethrowFriendly(error);
   if (isApiConfigured()) {
@@ -123,7 +132,7 @@ export async function createOrUpdateOwnProfile(
     const refreshed = await fetchProfile(userId);
     if (refreshed) return refreshed;
   }
-  return data;
+  return withOwnPhone(data as unknown as Profile);
 }
 
 /**
@@ -159,7 +168,7 @@ export async function updateOwnProfile(
         : {}),
     })
     .eq('id', userId)
-    .select('*')
+    .select(PROFILE_COLUMNS)
     .single();
   if (error) rethrowFriendly(error);
 
@@ -169,7 +178,7 @@ export async function updateOwnProfile(
     const refreshed = await fetchProfile(userId);
     if (refreshed) return refreshed;
   }
-  return data;
+  return withOwnPhone(data as unknown as Profile);
 }
 
 /**
@@ -192,10 +201,10 @@ export async function uploadOwnProfilePhoto(userId: string, imageUri: string): P
     .from('profiles')
     .update({ photo_url: publicUrl.publicUrl })
     .eq('id', userId)
-    .select('*')
+    .select(PROFILE_COLUMNS)
     .single();
   if (error) throw error;
-  return data;
+  return withOwnPhone(data as unknown as Profile);
 }
 
 /** Syncs profiles.email once Supabase auth's own email is confirmed changed. */
@@ -241,10 +250,10 @@ export async function switchOwnRole(userId: string, role: Role): Promise<Profile
     .from('profiles')
     .update({ role })
     .eq('id', userId)
-    .select('*')
+    .select(PROFILE_COLUMNS)
     .single();
   if (error) throw error;
-  return data;
+  return withOwnPhone(data as unknown as Profile);
 }
 
 export function useProfile(userId: string | null) {

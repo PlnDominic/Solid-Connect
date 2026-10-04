@@ -22,6 +22,22 @@ describe('findContactDetails', () => {
   });
 
   it.each([
+    'Zerotwofourtwosixtwosixtwoeightseven',
+    'Zerotwofourtwosixtwosixtwoeight7',
+    'zero2four2six2six2eight7',
+    'callme Zerotwofourtwosixtwosixtwoeightseven',
+    '0two4twosix2six2eightseven',
+    'ZeroTwoFour-TwoSixTwo-SixTwoEightSeven',
+    'zerofivefivetripleseven1two3',
+  ])('flags the phone number typed as joined-up words and digits in %p', (text) => {
+    expect(findContactDetails(text)).toBe('phone');
+  });
+
+  it('still reads a plain number next to a word like "phone" as a phone number', () => {
+    expect(findContactDetails('my phone 0241234567')).toBe('phone');
+  });
+
+  it.each([
     'pay into 1441002345678',
     'account no 123456',
     'MoMo 554 321',
@@ -71,6 +87,9 @@ describe('findContactDetails', () => {
     'I will be there at eight, about two hours',
     'The hinge might snap, and the pipe threads are worn',
     'Meet at the gate, it is instant work',
+    'Someone has done it before, none of them were gone long',
+    'Everyone is welcome, seventeen people came, nineteen tonight',
+    'The phone is fine, my money is ready, it is done',
     '',
   ])('lets %p through', (text) => {
     expect(findContactDetails(text)).toBeNull();
@@ -90,6 +109,11 @@ describe('maskContactDetails', () => {
 
   it('masks spelled-out numbers too', () => {
     expect(maskContactDetails('zero two four one two three four five six seven')).toBe('024•••••67');
+  });
+
+  it('masks joined-up number words', () => {
+    expect(maskContactDetails('Zerotwofourtwosixtwosixtwoeightseven')).not.toMatch(/2626/);
+    expect(maskContactDetails('Zerotwofourtwosixtwosixtwoeightseven')).toContain('•');
   });
 
   it('masks emails and handles', () => {

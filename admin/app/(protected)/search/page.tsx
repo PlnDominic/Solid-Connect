@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
+import { idsByPhone } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 
 type Props = { searchParams: Promise<{ q?: string }> };
@@ -13,6 +14,11 @@ export default async function SearchPage({ searchParams }: Props) {
   const q = raw ? sanitizeForFilter(raw) : '';
   const supabase = await createServerSupabase();
 
+  // Phone search goes through the admin-only lookup (phone isn't
+  // selectable, 0073); matches are folded in as an id filter.
+  const phoneIds = q ? await idsByPhone(supabase, q) : [];
+  const phoneMatch = phoneIds.length ? `,id.in.(${phoneIds.join(',')})` : '';
+
   const [
     { data: customers, error: customersError },
     { data: providers, error: providersError },
@@ -24,13 +30,13 @@ export default async function SearchPage({ searchParams }: Props) {
           .from('profiles')
           .select('id, full_name, initials, email, area')
           .eq('role', 'customer')
-          .or(`full_name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`)
+          .or(`full_name.ilike.%${q}%,email.ilike.%${q}%${phoneMatch}`)
           .limit(10),
         supabase
           .from('profiles')
           .select('id, full_name, initials, email, provider_category, area')
           .eq('role', 'provider')
-          .or(`full_name.ilike.%${q}%,email.ilike.%${q}%,provider_category.ilike.%${q}%`)
+          .or(`full_name.ilike.%${q}%,email.ilike.%${q}%,provider_category.ilike.%${q}%${phoneMatch}`)
           .limit(10),
         supabase
           .from('jobs')

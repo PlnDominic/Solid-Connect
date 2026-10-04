@@ -17,7 +17,7 @@ export default async function OrganizationDetailPage({ params }: { params: Promi
 
   const [{ data: owner }, { data: members }, { data: projects }, { data: requests }, { data: recurring }] =
     await Promise.all([
-      supabase.from('profiles').select('id, full_name, email, phone').eq('id', org.owner_id).maybeSingle(),
+      supabase.from('profiles').select('id, full_name, email').eq('id', org.owner_id).maybeSingle(),
       supabase
         .from('organization_members')
         .select('profile_id, role, created_at, profiles(id, full_name, email)')

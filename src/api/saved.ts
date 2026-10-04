@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { Profile } from '../types/database';
+import { asProfile, PROFILE_COLUMNS } from './profileColumns';
 
 export function useSavedProviders(customerId: string | null) {
   return useQuery({
@@ -8,10 +9,10 @@ export function useSavedProviders(customerId: string | null) {
     queryFn: async (): Promise<Profile[]> => {
       const { data, error } = await supabase
         .from('saved_providers')
-        .select('provider:profiles!saved_providers_provider_id_fkey(*)')
+        .select(`provider:profiles!saved_providers_provider_id_fkey(${PROFILE_COLUMNS})`)
         .eq('customer_id', customerId as string);
       if (error) throw error;
-      return (data ?? []).map((row: any) => row.provider as Profile);
+      return (data ?? []).map((row: any) => asProfile(row.provider));
     },
     enabled: !!customerId,
   });

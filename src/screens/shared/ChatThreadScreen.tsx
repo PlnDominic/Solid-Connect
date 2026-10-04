@@ -37,6 +37,7 @@ import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useContactPhone } from '../../api/profileColumns';
 
 export function ChatThreadScreen({ navigation, route }: { navigation: any; route: any }) {
   const { colors } = useTheme();
@@ -48,6 +49,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   const sendMessage = useSendMessage();
   const markRead = useMarkThreadRead();
   const { data: hasActiveJob = false } = useHasActiveJobWith(profile?.id, peerId, profile?.role);
+  const { data: peerPhone } = useContactPhone(peerId, hasActiveJob);
   const { peerTyping, notifyTyping } = useTypingIndicator(threadId, profile?.id);
   const [text, setText] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -107,20 +109,20 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   }
 
   function handleCallPeer() {
-    if (!peer?.phone) {
+    if (!peer || !peerPhone) {
       Alert.alert('Phone number unavailable', 'This user does not have a phone number on file.');
       return;
     }
     const name = peer.full_name || 'this contact';
     Alert.alert(
       `Call ${name}?`,
-      `Dial ${peer.phone} to coordinate directly. Standard cellular rates apply.`,
+      `Dial ${peerPhone} to coordinate directly. Standard cellular rates apply.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Call',
           onPress: () => {
-            const cleaned = peer.phone!.replace(/[^\d+]/g, '');
+            const cleaned = peerPhone.replace(/[^\d+]/g, '');
             Linking.openURL(`tel:${cleaned}`).catch(() => {
               Alert.alert('Could not dial', 'Your device could not open the phone dialer.');
             });
@@ -170,7 +172,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           {/* Calling is only offered once a job is booked between them. */}
-          {peer?.phone && hasActiveJob ? (
+          {peer && peerPhone && hasActiveJob ? (
             <Pressable
               onPress={handleCallPeer}
               hitSlop={12}

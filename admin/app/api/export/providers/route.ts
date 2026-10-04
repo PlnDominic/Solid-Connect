@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { requireAdmin } from '../../../../lib/admin';
 import { createServerSupabase } from '../../../../lib/supabase';
 import { toCsv, csvResponse } from '../../../../lib/csv';
+import { withPhones } from '../../../../lib/phones';
 
 const sanitizeForFilter = (s: string) => s.replace(/[,()%_]/g, ' ').trim();
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('profiles')
-    .select('full_name, email, phone, area, provider_category, provider_rating, provider_jobs_count, provider_verified, created_at')
+    .select('id, full_name, email, area, provider_category, provider_rating, provider_jobs_count, provider_verified, created_at')
     .eq('role', 'provider')
     .order('created_at', { ascending: false })
     .limit(5000);
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   const csv = toCsv(
     ['full_name', 'email', 'phone', 'area', 'provider_category', 'provider_rating', 'provider_jobs_count', 'provider_verified', 'created_at'],
-    data ?? [],
+    await withPhones(supabase, data ?? []),
   );
   return csvResponse('providers.csv', csv);
 }

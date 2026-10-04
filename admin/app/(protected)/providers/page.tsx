@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
+import { withPhones } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 import { SortHeader } from '../../components/SortHeader';
@@ -33,7 +34,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
     let q2 = supabase
       .from('profiles')
       .select(
-        'id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at, suspended_at',
+        'id, full_name, initials, area, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, created_at, suspended_at',
       )
       .eq('role', 'provider');
     if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,provider_category.ilike.%${term}%,area.ilike.%${term}%`);
@@ -58,7 +59,7 @@ export default async function ProvidersPage({ searchParams }: Props) {
 
   const errors = [countError?.message, listError?.message, categoryError?.message];
 
-  const rows = providers ?? [];
+  const rows = await withPhones(supabase, providers ?? []);
   const categories = [...new Set((categoryRows ?? []).map(p => p.provider_category).filter(Boolean))].sort();
 
   return (

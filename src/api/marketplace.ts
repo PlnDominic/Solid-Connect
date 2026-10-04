@@ -1,3 +1,4 @@
+import { asProfile, PROFILE_COLUMNS } from './profileColumns';
 import { useQuery } from '@tanstack/react-query';
 import { matchAreaName } from '../lib/areaCoords';
 import { coordsForArea, searchProvidersGeo } from './location';
@@ -28,12 +29,12 @@ export function useTopProviders() {
     queryFn: async (): Promise<Profile[]> => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(PROFILE_COLUMNS)
         .eq('role', 'provider')
         .order('provider_rating', { ascending: false })
         .limit(3);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map(asProfile);
     },
   });
 }
@@ -64,7 +65,7 @@ export function useAllProviders(
 
       let query = supabase
         .from('profiles')
-        .select('*')
+        .select(PROFILE_COLUMNS)
         .eq('role', 'provider')
         .order('provider_rating', { ascending: false })
         .limit(limit ?? 1000);
@@ -92,7 +93,7 @@ export function useAllProviders(
 
       const { data, error } = await query;
       if (error) throw error;
-      let rows = data ?? [];
+      let rows = (data ?? []).map(asProfile);
       if (areaNeedle?.trim()) {
         const needle = areaNeedle.trim().toLowerCase();
         rows = [...rows].sort((a, b) => {
@@ -115,9 +116,9 @@ export function useProvidersByIds(providerIds: string[]) {
   return useQuery({
     queryKey: ['providers', 'byIds', providerIds],
     queryFn: async (): Promise<Profile[]> => {
-      const { data, error } = await supabase.from('profiles').select('*').in('id', providerIds);
+      const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).in('id', providerIds);
       if (error) throw error;
-      const byId = new Map((data ?? []).map((p) => [p.id, p]));
+      const byId = new Map((data ?? []).map(asProfile).map((p) => [p.id, p]));
       return providerIds.map((id) => byId.get(id)).filter((p): p is Profile => !!p);
     },
     enabled: providerIds.length > 0,
@@ -128,9 +129,9 @@ export function useProvider(providerId: string | null | undefined) {
   return useQuery({
     queryKey: ['provider', providerId],
     queryFn: async (): Promise<Profile | null> => {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', providerId as string).maybeSingle();
+      const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', providerId as string).maybeSingle();
       if (error) throw error;
-      return data;
+      return data ? asProfile(data) : null;
     },
     enabled: !!providerId,
   });

@@ -24,6 +24,7 @@ import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jo
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useContactPhone } from '../../api/profileColumns';
 
 export function JobDetailScreen({ navigation, route }: { navigation: any; route: any }) {
   const { colors } = useTheme();
@@ -32,6 +33,8 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const profile = useSessionStore((s) => s.profile);
   const { data: job } = useJob(jobId);
   const { data: provider } = useProvider(job?.provider_id);
+  // Only returned while this job is active (contact_phone, 0073).
+  const { data: providerPhone } = useContactPhone(job?.provider_id);
   const { data: review } = useJobReview(jobId);
   const confirmCompletion = useConfirmCompletion();
   const { data: payment } = usePayment(jobId);
@@ -100,7 +103,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   }
 
   function handleCall() {
-    const phone = provider?.phone;
+    const phone = providerPhone;
     if (!provider || !phone) {
       Alert.alert('Phone number unavailable', 'No phone number is registered for this provider.');
       return;
@@ -125,7 +128,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
 
   const quickActions: JobQuickAction[] = [
     { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
-    ...(job.status !== 'completed' && job.status !== 'cancelled' && provider?.phone
+    ...(job.status !== 'completed' && job.status !== 'cancelled' && providerPhone
       ? [{ key: 'call', label: 'Call', icon: Phone, onPress: handleCall }]
       : []),
     ...(job.status === 'completed'

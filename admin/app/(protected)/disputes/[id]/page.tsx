@@ -34,8 +34,8 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
     .maybeSingle();
 
   const [{ data: customer }, { data: provider }, { data: request }, { data: evidence }, activity] = await Promise.all([
-    supabase.from('profiles').select('full_name, phone').eq('id', dispute.customer_id).maybeSingle(),
-    supabase.from('profiles').select('full_name, phone').eq('id', dispute.provider_id).maybeSingle(),
+    supabase.from('profiles').select('full_name').eq('id', dispute.customer_id).maybeSingle(),
+    supabase.from('profiles').select('full_name').eq('id', dispute.provider_id).maybeSingle(),
     job?.request_id
       ? supabase.from('service_requests').select('photos').eq('id', job.request_id).maybeSingle()
       : Promise.resolve({ data: null }),

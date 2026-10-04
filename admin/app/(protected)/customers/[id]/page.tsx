@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
+import { phonesFor } from '../../../../lib/phones';
 import { SuspensionPanel } from '../../../components/SuspensionPanel';
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
@@ -20,11 +21,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   const { data: customer } = await supabase
     .from('profiles')
-    .select('id, full_name, initials, area, phone, email, created_at, suspended_at, suspended_reason')
+    .select('id, full_name, initials, area, email, created_at, suspended_at, suspended_reason')
     .eq('id', id)
     .eq('role', 'customer')
     .maybeSingle();
   if (!customer) notFound();
+  const phones = await phonesFor(supabase, [customer.id]);
 
   const [{ data: jobs }, { data: disputes }, { data: reviews }] = await Promise.all([
     supabase.from('jobs').select('id, title, price, status, started_at').eq('customer_id', id).order('started_at', { ascending: false }).limit(25),
@@ -59,7 +61,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
         <section className="panel">
           <h2>Profile</h2>
           <div className="facts">
-            <div><label>Phone</label><strong>{customer.phone ?? 'Not provided'}</strong></div>
+            <div><label>Phone</label><strong>{phones[customer.id] ?? 'Not provided'}</strong></div>
             <div><label>Email</label><strong>{customer.email ?? 'Not provided'}</strong></div>
             <div><label>Jobs posted</label><strong>{jobRows.length}</strong></div>
             <div><label>Area</label><strong>{customer.area}</strong></div>

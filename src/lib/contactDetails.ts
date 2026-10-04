@@ -58,6 +58,34 @@ export function numberWordsToDigits(text: string): string {
     .replace(/\btriple\s+(\d)/gi, '$1 $1 $1');
 }
 
+// The same words with no word boundaries, for numbers typed as one joined
+// word ("Zerotwofourtwosix...") or mixed with digits ("zero2four..."). "oh"
+// is left out: inside ordinary words ("john", "though") it is noise.
+const JOINED_NUMBER_WORDS: [RegExp, string][] = [
+  [/zero/gi, '0'],
+  [/one/gi, '1'],
+  [/two/gi, '2'],
+  [/three/gi, '3'],
+  [/four/gi, '4'],
+  [/five/gi, '5'],
+  [/six/gi, '6'],
+  [/seven/gi, '7'],
+  [/eight/gi, '8'],
+  [/nine/gi, '9'],
+];
+
+/** Like numberWordsToDigits, but also inside joined-up words:
+ * "Zerotwofourtwosix" -> "0 2 4 2 6". Only used when the strict pass finds
+ * nothing, and only a 9+ digit run counts, so "someone" -> "some1" alone
+ * never blocks a message. */
+export function joinedNumberWordsToDigits(text: string): string {
+  let out = text;
+  for (const [pattern, digit] of JOINED_NUMBER_WORDS) out = out.replace(pattern, ` ${digit} `);
+  return out
+    .replace(/double\s*(\d)/gi, '$1 $1')
+    .replace(/triple\s*(\d)/gi, '$1 $1 $1');
+}
+
 function digitRuns(text: string): string[] {
   return (text.match(DIGIT_RUN) ?? []).map((run) => run.replace(/\D/g, ''));
 }
@@ -71,15 +99,20 @@ function looksLikePhone(digits: string): boolean {
 }
 
 /** The kind of contact detail in `text`, or null when there's none. */
-export function findContactDetails(text: string | null | undefined): ContactDetailKind | null {
-  if (!text) return null;
-  const normalized = numberWordsToDigits(text);
+function findNumber(normalized: string): 'phone' | 'account' | null {
   const runs = digitRuns(normalized);
   const hasAccountWord = ACCOUNT_WORDS.test(normalized);
   for (const digits of runs) {
     if (digits.length >= 9) return hasAccountWord || !looksLikePhone(digits) ? 'account' : 'phone';
   }
   if (hasAccountWord && runs.some((d) => d.length >= 6)) return 'account';
+  return null;
+}
+
+export function findContactDetails(text: string | null | undefined): ContactDetailKind | null {
+  if (!text) return null;
+  const number = findNumber(numberWordsToDigits(text)) ?? findNumber(joinedNumberWordsToDigits(text));
+  if (number) return number;
   if (EMAIL.test(text) || SPELLED_EMAIL.test(text) || MAIL_PROVIDERS.test(text)) return 'email';
   if (HANDLE.test(text) || SOCIAL_PLATFORMS.test(text)) return 'social';
   if (LINK.test(text)) return 'link';
@@ -89,7 +122,11 @@ export function findContactDetails(text: string | null | undefined): ContactDeta
 /** Hides most of what was shared ("024•••••67", "jo•••@gmail.com",
  * "@jo•••"), leaving enough for an admin to see what was tried. */
 export function maskContactDetails(text: string): string {
-  return numberWordsToDigits(text)
+  // Use the joined-up conversion only when that's what found the number,
+  // so ordinary words stay readable in the flag.
+  const strict = numberWordsToDigits(text);
+  const base = findNumber(strict) || !findNumber(joinedNumberWordsToDigits(text)) ? strict : joinedNumberWordsToDigits(text);
+  return base
     .replace(DIGIT_RUN, (run) => {
       const digits = run.replace(/\D/g, '');
       if (digits.length < 6) return run;

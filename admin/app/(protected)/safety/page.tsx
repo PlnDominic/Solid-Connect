@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
+import { phonesFor } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 import { resolveSafetyAlert } from './actions';
@@ -38,14 +39,17 @@ export default async function SafetyPage({ searchParams }: Props) {
 
   const [{ data: people, error: peopleError }, { data: jobs, error: jobsError }] = await Promise.all([
     userIds.length
-      ? supabase.from('profiles').select('id, full_name, phone, email, role').in('id', userIds)
-      : Promise.resolve({ data: [] as { id: string; full_name: string; phone: string | null; email: string | null; role: string }[], error: null }),
+      ? supabase.from('profiles').select('id, full_name, email, role').in('id', userIds)
+      : Promise.resolve({ data: [] as { id: string; full_name: string; email: string | null; role: string }[], error: null }),
     jobIds.length
       ? supabase.from('jobs').select('id, title, location_label, customer_id, provider_id').in('id', jobIds)
       : Promise.resolve({ data: [] as { id: string; title: string; location_label: string; customer_id: string; provider_id: string }[], error: null }),
   ]);
 
-  const peopleMap = Object.fromEntries((people ?? []).map((p) => [p.id, p]));
+  // A person in an emergency needs to be reachable: their number comes
+  // from the admin-only phone lookup (phone isn't selectable, 0073).
+  const phones = await phonesFor(supabase, userIds);
+  const peopleMap = Object.fromEntries((people ?? []).map((p) => [p.id, { ...p, phone: phones[p.id] ?? null }]));
   const jobMap = Object.fromEntries((jobs ?? []).map((j) => [j.id, j]));
 
   return (

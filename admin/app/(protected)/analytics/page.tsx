@@ -304,10 +304,10 @@ export default async function AnalyticsPage() {
     payoutCommissionRes,
     organizationsRes,
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'provider'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'provider'),
     supabase
       .from('profiles')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('role', 'provider')
       .eq('provider_verified', true),
     supabase.from('provider_verifications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -329,8 +329,8 @@ export default async function AnalyticsPage() {
     supabase.from('jobs').select('started_at').gte('started_at', windowStart),
     supabase.from('profiles').select('created_at').eq('role', 'provider').gte('created_at', windowStart),
     supabase.rpc('admin_area_coverage'),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'customer'),
     supabase
       .from('service_requests')
       .select('*', { count: 'exact', head: true })

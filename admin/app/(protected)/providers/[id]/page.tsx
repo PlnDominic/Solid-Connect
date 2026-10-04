@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
+import { phonesFor } from '../../../../lib/phones';
 import { SuspensionPanel } from '../../../components/SuspensionPanel';
 
 const stamp = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
@@ -20,11 +21,12 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
 
   const { data: provider } = await supabase
     .from('profiles')
-    .select('id, full_name, initials, area, phone, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, verification_level, availability_mode, created_at, tagline, suspended_at, suspended_reason')
+    .select('id, full_name, initials, area, email, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, verification_level, availability_mode, created_at, tagline, suspended_at, suspended_reason')
     .eq('id', id)
     .eq('role', 'provider')
     .maybeSingle();
   if (!provider) notFound();
+  const phones = await phonesFor(supabase, [provider.id]);
 
   const [
     { data: categoryLinks },
@@ -67,7 +69,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
         <section className="panel">
           <h2>Profile</h2>
           <div className="facts">
-            <div><label>Phone</label><strong>{provider.phone ?? 'Not provided'}</strong></div>
+            <div><label>Phone</label><strong>{phones[provider.id] ?? 'Not provided'}</strong></div>
             <div><label>Email</label><strong>{provider.email ?? 'Not provided'}</strong></div>
             <div><label>Rating</label><strong>{provider.provider_rating?.toFixed?.(1) ?? '-'} · {provider.provider_jobs_count ?? 0} jobs</strong></div>
             <div><label>Availability</label><strong>{provider.availability_mode ?? 'Not set'}</strong></div>

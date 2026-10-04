@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
+import { withPhones } from '../../../lib/phones';
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 import { SortHeader } from '../../components/SortHeader';
@@ -29,7 +30,7 @@ export default async function CustomersPage({ searchParams }: Props) {
     return q2;
   };
   const dataQuery = () => {
-    let q2 = supabase.from('profiles').select('id, full_name, initials, area, phone, email, created_at').eq('role', 'customer');
+    let q2 = supabase.from('profiles').select('id, full_name, initials, area, email, created_at').eq('role', 'customer');
     if (term) q2 = q2.or(`full_name.ilike.%${term}%,email.ilike.%${term}%,area.ilike.%${term}%`);
     return q2;
   };
@@ -43,7 +44,7 @@ export default async function CustomersPage({ searchParams }: Props) {
 
   const { data: customers, error: listError } = await dataQuery().order(sort, { ascending: dir === 'asc' }).range(from, to);
 
-  const rows = customers ?? [];
+  const rows = await withPhones(supabase, customers ?? []);
 
   // Job counts for just the rows on this page.
   const customerIds = rows.map(c => c.id);
