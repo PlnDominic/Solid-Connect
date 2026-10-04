@@ -270,7 +270,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           <View style={styles.groupCard}>
             <View style={[styles.groupRow, preferredProviderName && styles.groupRowBorder]}>
               <View style={styles.groupRowIcon}>
-                <Briefcase size={15} strokeWidth={2} color={colors.inkFaint} />
+                <Briefcase size={17} strokeWidth={2} color={colors.inkFaint} />
               </View>
               <View style={styles.groupRowText}>
                 <Text style={styles.groupRowLabel}>Service</Text>
@@ -280,7 +280,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
             {preferredProviderName ? (
               <View style={styles.groupRow}>
                 <View style={styles.groupRowIcon}>
-                  <UserRound size={15} strokeWidth={2} color={colors.inkFaint} />
+                  <UserRound size={17} strokeWidth={2} color={colors.inkFaint} />
                 </View>
                 <View style={styles.groupRowText}>
                   <Text style={styles.groupRowLabel}>Provider</Text>
@@ -420,11 +420,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     progressWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, backgroundColor: colors.paper },
     body: { padding: spacing.lg, gap: spacing.xl },
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-    sectionTitle: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
-    sectionCount: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    sectionTitle: { fontSize: 19, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
+    sectionCount: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
     categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
     field: { gap: 7 },
-    fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
+    fieldLabel: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
     readonlyField: {
       height: 52,
       borderRadius: radii.lg,
@@ -434,13 +434,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       paddingHorizontal: spacing.md,
     },
-    readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
-    readonlyValueMono: { fontSize: 15, fontFamily: fonts.mono, color: colors.ink },
+    readonlyValue: { fontSize: 17, fontFamily: fonts.medium, color: colors.ink },
+    readonlyValueMono: { fontSize: 17, fontFamily: fonts.mono, color: colors.ink },
 
     // Small all-caps eyebrow above a grouped card - same idiom as the
     // settings screens (Account Security, Appearance): the section's own
     // job stated once, quietly, never repeated on every row inside it.
-    groupLabel: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -8 },
+    groupLabel: { fontSize: 12.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -8 },
     groupCard: {
       borderRadius: radii.xl,
       borderWidth: 1,
@@ -458,20 +458,20 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     groupRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
     groupRowIcon: {
-      width: 30,
-      height: 30,
+      width: 34,
+      height: 34,
       borderRadius: radii.md,
       backgroundColor: colors.paperDim,
       alignItems: 'center',
       justifyContent: 'center',
     },
     groupRowText: { flex: 1, gap: 1 },
-    groupRowLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    groupRowLabel: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
     groupRowLabelCount: { fontFamily: fonts.medium, color: colors.inkFainter },
-    groupRowValue: { fontSize: 15.5, fontFamily: fonts.semibold, color: colors.ink },
+    groupRowValue: { fontSize: 17.5, fontFamily: fonts.semibold, color: colors.ink },
 
     budgetField: {
-      height: 58,
+      height: 62,
       borderRadius: radii.lg,
       borderWidth: 1,
       borderColor: colors.hairline,
@@ -481,19 +481,19 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.md,
     },
     budgetFieldFocused: { borderWidth: 1.5, borderColor: colors.ink },
-    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 17, fontFamily: fonts.medium },
-    budgetInput: { flex: 1, fontSize: 20, fontFamily: fonts.mono, color: colors.ink },
-    budgetHint: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 19, fontFamily: fonts.medium },
+    budgetInput: { flex: 1, fontSize: 22, fontFamily: fonts.mono, color: colors.ink },
+    budgetHint: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
     budgetHintError: { color: colors.danger },
 
     // Nested directly in a groupCard - no border/background of its own, so
     // it reads as one continuous row rather than a card within a card.
     detailBlock: { padding: spacing.lg, gap: spacing.sm },
-    detailHint: { fontSize: 12, lineHeight: 16, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: -4 },
+    detailHint: { fontSize: 14, lineHeight: 19, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: -4 },
     textarea: {
-      minHeight: 96,
-      fontSize: 15,
-      lineHeight: 22,
+      minHeight: 110,
+      fontSize: 17,
+      lineHeight: 25,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',
@@ -533,10 +533,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.lg,
       gap: 6,
     },
-    reviewLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    reviewCategory: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-    reviewDesc: { fontSize: 13, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
-    errorText: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    reviewLabel: { fontSize: 12, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    reviewCategory: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
+    reviewDesc: { fontSize: 15, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
+    errorText: { fontSize: 15, fontFamily: fonts.medium, color: colors.danger },
     footer: {
       padding: spacing.lg,
       paddingBottom: spacing.xl,
@@ -545,6 +545,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopColor: colors.hairline,
       gap: spacing.sm,
     },
-    footerNote: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
+    footerNote: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
   });
 }
