@@ -8,10 +8,13 @@ export function BottomSheet({
   visible,
   onClose,
   children,
+  bg,
 }: {
   visible: boolean;
   onClose?: () => void;
   children: ReactNode;
+  /** Sheet background - e.g. paperDim when the sheet holds raised cards. */
+  bg?: string;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -25,7 +28,7 @@ export function BottomSheet({
             resizes the window on its own (windowSoftInputMode), so this
             is a no-op there. */}
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <SafeAreaView edges={['bottom']} style={styles.sheet}>
+          <SafeAreaView edges={['bottom']} style={[styles.sheet, bg ? { backgroundColor: bg } : null]}>
             <View style={styles.grabber} />
             {children}
           </SafeAreaView>
