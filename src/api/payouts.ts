@@ -35,11 +35,15 @@ export function usePayoutAccount(userId: string | null | undefined) {
     queryKey: ['payoutAccount', userId],
     queryFn: async (): Promise<ProviderPayoutAccount | null> => {
       if (!userId) return null;
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('payout_account')
-        .eq('id', userId)
-        .maybeSingle();
+      // The column isn't selectable since 0075; my_payout_account() returns
+      // the signed-in provider's own (nobody else's).
+      let { data, error } = await supabase.rpc('my_payout_account');
+      if (error?.code === 'PGRST202') {
+        // Database not migrated to 0075 yet: read the column the old way.
+        const res = await supabase.from('profiles').select('payout_account').eq('id', userId).maybeSingle();
+        data = (res.data as { payout_account?: unknown } | null)?.payout_account ?? null;
+        error = res.error;
+      }
 
       if (error) {
         // Fallback to locally cached account if offline or network error.
@@ -48,7 +52,7 @@ export function usePayoutAccount(userId: string | null | undefined) {
         throw error;
       }
 
-      const account = (data?.payout_account as ProviderPayoutAccount) ?? null;
+      const account = (data as ProviderPayoutAccount | null) ?? null;
       if (account) {
         await setCachedPayoutAccount(userId, account);
       }
@@ -69,12 +73,8 @@ export function useUpdatePayoutAccount() {
       userId: string;
       account: ProviderPayoutAccount;
     }): Promise<ProviderPayoutAccount> => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ payout_account: account })
-        .eq('id', userId)
-        .select('payout_account')
-        .single();
+      // No `.select()` back: the column isn't readable since 0075.
+      const { error } = await supabase.from('profiles').update({ payout_account: account }).eq('id', userId);
 
       if (error) throw error;
 
@@ -89,7 +89,7 @@ export function useUpdatePayoutAccount() {
         });
       }
 
-      return (data?.payout_account as ProviderPayoutAccount) ?? account;
+      return account;
     },
     onSuccess: (account, { userId }) => {
       queryClient.setQueryData(['payoutAccount', userId], account);

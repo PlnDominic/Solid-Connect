@@ -3,14 +3,16 @@ import { supabase } from '../lib/supabase';
 import type { Profile } from '../types/database';
 
 /**
- * Every profiles column the app may read - all of them except `phone`,
- * which app users can't select since 0073 (a `select('*')` on profiles
- * now fails outright). A phone number comes only from contact_phone():
- * your own, or the other person's while you share an active job.
+ * Every profiles column the app may read - all of them except `phone`
+ * (0073) and `payout_account` (0075), which app users can't select (so a
+ * `select('*')` on profiles now fails outright). A phone number comes only
+ * from contact_phone(): your own, or the other person's while you share an
+ * active job. A provider reads their own payout account through
+ * my_payout_account() - see usePayoutAccount.
  * Add new profiles columns here once their migration grants them.
  */
 export const PROFILE_COLUMNS =
-  'id,role,full_name,initials,area,is_seed,provider_category,provider_rating,provider_jobs_count,provider_distance_km,provider_verified,provider_certified,created_at,email,push_token,push_permission_status,photo_url,tagline,verification_level,location,availability_mode,suspended_at,suspended_reason,suspended_by,terms_accepted_at,terms_version,notification_prefs,payout_account,customer_rating,customer_reviews_count';
+  'id,role,full_name,initials,area,is_seed,provider_category,provider_rating,provider_jobs_count,provider_distance_km,provider_verified,provider_certified,created_at,email,push_token,push_permission_status,photo_url,tagline,verification_level,location,availability_mode,suspended_at,suspended_reason,suspended_by,terms_accepted_at,terms_version,notification_prefs,customer_rating,customer_reviews_count';
 
 /** A profiles row read with PROFILE_COLUMNS, typed as a Profile whose
  * phone is unknown (null) - use contact_phone() when a number is needed. */
