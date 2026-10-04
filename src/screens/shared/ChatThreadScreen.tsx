@@ -15,7 +15,14 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
-import { useMarkThreadRead, useMessages, useSendMessage, uploadChatPhoto, uploadChatAudio } from '../../api/chat';
+import {
+  ContactDetailsBlockedError,
+  useMarkThreadRead,
+  useMessages,
+  useSendMessage,
+  uploadChatPhoto,
+  uploadChatAudio,
+} from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
 import { friendlySafetyError, useBlockUser, useMyBlocks, useUnblockUser } from '../../api/safety';
 import { Avatar } from '../../components/Avatar';
@@ -66,7 +73,13 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
       haptics.light();
       requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
     } catch (err) {
+      // Keep what they typed so they can take the number out and resend.
       setText(value);
+      if (err instanceof ContactDetailsBlockedError) {
+        haptics.warning();
+        Alert.alert(err.kind === 'phone' ? 'Phone numbers not allowed' : 'Account details not allowed', err.message);
+        return;
+      }
       Alert.alert('Message not sent', friendlySafetyError(err));
     }
   }

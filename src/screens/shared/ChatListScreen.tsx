@@ -158,12 +158,14 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
   const filters: FilterOption[] = [
     { id: 'all', label: previews.length ? `All · ${previews.length}` : 'All' },
     { id: 'unread', label: unreadCount ? `Unread · ${unreadCount}` : 'Unread' },
+    { id: 'read', label: 'Read' },
   ];
 
   const visible = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return previews.filter((p) => {
       if (filter === 'unread' && !p.unread) return false;
+      if (filter === 'read' && p.unread) return false;
       if (!needle) return true;
       return p.peer.full_name.toLowerCase().includes(needle);
     });

@@ -5,6 +5,7 @@ import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
 import { compressImage } from '../lib/imageCompression';
 import type { ChatMessage, ChatThread, Role } from '../types/database';
+import { CONTACT_DETAILS_MESSAGE, findContactDetails, type ContactDetailKind } from '../lib/contactDetails';
 
 export async function getOrCreateThread(input: {
   requestId?: string | null;
@@ -168,6 +169,14 @@ export function useLatestMessage(threadId: string | null | undefined) {
   return query;
 }
 
+/** Thrown when a message holds a phone number or account details. */
+export class ContactDetailsBlockedError extends Error {
+  constructor(public kind: ContactDetailKind) {
+    super(CONTACT_DETAILS_MESSAGE[kind]);
+    this.name = 'ContactDetailsBlockedError';
+  }
+}
+
 export function useSendMessage() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -181,6 +190,16 @@ export function useSendMessage() {
       audioDurationSeconds?: number;
     }) => {
       const text = input.text?.trim() || undefined;
+      // No phone numbers or account details in chat: refuse before
+      // sending and flag the attempt for admins (the database strips any
+      // that get past this - see 0071).
+      const blocked = findContactDetails(text);
+      if (blocked) {
+        await supabase
+          .rpc('flag_contact_details_attempt', { p_thread_id: input.threadId, p_text: text })
+          .then(() => undefined, () => undefined);
+        throw new ContactDetailsBlockedError(blocked);
+      }
       if (isApiConfigured()) {
         const res = await apiFetch<{ data: ChatMessage }>(`/api/v1/chat/threads/${input.threadId}/messages`, {
           method: 'POST',

@@ -17,4 +17,6 @@ export const haptics = {
   light: () => safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
   /** A quote arriving, a job being accepted - something worth noticing. */
   success: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
+  /** Something refused - e.g. a chat message holding a phone number. */
+  warning: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)),
 };

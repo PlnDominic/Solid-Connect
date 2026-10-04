@@ -15,6 +15,7 @@ const REASON_LABELS: Record<string, string> = {
   unsafe_behavior: 'Unsafe behaviour',
   fake_profile: 'Fake profile',
   other: 'Something else',
+  contact_sharing: 'Shared contact details',
 };
 
 const stamp = (date: string) =>
@@ -44,7 +45,8 @@ export default async function ReportsPage({ searchParams }: Props) {
     .range(from, from + PAGE_SIZE - 1);
   const rows = reports ?? [];
 
-  const personIds = [...new Set(rows.flatMap((r) => [r.reporter_id, r.reported_id]))];
+  // reporter_id is null for automatic flags (contact details in chat, 0071).
+  const personIds = [...new Set(rows.flatMap((r) => [r.reporter_id, r.reported_id]).filter(Boolean))] as string[];
   const threadIds = [...new Set(rows.map((r) => r.thread_id).filter(Boolean))] as string[];
 
   const [{ data: people, error: peopleError }, { data: messages, error: messagesError }] = await Promise.all([
@@ -76,7 +78,8 @@ export default async function ReportsPage({ searchParams }: Props) {
         <div className="page-header-eyebrow">Trust &amp; safety</div>
         <h1>User reports</h1>
         <p className="page-header-sub">
-          Reports filed from chats, provider profiles and jobs. To act on a report, open the reported person and suspend
+          Reports filed from chats, provider profiles and jobs, plus automatic flags when someone tries to share a phone
+          number or account details in chat. To act on a report, open the reported person and suspend
           the account if needed, then close the report here with a note.
         </p>
       </div>
@@ -96,7 +99,8 @@ export default async function ReportsPage({ searchParams }: Props) {
       ) : (
         <div className="stack-10">
           {rows.map((r) => {
-            const reporter = peopleMap[r.reporter_id];
+            const reporter = r.reporter_id ? peopleMap[r.reporter_id] : undefined;
+            const automatic = !r.reporter_id;
             const reported = peopleMap[r.reported_id];
             const thread = (messagesByThread[r.thread_id ?? ''] ?? []).slice(0, 10).reverse();
             return (
@@ -115,10 +119,22 @@ export default async function ReportsPage({ searchParams }: Props) {
                   ) : null}
                 </div>
                 <p className="text-muted-md" style={{ margin: 0 }}>
-                  <strong>{reporter?.full_name ?? 'Someone'}</strong> reported{' '}
-                  <Link className="link-accent" href={profileHref(reported)}>
-                    {reported?.full_name ?? 'a user'}
-                  </Link>
+                  {automatic ? (
+                    <>
+                      <strong>Automatic flag</strong> on{' '}
+                      <Link className="link-accent" href={profileHref(reported)}>
+                        {reported?.full_name ?? 'a user'}
+                      </Link>{' '}
+                      - the message was blocked or stripped before the other person saw it
+                    </>
+                  ) : (
+                    <>
+                      <strong>{reporter?.full_name ?? 'Someone'}</strong> reported{' '}
+                      <Link className="link-accent" href={profileHref(reported)}>
+                        {reported?.full_name ?? 'a user'}
+                      </Link>
+                    </>
+                  )}
                 </p>
                 {r.details ? <p style={{ margin: '8px 0 0', fontSize: 'var(--fs-sm)' }}>{r.details}</p> : null}
 
