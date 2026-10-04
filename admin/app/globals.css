@@ -96,10 +96,9 @@ textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
   --accent-text: #15181a;
   --accent-bg: rgba(21, 24, 26, .06);
   --accent-border: rgba(21, 24, 26, .18);
-  /* Brand orange - active selection, primary CTAs, focus. Deepened from
-     the logo's #f27511 so white labels on it clear WCAG AA (4.8:1). */
-  --active: #bd5309;
-  --active-deep: #9c4407;
+  /* Brand orange - active selection, primary CTAs, focus. */
+  --active: #f27511;
+  --active-deep: #c85a08;
   --active-bg: #fce9da;
   --on-active: #ffffff;
   --accent-secondary: #8a5a00;  /* pending amber */
@@ -115,12 +114,12 @@ textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
   --blue-bg: #e9edf3;
   --purple: #8b8b87;            /* neutral series color for charts */
   --purple-bg: #efefed;
-  --ring: rgba(189, 83, 9, .35);
+  --ring: rgba(242, 117, 17, .35);
   /* shadow.card: 0 5 14 @ .10 / shadow.sheet: 0 12 28 @ .16 */
   --shadow-card: 0 5px 14px rgba(11, 11, 10, .10);
   --shadow: var(--shadow-card);
   --shadow-lg: 0 12px 28px rgba(11, 11, 10, .16);
-  --shadow-active: 0 4px 10px rgba(156, 68, 7, .22);
+  --shadow-active: 0 4px 10px rgba(200, 90, 8, .22);
   color-scheme: light;
 }
 
@@ -148,8 +147,8 @@ textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
   --accent-text: #f2f2f1;
   --accent-bg: rgba(242, 242, 241, .08);
   --accent-border: rgba(242, 242, 241, .25);
-  --active: #bd5309;
-  --active-deep: #9c4407;
+  --active: #f27511;
+  --active-deep: #c85a08;
   --active-bg: #3a2410;
   --on-active: #ffffff;
   --accent-secondary: #f0b429;  /* pendingOnDark */

@@ -83,11 +83,8 @@ export const colors = {
   // selection state: the picked filter, the picked category, the active
   // tab. A second reserved accent alongside confirm-green, not a
   // decorative color; still never used for plain body chrome.
-  // Deepened from the logo's #F27511 so white labels on it (and orange
-  // text on white) clear WCAG AA 4.5:1 - #F27511 only reaches 2.9:1. The
-  // logo and the sign-in header keep the bright orange; they carry no text.
-  active: '#BD5309',
-  activeDeep: '#9C4407',
+  active: '#F27511',
+  activeDeep: '#C85A08',
   activeBg: '#FCE9DA',
 
 
@@ -97,8 +94,8 @@ export const colors = {
   // Legacy aliases kept only so screens outside this redesign's scope
   // (provider/chat/jobs, etc.) keep compiling until they're carried
   // through in a follow-up pass. Do not reach for these in new work.
-  orange: '#BD5309',
-  orangeDeep: '#9C4407',
+  orange: '#F27511',
+  orangeDeep: '#C85A08',
   bg: '#FFFFFF',
   surface: '#FFFFFF',
   tile: '#FBFBFA',

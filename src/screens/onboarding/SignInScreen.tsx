@@ -27,7 +27,7 @@ type IdentifierMethod = 'email' | 'phone';
 
 const logo = require('../../../assets/images/logo.jpeg');
 
-// Brand constants for the header. The header is always the logo orange,
+// Brand constants for the header. The header is always the brand orange,
 // in light and dark mode alike, so these don't come from the theme.
 const ORANGE = '#F27511';
 const ORANGE_DEEP = '#C85A08';
@@ -268,7 +268,7 @@ export function SignInScreen({
                   <>
                     <Text style={styles.primaryLabel}>Sign in</Text>
                     <View style={styles.primaryArrow}>
-                      <ArrowRight size={16} strokeWidth={2.6} color={colors.active} />
+                      <ArrowRight size={16} strokeWidth={2.6} color={ORANGE} />
                     </View>
                   </>
                 )}
@@ -445,7 +445,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
     fields: { gap: spacing.md },
     fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted, marginBottom: 6, letterSpacing: 0.1 },
     fieldLabelRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-    forgot: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: isDark ? ORANGE : colors.activeDeep, marginBottom: 6 },
+    forgot: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: isDark ? ORANGE : ORANGE_DEEP, marginBottom: 6 },
     field: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -468,12 +468,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
     primary: {
       height: 56,
       borderRadius: 16,
-      backgroundColor: colors.active,
+      backgroundColor: ORANGE,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 12,
-      shadowColor: colors.activeDeep,
+      shadowColor: ORANGE_DEEP,
       shadowOpacity: 0.35,
       shadowRadius: 14,
       shadowOffset: { width: 0, height: 8 },
@@ -512,7 +512,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
 
     signupRow: { alignItems: 'center', paddingTop: spacing.xs },
     link: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
-    linkStrong: { fontFamily: fonts.bold, color: isDark ? ORANGE : colors.activeDeep },
+    linkStrong: { fontFamily: fonts.bold, color: isDark ? ORANGE : ORANGE_DEEP },
 
     legalLink: { fontFamily: fonts.semibold, color: colors.inkMuted, textDecorationLine: 'underline' },
     legal: {
