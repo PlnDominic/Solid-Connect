@@ -29,6 +29,13 @@ function shortCategory(label: string) {
   return label.split('·').pop()?.trim() || label;
 }
 
+/** "AC repair" -> "AR", "Plumbing" -> "PL" - stands in for a job photo. */
+function initialsOf(label: string) {
+  const words = label.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return (words[0] ?? '').slice(0, 2).toUpperCase();
+}
+
 /** "Kofi Boateng" -> "Kofi B." - keeps map pins compact. */
 function shortName(fullName: string) {
   const parts = fullName.trim().split(/\s+/);
@@ -88,9 +95,24 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
       if (!centroid) continue;
       const p = spreadAroundCentroid(r.id, centroid);
       const budget = r.customer_budget ?? r.budget_min;
+      const service = shortCategory(r.category_label);
+      const budgetLabel = budget != null ? `GHS ${budget.toLocaleString()}` : null;
+      // Job details only - the customer's own name and photo are not shown
+      // to providers before a job is agreed, on the map or anywhere else.
+      const subtitle = [budgetLabel, r.myQuote ? 'Quoted' : formatRelativeTime(r.created_at)].filter(Boolean).join(' · ');
       out.push({
         request: r,
-        pin: { kind: 'request', id: r.id, lat: p.lat, lng: p.lng, label: budget != null ? `GHS ${budget.toLocaleString()}` : shortCategory(r.category_label) },
+        pin: {
+          kind: 'request',
+          id: r.id,
+          lat: p.lat,
+          lng: p.lng,
+          label: budgetLabel ?? service,
+          title: service,
+          subtitle,
+          photoUrl: r.photos?.[0] ?? null,
+          badge: initialsOf(service),
+        },
       });
     }
     return out;

@@ -7,7 +7,9 @@ import type { MapBounds } from '../lib/mapPins';
  * - provider: a preview card - round photo (or initials), name, and
  *   "skill · ★ 4.8" with a tick when verified; a live ("Available now")
  *   provider gets an orange ring and a green dot on the photo
- * - request: a dark pill with a short label (usually the budget)
+ * - request: a dark preview card - the first job photo (or the service's
+ *   initials), the service, and "budget · posted"; falls back to a plain
+ *   dark pill when only a label is given
  * - live: the pulsing beacon JobLiveMap uses for a moving person, with a
  *   caption underneath (e.g. "Your pro") */
 export type MapPin =
@@ -24,7 +26,17 @@ export type MapPin =
       initials?: string;
       photoUrl?: string | null;
     }
-  | { kind: 'request'; id: string; lat: number; lng: number; label: string }
+  | {
+      kind: 'request';
+      id: string;
+      lat: number;
+      lng: number;
+      label: string;
+      title?: string;
+      subtitle?: string;
+      photoUrl?: string | null;
+      badge?: string;
+    }
   | { kind: 'live'; id: string; lat: number; lng: number; label: string };
 
 export type ServiceMapHandle = {
@@ -63,6 +75,10 @@ const MAP_HTML = `<!DOCTYPE html>
   .pro .sk .skill { overflow: hidden; text-overflow: ellipsis; }
   .pin.sel .sk { color: rgba(255,255,255,.92); }
   .pin.sel .av { background: #fff; }
+  .pin.req .sk { color: rgba(255,255,255,.75); }
+  .req .av, .req .av img { border-radius: 9px; }
+  .req .av { background: #F27511; color: #fff; }
+  .pin.req.sel .av { background: #fff; color: #C85A08; }
   .pin.req { background: #15181A; color: #fff; }
   .pin.req:after { border-top-color: #15181A; }
   .pin.sel { background: #F27511; color: #fff; z-index: 1000; }
@@ -131,6 +147,23 @@ const MAP_HTML = `<!DOCTYPE html>
       info.appendChild(sk);
       el.appendChild(av); el.appendChild(info);
       classes[p.id] = 'pin pro' + (p.live ? ' now' : '');
+    } else if (p.title) {
+      var rav = document.createElement('div'); rav.className = 'av';
+      var badge = function () { rav.textContent = p.badge || ''; };
+      if (p.photoUrl && /^https:\\/\\//.test(p.photoUrl)) {
+        var rimg = document.createElement('img');
+        rimg.alt = '';
+        rimg.onerror = function () { rav.removeChild(rimg); badge(); };
+        rimg.src = p.photoUrl;
+        rav.appendChild(rimg);
+      } else {
+        badge();
+      }
+      var rinfo = document.createElement('div'); rinfo.className = 'info';
+      rinfo.appendChild(span('nm', p.title));
+      if (p.subtitle) rinfo.appendChild(span('sk', p.subtitle));
+      el.appendChild(rav); el.appendChild(rinfo);
+      classes[p.id] = 'pin req pro';
     } else {
       el.appendChild(span('', p.label));
       classes[p.id] = 'pin req';
