@@ -29,6 +29,13 @@ function shortCategory(label: string) {
   return label.split('·').pop()?.trim() || label;
 }
 
+/** "Kofi Boateng" -> "Kofi B." - keeps map pins compact. */
+function shortName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return parts[0] ?? '';
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+
 /** The hired party's exact live position during an active job, as a pin.
  * Only the job's own customer and provider can read job_locations (0024). */
 function useLiveJobPin(job: Job | null, role: 'customer' | 'provider'): Pin | null {
@@ -104,6 +111,10 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
               rating: p.provider_rating,
               verified: p.provider_verified,
               live: p.is_live,
+              name: shortName(p.full_name),
+              skill: p.provider_category ? shortCategory(p.provider_category) : undefined,
+              initials: p.initials,
+              photoUrl: p.photo_url,
             };
           })
         : requestPins.map((r) => r.pin);

@@ -4,13 +4,26 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { MapBounds } from '../lib/mapPins';
 
 /** One marker on the map.
- * - provider: a rating pill ("★ 4.8"), plus a tick when verified; a live
- *   ("Available now") provider gets a green dot and an orange ring
+ * - provider: a preview card - round photo (or initials), name, and
+ *   "skill · ★ 4.8" with a tick when verified; a live ("Available now")
+ *   provider gets an orange ring and a green dot on the photo
  * - request: a dark pill with a short label (usually the budget)
  * - live: the pulsing beacon JobLiveMap uses for a moving person, with a
  *   caption underneath (e.g. "Your pro") */
 export type MapPin =
-  | { kind: 'provider'; id: string; lat: number; lng: number; rating: number; verified: boolean; live?: boolean }
+  | {
+      kind: 'provider';
+      id: string;
+      lat: number;
+      lng: number;
+      rating: number;
+      verified: boolean;
+      live?: boolean;
+      name?: string;
+      skill?: string;
+      initials?: string;
+      photoUrl?: string | null;
+    }
   | { kind: 'request'; id: string; lat: number; lng: number; label: string }
   | { kind: 'live'; id: string; lat: number; lng: number; label: string };
 
@@ -38,8 +51,18 @@ const MAP_HTML = `<!DOCTYPE html>
   .pin .star { color: #F27511; }
   .pin .tick { color: #0E6B45; font-size: 11px; }
   .pin.now { box-shadow: 0 0 0 2px #F27511, 0 2px 8px rgba(0,0,0,.18); }
-  .pin .nowdot { width: 7px; height: 7px; border-radius: 50%; background: #0E6B45; }
-  .pin.sel .nowdot { background: #fff; }
+  .pin.pro { gap: 8px; padding: 4px 12px 4px 4px; }
+  .pro .av { position: relative; flex: none; width: 34px; height: 34px; border-radius: 50%; background: #FCE9DA;
+             color: #C85A08; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .pro .av img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; display: block; }
+  .pro .nowdot { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 50%;
+                 background: #0E6B45; border: 2px solid #fff; }
+  .pro .info { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+  .pro .nm { font-size: 13px; font-weight: 700; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+  .pro .sk { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #5d6063; max-width: 150px; }
+  .pro .sk .skill { overflow: hidden; text-overflow: ellipsis; }
+  .pin.sel .sk { color: rgba(255,255,255,.92); }
+  .pin.sel .av { background: #fff; }
   .pin.req { background: #15181A; color: #fff; }
   .pin.req:after { border-top-color: #15181A; }
   .pin.sel { background: #F27511; color: #fff; z-index: 1000; }
@@ -86,11 +109,28 @@ const MAP_HTML = `<!DOCTYPE html>
       return el;
     }
     if (p.kind === 'provider') {
-      if (p.live) el.appendChild(span('nowdot', ''));
-      el.appendChild(span('star', '\\u2605'));
-      el.appendChild(span('', Number(p.rating || 0).toFixed(1)));
-      if (p.verified) el.appendChild(span('tick', '\\u2713'));
-      classes[p.id] = p.live ? 'pin now' : 'pin';
+      var av = document.createElement('div'); av.className = 'av';
+      var initials = function () { av.textContent = p.initials || '?'; if (p.live) av.appendChild(span('nowdot', '')); };
+      if (p.photoUrl && /^https:\\/\\//.test(p.photoUrl)) {
+        var img = document.createElement('img');
+        img.alt = '';
+        img.onerror = function () { av.removeChild(img); initials(); };
+        img.src = p.photoUrl;
+        av.appendChild(img);
+        if (p.live) av.appendChild(span('nowdot', ''));
+      } else {
+        initials();
+      }
+      var info = document.createElement('div'); info.className = 'info';
+      info.appendChild(span('nm', p.name || 'Provider'));
+      var sk = span('sk', '');
+      if (p.skill) { sk.appendChild(span('skill', p.skill)); sk.appendChild(span('', '\\u00b7')); }
+      sk.appendChild(span('star', '\\u2605'));
+      sk.appendChild(span('', Number(p.rating || 0).toFixed(1)));
+      if (p.verified) sk.appendChild(span('tick', '\\u2713'));
+      info.appendChild(sk);
+      el.appendChild(av); el.appendChild(info);
+      classes[p.id] = 'pin pro' + (p.live ? ' now' : '');
     } else {
       el.appendChild(span('', p.label));
       classes[p.id] = 'pin req';
