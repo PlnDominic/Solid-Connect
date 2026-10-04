@@ -44,7 +44,8 @@ import { Platform } from 'react-native';
 export const colors = {
   // White ground - the page background is plain white, not warm/beige paper.
   paper: '#FFFFFF',
-  paperDim: '#F2F2F1',
+  // Barely-there grey: just enough for white cards (with shadow.card) to lift.
+  paperDim: '#F8F8F7',
   card: '#FFFFFF',
 
   // Ink - warm near-black, not a cold gray-black.
@@ -97,9 +98,9 @@ export const colors = {
   orangeDeep: '#C85A08',
   bg: '#FFFFFF',
   surface: '#FFFFFF',
-  tile: '#F2F2F1',
+  tile: '#F8F8F7',
   tileBorder: '#E3E3E1',
-  hairlineSoft: '#F2F2F1',
+  hairlineSoft: '#F8F8F7',
   inputBorder: '#E3E3E1',
   textPrimary: '#15181A',
   textHeading: '#15181A',
