@@ -9,6 +9,7 @@ export function SignUpEmailScreen({
   activeIndex,
   value,
   onChangeValue,
+  excludeUserId,
   onBack,
   onNext,
 }: {
@@ -16,6 +17,8 @@ export function SignUpEmailScreen({
   activeIndex: number;
   value: string;
   onChangeValue: (v: string) => void;
+  /** The signed-in user's own id, so their own address isn't "taken". */
+  excludeUserId?: string | null;
   onBack: () => void;
   onNext: () => void;
 }) {
@@ -26,7 +29,7 @@ export function SignUpEmailScreen({
     setDupError(null);
     setChecking(true);
     try {
-      const taken = await isEmailTaken(value.trim());
+      const taken = await isEmailTaken(value.trim(), excludeUserId ?? undefined);
       if (taken) {
         setDupError('An account with that email already exists.');
         return;

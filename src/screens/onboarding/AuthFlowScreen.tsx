@@ -16,11 +16,12 @@ import {
 import { hasSeenLanding, markLandingSeen } from '../../lib/landing';
 import { LEGAL_VERSION } from '../../lib/legal';
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
+import { firstMissingSignUpStep, profileSignUpDetails, type SignUpStep } from '../../lib/signUpSteps';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
-import type { Role } from '../../types/database';
+import type { Profile, Role } from '../../types/database';
 import { OnboardingScreen } from './OnboardingScreen';
 import { SignInScreen } from './SignInScreen';
 import { SignUpCategoryScreen } from './SignUpCategoryScreen';
@@ -53,6 +54,17 @@ type Phase =
 // 3 onboarding info slides + name + phone + location + email + role +
 // category (providers only) + password.
 const TOTAL_STEPS = 10;
+
+type SignInHints = { fullName?: string; email?: string };
+
+const PHASE_FOR_STEP: Record<SignUpStep, Phase> = {
+  name: 'signup-name',
+  phone: 'signup-phone',
+  location: 'signup-location',
+  email: 'signup-email',
+  role: 'signup-role',
+  category: 'signup-category',
+};
 
 /**
  * Orchestrates the cold-start flow. Real accounts only - no anonymous
@@ -89,6 +101,9 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   // (or typed on sign-in) until an account exists to claim it with -
   // see claimReferralAfterAuth below.
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  // Set once an account exists (social sign-in, or resuming), so the
+  // phone/email duplicate checks don't flag this user's own details.
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const setProfile = useSessionStore((s) => s.setProfile);
   const setBootstrapping = useSessionStore((s) => s.setBootstrapping);
 
@@ -159,17 +174,12 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         if (userId) {
           // Signed-in users never see the marketing landing.
           await markLandingSeen();
+          setAuthUserId(userId);
           const profile = await fetchProfile(userId);
-          if (profile) {
-            setProfile(profile);
-            setBootstrapping(false);
-            onDone();
-            return;
-          }
-          // Session exists but the profile is unfinished - continue signup,
-          // do not send them through splash/landing again.
           setBootstrapping(false);
-          await resumeUnfinishedSignUp();
+          // Finished accounts go to Main; anything unfinished continues
+          // sign-up rather than going through splash/landing again.
+          await finishOrResume(profile);
           return;
         }
         setBootstrapping(false);
@@ -313,39 +323,71 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     }
   }
 
-  async function afterSignIn(userId: string) {
+  /** `hints` carries what a social provider just told us (name, email) -
+   * passed through directly because state set a moment ago isn't readable
+   * until the next render. */
+  async function afterSignIn(userId: string, hints: SignInHints = {}) {
+    setAuthUserId(userId);
     const profile = await fetchProfile(userId);
-    if (profile) {
+    await finishOrResume(profile, hints);
+  }
+
+  /**
+   * Every account must end with the same required details, however it
+   * signed in. A complete profile goes to Main; otherwise sign-up picks up
+   * at the first missing step and walks forward through every later step
+   * (prefilled) - a Google/Apple sign-in hands us a name and email, but
+   * never a phone, area, role, terms acceptance or trade.
+   */
+  async function finishOrResume(profile: Profile | null, hints: SignInHints = {}) {
+    if (profile && firstMissingSignUpStep(profileSignUpDetails(profile)) === null) {
       setProfile(profile);
       await claimReferralAfterAuth();
       onDone();
       return;
     }
-    // Authenticated but never finished the role step (e.g. confirmed email
-    // in a different session, or a first-time Google/Apple sign-in).
-    await resumeUnfinishedSignUp();
+    await resumeUnfinishedSignUp(profile, hints);
   }
 
   /**
-   * Picks sign-up back up for an account with no profile yet. What was typed
-   * before the account existed may only survive as auth metadata (an app
-   * restart while confirming email wipes this screen's state), so restore
-   * it from there; without a name, ask for the details again rather than
-   * create a nameless profile.
+   * Picks sign-up back up for an account with no profile (or an incomplete
+   * one). What was typed before the account existed may only survive as
+   * auth metadata (an app restart while confirming email wipes this
+   * screen's state), so restore it from there, then from any partial
+   * profile row, and start at the first required step still missing.
+   * Later steps still follow in order, prefilled, so nothing is skipped.
    */
-  async function resumeUnfinishedSignUp() {
-    let name = fullName.trim();
+  async function resumeUnfinishedSignUp(profile: Profile | null = null, hints: SignInHints = {}) {
+    const known = {
+      fullName: fullName.trim() || hints.fullName?.trim() || '',
+      phone: phone.trim(),
+      area: area.trim(),
+      email: email.trim() || hints.email?.trim() || '',
+    };
     try {
       const meta = await getSignUpMetadata();
-      name = name || meta.full_name || '';
-      if (meta.full_name && !fullName.trim()) setFullName(meta.full_name);
-      if (meta.phone && !phone.trim()) setPhone(meta.phone);
-      if (meta.area && !area.trim()) setArea(meta.area);
-      if (meta.email && !email.trim()) setEmail(meta.email);
+      known.fullName ||= meta.full_name ?? '';
+      known.phone ||= meta.phone ?? '';
+      known.area ||= meta.area ?? '';
+      known.email ||= meta.email ?? '';
     } catch {
       // Fall through to asking for the details.
     }
-    setPhase(name ? 'signup-role' : 'signup-name');
+    if (profile) {
+      known.fullName ||= profile.full_name ?? '';
+      known.phone ||= profile.phone ?? '';
+      known.area ||= profile.area ?? '';
+      known.email ||= profile.email ?? '';
+      if (profile.terms_accepted_at) setTermsAccepted(true);
+    }
+    setFullName(known.fullName);
+    setPhone(known.phone);
+    setArea(known.area);
+    setEmail(known.email);
+    // Role and terms are always confirmed on screen for a resumed account,
+    // so the earliest this can start is the role step.
+    const step = firstMissingSignUpStep({ ...known, role: null }) ?? 'role';
+    setPhase(PHASE_FOR_STEP[step]);
   }
 
   async function handleSignInPassword(identifier: string, password: string, method: 'email' | 'phone') {
@@ -368,9 +410,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     try {
       const result = await signInWithGoogle();
       if (!result.user) throw new Error('Google sign-in did not return an account.');
-      if (result.user.user_metadata?.full_name) setFullName(String(result.user.user_metadata.full_name));
-      if (result.user.email) setEmail(result.user.email);
-      await afterSignIn(result.user.id);
+      const googleName = result.user.user_metadata?.full_name;
+      await afterSignIn(result.user.id, {
+        fullName: googleName ? String(googleName) : undefined,
+        email: result.user.email ?? undefined,
+      });
     } catch (e: any) {
       setSignInErr(friendlyAuthError(e, 'Could not sign in with Google.'));
     } finally {
@@ -388,9 +432,10 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       const appleName =
         meta.full_name ||
         [meta.given_name, meta.family_name].filter(Boolean).join(' ').trim();
-      if (appleName) setFullName(String(appleName));
-      if (result.user.email) setEmail(result.user.email);
-      await afterSignIn(result.user.id);
+      await afterSignIn(result.user.id, {
+        fullName: appleName ? String(appleName) : undefined,
+        email: result.user.email ?? undefined,
+      });
     } catch (e: any) {
       setSignInErr(friendlyAuthError(e, 'Could not sign in with Apple.'));
     } finally {
@@ -442,6 +487,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         activeIndex={4}
         value={phone}
         onChangeValue={setPhone}
+        excludeUserId={authUserId}
         onBack={() => setPhase('signup-name')}
         onNext={() => setPhase('signup-location')}
       />
@@ -468,6 +514,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         activeIndex={6}
         value={email}
         onChangeValue={setEmail}
+        excludeUserId={authUserId}
         onBack={() => setPhase('signup-location')}
         onNext={() => setPhase('signup-role')}
       />

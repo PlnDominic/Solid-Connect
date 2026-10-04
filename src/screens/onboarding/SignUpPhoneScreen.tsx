@@ -1,19 +1,14 @@
 import { useState } from 'react';
 import { isPhoneTaken } from '../../api/profile';
+import { isPlausiblePhone } from '../../lib/signUpSteps';
 import { SignUpDetailScreen } from './SignUpDetailScreen';
-
-// Loose but real check: digits/spaces/+/- only, at least 9 digits - enough
-// to catch typos without pretending this is OTP-grade validation.
-function isPlausiblePhone(v: string): boolean {
-  const digits = v.replace(/[^\d]/g, '');
-  return /^[\d+\-\s]+$/.test(v.trim()) && digits.length >= 9;
-}
 
 export function SignUpPhoneScreen({
   totalSteps,
   activeIndex,
   value,
   onChangeValue,
+  excludeUserId,
   onBack,
   onNext,
 }: {
@@ -21,6 +16,8 @@ export function SignUpPhoneScreen({
   activeIndex: number;
   value: string;
   onChangeValue: (v: string) => void;
+  /** The signed-in user's own id, so their own number isn't "taken". */
+  excludeUserId?: string | null;
   onBack: () => void;
   onNext: () => void;
 }) {
@@ -31,7 +28,7 @@ export function SignUpPhoneScreen({
     setDupError(null);
     setChecking(true);
     try {
-      const taken = await isPhoneTaken(value.trim());
+      const taken = await isPhoneTaken(value.trim(), excludeUserId ?? undefined);
       if (taken) {
         setDupError('That phone number is already registered.');
         return;
