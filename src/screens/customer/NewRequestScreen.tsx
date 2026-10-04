@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Briefcase, ImagePlus, Plus, UserRound, X } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
+import { ImagePlus, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useCreateRequest } from '../../api/requests';
@@ -19,6 +19,11 @@ import type { Category } from '../../types/database';
 
 const MAX_PHOTOS = 4;
 const MIN_DESCRIPTION = 10;
+
+// One question per screen. Which screens a customer sees depends on how
+// they arrived: a trade picked on Home skips 'service', and a request to
+// one named provider asks for a time slot on the 'where' screen.
+type StepKey = 'service' | 'problem' | 'budget' | 'where';
 
 function bandFor(category: Category | null) {
   const min = category?.budget_min ?? 200;
@@ -62,7 +67,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const preferredProviderName: string | undefined = params.preferredProviderName;
   const isDirect = Boolean(preferredProviderId);
 
-  const [step, setStep] = useState(tradeLocked || isDirect ? 2 : 1);
+  const steps: StepKey[] =
+    tradeLocked || isDirect ? ['problem', 'budget', 'where'] : ['service', 'problem', 'budget', 'where'];
+  const [stepIndex, setStepIndex] = useState(0);
+  const step = steps[stepIndex];
+  const isLast = stepIndex === steps.length - 1;
+
   const [category, setCategory] = useState<Category | null>(null);
   const [description, setDescription] = useState(params.initialDescription ?? '');
   const [budgetText, setBudgetText] = useState('');
@@ -73,13 +83,19 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [preferredTime, setPreferredTime] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [descriptionFocused, setDescriptionFocused] = useState(false);
   const [budgetFocused, setBudgetFocused] = useState(false);
 
   const band = bandFor(category);
   const budget = parseInt(budgetText.replace(/[^\d]/g, ''), 10);
+  const budgetValid = Boolean(budget) && budget >= band.min && budget <= band.max;
   // Dynamic validation per entering-data.md: surface the problem the
   // moment it's true, rather than only after Continue is tapped.
-  const budgetOutOfRange = budgetText.length > 0 && (!budget || budget < band.min || budget > band.max);
+  const budgetOutOfRange = budgetText.length > 0 && !budgetValid;
+  // Providers quote from this text, so it has to describe this job - never
+  // fall back to the sample sentence in the placeholder.
+  const descriptionLength = description.trim().length;
+  const descriptionValid = descriptionLength >= MIN_DESCRIPTION;
 
   useEffect(() => {
     if (!categories.length || category) return;
@@ -96,47 +112,25 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
     setBudgetText((prev) => (prev ? prev : String(mid)));
   }, [category?.id]);
 
-  const stepCount = isDirect ? 1 : tradeLocked ? 2 : 3;
-  const progressStep = useMemo(() => {
-    if (isDirect) return 1;
-    if (!tradeLocked) return step;
-    return step === 2 ? 1 : 2;
-  }, [isDirect, tradeLocked, step]);
-
   function selectCategory(c: Category) {
     setCategory(c);
     setBudgetText(String(bandFor(c).mid));
   }
 
+  function goTo(index: number) {
+    setError(null);
+    setStepIndex(index);
+  }
+
   function handleBack() {
-    if (step === 1 || ((tradeLocked || isDirect) && step === 2)) {
+    if (stepIndex === 0) {
       navigation.goBack();
       return;
     }
-    setStep((s) => s - 1);
+    goTo(stepIndex - 1);
   }
 
   const placeholderDescription = 'Kitchen sink has been leaking under the cabinet since yesterday.';
-
-  function validateBudget(): string | null {
-    if (!category) return 'Pick a service first.';
-    if (!budget || Number.isNaN(budget)) return 'Enter your budget.';
-    if (budget < band.min || budget > band.max) {
-      return `Budget must be between GHS ${band.min} and GHS ${band.max} for ${category.name}.`;
-    }
-    return null;
-  }
-
-  // Providers quote from this text, so it has to describe this job - never
-  // fall back to the sample sentence in the placeholder.
-  function validateDetails(): string | null {
-    const budgetError = validateBudget();
-    if (budgetError) return budgetError;
-    if (description.trim().length < MIN_DESCRIPTION) {
-      return 'Describe the work in a few words so providers can quote accurately.';
-    }
-    return null;
-  }
 
   async function pickPhoto() {
     if (photoUris.length >= MAX_PHOTOS) return;
@@ -160,9 +154,8 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
       setError('Enter a valid location for this request.');
       return;
     }
-    const detailsError = validateDetails();
-    if (detailsError) {
-      setError(detailsError);
+    if (!budgetValid || !descriptionValid) {
+      setError('Go back and check your description and budget.');
       return;
     }
     setError(null);
@@ -190,139 +183,99 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
     }
   }
 
+  // Continue only unlocks once this screen's one answer is valid, so the
+  // customer never learns about a problem on a later screen.
+  const canContinue =
+    step === 'service'
+      ? Boolean(category)
+      : step === 'problem'
+        ? Boolean(category) && descriptionValid
+        : step === 'budget'
+          ? budgetValid
+          : Boolean(category) && isValidArea(location);
+
   function handleContinue() {
-    if (isDirect && step === 2) {
+    if (isLast) {
       void handlePost();
       return;
     }
-    if (step === 2) {
-      const detailsError = validateDetails();
-      if (detailsError) {
-        setError(detailsError);
-        return;
-      }
-      setError(null);
-    }
-    setStep((s) => s + 1);
+    goTo(stepIndex + 1);
   }
 
-  const budgetField = (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>
-        Your budget (GHS {band.min}–{band.max})
-      </Text>
-      <View style={[styles.budgetField, budgetFocused && styles.budgetFieldFocused]}>
-        <Text style={styles.budgetCurrency}>GHS</Text>
-        <TextInput
-          value={budgetText}
-          onChangeText={setBudgetText}
-          onFocus={() => setBudgetFocused(true)}
-          onBlur={() => setBudgetFocused(false)}
-          keyboardType="number-pad"
-          placeholder={String(band.mid)}
-          placeholderTextColor={colors.inkFainter}
-          style={styles.budgetInput}
-        />
-      </View>
-      <Text style={[styles.budgetHint, budgetOutOfRange && styles.budgetHintError]}>
-        {budgetOutOfRange
-          ? `Enter an amount between GHS ${band.min} and GHS ${band.max}.`
-          : `Typical range for ${category?.name ?? 'this service'}.`}
-      </Text>
-    </View>
-  );
+  const tradeName = category?.name.toLowerCase();
 
   return (
     <Screen>
       <ScreenHeader
-        title={isDirect ? 'Request provider' : tradeLocked && category ? category.name : 'New request'}
+        title={isDirect && preferredProviderName ? `Request ${preferredProviderName}` : 'New request'}
         onBack={handleBack}
       />
       <View style={styles.progressWrap}>
-        <StepBars count={stepCount} step={progressStep} />
+        <StepBars count={steps.length} step={stepIndex + 1} />
+        <Text style={styles.progressText}>
+          Step {stepIndex + 1} of {steps.length}
+        </Text>
       </View>
 
-      {step === 1 && !tradeLocked && !isDirect && (
-        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-          <View style={styles.sectionHeading}>
-            <Text style={styles.sectionTitle}>What do you need done?</Text>
-            <Text style={styles.sectionCount}>{categories.length} categories</Text>
-          </View>
-          <View style={styles.categoryGrid}>
-            {categories.map((c) => (
-              <CategoryGridTile
-                key={c.id}
-                id={c.id}
-                abbr={c.abbr}
-                name={c.name}
-                selected={category?.id === c.id}
-                illustrated
-                onPress={() => selectCategory(c)}
-              />
-            ))}
-          </View>
-        </ScrollView>
-      )}
-
-      {step === 2 && (
-        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-          <Text style={styles.groupLabel}>REQUEST</Text>
-          <View style={styles.groupCard}>
-            <View style={[styles.groupRow, preferredProviderName && styles.groupRowBorder]}>
-              <View style={styles.groupRowIcon}>
-                <Briefcase size={17} strokeWidth={2} color={colors.inkFaint} />
-              </View>
-              <View style={styles.groupRowText}>
-                <Text style={styles.groupRowLabel}>Service</Text>
-                <Text style={styles.groupRowValue}>{category?.default_label ?? 'Loading trade…'}</Text>
-              </View>
+      <ScrollView
+        contentContainerStyle={styles.body}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {step === 'service' && (
+          <>
+            <Question
+              title="What do you need done?"
+              subtitle="Pick the service that fits your job best."
+              styles={styles}
+            />
+            <View style={styles.categoryGrid}>
+              {categories.map((c) => (
+                <CategoryGridTile
+                  key={c.id}
+                  id={c.id}
+                  abbr={c.abbr}
+                  name={c.name}
+                  selected={category?.id === c.id}
+                  illustrated
+                  onPress={() => selectCategory(c)}
+                />
+              ))}
             </View>
-            {preferredProviderName ? (
-              <View style={styles.groupRow}>
-                <View style={styles.groupRowIcon}>
-                  <UserRound size={17} strokeWidth={2} color={colors.inkFaint} />
-                </View>
-                <View style={styles.groupRowText}>
-                  <Text style={styles.groupRowLabel}>Provider</Text>
-                  <Text style={styles.groupRowValue}>{preferredProviderName}</Text>
-                </View>
-              </View>
-            ) : null}
-          </View>
+          </>
+        )}
 
-          {isDirect ? (
-            <View style={styles.field}>
-              <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
-            </View>
-          ) : null}
-
-          {isDirect && preferredProviderId ? (
-            <View style={styles.field}>
-              <SlotPicker providerId={preferredProviderId} value={preferredTime} onChange={setPreferredTime} />
-            </View>
-          ) : null}
-
-          {budgetField}
-
-          <Text style={styles.groupLabel}>DETAILS</Text>
-          <View style={styles.groupCard}>
-            <View style={[styles.detailBlock, styles.groupRowBorder]}>
-              <Text style={styles.groupRowLabel}>Describe the work</Text>
+        {step === 'problem' && (
+          <>
+            <Question
+              title="What's the problem?"
+              subtitle={`Describe the ${tradeName ? tradeName + ' ' : ''}job in your own words. Providers quote from this.`}
+              styles={styles}
+            />
+            <View style={styles.section}>
               <TextInput
                 value={description}
                 onChangeText={setDescription}
+                onFocus={() => setDescriptionFocused(true)}
+                onBlur={() => setDescriptionFocused(false)}
                 placeholder={placeholderDescription}
                 placeholderTextColor={colors.inkFainter}
                 multiline
-                style={styles.textarea}
+                style={[styles.textarea, descriptionFocused && styles.inputFocused]}
+                accessibilityLabel="Describe the work"
               />
-              <Text style={styles.detailHint}>A clear description helps providers quote accurately.</Text>
-            </View>
-            <View style={styles.detailBlock}>
-              <Text style={styles.groupRowLabel}>
-                Photos <Text style={styles.groupRowLabelCount}>({photoUris.length}/{MAX_PHOTOS})</Text>
+              <Text style={styles.hint}>
+                {descriptionValid
+                  ? 'Looks good. More detail helps you get accurate quotes.'
+                  : `Write at least ${MIN_DESCRIPTION} characters (${descriptionLength}/${MIN_DESCRIPTION}).`}
               </Text>
-              <Text style={styles.detailHint}>Add photos so providers understand the job before quoting.</Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.label}>
+                Photos <Text style={styles.labelAside}>optional · {photoUris.length}/{MAX_PHOTOS}</Text>
+              </Text>
+              <Text style={styles.hint}>A photo or two shows providers the job before they quote.</Text>
               <View style={styles.photoRow}>
                 {photoUris.map((uri) => (
                   <View key={uri} style={styles.photoWrap}>
@@ -334,209 +287,274 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
                       accessibilityRole="button"
                       accessibilityLabel="Remove this photo"
                     >
-                      <X size={12} strokeWidth={3} color={colors.white} />
+                      <X size={13} strokeWidth={3} color={colors.white} />
                     </Pressable>
                   </View>
                 ))}
                 {photoUris.length < MAX_PHOTOS ? (
-                  <Pressable style={styles.photoAdd} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel="Add a photo">
+                  <Pressable
+                    style={styles.photoAdd}
+                    onPress={pickPhoto}
+                    accessibilityRole="button"
+                    accessibilityLabel="Add a photo"
+                  >
                     {photoUris.length ? (
-                      <Plus size={20} strokeWidth={1.8} color={colors.inkFaint} />
+                      <Plus size={24} strokeWidth={1.8} color={colors.inkMuted} />
                     ) : (
-                      <ImagePlus size={20} strokeWidth={1.8} color={colors.inkFaint} />
+                      <ImagePlus size={24} strokeWidth={1.8} color={colors.inkMuted} />
                     )}
+                    <Text style={styles.photoAddText}>Add</Text>
                   </Pressable>
                 ) : null}
               </View>
             </View>
-          </View>
-
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        </ScrollView>
-      )}
-
-      {step === 3 && !isDirect && (
-        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-          <View style={styles.field}>
-            <Text style={styles.fieldLabel}>When</Text>
-            <View style={styles.readonlyField}>
-              <Text style={styles.readonlyValueMono}>Today</Text>
-            </View>
-          </View>
-          {budgetField}
-          <View style={styles.field}>
-            <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
-          </View>
-
-          <View style={styles.reviewCard}>
-            <Text style={styles.reviewLabel}>REQUEST SUMMARY</Text>
-            <Text style={styles.reviewCategory}>{category?.default_label}</Text>
-            <Text style={styles.reviewDesc}>Budget GHS {budget || '—'}</Text>
-            <Text style={styles.reviewDesc}>{description || placeholderDescription}</Text>
-            {photoUris.length ? (
-              <Text style={styles.reviewDesc}>
-                {photoUris.length} photo{photoUris.length === 1 ? '' : 's'} attached
-              </Text>
-            ) : null}
-          </View>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        </ScrollView>
-      )}
-
-      <View style={styles.footer}>
-        {step < 3 || isDirect ? (
-          <Button
-            title={isDirect && step === 2 ? 'Send to provider' : 'Continue'}
-            variant="active"
-            disabled={
-              (step === 1 && !category) ||
-              (step === 2 && !category) ||
-              (isDirect && step === 2 && !isValidArea(location))
-            }
-            loading={isDirect && step === 2 && createRequest.isPending}
-            onPress={handleContinue}
-          />
-        ) : (
-          <>
-            <Button
-              title="Post request"
-              variant="active"
-              onPress={handlePost}
-              loading={createRequest.isPending}
-              disabled={!isValidArea(location) || !category}
-            />
-            {verifiedCount > 0 ? (
-              <Text style={styles.footerNote}>{verifiedCount} verified providers ready to help</Text>
-            ) : null}
           </>
         )}
+
+        {step === 'budget' && (
+          <>
+            <Question
+              title="What's your budget?"
+              subtitle={`Most ${tradeName ? tradeName + ' ' : ''}jobs cost between GHS ${band.min} and GHS ${band.max}.`}
+              styles={styles}
+            />
+            <View style={styles.section}>
+              <View
+                style={[
+                  styles.budgetField,
+                  budgetFocused && styles.budgetFieldFocused,
+                  budgetOutOfRange && styles.budgetFieldError,
+                ]}
+              >
+                <Text style={styles.budgetCurrency}>GHS</Text>
+                <TextInput
+                  value={budgetText}
+                  onChangeText={setBudgetText}
+                  onFocus={() => setBudgetFocused(true)}
+                  onBlur={() => setBudgetFocused(false)}
+                  keyboardType="number-pad"
+                  placeholder={String(band.mid)}
+                  placeholderTextColor={colors.inkFainter}
+                  style={styles.budgetInput}
+                  accessibilityLabel="Your budget in Ghana cedis"
+                />
+              </View>
+              <Text style={[styles.hint, budgetOutOfRange && styles.hintError]}>
+                {budgetOutOfRange
+                  ? `Enter an amount between GHS ${band.min} and GHS ${band.max}.`
+                  : 'Providers can quote above or below this. You choose who to hire.'}
+              </Text>
+            </View>
+          </>
+        )}
+
+        {step === 'where' && (
+          <>
+            <Question
+              title={isDirect ? 'Where and when?' : "Where's the job?"}
+              subtitle={
+                isDirect
+                  ? `Tell ${preferredProviderName ?? 'the provider'} where to come, and pick a time if you like.`
+                  : 'Providers near this area will see your request.'
+              }
+              styles={styles}
+            />
+            <View style={styles.section}>
+              <LocationField label="Area" value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
+            </View>
+
+            {isDirect && preferredProviderId ? (
+              <View style={styles.section}>
+                <SlotPicker providerId={preferredProviderId} value={preferredTime} onChange={setPreferredTime} />
+              </View>
+            ) : null}
+
+            <View style={styles.summary}>
+              <Text style={styles.summaryTitle}>Your request</Text>
+              <SummaryRow label="Service" value={category?.default_label ?? '—'} styles={styles} />
+              {preferredProviderName ? (
+                <SummaryRow label="Provider" value={preferredProviderName} styles={styles} />
+              ) : null}
+              {!isDirect ? <SummaryRow label="When" value="Today" styles={styles} /> : null}
+              <SummaryRow label="Budget" value={`GHS ${budget || '—'}`} mono styles={styles} />
+              <SummaryRow
+                label="Photos"
+                value={photoUris.length ? `${photoUris.length} attached` : 'None'}
+                styles={styles}
+              />
+              <Text style={styles.summaryDescription} numberOfLines={4}>
+                {description.trim()}
+              </Text>
+            </View>
+          </>
+        )}
+
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <Button
+          title={isLast ? (isDirect ? 'Send to provider' : 'Post request') : 'Continue'}
+          variant="active"
+          disabled={!canContinue}
+          loading={isLast && createRequest.isPending}
+          onPress={handleContinue}
+        />
+        {isLast && !isDirect && verifiedCount > 0 ? (
+          <Text style={styles.footerNote}>{verifiedCount} verified providers ready to help</Text>
+        ) : null}
       </View>
     </Screen>
   );
 }
 
+type Styles = ReturnType<typeof makeStyles>;
+
+function Question({ title, subtitle, styles }: { title: string; subtitle: string; styles: Styles }) {
+  return (
+    <View style={styles.question}>
+      <Text style={styles.questionTitle} accessibilityRole="header">
+        {title}
+      </Text>
+      <Text style={styles.questionSubtitle}>{subtitle}</Text>
+    </View>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  mono = false,
+  styles,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  styles: Styles;
+}) {
+  return (
+    <View style={styles.summaryRow}>
+      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={[styles.summaryValue, mono && styles.summaryValueMono]} numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    progressWrap: { paddingHorizontal: spacing.lg, paddingBottom: spacing.lg, backgroundColor: colors.paper },
-    body: { padding: spacing.lg, gap: spacing.xl },
-    sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-    sectionTitle: { fontSize: 19, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.3 },
-    sectionCount: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
-    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-    field: { gap: 7 },
-    fieldLabel: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
-    readonlyField: {
-      height: 52,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      backgroundColor: colors.card,
-      justifyContent: 'center',
-      paddingHorizontal: spacing.md,
+    progressWrap: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+      gap: spacing.sm,
+      backgroundColor: colors.paper,
     },
-    readonlyValue: { fontSize: 17, fontFamily: fonts.medium, color: colors.ink },
-    readonlyValueMono: { fontSize: 17, fontFamily: fonts.mono, color: colors.ink },
+    progressText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted },
+    body: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.xxl },
 
-    // Small all-caps eyebrow above a grouped card - same idiom as the
-    // settings screens (Account Security, Appearance): the section's own
-    // job stated once, quietly, never repeated on every row inside it.
-    groupLabel: { fontSize: 12.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -8 },
-    groupCard: {
+    question: { gap: spacing.sm },
+    questionTitle: { fontSize: 27, lineHeight: 33, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.6 },
+    questionSubtitle: { fontSize: 16.5, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
+
+    section: { gap: spacing.sm },
+    label: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
+    labelAside: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
+    hint: { fontSize: 15, lineHeight: 21, fontFamily: fonts.medium, color: colors.inkMuted },
+    hintError: { color: colors.danger },
+
+    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+
+    textarea: {
+      minHeight: 168,
       borderRadius: radii.xl,
       borderWidth: 1,
-      borderColor: colors.hairline,
+      borderColor: colors.hairlineStrong,
       backgroundColor: colors.card,
-      overflow: 'hidden',
-    },
-    groupRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      minHeight: 60,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.lg,
-    },
-    groupRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
-    groupRowIcon: {
-      width: 34,
-      height: 34,
-      borderRadius: radii.md,
-      backgroundColor: colors.paperDim,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    groupRowText: { flex: 1, gap: 1 },
-    groupRowLabel: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
-    groupRowLabelCount: { fontFamily: fonts.medium, color: colors.inkFainter },
-    groupRowValue: { fontSize: 17.5, fontFamily: fonts.semibold, color: colors.ink },
-
-    budgetField: {
-      height: 62,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      backgroundColor: colors.card,
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: spacing.md,
-    },
-    budgetFieldFocused: { borderWidth: 1.5, borderColor: colors.ink },
-    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 19, fontFamily: fonts.medium },
-    budgetInput: { flex: 1, fontSize: 22, fontFamily: fonts.mono, color: colors.ink },
-    budgetHint: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
-    budgetHintError: { color: colors.danger },
-
-    // Nested directly in a groupCard - no border/background of its own, so
-    // it reads as one continuous row rather than a card within a card.
-    detailBlock: { padding: spacing.lg, gap: spacing.sm },
-    detailHint: { fontSize: 14, lineHeight: 19, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: -4 },
-    textarea: {
-      minHeight: 110,
-      fontSize: 17,
-      lineHeight: 25,
+      padding: spacing.lg,
+      fontSize: 18,
+      lineHeight: 26,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',
-      padding: 0,
-      margin: 0,
     },
-    photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-    photoWrap: { width: 72, height: 72 },
-    photo: { width: 72, height: 72, borderRadius: radii.lg, backgroundColor: colors.paperDim },
+    inputFocused: { borderWidth: 1.5, borderColor: colors.ink },
+
+    photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs },
+    photoWrap: { width: 88, height: 88 },
+    photo: { width: 88, height: 88, borderRadius: radii.xl, backgroundColor: colors.paperDim },
     photoRemove: {
       position: 'absolute',
-      top: -6,
-      right: -6,
-      width: 22,
-      height: 22,
+      top: -7,
+      right: -7,
+      width: 26,
+      height: 26,
       borderRadius: radii.pill,
       backgroundColor: colors.ink,
       alignItems: 'center',
       justifyContent: 'center',
     },
     photoAdd: {
-      width: 72,
-      height: 72,
-      borderRadius: radii.lg,
+      width: 88,
+      height: 88,
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderStyle: 'dashed',
       borderColor: colors.hairlineStrong,
       backgroundColor: colors.paperDim,
       alignItems: 'center',
       justifyContent: 'center',
+      gap: 4,
     },
-    reviewCard: {
-      borderRadius: radii.lg,
+    photoAddText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted },
+
+    // Ruled entry line, like the amount line on a payment slip.
+    budgetField: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.md,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.hairlineStrong,
+    },
+    budgetFieldFocused: { borderBottomColor: colors.ink },
+    budgetFieldError: { borderBottomColor: colors.danger },
+    budgetCurrency: { fontSize: 22, fontFamily: fonts.semibold, color: colors.inkFaint },
+    budgetInput: { flex: 1, fontSize: 36, fontFamily: fonts.mono, color: colors.ink, padding: 0 },
+
+    summary: {
+      borderRadius: radii.xl,
       borderWidth: 1,
       borderColor: colors.hairline,
       backgroundColor: colors.card,
-      padding: spacing.lg,
-      gap: 6,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
     },
-    reviewLabel: { fontSize: 12, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    reviewCategory: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    reviewDesc: { fontSize: 15, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
-    errorText: { fontSize: 15, fontFamily: fonts.medium, color: colors.danger },
+    summaryTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink, paddingVertical: spacing.sm },
+    summaryRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: spacing.lg,
+      paddingVertical: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.hairline,
+    },
+    summaryLabel: { fontSize: 16, fontFamily: fonts.medium, color: colors.inkMuted },
+    summaryValue: { flexShrink: 1, fontSize: 16, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
+    summaryValueMono: { fontFamily: fonts.mono },
+    summaryDescription: {
+      fontSize: 16,
+      lineHeight: 23,
+      fontFamily: fonts.regular,
+      color: colors.inkMuted,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.hairline,
+    },
+
+    errorText: { fontSize: 16, lineHeight: 22, fontFamily: fonts.semibold, color: colors.danger },
     footer: {
       padding: spacing.lg,
       paddingBottom: spacing.xl,
@@ -545,6 +563,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopColor: colors.hairline,
       gap: spacing.sm,
     },
-    footerNote: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
+    footerNote: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
   });
 }
