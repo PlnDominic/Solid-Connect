@@ -90,7 +90,13 @@ export type SignUpMetadata = { full_name?: string; phone?: string; area?: string
  * the screens' in-memory state is gone (see getSignUpMetadata).
  */
 export async function signUpWithPassword(email: string, password: string, metadata: SignUpMetadata = {}) {
-  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: metadata } });
+  // An explicit return address, so the confirmation link opens the app
+  // rather than falling back to the project's Site URL (the admin site).
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: metadata, emailRedirectTo: getOAuthRedirectUrl() },
+  });
   if (error) throw error;
   return data;
 }
