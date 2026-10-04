@@ -265,7 +265,7 @@ export function activeRequestHasContent(
     request.status === 'awaiting_provider' ||
     request.status === 'matching' ||
     request.status === 'open' ||
-    (request.status === 'quoted' && request.quotes.length > 0)
+    request.quotes.length > 0
   );
 }
 
@@ -292,7 +292,15 @@ export function ActiveRequestPanel({
   const { data: notifications = [] } = useNotifications(profile?.id ?? null);
   const cancelRequest = useCancelRequest();
 
-  const hasQuotes = !!request && request.status === 'quoted' && request.quotes.length > 0;
+  // Quotes show whenever there are any. Not gated on status === 'quoted':
+  // before 0069 the request's status was flipped by the quoting provider's
+  // own client, which RLS silently refused, so it could stay 'open' or
+  // 'matching' with quotes waiting on it.
+  const hasQuotes =
+    !!request &&
+    request.status !== 'awaiting_provider' &&
+    request.status !== 'rejected' &&
+    request.quotes.length > 0;
   const quoteCount = request?.quotes.length ?? 0;
   const seenQuoteCount = useRef(quoteCount);
   // Fires only on a real increase while this screen is mounted (a fresh
@@ -312,7 +320,7 @@ export function ActiveRequestPanel({
   // through both of those plus 'quoted'/'awaiting_provider' - anything
   // short of an actual job existing. Matches update_request()/
   // cancel_request()'s own server-side guards in 0033/0034.
-  const canEdit = isMatching;
+  const canEdit = isMatching && !hasQuotes;
   const canCancel = isMatching || isAwaiting || hasQuotes;
 
   function handleCancel() {
