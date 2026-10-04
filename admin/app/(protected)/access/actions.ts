@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { ADMIN_PERMISSIONS, createAdminClient, requireOwner, type AdminPermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
 import { assertOk } from '../../../lib/payments';
+import { ACCEPT_INVITE_PATH, adminSiteUrl } from '../../../lib/siteUrl';
 
 type ActionResult = { error?: string; success?: boolean };
 
@@ -26,7 +27,10 @@ export async function inviteAdmin(_prev: ActionResult, formData: FormData): Prom
   const { data: existing } = await adminClient.from('admins').select('id').eq('email', email).maybeSingle();
   if (existing) return { error: 'This email is already an admin.' };
 
-  const { data: invite, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email);
+  // The invite link must come back to this app's accept page, where the
+  // invitee sets a password - not the project Site URL (the mobile app).
+  const redirectTo = `${await adminSiteUrl()}${ACCEPT_INVITE_PATH}`;
+  const { data: invite, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, { redirectTo });
   if (inviteError || !invite?.user) {
     return { error: inviteError?.message ?? 'Could not send the invite.' };
   }
@@ -43,6 +47,27 @@ export async function inviteAdmin(_prev: ActionResult, formData: FormData): Prom
   await logAdminAction(owner, 'INVITED_ADMIN', { targetType: 'admin', targetId: invite.user.id, note: `Invited ${email} as ${role}` });
   revalidatePath('/access');
   return { success: true };
+}
+
+/** Owner-only: emails an existing admin a fresh link to (re)set their
+ * password on the accept page - for an invite link that expired, was
+ * already used, or (before redirects were fixed) landed in the wrong
+ * place. A new invite can't be sent once the account exists, so this goes
+ * out as a password-recovery email instead; the accept page handles both. */
+export async function sendAdminSetupLink(id: string): Promise<void> {
+  const owner = await requireOwner();
+  if (!owner || id === owner.id) return;
+
+  const adminClient = createAdminClient();
+  const { data: target, error: targetError } = await adminClient.from('admins').select('email, disabled_at').eq('id', id).maybeSingle();
+  assertOk(targetError, 'Reading the admin');
+  if (!target?.email || target.disabled_at) return;
+
+  const redirectTo = `${await adminSiteUrl()}${ACCEPT_INVITE_PATH}`;
+  const { error: linkError } = await adminClient.auth.resetPasswordForEmail(target.email, { redirectTo });
+  assertOk(linkError, 'Sending the setup link');
+  await logAdminAction(owner, 'SENT_ADMIN_SETUP_LINK', { targetType: 'admin', targetId: id, note: `Sent a setup link to ${target.email}` });
+  revalidatePath('/access');
 }
 
 /** Owner-only: changes another admin's role. */

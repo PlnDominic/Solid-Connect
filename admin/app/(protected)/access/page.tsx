@@ -4,7 +4,7 @@ import { ADMIN_PERMISSIONS, ADMIN_PERMISSION_LABELS, type AdminPermission } from
 import { ErrorBanner } from '../../components/ErrorBanner';
 import { Pagination, PAGE_SIZE, parsePage, clampPage } from '../../components/Pagination';
 import { InviteAdminForm } from './InviteAdminForm';
-import { setAdminDisabled, setAdminPermissions, setAdminRole } from './actions';
+import { sendAdminSetupLink, setAdminDisabled, setAdminPermissions, setAdminRole } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,6 +19,7 @@ const stampTime = (date: string) => new Intl.DateTimeFormat('en-GB', { day: 'num
 // point of a browsable log.
 const ACTION_LABELS: Record<string, string> = {
   INVITED_ADMIN: 'invited an admin',
+  SENT_ADMIN_SETUP_LINK: 'sent an admin a setup link',
   CHANGED_ADMIN_ROLE: "changed an admin's role",
   CHANGED_ADMIN_PERMISSIONS: "changed an admin's permissions",
   DISABLED_ADMIN: 'disabled an admin',
@@ -148,6 +149,11 @@ export default async function AccessPage({ searchParams }: Props) {
                               </select>
                               {!isSelf && <button className="filter-btn">Save</button>}
                             </form>
+                            {!isSelf && !a.disabled_at && (
+                              <form action={sendAdminSetupLink.bind(null, a.id)}>
+                                <button className="filter-btn" title="Email a fresh link to set their password">Send setup link</button>
+                              </form>
+                            )}
                             {!isSelf && (
                               <form action={setAdminDisabled.bind(null, a.id, !a.disabled_at)}>
                                 <button className="filter-btn">{a.disabled_at ? 'Enable' : 'Disable'}</button>
