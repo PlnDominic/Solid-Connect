@@ -13,7 +13,7 @@ import { SlotPicker } from '../../components/SlotPicker';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { StepBars } from '../../components/StepDots';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Category } from '../../types/database';
 
@@ -205,7 +205,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const tradeName = category?.name.toLowerCase();
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader
         title={isDirect && preferredProviderName ? `Request ${preferredProviderName}` : 'New request'}
         onBack={handleBack}
@@ -238,6 +238,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
                   name={c.name}
                   selected={category?.id === c.id}
                   illustrated
+                  elevated
                   onPress={() => selectCategory(c)}
                 />
               ))}
@@ -271,7 +272,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
               </Text>
             </View>
 
-            <View style={styles.section}>
+            <View style={[styles.card, styles.section]}>
               <Text style={styles.label}>
                 Photos <Text style={styles.labelAside}>optional · {photoUris.length}/{MAX_PHOTOS}</Text>
               </Text>
@@ -359,12 +360,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
               }
               styles={styles}
             />
-            <View style={styles.section}>
+            <View style={styles.card}>
               <LocationField label="Area" value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
             </View>
 
             {isDirect && preferredProviderId ? (
-              <View style={styles.section}>
+              <View style={styles.card}>
                 <SlotPicker providerId={preferredProviderId} value={preferredTime} onChange={setPreferredTime} />
               </View>
             ) : null}
@@ -449,6 +450,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingBottom: spacing.md,
       gap: spacing.sm,
       backgroundColor: colors.paper,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.hairline,
     },
     progressText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted },
     body: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.xxl },
@@ -458,19 +461,22 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     questionSubtitle: { fontSize: 16.5, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
 
     section: { gap: spacing.sm },
+    // Raised white card on the dimmed page - shadow does the separating.
+    card: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.lg, ...shadow.card },
     label: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
     labelAside: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
     hint: { fontSize: 15, lineHeight: 21, fontFamily: fonts.medium, color: colors.inkMuted },
     hintError: { color: colors.danger },
 
-    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+    categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.md },
 
     textarea: {
       minHeight: 168,
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.hairlineStrong,
+      borderRadius: radii.xxxl,
+      borderWidth: 1.5,
+      borderColor: 'transparent',
       backgroundColor: colors.card,
+      ...shadow.card,
       padding: spacing.lg,
       fontSize: 18,
       lineHeight: 26,
@@ -478,7 +484,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       color: colors.ink,
       textAlignVertical: 'top',
     },
-    inputFocused: { borderWidth: 1.5, borderColor: colors.ink },
+    inputFocused: { borderColor: colors.ink },
 
     photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs },
     photoWrap: { width: 88, height: 88 },
@@ -508,25 +514,27 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     photoAddText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted },
 
-    // Ruled entry line, like the amount line on a payment slip.
-    budgetField: {
+        budgetField: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      paddingVertical: spacing.md,
-      borderBottomWidth: 2,
-      borderBottomColor: colors.hairlineStrong,
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.xl,
+      borderRadius: radii.xxxl,
+      borderWidth: 1.5,
+      borderColor: 'transparent',
+      backgroundColor: colors.card,
+      ...shadow.card,
     },
-    budgetFieldFocused: { borderBottomColor: colors.ink },
-    budgetFieldError: { borderBottomColor: colors.danger },
+    budgetFieldFocused: { borderColor: colors.ink },
+    budgetFieldError: { borderColor: colors.danger },
     budgetCurrency: { fontSize: 22, fontFamily: fonts.semibold, color: colors.inkFaint },
     budgetInput: { flex: 1, fontSize: 36, fontFamily: fonts.mono, color: colors.ink, padding: 0 },
 
     summary: {
-      borderRadius: radii.xl,
-      borderWidth: 1,
-      borderColor: colors.hairline,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
+      ...shadow.card,
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
     },

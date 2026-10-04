@@ -34,7 +34,7 @@ import {
   MapPin,
   type LucideIcon,
 } from 'lucide-react-native';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -158,6 +158,7 @@ export function CategoryGridTile({
   compact = false,
   colorful = false,
   illustrated = false,
+  elevated = false,
 }: {
   id: string;
   abbr: string;
@@ -172,6 +173,9 @@ export function CategoryGridTile({
   /** Small, container-less tile with the full glossy illustration instead
    * of the flat vector icon - used on Home and the new-request picker. */
   illustrated?: boolean;
+  /** Raised white card around an illustrated tile, three to a row - used
+   * on the new-request service picker, which sits on a dimmed page. */
+  elevated?: boolean;
 }) {
   const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
@@ -179,8 +183,9 @@ export function CategoryGridTile({
   const illustration = CATEGORY_ILLUSTRATIONS[id];
   const accent = colorful ? CATEGORY_ACCENTS[id]?.[scheme] : undefined;
   // Selecting swaps in the ink-filled badge + checkmark instead, so the
-  // illustration only shows for an unselected tile.
-  const useIllustration = illustrated && illustration && !selected;
+  // illustration only shows for an unselected tile. An elevated tile marks
+  // selection with its border and check, so it keeps the illustration.
+  const useIllustration = illustrated && illustration && (!selected || elevated);
   return (
     <Pressable
       onPress={onPress}
@@ -188,13 +193,15 @@ export function CategoryGridTile({
       accessibilityLabel={`Choose ${name}`}
       style={({ pressed }) => [
         bare ? styles.gridTileBare : illustrated ? styles.gridTileIllustrated : compact ? styles.gridTileCompact : styles.gridTile,
+        elevated ? styles.gridTileElevated : null,
+        elevated && selected ? styles.gridTileElevatedSelected : null,
         !bare && selected ? styles.gridTileSelected : null,
         accent ? { backgroundColor: accent.surface, borderWidth: 1, borderColor: accent.border } : null,
         pressed ? styles.gridTilePressed : null,
       ]}
     >
       {selected ? (
-        <View style={styles.gridCheck}>
+        <View style={[styles.gridCheck, elevated && styles.gridCheckElevated]}>
           <Check size={11} strokeWidth={3} color={colors.paper} />
         </View>
       ) : null}
@@ -202,7 +209,11 @@ export function CategoryGridTile({
         // Floats directly on the accent card, no badge chip behind it - the
         // illustration already carries its own shading/depth, and a white
         // circle behind it would just add a redundant nested-card look.
-        <Image source={illustration} style={styles.gridIllustration} resizeMode="contain" />
+        <Image
+          source={illustration}
+          style={elevated ? styles.gridIllustrationElevated : styles.gridIllustration}
+          resizeMode="contain"
+        />
       ) : (
         <View
           style={[
@@ -214,7 +225,7 @@ export function CategoryGridTile({
           <Icon size={illustrated ? 22 : compact ? 17 : 21} strokeWidth={illustrated ? 1.75 : 1.75} color={selected ? colors.paper : accent?.foreground ?? colors.ink} />
         </View>
       )}
-      <Text style={[styles.gridName, compact && styles.gridNameCompact, illustrated && styles.gridNameIllustrated, accent && !selected ? { color: accent.foreground } : null]} numberOfLines={2}>
+      <Text style={[styles.gridName, compact && styles.gridNameCompact, illustrated && styles.gridNameIllustrated, elevated && styles.gridNameElevated, accent && !selected ? { color: accent.foreground } : null]} numberOfLines={2}>
         {name}
       </Text>
       {description ? (
@@ -375,6 +386,22 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       shadowOffset: { width: 0, height: 3 },
       elevation: 3,
     },
+    gridTileElevated: {
+      width: '31%',
+      gap: spacing.sm,
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.md,
+      paddingHorizontal: spacing.xs,
+      borderRadius: radii.xxxl,
+      borderWidth: 2,
+      borderColor: 'transparent',
+      backgroundColor: colors.card,
+      ...shadow.card,
+    },
+    gridTileElevatedSelected: { borderColor: colors.active },
+    gridCheckElevated: { top: 6, right: 6, backgroundColor: colors.active },
+    gridIllustrationElevated: { width: 54, height: 54 },
+    gridNameElevated: { fontSize: 14, lineHeight: 18 },
     gridBadgeSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
     gridIllustration: { width: 44, height: 44 },
     gridCheck: {
