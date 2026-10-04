@@ -4,12 +4,13 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import type { MapBounds } from '../lib/mapPins';
 
 /** One marker on the map.
- * - provider: a rating pill ("★ 4.8"), plus a tick when verified
+ * - provider: a rating pill ("★ 4.8"), plus a tick when verified; a live
+ *   ("Available now") provider gets a green dot and an orange ring
  * - request: a dark pill with a short label (usually the budget)
  * - live: the pulsing beacon JobLiveMap uses for a moving person, with a
  *   caption underneath (e.g. "Your pro") */
 export type MapPin =
-  | { kind: 'provider'; id: string; lat: number; lng: number; rating: number; verified: boolean }
+  | { kind: 'provider'; id: string; lat: number; lng: number; rating: number; verified: boolean; live?: boolean }
   | { kind: 'request'; id: string; lat: number; lng: number; label: string }
   | { kind: 'live'; id: string; lat: number; lng: number; label: string };
 
@@ -36,6 +37,9 @@ const MAP_HTML = `<!DOCTYPE html>
                border-top-color: #fff; border-bottom: 0; }
   .pin .star { color: #F27511; }
   .pin .tick { color: #0E6B45; font-size: 11px; }
+  .pin.now { box-shadow: 0 0 0 2px #F27511, 0 2px 8px rgba(0,0,0,.18); }
+  .pin .nowdot { width: 7px; height: 7px; border-radius: 50%; background: #0E6B45; }
+  .pin.sel .nowdot { background: #fff; }
   .pin.req { background: #15181A; color: #fff; }
   .pin.req:after { border-top-color: #15181A; }
   .pin.sel { background: #F27511; color: #fff; z-index: 1000; }
@@ -82,10 +86,11 @@ const MAP_HTML = `<!DOCTYPE html>
       return el;
     }
     if (p.kind === 'provider') {
+      if (p.live) el.appendChild(span('nowdot', ''));
       el.appendChild(span('star', '\\u2605'));
       el.appendChild(span('', Number(p.rating || 0).toFixed(1)));
       if (p.verified) el.appendChild(span('tick', '\\u2713'));
-      classes[p.id] = 'pin';
+      classes[p.id] = p.live ? 'pin now' : 'pin';
     } else {
       el.appendChild(span('', p.label));
       classes[p.id] = 'pin req';

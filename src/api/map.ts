@@ -2,8 +2,9 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { MapBounds } from '../lib/mapPins';
 
-/** A provider on the live map, as returned by map_providers (0067). lat/lng
- * are the ~450 m grid point the server stored, never the exact fix. */
+/** A provider on the map, as returned by map_providers (0068). Live
+ * providers ("Available now", app open) sit on their ~450 m grid point;
+ * everyone else sits on their area's centre. Never an exact spot. */
 export type MapProviderRow = {
   id: string;
   full_name: string;
@@ -16,11 +17,15 @@ export type MapProviderRow = {
   verification_level: string | null;
   lat: number;
   lng: number;
-  updated_at: string;
+  /** When the live position was last reported; null when not live. */
+  updated_at: string | null;
+  is_live: boolean;
+  /** Neighbourhood the pin stands for (e.g. "Labadi"). */
+  area_label: string | null;
 };
 
-/** "Available now" providers inside the map's visible box, refreshed every
- * 20s while the map is open. Polling rather than Realtime on purpose: a
+/** Active providers inside the map's visible box - live ones flagged -
+ * refreshed every 20s while the map is open. Polling rather than Realtime on purpose: a
  * viewer only needs a fresh picture every so often, and pushing every
  * provider's every move to every open map doesn't scale. */
 export function useMapProviders(bounds: MapBounds | null, category: string | null, enabled = true) {
@@ -42,6 +47,7 @@ export function useMapProviders(bounds: MapBounds | null, category: string | nul
       return ((data ?? []) as MapProviderRow[]).map((row) => ({
         ...row,
         provider_rating: Number(row.provider_rating ?? 0),
+        is_live: Boolean(row.is_live),
       }));
     },
   });

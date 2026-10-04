@@ -92,7 +92,20 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
   const pins = useMemo(() => {
     const list: Pin[] =
       role === 'customer'
-        ? providers.map((p) => ({ kind: 'provider' as const, id: p.id, lat: p.lat, lng: p.lng, rating: p.provider_rating, verified: p.provider_verified }))
+        ? providers.map((p) => {
+            // Non-live providers share their area's one centre point, so
+            // spread them a little or they'd stack into a single pin.
+            const at = p.is_live ? { lat: p.lat, lng: p.lng } : spreadAroundCentroid(p.id, { lat: p.lat, lng: p.lng });
+            return {
+              kind: 'provider' as const,
+              id: p.id,
+              lat: at.lat,
+              lng: at.lng,
+              rating: p.provider_rating,
+              verified: p.provider_verified,
+              live: p.is_live,
+            };
+          })
         : requestPins.map((r) => r.pin);
     if (livePin) list.push(livePin);
     return list;
@@ -110,10 +123,11 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
   );
 
   const count = role === 'customer' ? providers.length : requestPins.length;
+  const liveCount = role === 'customer' ? providers.filter((p) => p.is_live).length : 0;
   const loading = role === 'customer' ? providersQuery.isLoading && !!bounds : feedLoading;
   const summary =
     role === 'customer'
-      ? `${count} ${count === 1 ? 'pro' : 'pros'} available now in view`
+      ? `${count} ${count === 1 ? 'pro' : 'pros'} in view${liveCount > 0 ? ` · ${liveCount} available now` : ''}`
       : `${count} open ${count === 1 ? 'request' : 'requests'} near you`;
 
   function openActiveJob() {
@@ -191,8 +205,12 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
                   <View style={styles.nameRow}>
                     <Star size={12} strokeWidth={2.4} color={colors.active} fill={colors.active} />
                     <Text style={styles.sheetMeta}>
-                      {selectedProvider.provider_rating.toFixed(1)} · {selectedProvider.provider_jobs_count} jobs · seen{' '}
-                      {formatRelativeTime(selectedProvider.updated_at)}
+                      {selectedProvider.provider_rating.toFixed(1)} · {selectedProvider.provider_jobs_count} jobs
+                      {selectedProvider.is_live && selectedProvider.updated_at
+                        ? ` · available now, seen ${formatRelativeTime(selectedProvider.updated_at)}`
+                        : selectedProvider.area_label
+                          ? ` · ${selectedProvider.area_label}`
+                          : ''}
                     </Text>
                   </View>
                 </View>
@@ -267,7 +285,7 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
             <View style={styles.emptyHint}>
               <Text style={styles.emptyText}>
                 {role === 'customer'
-                  ? 'No pros are available right now in this area. Zoom out or try another category.'
+                  ? 'No pros in this area yet. Zoom out or try another category.'
                   : 'No open requests near you right now. New ones also appear in your Feed.'}
               </Text>
             </View>
@@ -284,6 +302,7 @@ function VisibilityBanner({ onPress }: { onPress: () => void }) {
   const styles = makeStyles(colors);
   const availability = useMyAvailabilityMode();
   const visible = availability === 'AVAILABLE_NOW';
+  const onSchedule = availability === 'SCHEDULE';
   return (
     <Pressable style={styles.visibility} onPress={onPress} accessibilityRole="button">
       {visible ? (
@@ -293,8 +312,10 @@ function VisibilityBanner({ onPress }: { onPress: () => void }) {
       )}
       <Text style={styles.visibilityText} numberOfLines={2}>
         {visible
-          ? 'Customers can see you on the map (approximate area only, never your exact spot).'
-          : 'You\'re hidden from customers. Set "Available now" to appear on the map.'}
+          ? 'Customers see you as available now (approximate area only, never your exact spot).'
+          : onSchedule
+            ? 'Customers see you at your area\'s centre. Set "Available now" to show you\'re free right now.'
+            : 'You\'re hidden from customers. Set "Available now" to appear on the map.'}
       </Text>
       <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
     </Pressable>
