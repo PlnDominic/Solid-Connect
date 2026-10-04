@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import type { EmailOtpType, SupabaseClient } from '@supabase/supabase-js';
+import { PasswordField } from '../../components/PasswordField';
 import '../../login/polish.css';
 
 type Stage = 'checking' | 'confirm' | 'set-password' | 'invalid';
@@ -134,12 +135,8 @@ export default function AcceptInvitePage() {
             <h1 id="invite-title">Welcome aboard.</h1>
             <p className="reference-subtitle">Set a password for <strong>{email}</strong><br />to finish setting up your admin access.</p>
             <form onSubmit={savePassword}>
-              <label className="reference-input">
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" placeholder="New password" aria-label="New password" required minLength={8} />
-              </label>
-              <label className="reference-input">
-                <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password" placeholder="Confirm password" aria-label="Confirm password" required minLength={8} />
-              </label>
+              <PasswordField label="New password" value={password} onChange={setPassword} minLength={8} autoFocus />
+              <PasswordField label="Confirm password" value={confirm} onChange={setConfirm} minLength={8} />
               <button className="reference-submit" disabled={pending}>{pending ? 'Saving…' : 'Set password and continue'}</button>
               {error && <p className="notice" role="alert">{error}</p>}
             </form>
