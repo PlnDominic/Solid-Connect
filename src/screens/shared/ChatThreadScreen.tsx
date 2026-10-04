@@ -23,6 +23,7 @@ import {
   uploadChatPhoto,
   uploadChatAudio,
 } from '../../api/chat';
+import { CONTACT_DETAILS_TITLE } from '../../lib/contactDetails';
 import { useProvider } from '../../api/marketplace';
 import { friendlySafetyError, useBlockUser, useMyBlocks, useUnblockUser } from '../../api/safety';
 import { Avatar } from '../../components/Avatar';
@@ -77,7 +78,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
       setText(value);
       if (err instanceof ContactDetailsBlockedError) {
         haptics.warning();
-        Alert.alert(err.kind === 'phone' ? 'Phone numbers not allowed' : 'Account details not allowed', err.message);
+        Alert.alert(CONTACT_DETAILS_TITLE[err.kind], err.message);
         return;
       }
       Alert.alert('Message not sent', friendlySafetyError(err));
