@@ -484,7 +484,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       color: colors.ink,
       textAlignVertical: 'top',
     },
-    inputFocused: { borderColor: colors.ink },
+    inputFocused: { borderColor: colors.active },
 
     photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs },
     photoWrap: { width: 88, height: 88 },
@@ -526,7 +526,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
-    budgetFieldFocused: { borderColor: colors.ink },
+    budgetFieldFocused: { borderColor: colors.active },
     budgetFieldError: { borderColor: colors.danger },
     budgetCurrency: { fontSize: 22, fontFamily: fonts.semibold, color: colors.inkFaint },
     budgetInput: { flex: 1, fontSize: 36, fontFamily: fonts.mono, color: colors.ink, padding: 0 },

@@ -106,7 +106,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairlineStrong,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
     chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.white },
     saveLink: { fontSize: 13, fontFamily: fonts.bold, color: colors.ink, textDecorationLine: 'underline' },

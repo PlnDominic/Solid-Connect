@@ -44,7 +44,7 @@ export function StepBars({ count, step }: { count: number; step: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <View
           key={i}
-          style={[styles.bar, { backgroundColor: i < step ? colors.ink : colors.hairline }]}
+          style={[styles.bar, { backgroundColor: i < step ? colors.active : colors.hairline }]}
         />
       ))}
     </View>
