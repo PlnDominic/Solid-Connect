@@ -22,9 +22,11 @@ export type MapProviderRow = {
   is_live: boolean;
   /** Neighbourhood the pin stands for (e.g. "Labadi"). */
   area_label: string | null;
+  availability_mode: 'AVAILABLE_NOW' | 'SCHEDULE' | 'UNAVAILABLE' | 'PAUSED' | null;
 };
 
-/** Active providers inside the map's visible box - live ones flagged -
+/** Every (non-suspended) provider inside the map's visible box - live
+ * ones flagged -
  * refreshed every 20s while the map is open. Polling rather than Realtime on purpose: a
  * viewer only needs a fresh picture every so often, and pushing every
  * provider's every move to every open map doesn't scale. */

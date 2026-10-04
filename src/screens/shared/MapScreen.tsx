@@ -208,9 +208,10 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
                       {selectedProvider.provider_rating.toFixed(1)} · {selectedProvider.provider_jobs_count} jobs
                       {selectedProvider.is_live && selectedProvider.updated_at
                         ? ` · available now, seen ${formatRelativeTime(selectedProvider.updated_at)}`
-                        : selectedProvider.area_label
-                          ? ` · ${selectedProvider.area_label}`
-                          : ''}
+                        : [selectedProvider.area_label, AVAILABILITY_LABEL[selectedProvider.availability_mode ?? 'SCHEDULE']]
+                            .filter(Boolean)
+                            .map((s) => ` · ${s}`)
+                            .join('')}
                     </Text>
                   </View>
                 </View>
@@ -296,13 +297,19 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
   );
 }
 
-/** Tells a provider whether customers can currently see them on the map. */
+const AVAILABILITY_LABEL: Record<'AVAILABLE_NOW' | 'SCHEDULE' | 'UNAVAILABLE' | 'PAUSED', string> = {
+  AVAILABLE_NOW: 'Available now',
+  SCHEDULE: 'On schedule',
+  UNAVAILABLE: 'Unavailable',
+  PAUSED: 'Paused',
+};
+
+/** Tells a provider how customers currently see them on the map. */
 function VisibilityBanner({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const availability = useMyAvailabilityMode();
   const visible = availability === 'AVAILABLE_NOW';
-  const onSchedule = availability === 'SCHEDULE';
   return (
     <Pressable style={styles.visibility} onPress={onPress} accessibilityRole="button">
       {visible ? (
@@ -313,9 +320,7 @@ function VisibilityBanner({ onPress }: { onPress: () => void }) {
       <Text style={styles.visibilityText} numberOfLines={2}>
         {visible
           ? 'Customers see you as available now (approximate area only, never your exact spot).'
-          : onSchedule
-            ? 'Customers see you at your area\'s centre. Set "Available now" to show you\'re free right now.'
-            : 'You\'re hidden from customers. Set "Available now" to appear on the map.'}
+          : `Customers see you at your area's centre as "${AVAILABILITY_LABEL[availability ?? 'SCHEDULE']}". Set "Available now" to show you're free right now.`}
       </Text>
       <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
     </Pressable>

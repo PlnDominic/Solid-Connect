@@ -1,15 +1,17 @@
--- Show every active provider on the customer map, not only live ones.
+-- Show every provider on the customer map, whatever their availability.
 --
 -- 0067 only returned providers who were "Available now" AND had the app
 -- open in the last 10 minutes. New providers start on SCHEDULE, so in
 -- practice the map was empty. Now:
 --   * live providers (fresh presence, Available now) keep their ~450 m
 --     grid point and are flagged is_live = true;
---   * every other active provider (SCHEDULE or AVAILABLE_NOW without a
---     fresh fix) is placed at their AREA - the neighbourhood centroid that
---     matches profiles.area, else their first service area, else their
---     saved location snapped to the same ~450 m grid. Never an exact spot.
---   * UNAVAILABLE / PAUSED / suspended providers stay hidden, as before.
+--   * every other provider (on schedule, unavailable, paused, or
+--     available without a fresh fix) is placed at their AREA - the
+--     neighbourhood centroid that matches profiles.area, else their first
+--     service area, else their saved location snapped to the same ~450 m
+--     grid. Never an exact spot. availability_mode is returned so the app
+--     can label them.
+--   * Only suspended providers (blocked by an admin) stay hidden.
 --
 -- Also adds more Accra neighbourhoods to area_centroids so free-text areas
 -- such as "Labadi" can be placed. Coordinates are approximate
@@ -42,7 +44,8 @@ insert into public.area_centroids (name, location) values
   ('Kasoa',         ST_SetSRID(ST_MakePoint(-0.425, 5.534), 4326)::geography)
 on conflict (name) do nothing;
 
--- The return type changes (is_live, area_label), so drop and recreate.
+-- The return type changes (is_live, area_label, availability_mode), so
+-- drop and recreate.
 drop function if exists public.map_providers(double precision, double precision, double precision, double precision, text);
 
 create function public.map_providers(
@@ -66,7 +69,8 @@ returns table (
   lng double precision,
   updated_at timestamptz,
   is_live boolean,
-  area_label text
+  area_label text,
+  availability_mode text
 )
 language sql
 stable
@@ -79,7 +83,6 @@ as $$
     where auth.uid() is not null
       and p.role = 'provider'
       and p.suspended_at is null
-      and p.availability_mode in ('AVAILABLE_NOW', 'SCHEDULE')
       and p.id <> auth.uid()
       and not public.is_blocked_between(auth.uid(), p.id)
       and (
@@ -118,7 +121,8 @@ as $$
         when ac.location is not null then ST_X(ac.location::geometry)
         else public.presence_grid(ST_X(coalesce(sa.loc, c.location)::geometry))
       end as lng,
-      coalesce(ac.name, sa.city_name, split_part(c.area, ',', 1)) as area_label
+      coalesce(ac.name, sa.city_name, split_part(c.area, ',', 1)) as area_label,
+      c.availability_mode::text as availability_mode
     from candidates c
     -- Live: Available now with a fix from the last 10 minutes.
     left join public.provider_presence live
@@ -147,7 +151,7 @@ as $$
   select
     id, full_name, initials, photo_url, provider_category, provider_rating,
     provider_jobs_count, provider_verified, verification_level,
-    lat, lng, updated_at, is_live, area_label
+    lat, lng, updated_at, is_live, area_label, availability_mode
   from placed
   where lat is not null
     and lng is not null
