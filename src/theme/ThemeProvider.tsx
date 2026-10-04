@@ -30,6 +30,7 @@ export const darkColors: ThemeColors = {
   pendingBg: '#2A2208',
   activeBg: '#3A2410',
   dangerBg: '#2A1410',
+  favorite: '#FF5A5F',
   bg: '#0B0B0A',
   surface: '#242423',
   tile: '#161615',

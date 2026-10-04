@@ -215,7 +215,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                     hitSlop={10}
                     onPress={() => toggleSaved.mutate({ customerId: profile.id, providerId: p.id, saved: true })}
                   >
-                    <Heart size={17} strokeWidth={2} color={colors.ink} fill={colors.ink} />
+                    <Heart size={17} strokeWidth={2} color={colors.favorite} fill={colors.favorite} />
                   </Pressable>
                 </View>
               ))}

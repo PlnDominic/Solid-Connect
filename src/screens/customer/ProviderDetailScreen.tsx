@@ -205,7 +205,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
               accessibilityLabel={saved ? 'Remove from saved providers' : 'Save this provider'}
               accessibilityState={{ selected: saved }}
             >
-              <Heart size={18} strokeWidth={2.2} color={saved ? colors.ink : colors.inkFaint} fill={saved ? colors.ink : 'transparent'} />
+              <Heart size={18} strokeWidth={2.2} color={saved ? colors.favorite : colors.inkFaint} fill={saved ? colors.favorite : 'transparent'} />
             </Pressable>
           </View>
         ) : (

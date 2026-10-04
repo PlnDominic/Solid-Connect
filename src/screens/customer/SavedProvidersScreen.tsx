@@ -42,7 +42,7 @@ function SavedProviderRow({
         accessibilityLabel="Remove from saved providers"
         accessibilityState={{ selected: true }}
       >
-        <Heart size={18} strokeWidth={2} color={colors.ink} fill={colors.ink} />
+        <Heart size={18} strokeWidth={2} color={colors.favorite} fill={colors.favorite} />
       </Pressable>
     </Pressable>
   );

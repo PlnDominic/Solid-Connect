@@ -70,6 +70,10 @@ export const colors = {
   danger: '#9A2E22',
   dangerBg: '#F8E9E5',
 
+  // Favourite / saved heart only - a bright, friendly red, deliberately
+  // distinct from the brick `danger` used for declined and error states.
+  favorite: '#E5383B',
+
   // Lighter variants of the two accent states, for use on the ink-dark
   // hero card only - the base tones don't carry enough contrast there.
   confirmOnDark: '#3FBE85',
