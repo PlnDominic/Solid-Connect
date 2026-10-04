@@ -127,13 +127,13 @@ export default async function ReviewsPage({ searchParams }: Props) {
               const pct = total > 0 ? (d.count / total) * 100 : 0;
               return (
                 <div key={d.stars} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, width: 20, textAlign: 'right', color: 'var(--text-secondary)' }}>
+                  <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, width: 20, textAlign: 'right', color: 'var(--text-secondary)' }}>
                     {d.stars}★
                   </span>
-                  <div style={{ flex: 1, height: 8, borderRadius: 4, background: 'var(--bg-input)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 4, background: 'var(--accent)', transition: 'width .4s' }} />
+                  <div style={{ flex: 1, height: 8, borderRadius: 'var(--r-pill)', background: 'var(--bg-input)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 'var(--r-pill)', background: 'var(--accent)', transition: 'width .4s' }} />
                   </div>
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)', width: 50 }}>{d.count} ({pct.toFixed(0)}%)</span>
+                  <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', width: 50 }}>{d.count} ({pct.toFixed(0)}%)</span>
                 </div>
               );
             })}
@@ -145,28 +145,16 @@ export default async function ReviewsPage({ searchParams }: Props) {
           <div className="chart-panel-header">
             <h3>Filter by Rating</h3>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <a
-              href="/reviews"
-              style={{
-                padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                background: !rating ? 'var(--accent-bg)' : 'transparent',
-                color: !rating ? 'var(--accent)' : 'var(--text-secondary)',
-                border: !rating ? '1px solid var(--accent-border)' : '1px solid transparent',
-              }}
-            >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <a href="/reviews" className={`filter-btn${!rating ? ' active' : ''}`} aria-current={!rating}>
               All Reviews
             </a>
             {[5, 4, 3, 2, 1].map(r => (
               <a
                 key={r}
                 href={`/reviews?rating=${r}`}
-                style={{
-                  padding: '8px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                  background: rating === String(r) ? 'var(--accent-bg)' : 'transparent',
-                  color: rating === String(r) ? 'var(--accent)' : 'var(--text-secondary)',
-                  border: rating === String(r) ? '1px solid var(--accent-border)' : '1px solid transparent',
-                }}
+                className={`filter-btn${rating === String(r) ? ' active' : ''}`}
+                aria-current={rating === String(r)}
               >
                 {r}★ Reviews ({dist.find(d => d.stars === r)?.count ?? 0})
               </a>
@@ -195,14 +183,14 @@ export default async function ReviewsPage({ searchParams }: Props) {
               return (
                 <tr key={r.id}>
                   <td>
-                    <div className="risk-score risk-low" style={{ width: 36, height: 36, fontSize: 13 }}>
+                    <div className="risk-score risk-low" style={{ width: 36, height: 36, fontSize: 'var(--fs-sm)' }}>
                       {r.rating}★
                     </div>
                   </td>
                   <td>
                     {prov ? (
                       <div className="profile-cell">
-                        <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)', width: 28, height: 28, fontSize: 10 }}>
+                        <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)', width: 28, height: 28, fontSize: 'var(--fs-xs)' }}>
                           {prov.initials}
                         </div>
                         <span>{prov.full_name}</span>
@@ -212,14 +200,14 @@ export default async function ReviewsPage({ searchParams }: Props) {
                   <td>
                     {cust ? (
                       <div className="profile-cell">
-                        <div className="profile-avatar" style={{ background: 'var(--blue-bg)', color: 'var(--blue)', width: 28, height: 28, fontSize: 10 }}>
+                        <div className="profile-avatar" style={{ background: 'var(--blue-bg)', color: 'var(--blue)', width: 28, height: 28, fontSize: 'var(--fs-xs)' }}>
                           {cust.initials}
                         </div>
                         <span>{cust.full_name}</span>
                       </div>
                     ) : '-'}
                   </td>
-                  <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+                  <td style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 'var(--fs-sm)' }}>
                     {r.comment || <span className="text-muted">No comment</span>}
                   </td>
                   <td className="text-muted-sm">{stamp(r.created_at)}</td>
@@ -227,7 +215,7 @@ export default async function ReviewsPage({ searchParams }: Props) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {r.hidden_at && <span className="pill rejected">Hidden</span>}
                       <form action={setReviewHidden.bind(null, r.id, !r.hidden_at)}>
-                        <button className="filter-btn" style={{ padding: '6px 12px' }}>
+                        <button className="filter-btn">
                           {r.hidden_at ? 'Restore' : 'Hide'}
                         </button>
                       </form>

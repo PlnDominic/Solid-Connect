@@ -141,16 +141,16 @@ export default async function AccessPage({ searchParams }: Props) {
                                 name="role"
                                 defaultValue={a.role}
                                 disabled={isSelf}
-                                style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
+                                className="input input-sm"
                               >
                                 <option value="support">Support</option>
                                 <option value="owner">Owner</option>
                               </select>
-                              {!isSelf && <button className="filter-btn" style={{ padding: '6px 12px' }}>Save</button>}
+                              {!isSelf && <button className="filter-btn">Save</button>}
                             </form>
                             {!isSelf && (
                               <form action={setAdminDisabled.bind(null, a.id, !a.disabled_at)}>
-                                <button className="filter-btn" style={{ padding: '6px 12px' }}>{a.disabled_at ? 'Enable' : 'Disable'}</button>
+                                <button className="filter-btn">{a.disabled_at ? 'Enable' : 'Disable'}</button>
                               </form>
                             )}
                           </div>
@@ -181,17 +181,17 @@ export default async function AccessPage({ searchParams }: Props) {
                     const granted: string[] = a.permissions ?? [];
                     return (
                       <div key={a.id} className="table-card" style={{ padding: 16 }}>
-                        <div style={{ fontWeight: 500, marginBottom: 10, fontSize: 13.5 }}>{a.email}</div>
+                        <div style={{ fontWeight: 500, marginBottom: 10, fontSize: 'var(--fs-sm)' }}>{a.email}</div>
                         <form action={setAdminPermissions.bind(null, a.id)} className="stack-10">
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
                             {ADMIN_PERMISSIONS.map((scope: AdminPermission) => (
-                              <label key={scope} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5 }}>
+                              <label key={scope} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'var(--fs-xs)' }}>
                                 <input type="checkbox" name={scope} defaultChecked={granted.includes(scope)} />
                                 {ADMIN_PERMISSION_LABELS[scope]}
                               </label>
                             ))}
                           </div>
-                          <button className="filter-btn" style={{ padding: '6px 14px', alignSelf: 'start' }}>Save permissions</button>
+                          <button className="filter-btn" style={{ alignSelf: 'start' }}>Save permissions</button>
                         </form>
                       </div>
                     );
@@ -207,7 +207,7 @@ export default async function AccessPage({ searchParams }: Props) {
             <select
               name="action"
               defaultValue={activityFilterValid ? actionFilter : ''}
-              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 13 }}
+              className="input"
             >
               <option value="">All actions</option>
               {Object.entries(ACTION_LABELS)
@@ -216,8 +216,8 @@ export default async function AccessPage({ searchParams }: Props) {
                   <option key={action} value={action}>{label}</option>
                 ))}
             </select>
-            <button className="filter-btn" style={{ padding: '8px 16px' }}>Filter</button>
-            {activityFilterValid && <Link href="/access?tab=activity" className="filter-btn" style={{ padding: '8px 16px' }}>Clear</Link>}
+            <button className="filter-btn">Filter</button>
+            {activityFilterValid && <Link href="/access?tab=activity" className="filter-btn">Clear</Link>}
           </form>
 
           <div className="table-card">

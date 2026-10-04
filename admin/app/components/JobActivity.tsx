@@ -24,12 +24,12 @@ export function JobActivity({
             <div key={e.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', marginTop: 6, flexShrink: 0 }} />
               <div>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>{EVENT_LABELS[e.event_type] ?? e.event_type}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 500 }}>{EVENT_LABELS[e.event_type] ?? e.event_type}</div>
+                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
                   {actorMap[e.actor_id] ?? 'Unknown'} · {stampTime(e.created_at)}
                   {e.from_step != null && e.to_step != null ? ` · step ${e.from_step} → ${e.to_step}` : ''}
                 </div>
-                {e.note ? <div style={{ fontSize: 12.5, marginTop: 2 }}>{e.note}</div> : null}
+                {e.note ? <div style={{ fontSize: 'var(--fs-xs)', marginTop: 2 }}>{e.note}</div> : null}
               </div>
             </div>
           ))}
@@ -45,14 +45,17 @@ export function JobActivity({
             <div key={m.id} style={{ display: 'flex', flexDirection: 'column', alignItems: m.sender_role === 'provider' ? 'flex-end' : 'flex-start' }}>
               <div
                 style={{
-                  maxWidth: '80%', padding: '8px 12px', borderRadius: 10, fontSize: 13,
-                  background: m.sender_role === 'provider' ? 'var(--accent-bg)' : 'var(--bg-input)',
-                  border: '1px solid var(--border)',
+                  // The app's chat bubbles: ink for one side, recessed paperDim
+                  // for the other, radii.lg with a tucked tail corner.
+                  maxWidth: '78%', padding: '10px 14px', borderRadius: 'var(--r-lg)', fontSize: 'var(--fs-sm)', fontWeight: 500,
+                  ...(m.sender_role === 'provider'
+                    ? { background: 'var(--accent)', color: 'var(--on-accent)', borderBottomRightRadius: 'var(--r-sm)' }
+                    : { background: 'var(--bg-input)', color: 'var(--text-primary)', borderBottomLeftRadius: 'var(--r-sm)' }),
                 }}
               >
                 {m.text}
               </div>
-              <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2 }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: 2 }}>
                 {m.sender_role === 'provider' ? 'Provider' : 'Customer'} · {stampTime(m.created_at)}
               </div>
             </div>

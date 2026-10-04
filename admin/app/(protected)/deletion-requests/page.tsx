@@ -99,12 +99,12 @@ export default async function DeletionRequestsPage({ searchParams }: Props) {
                     <td>
                       <div className="flex-gap-8">
                         <form action={completeAccountDeletion.bind(null, r.id)}>
-                          <button className="filter-btn" style={{ padding: '6px 14px', color: 'var(--red)' }}>
+                          <button className="filter-btn" style={{ color: 'var(--red)' }}>
                             Complete deletion
                           </button>
                         </form>
                         <form action={dismissAccountDeletion.bind(null, r.id)}>
-                          <button className="filter-btn" style={{ padding: '6px 14px' }}>Dismiss</button>
+                          <button className="filter-btn">Dismiss</button>
                         </form>
                       </div>
                     </td>

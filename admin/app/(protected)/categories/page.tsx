@@ -71,7 +71,7 @@ export default async function CategoriesPage({ searchParams }: Props) {
                       name="sort_order"
                       type="number"
                       defaultValue={c.sort_order}
-                      style={{ width: 56, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
+                      className="input input-sm" style={{ width: 56 }}
                     />
                   </td>
                   <td>
@@ -79,9 +79,9 @@ export default async function CategoriesPage({ searchParams }: Props) {
                       form={formId}
                       name="name"
                       defaultValue={c.name}
-                      style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 13, fontWeight: 500 }}
+                      className="input input-sm" style={{ width: '100%' }}
                     />
-                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 4 }}>{c.id}</div>
+                    <div className="mono" style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', marginTop: 4 }}>{c.id}</div>
                   </td>
                   <td>
                     <input
@@ -89,7 +89,7 @@ export default async function CategoriesPage({ searchParams }: Props) {
                       name="abbr"
                       defaultValue={c.abbr}
                       maxLength={3}
-                      style={{ width: 52, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12, textAlign: 'center' }}
+                      className="input input-sm" style={{ width: 52, textAlign: 'center' }}
                     />
                   </td>
                   <td>
@@ -97,7 +97,7 @@ export default async function CategoriesPage({ searchParams }: Props) {
                       form={formId}
                       name="default_label"
                       defaultValue={c.default_label}
-                      style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
+                      className="input input-sm" style={{ width: '100%' }}
                     />
                   </td>
                   <td>
@@ -108,7 +108,7 @@ export default async function CategoriesPage({ searchParams }: Props) {
                         type="number"
                         defaultValue={c.budget_min ?? ''}
                         placeholder="min"
-                        style={{ width: 60, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
+                        className="input input-sm" style={{ width: 60 }}
                       />
                       <span className="text-muted">–</span>
                       <input
@@ -117,18 +117,18 @@ export default async function CategoriesPage({ searchParams }: Props) {
                         type="number"
                         defaultValue={c.budget_max ?? ''}
                         placeholder="max"
-                        style={{ width: 60, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
+                        className="input input-sm" style={{ width: 60 }}
                       />
                     </div>
                   </td>
                   <td className="text-muted-sm">{countByCategory[c.id] ?? 0}</td>
                   <td>
                     <form id={formId} action={updateCategory.bind(null, c.id)} />
-                    <button form={formId} className="filter-btn" style={{ padding: '6px 14px' }}>Save</button>
+                    <button form={formId} className="filter-btn">Save</button>
                   </td>
                   <td>
                     <form action={setCategoryActive.bind(null, c.id, status !== 'active')}>
-                      <button className="filter-btn" style={{ padding: '6px 14px' }}>
+                      <button className="filter-btn">
                         {status === 'active' ? 'Archive' : 'Restore'}
                       </button>
                     </form>

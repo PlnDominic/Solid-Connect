@@ -120,7 +120,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                     {reported?.full_name ?? 'a user'}
                   </Link>
                 </p>
-                {r.details ? <p style={{ margin: '8px 0 0', fontSize: 13.5 }}>{r.details}</p> : null}
+                {r.details ? <p style={{ margin: '8px 0 0', fontSize: 'var(--fs-sm)' }}>{r.details}</p> : null}
 
                 {thread.length > 0 ? (
                   <details style={{ marginTop: 10 }}>
@@ -129,7 +129,7 @@ export default async function ReportsPage({ searchParams }: Props) {
                     </summary>
                     <div className="stack-10" style={{ marginTop: 8 }}>
                       {thread.map((m, i) => (
-                        <div key={i} style={{ fontSize: 13 }}>
+                        <div key={i} style={{ fontSize: 'var(--fs-sm)' }}>
                           <span className="text-muted-sm">
                             {peopleMap[m.sender_id]?.full_name ?? (m.sender_id === r.reported_id ? 'Reported person' : 'Reporter')} ·{' '}
                             {stamp(m.created_at)}

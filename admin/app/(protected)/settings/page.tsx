@@ -46,7 +46,7 @@ export default async function SettingsPage() {
             <div className="chart-panel-header">
               <h3>Commission</h3>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
               The percentage Solid Connect keeps from each completed job&apos;s payment. Owner-only.
             </p>
             <form action={updateCommission} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -57,10 +57,10 @@ export default async function SettingsPage() {
                 min="0"
                 max="100"
                 defaultValue={config?.commission_percent ?? 15}
-                style={{ width: 90, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}
+                className="input" style={{ width: 90 }}
               />
-              <span style={{ fontSize: 14, color: 'var(--text-muted)' }}>%</span>
-              <button className="btn" style={{ padding: '10px 20px', marginLeft: 8 }}>Save</button>
+              <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>%</span>
+              <button className="btn" style={{ marginLeft: 8 }}>Save</button>
             </form>
           </div>
         )}
@@ -70,12 +70,12 @@ export default async function SettingsPage() {
             <div className="chart-panel-header">
               <h3>Deposits</h3>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
               Customers pay Solid Connect a deposit to secure a booking and the balance after the work, never the
               provider directly. Set the deposit to 0% to turn deposits off. Changes apply to new bookings. Owner-only.
             </p>
             <form action={updateDepositPolicy} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 'var(--fs-sm)' }}>
                 <span style={{ width: 260, color: 'var(--text-secondary)' }}>Deposit, % of the job price</span>
                 <input
                   name="deposit_percent"
@@ -84,11 +84,11 @@ export default async function SettingsPage() {
                   min="0"
                   max="100"
                   defaultValue={config?.deposit_percent ?? 30}
-                  style={{ width: 90, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}
+                  className="input" style={{ width: 90 }}
                 />
                 <span style={{ color: 'var(--text-muted)' }}>%</span>
               </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 'var(--fs-sm)' }}>
                 <span style={{ width: 260, color: 'var(--text-secondary)' }}>Provider&apos;s share when a customer cancels after paying</span>
                 <input
                   name="cancel_compensation_percent"
@@ -97,12 +97,12 @@ export default async function SettingsPage() {
                   min="0"
                   max="100"
                   defaultValue={config?.cancel_compensation_percent ?? 50}
-                  style={{ width: 90, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14, fontWeight: 500 }}
+                  className="input" style={{ width: 90 }}
                 />
                 <span style={{ color: 'var(--text-muted)' }}>%</span>
               </label>
               <div>
-                <button className="btn" style={{ padding: '10px 20px' }}>Save</button>
+                <button className="btn">Save</button>
               </div>
             </form>
           </div>
@@ -113,13 +113,13 @@ export default async function SettingsPage() {
             <div className="chart-panel-header">
               <h3>Payout &amp; support</h3>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
               The support address shown to admins and the payout method pre-selected on every &quot;Mark paid&quot;
               action. Owner-only.
             </p>
             <form action={updatePlatformSettings} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
                   Support email
                 </label>
                 <input
@@ -132,13 +132,13 @@ export default async function SettingsPage() {
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
                   Default payout method
                 </label>
                 <select
                   name="default_payout_method"
                   defaultValue={config?.default_payout_method ?? ''}
-                  style={{ width: '100%', maxWidth: 320, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 14 }}
+                  className="input" style={{ width: '100%', maxWidth: 320 }}
                 >
                   <option value="">None - leave blank on /payouts</option>
                   {PAYOUT_METHODS.map((method) => (
@@ -146,7 +146,7 @@ export default async function SettingsPage() {
                   ))}
                 </select>
               </div>
-              <button className="btn" style={{ padding: '10px 20px', alignSelf: 'start' }}>Save</button>
+              <button className="btn" style={{ alignSelf: 'start' }}>Save</button>
             </form>
           </div>
         )}
@@ -157,7 +157,7 @@ export default async function SettingsPage() {
           <div className="chart-panel-header">
             <h3>Team</h3>
           </div>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+          <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
             {teamCount ?? 0} active admin{teamCount === 1 ? '' : 's'}. Invite people, change roles and permissions,
             and browse the audit log from the Team page.
           </p>
@@ -169,7 +169,7 @@ export default async function SettingsPage() {
             <div className="chart-panel-header">
               <h3>Storage cleanup</h3>
             </div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+            <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
               {pendingPurgeCount} file{pendingPurgeCount === 1 ? '' : 's'} queued by the nightly data-retention job
               (rejected verification documents past their retention window) still need deleting - SQL can clear the
               database reference, but not the file itself; only the Storage API can, which is what this does.
@@ -186,21 +186,21 @@ export default async function SettingsPage() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Signed in as</div>
-              <div style={{ fontSize: 14, fontWeight: 600 }}>{me?.email ?? user?.email ?? '-'}</div>
+              <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Signed in as</div>
+              <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{me?.email ?? user?.email ?? '-'}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Role</div>
+              <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Role</div>
               <span className={`pill ${isOwner ? 'approved' : 'pending'}`}>{isOwner ? 'Owner' : 'Support'}</span>
             </div>
             {me?.created_at && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Admin since</div>
-                <div style={{ fontSize: 14, fontWeight: 600 }}>{stamp(me.created_at)}</div>
+                <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.08em', color: 'var(--text-muted)', marginBottom: 4 }}>Admin since</div>
+                <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{stamp(me.created_at)}</div>
               </div>
             )}
           </div>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 16 }}>
+          <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: 16 }}>
             Managed through Supabase Auth. To change your password, email{' '}
             <a href={`mailto:${supportEmail}?subject=Admin%20password%20reset`} className="text-accent">
               {supportEmail}

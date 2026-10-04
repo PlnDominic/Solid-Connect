@@ -35,37 +35,25 @@ export function SettingsClient() {
       <div className="chart-panel-header">
         <h3>Appearance</h3>
       </div>
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
-        Switch between dark and light mode for the admin dashboard.
+      <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+        Switch between light and dark mode for the admin dashboard.
       </p>
       <div style={{ display: 'flex', gap: 10 }}>
         <button
-          onClick={() => switchTheme('dark')}
-          className="filter-btn"
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            padding: '12px 16px',
-            border: theme === 'dark' ? '1.5px solid var(--accent)' : '1px solid var(--border)',
-            background: theme === 'dark' ? 'var(--accent-bg)' : 'var(--bg-input)',
-            color: theme === 'dark' ? 'var(--accent-text)' : 'var(--text-secondary)',
-          }}
-        >
-          <MoonIcon /> Dark
-        </button>
-        <button
           onClick={() => switchTheme('light')}
-          className="filter-btn"
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            padding: '12px 16px',
-            border: theme === 'light' ? '1.5px solid var(--accent)' : '1px solid var(--border)',
-            background: theme === 'light' ? 'var(--accent-bg)' : 'var(--bg-input)',
-            color: theme === 'light' ? 'var(--accent-text)' : 'var(--text-secondary)',
-          }}
+          className={`filter-btn${theme === 'light' ? ' active' : ''}`}
+          aria-pressed={theme === 'light'}
+          style={{ flex: 1, justifyContent: 'center', height: 44 }}
         >
           <SunIcon /> Light
+        </button>
+        <button
+          onClick={() => switchTheme('dark')}
+          className={`filter-btn${theme === 'dark' ? ' active' : ''}`}
+          aria-pressed={theme === 'dark'}
+          style={{ flex: 1, justifyContent: 'center', height: 44 }}
+        >
+          <MoonIcon /> Dark
         </button>
       </div>
     </div>

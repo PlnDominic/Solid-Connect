@@ -95,27 +95,27 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
               <div>
                 <label>Provider</label>
                 {location?.provider_lat != null ? (
-                  <p style={{ margin: '4px 0 0', fontSize: 13 }}>
+                  <p style={{ margin: '4px 0 0', fontSize: 'var(--fs-sm)' }}>
                     <a href={mapsUrl(location.provider_lat, location.provider_lng!)} target="_blank" rel="noreferrer" className="text-accent">
                       Open in Maps
                     </a>
                     <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>· {formatRelativeTime(location.provider_updated_at!)}</span>
                   </p>
                 ) : (
-                  <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Not sharing yet</p>
+                  <p style={{ margin: '4px 0 0', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>Not sharing yet</p>
                 )}
               </div>
               <div>
                 <label>Customer</label>
                 {location?.customer_lat != null ? (
-                  <p style={{ margin: '4px 0 0', fontSize: 13 }}>
+                  <p style={{ margin: '4px 0 0', fontSize: 'var(--fs-sm)' }}>
                     <a href={mapsUrl(location.customer_lat, location.customer_lng!)} target="_blank" rel="noreferrer" className="text-accent">
                       Open in Maps
                     </a>
                     <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>· {formatRelativeTime(location.customer_updated_at!)}</span>
                   </p>
                 ) : (
-                  <p style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--text-muted)' }}>Not sharing yet</p>
+                  <p style={{ margin: '4px 0 0', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>Not sharing yet</p>
                 )}
               </div>
               {distanceKm != null && (

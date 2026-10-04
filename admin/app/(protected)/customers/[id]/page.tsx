@@ -99,9 +99,9 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
           {(reviews ?? []).length > 0 ? (
             <div className="stack-10">
               {(reviews ?? []).map((r, i) => (
-                <div key={i} style={{ fontSize: 13 }}>
+                <div key={i} style={{ fontSize: 'var(--fs-sm)' }}>
                   <strong>{r.rating}★</strong>{r.comment ? `: ${r.comment}` : ''}
-                  <div style={{ color: 'var(--text-muted)', fontSize: 11.5 }}>{stamp(r.created_at)}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)' }}>{stamp(r.created_at)}</div>
                 </div>
               ))}
             </div>

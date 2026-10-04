@@ -10,7 +10,7 @@ import LogoutButton from '../components/LogoutButton';
 
 export default async function ProtectedLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
-  const theme = cookieStore.get('admin-theme')?.value === 'light' ? 'light' : 'dark';
+  const theme = cookieStore.get('admin-theme')?.value === 'dark' ? 'dark' : 'light';
   const supabase = await createServerSupabase();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');

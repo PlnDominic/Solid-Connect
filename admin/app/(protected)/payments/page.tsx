@@ -151,7 +151,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
                   <td>
                     {job ? <Link href={`/jobs/${job.id}`} className="link-accent">{job.title || 'Untitled'}</Link> : '-'}
                     {p.refund_reason && (
-                      <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', marginTop: 2 }}>
                         {p.status === 'partially_refunded'
                           ? `Refunded ${currency(p.refund_amount ?? 0)} of ${currency(p.amount)}`
                           : p.status === 'forfeited'
@@ -168,7 +168,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
                   <td className="fw-500">
                     {currency(p.amount)}
                     {(p.deposit_amount ?? 0) > 0 && (
-                      <div style={{ color: 'var(--text-muted)', fontSize: 11.5, fontWeight: 400, marginTop: 2 }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', fontWeight: 400, marginTop: 2 }}>
                         Deposit {currency(p.deposit_amount)}
                         {p.status === 'pending' ? ' · nothing received' : p.status === 'deposit_held' || p.status === 'forfeited' ? ' · deposit received' : ''}
                       </div>
@@ -193,13 +193,13 @@ export default async function PaymentsPage({ searchParams }: Props) {
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
                       {p.status !== 'released' && (
                         <form action={setPaymentStatus.bind(null, p.id, 'released')}>
-                          <button className="filter-btn" style={{ padding: '6px 12px' }}>Release</button>
+                          <button className="filter-btn">Release</button>
                         </form>
                       )}
                       {p.status !== 'refunded' && (
                         <form action={setPaymentStatus.bind(null, p.id, 'refunded')}>
                           <input type="hidden" name="reason" value="Manual admin override" />
-                          <button className="filter-btn" style={{ padding: '6px 12px' }}>Refund</button>
+                          <button className="filter-btn">Refund</button>
                         </form>
                       )}
                       {p.status !== 'partially_refunded' && p.amount > 1 && (
@@ -216,12 +216,12 @@ export default async function PaymentsPage({ searchParams }: Props) {
                             className="search-input"
                             style={{ width: 64, padding: '6px 8px' }}
                           />
-                          <button className="filter-btn" style={{ padding: '6px 12px' }}>Partial refund</button>
+                          <button className="filter-btn">Partial refund</button>
                         </form>
                       )}
                       {p.status !== 'pending' && (
                         <form action={setPaymentStatus.bind(null, p.id, 'pending')}>
-                          <button className="filter-btn" style={{ padding: '6px 12px' }}>Reset</button>
+                          <button className="filter-btn">Reset</button>
                         </form>
                       )}
                     </div>

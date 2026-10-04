@@ -1,38 +1,41 @@
-/* Login polish - matches the app's receipt language: white card on
-   paper, hairline borders, ink submit button, orange focus mark. */
+/* Login - the app's sign-in screen language: a white card lifted by
+   shadow.sheet on the dimmed page, recessed inputs, and the brand-orange
+   primary Button. Every size comes from the shared type scale. */
 
 .reference-login { min-height:100dvh; display:grid; place-items:center; overflow:hidden; position:relative; padding:24px; background:var(--bg-primary); color:var(--text-primary); }
 
-.reference-card { position:relative; z-index:2; width:min(100%,420px); padding:40px 36px 30px; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-lg); text-align:center; }
+.reference-card { position:relative; z-index:2; width:min(100%,420px); padding:40px 32px 32px; background:var(--bg-card); border:0; border-radius:var(--r-card); box-shadow:var(--shadow-lg); text-align:center; }
 
-.reference-icon { width:96px; height:96px; margin:0 auto 20px; object-fit:contain; }
+.reference-icon { width:88px; height:88px; margin:0 auto 20px; object-fit:contain; border-radius:var(--r-xxl); }
 
-.reference-card h1 { margin:0; font-size:25px; font-weight:800; letter-spacing:-.045em; color:var(--text-primary); }
-.reference-subtitle { margin:7px 0 25px; color:var(--text-secondary); line-height:1.45; font-size:14px; }
+.reference-card h1 { margin:0; font-size:var(--fs-title); font-weight:800; letter-spacing:-.7px; color:var(--text-primary); }
+.reference-subtitle { margin:8px 0 24px; color:var(--text-secondary); line-height:1.45; font-size:var(--fs-sm); }
 
-.reference-card form { display:grid; gap:10px; text-align:left; }
-.reference-input { display:flex; align-items:center; gap:9px; height:40px; padding:0 12px; border-radius:6px; background:var(--bg-input); color:var(--text-secondary); border:1px solid var(--border); transition:border-color .2s; }
-.reference-input:focus-within { outline:2px solid var(--ring); outline-offset:1px; border-color:var(--border-strong); }
+.reference-card form { display:grid; gap:12px; text-align:left; }
+.reference-input { display:flex; align-items:center; gap:10px; height:52px; padding:0 16px; border-radius:var(--r-xxl); background:var(--bg-input); color:var(--text-secondary); border:1px solid transparent; transition:border-color .2s, box-shadow .2s; }
+.reference-input:focus-within { border-color:var(--active); box-shadow:0 0 0 3px var(--ring); }
 .reference-input > svg { flex-shrink:0; color:var(--text-muted); }
-.reference-input input { min-width:0; flex:1; border:0; outline:0; background:transparent; color:var(--text-primary); font-size:13px; }
+.reference-input input { min-width:0; flex:1; border:0; outline:0; background:transparent; color:var(--text-primary); font-size:var(--fs-md); font-weight:500; }
+.reference-input input:focus-visible { outline:0; }
 .reference-input input::placeholder { color:var(--text-muted); }
-.reference-input button { border:0; background:none; color:var(--text-muted); font-size:15px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:6px; margin:-4px -6px -4px 2px; flex-shrink:0; }
+.reference-input button { border:0; background:none; color:var(--text-muted); width:32px; height:32px; display:flex; align-items:center; justify-content:center; border-radius:var(--r-pill); margin:-4px -8px -4px 2px; flex-shrink:0; }
 .reference-input button:hover { color:var(--text-primary); }
 
-.forgot-link { align-self:end; margin:0 2px 3px; color:var(--text-secondary); font-size:12px; text-decoration:none; }
+.forgot-link { justify-self:end; margin:0 2px 4px; color:var(--text-secondary); font-size:var(--fs-sm); font-weight:600; text-decoration:none; }
 .forgot-link:hover { text-decoration:underline; color:var(--text-primary); }
 
-/* Submit = ink fill (the app's primary Button), no gradient. */
-.reference-submit { height:40px; border:0; border-radius:6px; background:var(--accent); color:var(--on-accent); font-size:14px; font-weight:600; box-shadow:var(--shadow); transition:transform .2s,box-shadow .2s,opacity .2s; }
-.reference-submit:hover { opacity:.92; transform:translateY(-1px); box-shadow:var(--shadow-lg); }
-.reference-submit:active { transform:translateY(1px); }
-.reference-submit:disabled { opacity:.65; cursor:wait; }
+/* Submit = the app's primary Button: brand orange, white label, orange lift. */
+.reference-submit { height:54px; border:0; border-radius:var(--r-card); background:var(--active); color:var(--on-active); font-size:var(--fs-lg); font-weight:700; letter-spacing:-.1px; box-shadow:var(--shadow-active); transition:transform .1s, opacity .15s, background .15s; }
+.reference-submit:hover { background:var(--active-deep); }
+.reference-submit:active { opacity:.88; transform:scale(.985); }
+.reference-submit:disabled { opacity:.55; cursor:wait; }
 
-.reference-card .notice { text-align:left; margin:3px 0 0; color:var(--red); }
-.or-divider { display:flex; align-items:center; gap:10px; margin:21px 0 16px; color:var(--text-muted); font-size:11px; }
+.reference-card .notice { text-align:left; margin:4px 0 0; }
+.login-foot { margin-top:20px; color:var(--text-muted); font-size:var(--fs-xs); font-weight:500; }
+.or-divider { display:flex; align-items:center; gap:10px; margin:20px 0 16px; color:var(--text-muted); font-size:var(--fs-xs); }
 .or-divider::before,.or-divider::after { content:""; flex:1; height:1px; background:var(--border); }
 .social-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-.social-row button { height:40px; border:1px solid var(--border); border-radius:6px; background:var(--bg-input); color:var(--text-primary); font-weight:800; font-size:17px; }
+.social-row button { height:52px; border:1px solid var(--border); border-radius:var(--r-xxl); background:var(--bg-card); color:var(--text-primary); font-weight:800; font-size:var(--fs-lg); }
 .social-row button:disabled { cursor:not-allowed; opacity:.85; }
 
-@media(max-width:560px){.reference-login{padding:18px}.reference-card{padding:32px 24px 25px}}
+@media(max-width:560px){.reference-login{padding:16px}.reference-card{padding:32px 20px 24px}}

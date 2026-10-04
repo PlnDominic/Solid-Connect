@@ -84,7 +84,7 @@ export default async function SafetyPage({ searchParams }: Props) {
                     <span className="text-muted-sm">{stamp(a.created_at)}</span>
                   </div>
                 </div>
-                <p style={{ margin: 0, fontSize: 15 }}>
+                <p style={{ margin: 0, fontSize: 'var(--fs-md)' }}>
                   <strong>{person?.full_name ?? 'Unknown user'}</strong>{' '}
                   <span className="text-muted-md">({person?.role ?? 'user'})</span>
                 </p>
@@ -126,7 +126,7 @@ export default async function SafetyPage({ searchParams }: Props) {
                 ) : (
                   <p className="text-muted-md" style={{ margin: '4px 0 0' }}>No location shared.</p>
                 )}
-                {a.note ? <p style={{ margin: '8px 0 0', fontSize: 13.5 }}>{a.note}</p> : null}
+                {a.note ? <p style={{ margin: '8px 0 0', fontSize: 'var(--fs-sm)' }}>{a.note}</p> : null}
 
                 {a.status === 'open' ? (
                   <form action={resolveSafetyAlert.bind(null, a.id)} className="mt-20" style={{ display: 'grid', gap: 8 }}>

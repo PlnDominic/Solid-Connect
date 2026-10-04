@@ -55,7 +55,7 @@ export default async function FeatureFlagsPage() {
                   return (
                     <tr key={f.key}>
                       <td><span className="mono fw-500" >{f.key}</span></td>
-                      <td style={{ color: 'var(--text-muted)', fontSize: 12.5, maxWidth: 260 }}>{f.description || '-'}</td>
+                      <td style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', maxWidth: 260 }}>{f.description || '-'}</td>
                       <td>
                         <input type="checkbox" name="enabled" form={formId} defaultChecked={f.enabled} />
                       </td>
@@ -68,18 +68,18 @@ export default async function FeatureFlagsPage() {
                             min={0}
                             max={100}
                             defaultValue={f.rollout_percent}
-                            style={{ width: 60, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12.5 }}
+                            className="input input-sm" style={{ width: 60 }}
                           />
-                          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>%</span>
+                          <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>%</span>
                         </div>
                       </td>
                       <td className="text-muted-sm">{stamp(f.updated_at)}</td>
                       <td>
                         <div className="flex-gap-8">
                           <form id={formId} action={updateFlag.bind(null, f.key)} />
-                          <button form={formId} className="filter-btn" style={{ padding: '6px 14px' }}>Save</button>
+                          <button form={formId} className="filter-btn">Save</button>
                           <form action={deleteFlag.bind(null, f.key)}>
-                            <button className="filter-btn" style={{ padding: '6px 14px', color: 'var(--red)' }}>Delete</button>
+                            <button className="filter-btn" style={{ color: 'var(--red)' }}>Delete</button>
                           </form>
                         </div>
                       </td>

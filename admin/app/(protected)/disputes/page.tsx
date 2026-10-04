@@ -100,7 +100,7 @@ export default async function DisputesPage({ searchParams }: Props) {
                   <Link href={`/disputes/${d.id}`} className="link-accent">
                     {jobMap[d.job_id] ?? d.job_id.slice(0, 8)}
                   </Link>
-                  <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }}>{d.description}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', marginTop: 4 }}>{d.description}</div>
                 </td>
                 <td>{reasonLabel[d.reason] ?? d.reason}</td>
                 <td>{nameMap[d.customer_id] ?? '-'}</td>

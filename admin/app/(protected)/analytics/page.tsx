@@ -193,12 +193,12 @@ function AreaChart({
           return (
             <g key={g}>
               <line x1={pad.l} x2={W - pad.r} y1={y(gv)} y2={y(gv)} stroke="var(--border)" strokeDasharray={g === 0 ? undefined : '3 4'} />
-              <text x={pad.l - 8} y={y(gv) + 4} textAnchor="end" fontSize="11" fill="var(--text-muted)">{gv}</text>
+              <text x={pad.l - 8} y={y(gv) + 4} textAnchor="end" fontSize="12" fill="var(--text-muted)">{gv}</text>
             </g>
           );
         })}
         {labels.map((l, i) => (
-          <text key={i} x={x(i)} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--text-muted)">{l}</text>
+          <text key={i} x={x(i)} y={H - 6} textAnchor="middle" fontSize="12" fill="var(--text-muted)">{l}</text>
         ))}
         {series.map((s, idx) => {
           const pts: [number, number][] = s.data.map((v, i) => [x(i), y(v)]);
@@ -711,7 +711,7 @@ export default async function AnalyticsPage() {
                 {recentReviews.map((review) => (
                   <tr key={review.id}>
                     <td>
-                      <div className="risk-score risk-low" style={{ width: 36, height: 36, fontSize: 13 }}>
+                      <div className="risk-score risk-low" style={{ width: 36, height: 36, fontSize: 'var(--fs-sm)' }}>
                         {review.rating}★
                       </div>
                     </td>

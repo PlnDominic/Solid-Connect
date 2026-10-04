@@ -12,7 +12,7 @@ export const metadata = { title: 'Solid Connect Admin', description: 'Solid Conn
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
-  const theme = cookieStore.get('admin-theme')?.value === 'light' ? 'light' : 'dark';
+  const theme = cookieStore.get('admin-theme')?.value === 'dark' ? 'dark' : 'light';
 
   return (
     <html data-theme={theme} className={`${inter.variable} ${GeistMono.variable}`}><body>

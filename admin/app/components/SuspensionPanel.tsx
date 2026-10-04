@@ -16,16 +16,16 @@ export function SuspensionPanel({
   if (suspendedAt) {
     return (
       <form action={unsuspendProfile.bind(null, id, redirectPath)} style={{ display: 'grid', gap: 10 }}>
-        <p style={{ fontSize: 13, color: 'var(--red)' }}>
+        <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--red)' }}>
           Suspended {new Intl.DateTimeFormat('en-GB', { dateStyle: 'long' }).format(new Date(suspendedAt))}
         </p>
         {suspendedReason && (
           <>
             <label>Reason</label>
-            <p style={{ fontSize: 13, margin: 0 }}>{suspendedReason}</p>
+            <p style={{ fontSize: 'var(--fs-sm)', margin: 0 }}>{suspendedReason}</p>
           </>
         )}
-        <button className="btn" style={{ background: 'var(--green)' }}>Re-enable account</button>
+        <button className="btn approve">Re-enable account</button>
       </form>
     );
   }

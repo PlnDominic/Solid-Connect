@@ -21,7 +21,7 @@ const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
  * the initial theme. Every UI that lets the user change theme (ThemeToggle,
  * the Settings page) shares this one read/write path instead of each
  * re-implementing it. */
-export function useAdminTheme(initialTheme: AdminTheme = 'dark') {
+export function useAdminTheme(initialTheme: AdminTheme = 'light') {
   const [theme, setThemeState] = useState<AdminTheme>(initialTheme);
 
   useEffect(() => {

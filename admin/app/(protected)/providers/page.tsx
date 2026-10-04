@@ -87,23 +87,12 @@ export default async function ProvidersPage({ searchParams }: Props) {
           <select
             name="category"
             defaultValue={category ?? ''}
-            style={{
-              padding: '10px 14px', borderRadius: 8,
-              border: '1px solid var(--border)', background: 'var(--bg-input)',
-              color: 'var(--text-primary)', fontSize: 13
-            }}
+            className="input"
           >
             <option value="">All Categories</option>
             {categories.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <button
-            type="submit"
-            style={{
-              padding: '10px 16px', borderRadius: 8,
-              border: '1px solid var(--border)', background: 'var(--bg-card)',
-              color: 'var(--text-primary)', fontSize: 13, fontWeight: 600, cursor: 'pointer'
-            }}
-          >
+          <button type="submit" className="filter-btn">
             Filter
           </button>
         </form>

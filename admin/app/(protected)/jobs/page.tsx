@@ -141,7 +141,7 @@ export default async function JobsPage({ searchParams }: Props) {
                   <td>
                     {prov ? (
                       <div className="profile-cell">
-                        <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)', width: 28, height: 28, fontSize: 10 }}>
+                        <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)', width: 28, height: 28, fontSize: 'var(--fs-xs)' }}>
                           {prov.initials}
                         </div>
                         <span>{prov.full_name}</span>
@@ -151,7 +151,7 @@ export default async function JobsPage({ searchParams }: Props) {
                   <td>
                     {cust ? (
                       <div className="profile-cell">
-                        <div className="profile-avatar" style={{ background: 'var(--blue-bg)', color: 'var(--blue)', width: 28, height: 28, fontSize: 10 }}>
+                        <div className="profile-avatar" style={{ background: 'var(--blue-bg)', color: 'var(--blue)', width: 28, height: 28, fontSize: 'var(--fs-xs)' }}>
                           {cust.initials}
                         </div>
                         <span>{cust.full_name}</span>

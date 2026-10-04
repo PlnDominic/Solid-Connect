@@ -100,7 +100,7 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
               <strong>{job?.location_label ?? '-'}</strong>
             </div>
           </div>
-          <p style={{ marginTop: 16, fontSize: 13.5, lineHeight: 1.5 }}>{dispute.description || 'No description provided.'}</p>
+          <p style={{ marginTop: 16, fontSize: 'var(--fs-sm)', lineHeight: 1.5 }}>{dispute.description || 'No description provided.'}</p>
 
           <h2 className="mt-28">Evidence: dispute photos</h2>
           <div className="docs">
@@ -130,7 +130,7 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
           {dispute.status === 'open' ? (
             <form action={resolve} className="actions">
               <textarea className="field" name="note" required placeholder="Explain the outcome for both sides." />
-              <label style={{ display: 'block', fontSize: 13 }}>
+              <label style={{ display: 'block', fontSize: 'var(--fs-sm)' }}>
                 Refund amount (optional)
                 <input
                   type="number"
@@ -142,20 +142,20 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
                   style={{ marginTop: 6, width: '100%' }}
                 />
               </label>
-              <p style={{ fontSize: 11.5, color: 'var(--text-muted)', margin: 0 }}>
+              <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', margin: 0 }}>
                 The full price is a full refund; anything less splits it - the provider still gets paid for the rest.
               </p>
               <button className="btn approve" type="submit">Resolve dispute</button>
             </form>
           ) : (
             <>
-              <p style={{ fontSize: 13 }}>
+              <p style={{ fontSize: 'var(--fs-sm)' }}>
                 Resolved {stamp(dispute.resolved_at)}
               </p>
               {dispute.resolution_note && (
                 <>
                   <label>Resolution note</label>
-                  <p style={{ fontSize: 13.5, marginTop: 4 }}>{dispute.resolution_note}</p>
+                  <p style={{ fontSize: 'var(--fs-sm)', marginTop: 4 }}>{dispute.resolution_note}</p>
                 </>
               )}
             </>

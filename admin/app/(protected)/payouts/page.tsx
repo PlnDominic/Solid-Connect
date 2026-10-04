@@ -121,7 +121,7 @@ export default async function PayoutsPage({ searchParams }: Props) {
                   <td>
                     {provider ? (
                       <div className="profile-cell">
-                        <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)', width: 28, height: 28, fontSize: 10 }}>{provider.initials}</div>
+                        <div className="profile-avatar" style={{ background: 'var(--accent-bg)', color: 'var(--accent)', width: 28, height: 28, fontSize: 'var(--fs-xs)' }}>{provider.initials}</div>
                         <Link href={`/providers/${r.provider_id}`} className="link-accent">{provider.full_name}</Link>
                       </div>
                     ) : '-'}
@@ -133,7 +133,7 @@ export default async function PayoutsPage({ searchParams }: Props) {
                   <td>
                     <span className={`pill ${r.status === 'paid' ? 'approved' : r.status === 'failed' ? 'rejected' : 'pending'}`}>{r.status}</span>
                     {r.status === 'paid' && (
-                      <div style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 2 }}>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', marginTop: 2 }}>
                         {r.payout_method}{r.payout_reference ? ` · ${r.payout_reference}` : ''} · {stamp(r.paid_at)}
                       </div>
                     )}
@@ -145,7 +145,7 @@ export default async function PayoutsPage({ searchParams }: Props) {
                           name="method"
                           required
                           defaultValue={defaultPayoutMethod}
-                          style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }}
+                          className="input input-sm"
                         >
                           <option value="" disabled>Method</option>
                           <option value="MTN MoMo">MTN MoMo</option>
@@ -153,8 +153,8 @@ export default async function PayoutsPage({ searchParams }: Props) {
                           <option value="AirtelTigo Money">AirtelTigo Money</option>
                           <option value="Bank transfer">Bank transfer</option>
                         </select>
-                        <input name="reference" placeholder="Reference (optional)" style={{ width: 130, padding: '6px 8px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 12 }} />
-                        <button className="filter-btn" style={{ padding: '6px 12px' }}>Mark paid</button>
+                        <input name="reference" placeholder="Reference (optional)" className="input input-sm" style={{ width: 130 }} />
+                        <button className="filter-btn">Mark paid</button>
                       </form>
                     ) : (
                       <span className="text-muted-sm">-</span>

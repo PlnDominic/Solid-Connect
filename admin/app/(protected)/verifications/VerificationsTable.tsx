@@ -51,8 +51,8 @@ export function VerificationsTable({ rows, status }: { rows: Row[]; status: stri
     <>
       {canBulk && (
         <div className="table-card" style={{ padding: 14, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{selected.size} selected</span>
-          <button className="btn" disabled={selected.size === 0 || pending} style={{ padding: '8px 16px' }} onClick={() => runBulk('approved')}>
+          <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-muted)' }}>{selected.size} selected</span>
+          <button className="btn" disabled={selected.size === 0 || pending} onClick={() => runBulk('approved')}>
             Approve selected
           </button>
           {!rejecting ? (
@@ -73,8 +73,8 @@ export function VerificationsTable({ rows, status }: { rows: Row[]; status: stri
               </button>
             </>
           )}
-          {result?.error && <span style={{ color: 'var(--red)', fontSize: 13 }}>{result.error}</span>}
-          {result?.success && <span style={{ color: 'var(--green)', fontSize: 13 }}>Updated {result.count}.</span>}
+          {result?.error && <span style={{ color: 'var(--red)', fontSize: 'var(--fs-sm)' }}>{result.error}</span>}
+          {result?.success && <span style={{ color: 'var(--green)', fontSize: 'var(--fs-sm)' }}>Updated {result.count}.</span>}
         </div>
       )}
 

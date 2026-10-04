@@ -34,20 +34,20 @@ function PartyCell({
   return (
     <div>
       <div className="profile-cell">
-        <div className="profile-avatar" style={{ background: accentBg, color: accentFg, width: 28, height: 28, fontSize: 10 }}>
+        <div className="profile-avatar" style={{ background: accentBg, color: accentFg, width: 28, height: 28, fontSize: 'var(--fs-xs)' }}>
           {initials}
         </div>
         <span>{name}</span>
       </div>
       {sharing ? (
-        <div style={{ marginTop: 4, fontSize: 11.5 }}>
+        <div style={{ marginTop: 4, fontSize: 'var(--fs-xs)' }}>
           <a href={mapsUrl(lat!, lng!)} target="_blank" rel="noreferrer" className="mono text-accent" >
             Open in Maps
           </a>
           <span style={{ color: 'var(--text-muted)', marginLeft: 6 }}>· {formatRelativeTime(updatedAt!)}</span>
         </div>
       ) : (
-        <div style={{ marginTop: 4, fontSize: 11.5, color: 'var(--text-muted)' }}>Not sharing yet</div>
+        <div style={{ marginTop: 4, fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>Not sharing yet</div>
       )}
     </div>
   );
@@ -121,7 +121,7 @@ export default async function LiveJobsPage() {
                 <tr key={j.id}>
                   <td>
                     <Link href={`/jobs/${j.id}`} className="link-accent">{j.title || 'Untitled'}</Link>
-                    <div style={{ color: 'var(--text-muted)', fontSize: 11.5, marginTop: 2 }}>{j.location_label ?? '-'}</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 'var(--fs-xs)', marginTop: 2 }}>{j.location_label ?? '-'}</div>
                   </td>
                   <td>
                     <PartyCell

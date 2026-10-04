@@ -37,7 +37,7 @@ export function Pagination({
     <div
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
-        marginTop: 12, marginBottom: 16, fontSize: 13, color: 'var(--text-secondary)',
+        marginTop: 12, marginBottom: 16, fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)',
       }}
     >
       <span>

@@ -18,13 +18,13 @@ export function BroadcastForm() {
       style={{ padding: 20, display: 'grid', gap: 14, maxWidth: 560 }}
     >
       <div>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
           Audience
         </label>
         <select
           name="audience"
           defaultValue="everyone"
-          style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontSize: 13 }}
+          className="input" style={{ width: '100%' }}
         >
           <option value="everyone">Everyone</option>
           <option value="customer">All customers</option>
@@ -33,20 +33,20 @@ export function BroadcastForm() {
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
           Title
         </label>
         <input name="title" required placeholder="e.g. New payment methods coming soon" className="search-input" />
       </div>
 
       <div>
-        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
+        <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)', marginBottom: 6 }}>
           Message
         </label>
         <textarea name="body" required placeholder="Write the announcement..." className="field" style={{ minHeight: 100 }} />
       </div>
 
-      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12.5, color: 'var(--text-muted)' }}>
+      <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>
         <input type="checkbox" name="essential" style={{ marginTop: 2 }} />
         <span>
           Send regardless of notification preferences (operational notice - outage, policy change). Leave unchecked
@@ -54,7 +54,7 @@ export function BroadcastForm() {
         </span>
       </label>
 
-      <button className="btn" disabled={pending} style={{ justifySelf: 'start', padding: '10px 24px' }}>
+      <button className="btn" disabled={pending} style={{ justifySelf: 'start' }}>
         {pending ? 'Sending…' : 'Send broadcast'}
       </button>
 

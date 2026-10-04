@@ -31,7 +31,7 @@ export function SortHeader({
     <th>
       <Link href={`${basePath}?${sp.toString()}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: isActive ? 'var(--text-primary)' : 'inherit' }}>
         {label}
-        <span style={{ fontSize: 9, opacity: isActive ? 1 : 0.35 }}>{isActive && currentDir === 'desc' ? '▼' : '▲'}</span>
+        <span style={{ fontSize: 'var(--fs-xs)', opacity: isActive ? 1 : 0.35 }}>{isActive && currentDir === 'desc' ? '▼' : '▲'}</span>
       </Link>
     </th>
   );
