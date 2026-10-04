@@ -13,7 +13,7 @@ import { SlotPicker } from '../../components/SlotPicker';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { StepBars } from '../../components/StepDots';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Category } from '../../types/database';
 
@@ -453,19 +453,19 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.hairline,
     },
-    progressText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted },
+    progressText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted },
     body: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.xxl },
 
     question: { gap: spacing.sm },
-    questionTitle: { fontSize: 27, lineHeight: 33, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.6 },
-    questionSubtitle: { fontSize: 16.5, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
+    questionTitle: { fontSize: fontSizes.title, lineHeight: 34, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.6 },
+    questionSubtitle: { fontSize: fontSizes.md, lineHeight: 23, fontFamily: fonts.regular, color: colors.inkMuted },
 
     section: { gap: spacing.sm },
     // Raised white card on the dimmed page - shadow does the separating.
     card: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.lg, ...shadow.card },
-    label: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    labelAside: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
-    hint: { fontSize: 15, lineHeight: 21, fontFamily: fonts.medium, color: colors.inkMuted },
+    label: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    labelAside: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint },
+    hint: { fontSize: fontSizes.md, lineHeight: 22, fontFamily: fonts.medium, color: colors.inkMuted },
     hintError: { color: colors.danger },
 
     categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: spacing.md },
@@ -478,7 +478,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
       padding: spacing.lg,
-      fontSize: 18,
+      fontSize: fontSizes.lg,
       lineHeight: 26,
       fontFamily: fonts.regular,
       color: colors.ink,
@@ -512,7 +512,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       gap: 4,
     },
-    photoAddText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted },
+    photoAddText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted },
 
         budgetField: {
       flexDirection: 'row',
@@ -528,8 +528,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     budgetFieldFocused: { borderColor: colors.active },
     budgetFieldError: { borderColor: colors.danger },
-    budgetCurrency: { fontSize: 22, fontFamily: fonts.semibold, color: colors.inkFaint },
-    budgetInput: { flex: 1, fontSize: 36, fontFamily: fonts.mono, color: colors.ink, padding: 0 },
+    budgetCurrency: { fontSize: fontSizes.xxl, fontFamily: fonts.semibold, color: colors.inkFaint },
+    budgetInput: { flex: 1, fontSize: fontSizes.display, fontFamily: fonts.mono, color: colors.ink, padding: 0 },
 
     summary: {
       borderRadius: radii.xxxl,
@@ -538,7 +538,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
     },
-    summaryTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink, paddingVertical: spacing.sm },
+    summaryTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink, paddingVertical: spacing.sm },
     summaryRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -548,11 +548,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.hairline,
     },
-    summaryLabel: { fontSize: 16, fontFamily: fonts.medium, color: colors.inkMuted },
-    summaryValue: { flexShrink: 1, fontSize: 16, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
+    summaryLabel: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkMuted },
+    summaryValue: { flexShrink: 1, fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
     summaryValueMono: { fontFamily: fonts.mono },
     summaryDescription: {
-      fontSize: 16,
+      fontSize: fontSizes.md,
       lineHeight: 23,
       fontFamily: fonts.regular,
       color: colors.inkMuted,
@@ -562,7 +562,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopColor: colors.hairline,
     },
 
-    errorText: { fontSize: 16, lineHeight: 22, fontFamily: fonts.semibold, color: colors.danger },
+    errorText: { fontSize: fontSizes.md, lineHeight: 22, fontFamily: fonts.semibold, color: colors.danger },
     footer: {
       padding: spacing.lg,
       paddingBottom: spacing.xl,
@@ -571,6 +571,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopColor: colors.hairline,
       gap: spacing.sm,
     },
-    footerNote: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
+    footerNote: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
   });
 }

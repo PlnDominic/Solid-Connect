@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 export interface FilterOption {
@@ -68,7 +68,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
     },
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-    label: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
+    label: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
     labelActive: { color: colors.white },
   });
 }

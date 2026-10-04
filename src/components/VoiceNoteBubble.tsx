@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Pause, Play } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 function formatDuration(sec: number): string {
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    fontSize: 11,
+    fontSize: fontSizes.xs,
     fontFamily: fonts.mono,
     fontVariant: ['tabular-nums'],
   },

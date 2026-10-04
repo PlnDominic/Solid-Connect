@@ -4,7 +4,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useMyAvailability, useSaveWeeklyAvailability, useSetAvailabilityMode } from '../../api/location';
 import { isApiConfigured } from '../../lib/api';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const MODES = [
@@ -103,8 +103,8 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
-    section: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink, marginTop: spacing.sm },
+    note: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
+    section: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink, marginTop: spacing.sm },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,
@@ -125,7 +125,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-    chipLabel: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.white },
   });
 }

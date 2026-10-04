@@ -5,7 +5,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 /**
@@ -74,7 +74,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.paperDim,
     },
-    label: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    area: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    label: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    area: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

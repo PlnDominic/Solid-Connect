@@ -6,7 +6,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function BlockedUsersScreen({ navigation }: { navigation: any }) {
@@ -56,7 +56,7 @@ export function BlockedUsersScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md },
-    empty: { fontSize: 16, lineHeight: 25, fontFamily: fonts.regular, color: colors.inkMuted },
+    empty: { fontSize: fontSizes.md, lineHeight: 25, fontFamily: fonts.regular, color: colors.inkMuted },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -66,7 +66,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.md,
       ...shadow.card,
     },
-    name: { flex: 1, fontSize: 17, fontFamily: fonts.semibold, color: colors.ink },
+    name: { flex: 1, fontSize: fontSizes.lg, fontFamily: fonts.semibold, color: colors.ink },
     btn: { height: 40, paddingHorizontal: 16 },
   });
 }

@@ -6,7 +6,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { useCreateOrganization, useMyOrganizations } from '../../api/organizations';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { isApiConfigured } from '../../lib/api';
 
@@ -98,7 +98,7 @@ export function OrganizationsScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-    lead: { fontFamily: fonts.regular, fontSize: 17, color: colors.inkMuted, lineHeight: 25 },
+    lead: { fontFamily: fonts.regular, fontSize: fontSizes.lg, color: colors.inkMuted, lineHeight: 26 },
     card: {
       backgroundColor: colors.card,
       borderRadius: radii.xxxl,
@@ -108,7 +108,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     section: {
       fontFamily: fonts.semibold,
-      fontSize: 15,
+      fontSize: fontSizes.md,
       letterSpacing: 0.6,
       textTransform: 'uppercase',
       color: colors.inkMuted,
@@ -121,11 +121,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.md,
       paddingVertical: 12,
       fontFamily: fonts.regular,
-      fontSize: 18,
+      fontSize: fontSizes.lg,
       color: colors.ink,
       backgroundColor: colors.bg,
     },
-    error: { fontFamily: fonts.regular, color: colors.danger ?? '#b42318', fontSize: 16 },
+    error: { fontFamily: fonts.regular, color: colors.danger ?? '#b42318', fontSize: fontSizes.md },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -135,7 +135,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.xxxl,
       ...shadow.card,
     },
-    rowTitle: { fontFamily: fonts.semibold, fontSize: 18, color: colors.ink },
-    rowSub: { fontFamily: fonts.regular, fontSize: 15, color: colors.inkMuted, marginTop: 2 },
+    rowTitle: { fontFamily: fonts.semibold, fontSize: fontSizes.lg, color: colors.ink },
+    rowSub: { fontFamily: fonts.regular, fontSize: fontSizes.md, color: colors.inkMuted, marginTop: 2 },
   });
 }

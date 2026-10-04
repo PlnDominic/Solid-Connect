@@ -12,7 +12,7 @@ import { authenticateWithBiometrics, useBiometricLockPreference } from '../../ho
 import { friendlyAuthError } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 function stamp(iso: string): string {
@@ -209,11 +209,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       marginBottom: spacing.sm,
       ...shadow.card,
     },
-    label: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
-    value: { fontSize: 17, fontFamily: fonts.semibold, color: colors.ink },
+    label: { fontSize: fontSizes.sm, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
+    value: { fontSize: fontSizes.lg, fontFamily: fonts.semibold, color: colors.ink },
     toggleRow: { flexDirection: 'row', alignItems: 'center' },
-    rowDetail: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
-    section: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
+    rowDetail: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
+    section: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
     dangerSection: { color: colors.danger, marginTop: spacing.xl },
     reasonInput: { minHeight: 80, textAlignVertical: 'top', paddingTop: spacing.md },
     input: {
@@ -223,10 +223,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       paddingHorizontal: spacing.md,
-      fontSize: 17,
+      fontSize: fontSizes.lg,
       fontFamily: fonts.regular,
       color: colors.ink,
     },
-    error: { fontSize: 15, fontFamily: fonts.medium, color: colors.danger },
+    error: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.danger },
   });
 }

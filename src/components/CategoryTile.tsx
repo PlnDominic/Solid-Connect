@@ -34,7 +34,7 @@ import {
   MapPin,
   type LucideIcon,
 } from 'lucide-react-native';
-import { fonts, radii, shadow, spacing } from '../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -308,8 +308,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
     },
     badge: { width: 36, height: 36, borderRadius: radii.md, backgroundColor: colors.paperDim, alignItems: 'center', justifyContent: 'center' },
-    abbr: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.ink },
-    name: { fontSize: 11, fontFamily: fonts.semibold, color: colors.inkMuted, textAlign: 'center' },
+    abbr: { fontSize: fontSizes.sm, fontFamily: fonts.extrabold, color: colors.ink },
+    name: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted, textAlign: 'center' },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -319,7 +319,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       borderWidth: 1.5,
     },
-    rowName: { flex: 1, fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
+    rowName: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     check: { width: 20, height: 20, borderRadius: radii.sm, backgroundColor: colors.ink, alignItems: 'center', justifyContent: 'center' },
     gridTile: {
       width: 136,
@@ -401,7 +401,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     gridTileElevatedSelected: { borderColor: colors.active },
     gridCheckElevated: { top: 6, right: 6, backgroundColor: colors.active },
     gridIllustrationElevated: { width: 54, height: 54 },
-    gridNameElevated: { fontSize: 14, lineHeight: 18 },
+    gridNameElevated: { fontSize: fontSizes.sm, lineHeight: 18 },
     gridBadgeSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
     gridIllustration: { width: 44, height: 44 },
     gridCheck: {
@@ -415,10 +415,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    gridName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
-    gridNameCompact: { fontSize: 13, fontFamily: fonts.bold, textAlign: 'left' },
-    gridNameIllustrated: { fontSize: 11, lineHeight: 14, fontFamily: fonts.bold, textAlign: 'center' },
-    gridDesc: { fontSize: 11.5, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
-    gridDescCompact: { fontSize: 10.5, lineHeight: 14, fontFamily: fonts.medium, textAlign: 'left' },
+    gridName: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.1, textAlign: 'center' },
+    gridNameCompact: { fontSize: fontSizes.sm, fontFamily: fonts.bold, textAlign: 'left' },
+    gridNameIllustrated: { fontSize: fontSizes.xs, lineHeight: 15, fontFamily: fonts.bold, textAlign: 'center' },
+    gridDesc: { fontSize: fontSizes.xs, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
+    gridDescCompact: { fontSize: fontSizes.xs, lineHeight: 16, fontFamily: fonts.medium, textAlign: 'left' },
   });
 }

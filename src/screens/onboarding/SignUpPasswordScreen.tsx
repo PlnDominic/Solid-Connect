@@ -4,7 +4,7 @@ import { Check, ChevronLeft, Eye, EyeOff } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const MIN_LENGTH = 8;
@@ -181,14 +181,14 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
     textWrap: { gap: 8 },
-    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-    subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+    title: { fontSize: fontSizes.title, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 34 },
+    subtitle: { fontSize: fontSizes.md, lineHeight: 23, color: colors.inkMuted, fontFamily: fonts.regular },
 
     fields: { gap: spacing.lg },
     inputRow: { flexDirection: 'row', alignItems: 'center' },
     input: {
       flex: 1,
-      fontSize: 18,
+      fontSize: fontSizes.lg,
       fontFamily: fonts.medium,
       color: colors.ink,
       borderBottomWidth: 2,
@@ -198,7 +198,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     inputWithIcon: { paddingRight: spacing.xxl },
     eyeButton: { position: 'absolute', right: 0, height: '100%', justifyContent: 'center', paddingHorizontal: 2 },
     inputError: { borderBottomColor: colors.danger },
-    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger, marginTop: -spacing.md },
+    errorText: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.danger, marginTop: -spacing.md },
 
     rules: { gap: 10 },
     ruleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
@@ -212,7 +212,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
     ruleDotMet: { backgroundColor: colors.confirm, borderColor: colors.confirm },
-    ruleLabel: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    ruleLabel: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
     ruleLabelMet: { color: colors.ink, fontFamily: fonts.semibold },
 
     footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg },

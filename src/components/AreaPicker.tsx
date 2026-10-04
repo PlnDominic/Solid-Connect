@@ -3,7 +3,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View 
 import { LocateFixed } from 'lucide-react-native';
 import { AREAS } from '../constants/areas';
 import { detectNearestArea } from '../api/location';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 const OTHER = 'Other';
@@ -118,7 +118,7 @@ export function isValidArea(value: string): boolean {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     locateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, alignSelf: 'flex-start' },
-    locateLabel: { fontSize: 13.5, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    locateLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,
@@ -129,11 +129,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-    chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.white },
 
     input: {
-      fontSize: 18,
+      fontSize: fontSizes.lg,
       fontFamily: fonts.bold,
       color: colors.ink,
       borderBottomWidth: 2,

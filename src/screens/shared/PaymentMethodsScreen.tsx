@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const STORAGE_KEY = 'solid-connect:payment-method';
@@ -69,7 +69,7 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    note: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
     card: {
       borderRadius: radii.xxxl,
       backgroundColor: colors.card,
@@ -83,8 +83,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
     },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    rowLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
-    rowDetail: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
+    rowLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
+    rowDetail: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
     radio: {
       width: 20,
       height: 20,
@@ -97,6 +97,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     radioActive: { borderColor: colors.active },
     radioDot: { width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.active },
     addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: spacing.md },
-    addLabel: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    addLabel: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

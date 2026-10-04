@@ -4,7 +4,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { LucideIcon } from 'lucide-react-native';
 import { House, LayoutGrid, ClipboardList, Briefcase, Map as MapIcon, MessageCircle, User } from 'lucide-react-native';
 import { useLocale, type TranslationKey } from '../i18n';
-import { fonts } from '../theme';
+import { fonts, fontSizes } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import { useSessionStore } from '../store/useSessionStore';
 import { useUnreadChatCount, useUnreadNotificationCount } from '../api/badges';
@@ -143,8 +143,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       margin: 4,
     },
     label: {
-      fontSize: 10,
-      lineHeight: 13,
+      fontSize: fontSizes.xs,
+      lineHeight: 16,
       fontFamily: fonts.semibold,
       letterSpacing: 0.2,
       zIndex: 1,

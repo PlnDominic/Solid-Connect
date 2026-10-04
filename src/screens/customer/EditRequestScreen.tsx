@@ -9,7 +9,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { isValidArea } from '../../components/AreaPicker';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const MAX_PHOTOS = 4;
@@ -193,7 +193,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.xl },
     field: { gap: 7 },
-    fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
+    fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
 
     budgetField: {
       height: 58,
@@ -206,12 +206,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.md,
     },
     budgetFieldFocused: { borderWidth: 1.5, borderColor: colors.ink },
-    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 17, fontFamily: fonts.medium },
-    budgetInput: { flex: 1, fontSize: 20, fontFamily: fonts.mono, color: colors.ink },
+    budgetCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: fontSizes.lg, fontFamily: fonts.medium },
+    budgetInput: { flex: 1, fontSize: fontSizes.xl, fontFamily: fonts.mono, color: colors.ink },
 
     // Small all-caps eyebrow above a grouped card - same idiom as
     // NewRequestScreen's own step 2 and the settings screens.
-    groupLabel: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -8 },
+    groupLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -8 },
     groupCard: {
       borderRadius: radii.xl,
       borderWidth: 1,
@@ -220,17 +220,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       overflow: 'hidden',
     },
     groupRowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.hairline },
-    groupRowLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    groupRowLabel: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     groupRowLabelCount: { fontFamily: fonts.medium, color: colors.inkFainter },
 
     // Nested directly in the groupCard - no border/background of its own,
     // so it reads as one continuous row rather than a card within a card.
     detailBlock: { padding: spacing.lg, gap: spacing.sm },
-    detailHint: { fontSize: 12, lineHeight: 16, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: -4 },
+    detailHint: { fontSize: fontSizes.xs, lineHeight: 16, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: -4 },
     textarea: {
       minHeight: 96,
-      fontSize: 15,
-      lineHeight: 22,
+      fontSize: fontSizes.md,
+      lineHeight: 23,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',
@@ -264,7 +264,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
 
-    errorText: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    errorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
     footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.paper, borderTopWidth: 1, borderTopColor: colors.hairline },
   });
 }

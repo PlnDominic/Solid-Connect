@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { ShieldCheck } from 'lucide-react-native';
 import type { Job, Payment } from '../types/database';
-import { fonts, radii, shadow, spacing } from '../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 type Row = { label: string; value: string; tone: 'done' | 'due' | 'muted' };
@@ -88,11 +88,11 @@ export function JobPaymentCard({ job, payment, role }: { job: Job; payment: Paym
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     card: { borderRadius: radii.lg, backgroundColor: colors.card, padding: spacing.lg, gap: 8, ...shadow.card },
-    label: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    label: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     row: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
-    rowLabel: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
-    rowValue: { flexShrink: 1, textAlign: 'right', fontSize: 14, fontFamily: fonts.semibold },
-    outcome: { fontSize: 13, lineHeight: 19, fontFamily: fonts.medium, color: colors.ink },
+    rowLabel: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
+    rowValue: { flexShrink: 1, textAlign: 'right', fontSize: fontSizes.sm, fontFamily: fonts.semibold },
+    outcome: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.medium, color: colors.ink },
     notice: {
       flexDirection: 'row',
       gap: 6,
@@ -102,6 +102,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopWidth: 1,
       borderTopColor: colors.hairline,
     },
-    noticeText: { flex: 1, fontSize: 12.5, lineHeight: 18, fontFamily: fonts.medium, color: colors.inkMuted },
+    noticeText: { flex: 1, fontSize: fontSizes.xs, lineHeight: 17, fontFamily: fonts.medium, color: colors.inkMuted },
   });
 }

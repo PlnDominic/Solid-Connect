@@ -4,7 +4,7 @@ import { getDevicePosition } from '../lib/devicePosition';
 import { Phone, Share2, Siren } from 'lucide-react-native';
 import { friendlySafetyError, useCreateSafetyAlert } from '../api/safety';
 import { useSessionStore } from '../store/useSessionStore';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import type { Job } from '../types/database';
 import { BottomSheet } from './BottomSheet';
@@ -114,8 +114,8 @@ export function SafetySheet({
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    title: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    body: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    title: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    body: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
     grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
     callBtn: {
       flexGrow: 1,
@@ -131,8 +131,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.dangerBg,
     },
     callBtnMain: { backgroundColor: colors.danger },
-    callText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.danger },
-    note: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
+    callText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.danger },
+    note: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
     shareBtn: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -143,6 +143,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
     },
-    shareText: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    shareText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
   });
 }

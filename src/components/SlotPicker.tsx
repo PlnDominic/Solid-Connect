@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useProviderOpenSlots } from '../api/booking';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
@@ -112,8 +112,8 @@ export function SlotPicker({
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     wrap: { gap: spacing.sm },
-    label: { color: colors.ink, fontSize: 13, fontFamily: fonts.semibold },
-    hint: { color: colors.inkFaint, fontSize: 12, fontFamily: fonts.medium, lineHeight: 17 },
+    label: { color: colors.ink, fontSize: fontSizes.sm, fontFamily: fonts.semibold },
+    hint: { color: colors.inkFaint, fontSize: fontSizes.xs, fontFamily: fonts.medium, lineHeight: 17 },
     chips: { gap: spacing.sm, paddingVertical: 2 },
     dayChip: {
       width: 52,
@@ -125,8 +125,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.paperDim,
     },
-    dayName: { color: colors.inkFaint, fontSize: 11, fontFamily: fonts.semibold },
-    dayNum: { color: colors.ink, fontSize: 16, fontFamily: fonts.bold },
+    dayName: { color: colors.inkFaint, fontSize: fontSizes.xs, fontFamily: fonts.semibold },
+    dayNum: { color: colors.ink, fontSize: fontSizes.md, fontFamily: fonts.bold },
     slotRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     slotChip: {
       paddingVertical: spacing.sm,
@@ -136,7 +136,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.paperDim,
     },
-    slotText: { color: colors.ink, fontSize: 13, fontFamily: fonts.semibold },
+    slotText: { color: colors.ink, fontSize: fontSizes.sm, fontFamily: fonts.semibold },
     chipSelected: { backgroundColor: colors.active, borderColor: colors.active },
     chipTextSelected: { color: colors.white },
   });

@@ -17,7 +17,7 @@ import { useMyPosition } from '../../hooks/useMyPosition';
 import { formatRelativeTime } from '../../lib/geo';
 import { isFresh, isLiveJobStatus, roundBounds, spreadAroundCentroid, type MapBounds } from '../../lib/mapPins';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Job } from '../../types/database';
 
@@ -325,8 +325,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
-    title: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
-    subtitle: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted },
+    title: { fontSize: fontSizes.xl, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
+    subtitle: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
     visibility: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -337,7 +337,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
-    visibilityText: { flex: 1, fontSize: 12.5, fontFamily: fonts.medium, color: colors.ink },
+    visibilityText: { flex: 1, fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.ink },
 
     bottom: { position: 'absolute', left: spacing.lg, right: spacing.lg, bottom: spacing.md, gap: spacing.sm },
     locateBtn: {
@@ -359,10 +359,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     sheetRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     nameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    sheetTitle: { flexShrink: 1, fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
-    sheetMeta: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted },
-    budget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
-    note: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    sheetTitle: { flexShrink: 1, fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    sheetMeta: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
+    budget: { fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    note: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     pinIcon: {
       width: 40,
       height: 40,
@@ -372,7 +372,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.paperDim,
     },
     showBtn: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: radii.pill, backgroundColor: colors.ink },
-    showBtnText: { fontSize: 13, fontFamily: fonts.bold, color: colors.white },
+    showBtnText: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.white },
     emptyHint: {
       borderRadius: radii.lg,
       backgroundColor: colors.card,
@@ -380,6 +380,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
       ...shadow.card,
     },
-    emptyText: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
+    emptyText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
   });
 }

@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { fonts, radii, shadow, spacing } from '../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 export interface JobQuickAction {
@@ -75,7 +75,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
     },
     iconDanger: { backgroundColor: colors.dangerBg, borderColor: colors.dangerBg },
-    label: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.inkMuted },
+    label: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted },
     labelDanger: { color: colors.danger },
   });
 }

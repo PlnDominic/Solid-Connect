@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { MapPin } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocationPermission } from '../hooks/useLocationPermission';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import { Button } from './Button';
 
@@ -68,9 +68,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
     },
-    title: { fontSize: 24, fontFamily: fonts.extrabold, color: colors.ink, textAlign: 'center', letterSpacing: -0.4 },
-    copy: { fontSize: 15, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
-    hint: { fontSize: 13.5, lineHeight: 20, fontFamily: fonts.medium, color: colors.danger, textAlign: 'center' },
+    title: { fontSize: fontSizes.xxl, fontFamily: fonts.extrabold, color: colors.ink, textAlign: 'center', letterSpacing: -0.4 },
+    copy: { fontSize: fontSizes.md, lineHeight: 23, fontFamily: fonts.regular, color: colors.inkMuted, textAlign: 'center' },
+    hint: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.medium, color: colors.danger, textAlign: 'center' },
     footer: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg },
   });
 }

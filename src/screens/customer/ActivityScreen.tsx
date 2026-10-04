@@ -14,7 +14,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Job } from '../../types/database';
 import { ActiveRequestPanel, activeRequestHasContent } from './ActiveRequestPanel';
@@ -207,7 +207,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     loading: { alignItems: 'center', paddingVertical: 64 },
 
     section: { gap: spacing.md },
-    sectionTitle: { color: colors.ink, fontSize: 16.5, letterSpacing: -0.3, fontFamily: fonts.bold },
+    sectionTitle: { color: colors.ink, fontSize: fontSizes.md, letterSpacing: -0.3, fontFamily: fonts.bold },
     cardList: { gap: spacing.md },
 
     card: {
@@ -219,9 +219,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     cardPressed: { opacity: 0.92 },
     cardTop: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-    cardTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
-    cardMeta: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
-    cardBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    cardTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    cardMeta: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
+    cardBudget: { fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
     cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 
     ratePill: {
@@ -233,7 +233,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.pill,
       backgroundColor: colors.ink,
     },
-    ratePillText: { fontSize: 12, fontFamily: fonts.bold, color: colors.white },
+    ratePillText: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: colors.white },
 
     compareBar: {
       padding: spacing.lg,

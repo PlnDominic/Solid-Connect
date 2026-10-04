@@ -1,7 +1,7 @@
 import { Alert, Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const SUPPORT_PHONE = '+233 30 200 0000';
@@ -74,11 +74,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
     rowBorder: { height: 1, backgroundColor: colors.hairline },
-    contactLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
-    contactValue: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
-    sectionTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
+    contactLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
+    contactValue: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
+    sectionTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
     faqCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.md, gap: 6, ...shadow.card },
-    faqQ: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
-    faqA: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    faqQ: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    faqA: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
   });
 }

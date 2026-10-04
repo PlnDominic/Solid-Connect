@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { fonts } from '../../theme';
+import { fonts, fontSizes } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { SignUpDetailScreen } from './SignUpDetailScreen';
 
@@ -48,7 +48,7 @@ export function SignUpNameScreen({
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    link: { textAlign: 'center', fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
+    link: { textAlign: 'center', fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
     linkStrong: { fontFamily: fonts.bold, color: colors.ink },
   });
 }

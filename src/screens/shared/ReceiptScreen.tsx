@@ -6,7 +6,7 @@ import { fetchProfile } from '../../api/profile';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 /**
@@ -104,8 +104,8 @@ function Row({ label, value }: { label: string; value: string }) {
   const { colors } = useTheme();
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-      <Text style={{ fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFaint }}>{label}</Text>
-      <Text style={{ fontSize: 13.5, fontFamily: fonts.semibold, color: colors.ink }}>{value}</Text>
+      <Text style={{ fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint }}>{label}</Text>
+      <Text style={{ fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink }}>{value}</Text>
     </View>
   );
 }
@@ -125,15 +125,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       ...shadow.card,
     },
     cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    brand: { fontSize: 15.5, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.2 },
-    receiptNumber: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
+    brand: { fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.2 },
+    receiptNumber: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
     divider: { height: 1, backgroundColor: colors.hairline },
-    jobTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    jobLocation: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkMuted, marginTop: -8 },
+    jobTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    jobLocation: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted, marginTop: -8 },
     rows: { gap: 8 },
     totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-    totalLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    totalValue: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    totalLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
+    totalValue: { fontSize: fontSizes.xl, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
     statusPill: {
       alignSelf: 'flex-start',
       paddingVertical: 5,
@@ -142,7 +142,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     statusPillPaid: { backgroundColor: colors.successBg },
     statusPillPending: { backgroundColor: colors.paperDim },
-    statusPillText: { fontSize: 12, fontFamily: fonts.bold },
+    statusPillText: { fontSize: fontSizes.xs, fontFamily: fonts.bold },
     statusPillTextPaid: { color: colors.successFg },
     statusPillTextPending: { color: colors.inkFaint },
   });

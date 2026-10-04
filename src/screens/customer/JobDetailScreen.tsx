@@ -22,7 +22,7 @@ import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function JobDetailScreen({ navigation, route }: { navigation: any; route: any }) {
@@ -277,12 +277,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.14)',
     },
-    headerTitle: { flex: 1, color: colors.white, fontSize: 18, fontFamily: fonts.bold, letterSpacing: -0.3 },
+    headerTitle: { flex: 1, color: colors.white, fontSize: fontSizes.lg, fontFamily: fonts.bold, letterSpacing: -0.3 },
     peerRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-    peerName: { color: colors.white, fontSize: 14, fontFamily: fonts.bold },
+    peerName: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
     peerMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    peerMeta: { color: colors.white, opacity: 0.85, fontSize: 12, fontFamily: fonts.medium, fontVariant: ['tabular-nums'] },
-    peerMetaDim: { color: colors.white, opacity: 0.6, fontSize: 12, fontFamily: fonts.medium },
+    peerMeta: { color: colors.white, opacity: 0.85, fontSize: fontSizes.xs, fontFamily: fonts.medium, fontVariant: ['tabular-nums'] },
+    peerMetaDim: { color: colors.white, opacity: 0.6, fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     body: { flex: 1 },
     bodyContent: { padding: spacing.lg, gap: spacing.md },
@@ -296,9 +296,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     progressRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     progressIcon: { width: 36, height: 36, borderRadius: radii.md, alignItems: 'center', justifyContent: 'center' },
-    progressLabel: { flex: 1, fontSize: 14.5, fontFamily: fonts.extrabold, letterSpacing: -0.1 },
-    progressStep: { fontSize: 14, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
-    progressNote: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted },
+    progressLabel: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.extrabold, letterSpacing: -0.1 },
+    progressStep: { fontSize: fontSizes.sm, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
+    progressNote: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
 
     detailsCard: {
       borderRadius: radii.lg,
@@ -307,13 +307,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 6,
       ...shadow.card,
     },
-    detailsLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    detailsValue: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+    detailsLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    detailsValue: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
     detailsLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    detailsSub: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkMuted },
+    detailsSub: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
 
     footer: { padding: spacing.lg, paddingBottom: spacing.xl, backgroundColor: colors.card, borderTopWidth: 1, borderTopColor: colors.hairline },
-    sheetTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    sheetBody: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
+    sheetTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    sheetBody: { fontSize: fontSizes.sm, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
   });
 }

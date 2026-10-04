@@ -17,7 +17,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { disputeAccess, disputeTimeline, MAX_EVIDENCE_PER_PARTY } from '../../lib/disputeCase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Dispute, DisputeReason } from '../../types/database';
 
@@ -335,7 +335,7 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    lead: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    lead: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
     card: {
       borderRadius: radii.lg,
       borderWidth: 1,
@@ -346,7 +346,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: spacing.sm,
     },
     banner: { borderRadius: radii.lg, backgroundColor: colors.pendingBg, padding: spacing.md },
-    bannerText: { fontSize: 13, lineHeight: 19, fontFamily: fonts.medium, color: colors.pending },
+    bannerText: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.medium, color: colors.pending },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -354,7 +354,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingVertical: spacing.md,
     },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    rowLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    rowLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
     radio: {
       width: 20,
       height: 20,
@@ -373,17 +373,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       padding: spacing.md,
-      fontSize: 15,
-      lineHeight: 22,
+      fontSize: fontSizes.md,
+      lineHeight: 23,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',
     },
-    error: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
-    statusLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    statusValue: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    bodyText: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
-    note: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 4 },
+    error: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
+    statusLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    statusValue: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    bodyText: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    note: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 4 },
     timeline: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
     timelineItem: { flex: 1, alignItems: 'center', gap: 4 },
     timelineDot: {
@@ -395,9 +395,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.paperDim,
     },
     timelineDotDone: { backgroundColor: colors.ink, borderColor: colors.ink },
-    timelineLabel: { fontSize: 11.5, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
+    timelineLabel: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
     timelineLabelDone: { color: colors.ink, fontFamily: fonts.semibold },
-    timelineDate: { fontSize: 11, fontFamily: fonts.regular, color: colors.inkFaint },
+    timelineDate: { fontSize: fontSizes.xs, fontFamily: fonts.regular, color: colors.inkFaint },
     photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     photo: { width: 72, height: 72, borderRadius: radii.md, backgroundColor: colors.paperDim },
     photoRemove: {

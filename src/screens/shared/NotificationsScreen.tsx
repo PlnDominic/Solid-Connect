@@ -12,7 +12,7 @@ import {
 } from '../../api/profile';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '../../api/requests';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { AppNotification } from '../../types/database';
 
@@ -155,19 +155,19 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.sm },
     sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2, marginBottom: 4 },
-    sectionLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    clearAll: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+    sectionLabel: { fontSize: fontSizes.sm, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    clearAll: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.active },
     cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card, marginBottom: spacing.md },
     card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     row: { flexDirection: 'row', alignItems: 'flex-start', padding: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.sm },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     dotSlot: { width: 8, alignItems: 'center', paddingTop: 6 },
     dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.ink },
-    title: { fontSize: 16, fontFamily: fonts.medium, color: colors.inkMuted },
+    title: { fontSize: fontSizes.lg, fontFamily: fonts.medium, color: colors.inkMuted },
     titleUnread: { fontFamily: fonts.bold, color: colors.ink },
-    notifBody: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkFaint, lineHeight: 20 },
-    time: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFainter, marginTop: 2 },
-    rowLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
-    rowDetail: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 2 },
+    notifBody: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    time: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFainter, marginTop: 2 },
+    rowLabel: { fontSize: fontSizes.lg, fontFamily: fonts.semibold, color: colors.ink },
+    rowDetail: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint, marginTop: 2 },
   });
 }

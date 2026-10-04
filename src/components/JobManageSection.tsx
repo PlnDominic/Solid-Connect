@@ -10,7 +10,7 @@ import {
   useProposeReschedule,
   useRespondReschedule,
 } from '../api/jobManagement';
-import { fonts, radii, shadow, spacing } from '../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import type { Job, JobCancelReason } from '../types/database';
 import { BottomSheet } from './BottomSheet';
@@ -313,16 +313,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     card: { borderRadius: radii.lg, backgroundColor: colors.card, padding: spacing.lg, gap: spacing.sm, ...shadow.card },
     headerRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-    label: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    value: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
-    sub: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted },
-    calendarLink: { fontSize: 13, fontFamily: fonts.semibold, color: colors.active },
+    label: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    value: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
+    sub: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
+    calendarLink: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.active },
     banner: { borderRadius: radii.md, backgroundColor: colors.pendingBg, padding: spacing.md, gap: spacing.sm },
-    bannerText: { fontSize: 13, fontFamily: fonts.medium, color: colors.ink },
+    bannerText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.ink },
     row: { flexDirection: 'row', gap: 10 },
     half: { flex: 1, height: 46 },
-    sheetTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    sheetBody: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
+    sheetTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    sheetBody: { fontSize: fontSizes.sm, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
     chips: { gap: 8, paddingVertical: 4 },
     hourGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
     chip: {
@@ -335,11 +335,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
     chipOff: { opacity: 0.35 },
-    chipText: { fontSize: 13, fontFamily: fonts.medium, color: colors.ink },
+    chipText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.ink },
     chipTextOn: { color: colors.white },
     reason: { borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, padding: spacing.md },
     reasonOn: { borderColor: colors.ink, backgroundColor: colors.pendingBg },
-    reasonText: { fontSize: 14, fontFamily: fonts.medium, color: colors.ink },
+    reasonText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.ink },
     reasonTextOn: { fontFamily: fonts.semibold },
     input: {
       minHeight: 56,
@@ -347,7 +347,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
       padding: spacing.md,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',

@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet } from 'react-native';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import type { JobStatus } from '../types/database';
 
@@ -51,6 +51,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
     },
-    phaseLabel: { fontSize: 11, fontFamily: fonts.medium, color: colors.inkFaint },
+    phaseLabel: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

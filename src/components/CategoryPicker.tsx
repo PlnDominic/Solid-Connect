@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useCategories } from '../api/marketplace';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 type SingleProps = {
@@ -72,7 +72,7 @@ export function CategoryPicker(props: SingleProps | MultiProps) {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    errorText: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 20 },
+    errorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger, lineHeight: 21 },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,
@@ -83,13 +83,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-    chipLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.paper },
     hint: {
       width: '100%',
       marginTop: spacing.sm,
-      fontSize: 12.5,
-      lineHeight: 18,
+      fontSize: fontSizes.xs,
+      lineHeight: 17,
       fontFamily: fonts.medium,
       color: colors.inkFaint,
     },

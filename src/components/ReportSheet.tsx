@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { friendlySafetyError, REPORT_REASONS, useReportUser, type ReportContext, type ReportReason } from '../api/safety';
 import { useSessionStore } from '../store/useSessionStore';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import { BottomSheet } from './BottomSheet';
 import { Button } from './Button';
@@ -82,19 +82,19 @@ export function ReportSheet({
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    title: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    body: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    title: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    body: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
     reason: { borderRadius: radii.md, borderWidth: 1, borderColor: colors.hairline, padding: spacing.md, gap: 2 },
     reasonOn: { borderColor: colors.ink, backgroundColor: colors.pendingBg },
-    reasonLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    reasonHint: { fontSize: 12.5, fontFamily: fonts.regular, color: colors.inkMuted },
+    reasonLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
+    reasonHint: { fontSize: fontSizes.xs, fontFamily: fonts.regular, color: colors.inkMuted },
     input: {
       minHeight: 56,
       borderRadius: radii.md,
       borderWidth: 1,
       borderColor: colors.hairline,
       padding: spacing.md,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.regular,
       color: colors.ink,
       textAlignVertical: 'top',

@@ -7,7 +7,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Profile } from '../../types/database';
 
@@ -95,8 +95,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
-    name: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
+    name: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    meta: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
+    meta: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

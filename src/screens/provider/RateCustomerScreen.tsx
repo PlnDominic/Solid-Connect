@@ -9,7 +9,7 @@ import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 /**
@@ -111,8 +111,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       padding: spacing.lg,
     },
-    peerName: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    peerMeta: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    peerName: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
+    peerMeta: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     rateCard: {
       borderRadius: radii.lg,
       borderWidth: 1,
@@ -122,9 +122,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       gap: spacing.md,
     },
-    question: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.2 },
+    question: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink, letterSpacing: -0.2 },
     starsRow: { flexDirection: 'row', gap: 10 },
-    ratingHint: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    ratingHint: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     commentCard: {
       borderRadius: radii.lg,
       borderWidth: 1,
@@ -133,10 +133,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.lg,
       gap: spacing.sm,
     },
-    commentLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    commentLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     commentInput: {
       minHeight: 110,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       lineHeight: 22,
       fontFamily: fonts.regular,
       color: colors.ink,
@@ -147,6 +147,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.md,
       paddingVertical: spacing.sm,
     },
-    counter: { fontSize: 11, fontFamily: fonts.medium, color: colors.inkFaint, alignSelf: 'flex-end', fontVariant: ['tabular-nums'] },
+    counter: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint, alignSelf: 'flex-end', fontVariant: ['tabular-nums'] },
   });
 }

@@ -1,5 +1,5 @@
 import { ActivityIndicator, Pressable, Text, StyleSheet, ViewStyle } from 'react-native';
-import { fonts, radii } from '../theme';
+import { fonts, fontSizes, radii } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 type Variant = 'primary' | 'navy' | 'active' | 'outline' | 'ghost';
@@ -90,8 +90,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     outline: { borderWidth: 1, borderColor: colors.hairlineStrong, backgroundColor: colors.card },
     ghost: { backgroundColor: 'transparent' },
-    disabled: { opacity: 0.4 },
+    disabled: { opacity: 0.55 },
     pressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
-    label: { fontFamily: fonts.bold, fontSize: 17, letterSpacing: -0.1 },
+    label: { fontFamily: fonts.bold, fontSize: fontSizes.lg, letterSpacing: -0.1 },
   });
 }

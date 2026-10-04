@@ -1,6 +1,6 @@
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 export function ScreenHeader({
@@ -64,6 +64,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   backPressed: { opacity: 0.6, transform: [{ scale: 0.92 }] },
-  title: { fontSize: 20, letterSpacing: -0.4, fontFamily: fonts.bold },
-  titleLarge: { fontSize: 30, letterSpacing: -0.7, fontFamily: fonts.extrabold },
+  title: { fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.bold },
+  titleLarge: { fontSize: fontSizes.title, letterSpacing: -0.7, fontFamily: fonts.extrabold },
 });

@@ -1,5 +1,5 @@
 import { Pressable, ScrollView, Text, StyleSheet } from 'react-native';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 export interface ToggleOption {
@@ -46,7 +46,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
     },
     chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
-    label: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
+    label: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
     labelOn: { color: colors.white },
   });
 }

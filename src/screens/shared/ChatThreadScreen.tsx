@@ -26,7 +26,7 @@ import { VoiceNoteRecorder } from '../../components/VoiceNoteRecorder';
 import { useTypingIndicator } from '../../hooks/useTypingIndicator';
 import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function ChatThreadScreen({ navigation, route }: { navigation: any; route: any }) {
@@ -196,7 +196,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
                 marginBottom: spacing.sm,
                 color: colors.inkFaint,
                 fontFamily: fonts.medium,
-                fontSize: 12,
+                fontSize: fontSizes.xs,
                 lineHeight: 17,
               }}
             >
@@ -210,7 +210,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
               </View>
             ) : (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ color: colors.inkFaint, fontFamily: fonts.medium, fontSize: 13.5 }}>
+                <Text style={{ color: colors.inkFaint, fontFamily: fonts.medium, fontSize: fontSizes.sm }}>
                   Say hello 👋
                 </Text>
               </View>
@@ -259,7 +259,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           <View style={styles.inputRow}>
             <Text style={[styles.typingLabel, { flex: 1, color: colors.inkMuted }]}>You blocked this person.</Text>
             <Pressable onPress={() => unblockUser.mutate(peerId)} hitSlop={8} accessibilityRole="button">
-              <Text style={[styles.peerName, { fontSize: 14 }]}>Unblock</Text>
+              <Text style={[styles.peerName, { fontSize: fontSizes.sm }]}>Unblock</Text>
             </Pressable>
           </View>
         ) : (
@@ -346,8 +346,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.paperDim,
     },
-    peerName: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
-    typingLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.confirm, marginTop: 1 },
+    peerName: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    typingLabel: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.confirm, marginTop: 1 },
 
     bubble: {
       maxWidth: '78%',
@@ -360,8 +360,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     bubbleImage: { width: 200, height: 200, borderRadius: radii.md },
     bubbleMine: { backgroundColor: colors.ink, borderBottomRightRadius: 4 },
     bubbleTheirs: { backgroundColor: colors.paperDim, borderBottomLeftRadius: 4 },
-    bubbleTextMine: { color: colors.white, fontFamily: fonts.medium, fontSize: 15 },
-    bubbleTextTheirs: { color: colors.ink, fontFamily: fonts.medium, fontSize: 15 },
+    bubbleTextMine: { color: colors.white, fontFamily: fonts.medium, fontSize: fontSizes.md },
+    bubbleTextTheirs: { color: colors.ink, fontFamily: fonts.medium, fontSize: fontSizes.md },
     receiptRow: { alignSelf: 'flex-end', marginTop: 2 },
 
     inputRow: {
@@ -387,7 +387,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.pill,
       backgroundColor: colors.paperDim,
       paddingHorizontal: spacing.lg,
-      fontSize: 15,
+      fontSize: fontSizes.md,
       fontFamily: fonts.medium,
       color: colors.ink,
     },

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
 import { useLocationPermission } from '../../hooks/useLocationPermission';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 interface Slide {
@@ -151,7 +151,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     fill: { flex: 1, backgroundColor: colors.paper },
     skipRow: { alignItems: 'flex-end', paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
-    skip: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint, letterSpacing: 0.1 },
+    skip: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint, letterSpacing: 0.1 },
 
     body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.md, gap: spacing.xxl },
 
@@ -180,20 +180,20 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     textWrap: { gap: 8 },
     title: {
-      fontSize: 25,
+      fontSize: fontSizes.xxl,
       fontFamily: fonts.extrabold,
       color: colors.ink,
       letterSpacing: -0.4,
-      lineHeight: 31,
+      lineHeight: 30,
     },
     copy: {
-      fontSize: 15,
-      lineHeight: 22,
+      fontSize: fontSizes.md,
+      lineHeight: 23,
       color: colors.inkMuted,
       fontFamily: fonts.regular,
     },
 
     footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg, gap: spacing.lg },
-    deniedHint: { fontSize: 13.5, lineHeight: 20, fontFamily: fonts.medium, color: colors.danger },
+    deniedHint: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.medium, color: colors.danger },
   });
 }

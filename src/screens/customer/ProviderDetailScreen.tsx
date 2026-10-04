@@ -19,7 +19,7 @@ import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
 import { VideoPlayerModal } from '../../components/VideoPlayerModal';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified, verificationLevelLabel } from '../../lib/verification';
 
@@ -424,7 +424,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
     },
-    headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
+    headerTitle: { flex: 1, textAlign: 'center', fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
     iconBtn: {
       width: 40,
       height: 40,
@@ -478,27 +478,27 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: 'rgba(21,24,26,0.72)',
     },
-    thumbMoreText: { color: colors.paper, fontSize: 18, fontFamily: fonts.extrabold },
+    thumbMoreText: { color: colors.paper, fontSize: fontSizes.lg, fontFamily: fonts.extrabold },
 
     metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
-    categoryLabel: { flex: 1, fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
+    categoryLabel: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint },
     ratingPill: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    ratingText: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    ratingText: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
 
-    name: { fontSize: 25, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
+    name: { fontSize: fontSizes.xxl, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
 
     locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
-    locationText: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
+    locationText: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint },
 
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.hairline },
 
-    eyebrow: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -2 },
+    eyebrow: { fontSize: fontSizes.sm, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -2 },
 
     providerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     providerAvatarImage: { width: 44, height: 44, borderRadius: radii.pill, backgroundColor: colors.paperDim },
     providerInfo: { flex: 1, gap: 1 },
-    providerName: { fontSize: 17.5, fontFamily: fonts.bold, color: colors.ink },
-    providerRole: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    providerName: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    providerRole: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
     actionIconBtn: {
       width: 40,
       height: 40,
@@ -511,8 +511,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     actionIconBtnPrimary: { backgroundColor: colors.ink, borderColor: colors.ink },
 
-    bioText: { fontSize: 16, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
-    readMore: { fontSize: 16, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    bioText: { fontSize: fontSizes.md, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
+    readMore: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
 
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
@@ -524,7 +524,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-    chipLabel: { fontSize: 16.5, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.paper },
 
     // A normal flex sibling below the ScrollView (not absolutely
@@ -543,9 +543,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopColor: colors.hairline,
     },
     footerInfo: { gap: 2 },
-    footerLabel: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
+    footerLabel: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
     footerRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    footerValue: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink },
+    footerValue: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
     footerCta: { flex: 1 },
   });
 }

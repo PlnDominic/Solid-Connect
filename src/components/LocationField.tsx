@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAddSavedLocation, useSavedLocations } from '../api/savedLocations';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import { AreaPicker, isValidArea } from './AreaPicker';
 
@@ -96,7 +96,7 @@ export function LocationField({
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
+    fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
     chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingHorizontal: spacing.md,
@@ -107,9 +107,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
-    chipLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.white },
-    saveLink: { fontSize: 13, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    saveLink: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
     saveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     saveInput: {
       flex: 1,
@@ -118,12 +118,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
       paddingHorizontal: spacing.md,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.regular,
       color: colors.ink,
     },
-    saveAction: { fontSize: 13, fontFamily: fonts.bold, color: colors.active },
+    saveAction: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active },
     saveActionDisabled: { color: colors.inkFainter },
-    saveCancel: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    saveCancel: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
   });
 }

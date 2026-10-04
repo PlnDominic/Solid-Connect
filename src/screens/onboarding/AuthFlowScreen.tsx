@@ -18,7 +18,7 @@ import { LEGAL_VERSION } from '../../lib/legal';
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts } from '../../theme';
+import { fonts, fontSizes } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Role } from '../../types/database';
 import { OnboardingScreen } from './OnboardingScreen';
@@ -544,6 +544,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     blank: { flex: 1, backgroundColor: colors.paper },
     errorWrap: { flex: 1, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center', padding: 32 },
-    errorText: { fontFamily: fonts.medium, fontSize: 15, color: colors.ink, textAlign: 'center' },
+    errorText: { fontFamily: fonts.medium, fontSize: fontSizes.md, color: colors.ink, textAlign: 'center' },
   });
 }

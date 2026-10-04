@@ -8,7 +8,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { VideoPlayerModal } from '../../components/VideoPlayerModal';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 // A quick clip of finished work, not a video-hosting feature - keeps
@@ -178,6 +178,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.card,
     },
-    errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
+    errorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
   });
 }

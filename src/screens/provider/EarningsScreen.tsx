@@ -7,7 +7,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { formatPayoutAccountSummary } from '../../lib/payouts';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const ghs = (n: number) => `GHS ${Math.round(n * 100) / 100 === Math.round(n) ? Math.round(n).toLocaleString() : n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -136,16 +136,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     grid: { gap: spacing.md },
     card: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.lg, gap: 6, ...shadow.card },
     hero: { backgroundColor: colors.active },
-    label: { fontSize: 12.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    heroValue: { fontSize: 33, fontFamily: fonts.bold, color: colors.white, fontVariant: ['tabular-nums'] },
-    value: { fontSize: 25, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
-    note: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkMuted },
+    label: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
+    heroValue: { fontSize: fontSizes.display, fontFamily: fonts.bold, color: colors.white, fontVariant: ['tabular-nums'] },
+    value: { fontSize: fontSizes.xxl, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    note: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
     chart: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, height: 120, marginTop: 6 },
     barCol: { flex: 1, height: '100%', alignItems: 'center', gap: 6 },
     barTrack: { flex: 1, width: '100%', justifyContent: 'flex-end', backgroundColor: colors.paperDim, borderRadius: radii.sm, overflow: 'hidden' },
     bar: { width: '100%', backgroundColor: colors.active, borderRadius: radii.sm },
-    barLabel: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
-    sectionTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
+    barLabel: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
+    sectionTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink, marginTop: spacing.sm },
     row: {
       flexDirection: 'row',
       gap: spacing.md,
@@ -154,12 +154,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.md,
       ...shadow.card,
     },
-    rowTitle: { fontSize: 16.5, fontFamily: fonts.semibold, color: colors.ink },
-    rowAmount: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    rowTitle: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
+    rowAmount: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
     chip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radii.sm, backgroundColor: colors.pendingBg },
     chipPaid: { backgroundColor: colors.confirmBg },
     chipFailed: { backgroundColor: colors.dangerBg },
-    chipText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.pending },
+    chipText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.pending },
     payoutNavCard: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -178,7 +178,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    payoutNavTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
-    payoutNavSubtitle: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
+    payoutNavTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    payoutNavSubtitle: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
   });
 }

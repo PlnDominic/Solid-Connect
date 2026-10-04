@@ -148,6 +148,29 @@ export const fonts = {
   mono: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }) as string,
 };
 
+/**
+ * The one type scale. Every fontSize in the app comes from here - no
+ * literal numbers - so text sizes stay consistent from screen to screen.
+ *   xs       eyebrows, badges, tab labels, tiny meta
+ *   sm       captions, hints, secondary meta
+ *   md       body text, row labels, inputs
+ *   lg       emphasised body, card titles, button labels
+ *   xl       screen header titles, section headings
+ *   xxl      hero names, large figures
+ *   title    question / page headings
+ *   display  the single biggest number on a screen (e.g. a budget)
+ */
+export const fontSizes = {
+  xs: 12,
+  sm: 14,
+  md: 16,
+  lg: 18,
+  xl: 20,
+  xxl: 24,
+  title: 28,
+  display: 34,
+};
+
 export const shadow = {
   // Reserved for genuinely floating layers only (sheets, modals). In-flow
   // cards use the lighter `card` shadow below, never this one.

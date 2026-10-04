@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { AREAS } from '../../constants/areas';
 import { coordsForArea, saveProviderCoverage, useMyServiceAreas } from '../../api/location';
 import { isApiConfigured } from '../../lib/api';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const STORAGE_KEY = 'solid-connect:service-areas';
@@ -156,9 +156,9 @@ export function ServiceAreasScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
-    section: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
-    hint: { fontSize: 14, fontFamily: fonts.regular, color: colors.inkFaint },
+    note: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
+    section: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
+    hint: { fontSize: fontSizes.sm, fontFamily: fonts.regular, color: colors.inkFaint },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,
@@ -170,7 +170,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     chipActive: { backgroundColor: colors.active, borderColor: colors.active },
     chipPrimary: { borderWidth: 2, borderColor: colors.navy },
-    chipLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.white },
   });
 }

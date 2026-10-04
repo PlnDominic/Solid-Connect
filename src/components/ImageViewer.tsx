@@ -3,7 +3,7 @@ import { Dimensions, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View
 import { X } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme/ThemeProvider';
-import { fonts, spacing } from '../theme';
+import { fonts, fontSizes, spacing } from '../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
-  counter: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontFamily: fonts.semibold },
+  counter: { color: 'rgba(255,255,255,0.8)', fontSize: fontSizes.sm, fontFamily: fonts.semibold },
   closeBtn: {
     width: 36,
     height: 36,

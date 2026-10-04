@@ -10,7 +10,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { friendlyAuthError } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -218,13 +218,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   body: { padding: spacing.lg, gap: spacing.xl },
   // Raised white card on the dimmed page - shadow does the separating.
   card: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.lg, gap: spacing.lg, ...shadow.card },
-  cardTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
+  cardTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
   field: { gap: spacing.sm },
-  label: { fontSize: 15, fontFamily: fonts.semibold, color: colors.inkFaint },
+  label: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.inkFaint },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  labelCount: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFainter },
+  labelCount: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFainter },
   input: {
-    fontSize: 18,
+    fontSize: fontSizes.lg,
     fontFamily: fonts.medium,
     color: colors.ink,
     // Recessed fill inside the raised card, rather than a bordered box.
@@ -234,8 +234,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     paddingHorizontal: spacing.lg,
   },
   inputMultiline: { minHeight: 72, textAlignVertical: 'top' },
-  notice: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.confirm, lineHeight: 21 },
-  errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
+  notice: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.confirm, lineHeight: 20 },
+  errorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

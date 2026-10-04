@@ -3,7 +3,7 @@ import { ArrowUp, Mic, Trash2 } from 'lucide-react-native';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder, useAudioRecorderState } from 'expo-audio';
 import { haptics } from '../lib/haptics';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 function formatDuration(sec: number): string {
@@ -169,13 +169,13 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   durationText: {
-    fontSize: 14,
+    fontSize: fontSizes.sm,
     fontFamily: fonts.mono,
     fontVariant: ['tabular-nums'],
     fontWeight: '600',
   },
   statusText: {
-    fontSize: 12.5,
+    fontSize: fontSizes.xs,
     fontFamily: fonts.regular,
   },
   sendBtn: {

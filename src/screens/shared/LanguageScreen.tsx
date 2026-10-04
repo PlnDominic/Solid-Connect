@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LOCALE_LABELS, useLocale, type Locale } from '../../i18n';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const OPTIONS: Locale[] = ['en', 'tw', 'ga'];
@@ -45,7 +45,7 @@ export function LanguageScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
-    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    note: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
     cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
     card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     row: {
@@ -56,6 +56,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
     },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    rowLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
+    rowLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
   });
 }

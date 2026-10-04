@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { LEGAL_SECTIONS } from '../../lib/legal';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function LegalScreen({ navigation }: { navigation: any }) {
@@ -34,7 +34,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: spacing.sm,
       ...shadow.card,
     },
-    title: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    bodyText: { fontSize: 15.5, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
+    title: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    bodyText: { fontSize: fontSizes.md, lineHeight: 25, fontFamily: fonts.regular, color: colors.inkMuted },
   });
 }

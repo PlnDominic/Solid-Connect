@@ -1,7 +1,7 @@
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { Inbox } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
-import { fonts, radii, spacing } from '../theme';
+import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 export function EmptyState({
@@ -49,9 +49,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       marginBottom: 4,
     },
-    title: { fontSize: 18.5, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
-    subtitle: { fontSize: 15.5, color: colors.inkMuted, lineHeight: 23, textAlign: 'center', maxWidth: 290, fontFamily: fonts.regular },
+    title: { fontSize: fontSizes.lg, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
+    subtitle: { fontSize: fontSizes.md, color: colors.inkMuted, lineHeight: 24, textAlign: 'center', maxWidth: 290, fontFamily: fonts.regular },
     action: { marginTop: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
-    actionLabel: { fontSize: 16, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    actionLabel: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
   });
 }

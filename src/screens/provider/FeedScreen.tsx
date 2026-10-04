@@ -35,7 +35,7 @@ import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useLocale } from '../../i18n';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const DECLINE_REASONS: { reason: string; icon: LucideIcon }[] = [
@@ -521,8 +521,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderColor: 'rgba(255,255,255,0.35)',
     },
     heroGreetText: { flex: 1, gap: 3 },
-    heroGreeting: { color: colors.white, fontSize: 19, letterSpacing: -0.4, fontFamily: fonts.extrabold },
-    heroLocation: { color: 'rgba(255,255,255,0.82)', fontSize: 12.5, fontFamily: fonts.medium },
+    heroGreeting: { color: colors.white, fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
+    heroLocation: { color: 'rgba(255,255,255,0.82)', fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     heroSearch: {
       height: 48,
@@ -535,7 +535,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.34)',
     },
-    heroSearchInput: { flex: 1, color: colors.white, fontSize: 14, fontFamily: fonts.medium, padding: 0 },
+    heroSearchInput: { flex: 1, color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
 
     heroCta: {
       flexDirection: 'row',
@@ -547,7 +547,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       height: 50,
     },
     heroCtaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-    heroCtaLabel: { color: isDark ? colors.white : colors.active, fontSize: 15, fontFamily: fonts.bold },
+    heroCtaLabel: { color: isDark ? colors.white : colors.active, fontSize: fontSizes.md, fontFamily: fonts.bold },
 
     // Acceptance rate / avg. response scorecard - only shown once a
     // provider has sent at least one quote, so a brand-new account never
@@ -562,8 +562,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       paddingVertical: spacing.sm,
     },
     heroStatItem: { flex: 1, alignItems: 'center', gap: 2 },
-    heroStatValue: { color: colors.white, fontSize: 16, fontFamily: fonts.extrabold, fontVariant: ['tabular-nums'] },
-    heroStatLabel: { color: 'rgba(255,255,255,0.78)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.4 },
+    heroStatValue: { color: colors.white, fontSize: fontSizes.md, fontFamily: fonts.extrabold, fontVariant: ['tabular-nums'] },
+    heroStatLabel: { color: 'rgba(255,255,255,0.78)', fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.4 },
     heroStatDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.25)' },
 
     heroActivity: {
@@ -576,18 +576,18 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     },
     heroActivityPressed: { backgroundColor: colors.hairline },
     heroActivityTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md },
-    heroActivityEyebrow: { color: colors.pending, fontSize: 10, letterSpacing: 0.7, fontFamily: fonts.extrabold },
+    heroActivityEyebrow: { color: colors.pending, fontSize: fontSizes.xs, letterSpacing: 0.7, fontFamily: fonts.extrabold },
     heroActivityAction: { flexDirection: 'row', alignItems: 'center', gap: 1 },
-    heroActivityActionText: { color: colors.ink, fontSize: 12.5, fontFamily: fonts.bold },
-    heroActivityTitle: { color: colors.ink, fontSize: 14.5, letterSpacing: -0.2, fontFamily: fonts.bold },
-    heroActivityDetail: { color: colors.inkMuted, fontSize: 12.5, lineHeight: 18, fontFamily: fonts.medium },
+    heroActivityActionText: { color: colors.ink, fontSize: fontSizes.xs, fontFamily: fonts.bold },
+    heroActivityTitle: { color: colors.ink, fontSize: fontSizes.sm, letterSpacing: -0.2, fontFamily: fonts.bold },
+    heroActivityDetail: { color: colors.inkMuted, fontSize: fontSizes.xs, lineHeight: 17, fontFamily: fonts.medium },
 
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-    sectionTitle: { color: colors.ink, fontSize: 16.5, letterSpacing: -0.3, fontFamily: fonts.bold },
-    sectionCount: { color: colors.inkFaint, fontSize: 12, fontFamily: fonts.medium },
+    sectionTitle: { color: colors.ink, fontSize: fontSizes.md, letterSpacing: -0.3, fontFamily: fonts.bold },
+    sectionCount: { color: colors.inkFaint, fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     loading: { alignItems: 'center', gap: spacing.md, paddingVertical: 64 },
-    loadingText: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    loadingText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
 
     // Shadow-lifted, no hairline border - matches Home's card discipline
     // (TopProviderCard, filterEmpty) instead of the flat bordered box this
@@ -601,16 +601,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     },
     cardPressed: { opacity: 0.92 },
     cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-    cardTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
-    cardMeta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    cardBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    cardTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    cardMeta: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
+    cardBudget: { fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
     cardActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     retry: {
       alignSelf: 'center',
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.lg,
     },
-    retryLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
+    retryLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
 
     dismissBtn: {
       width: 24,
@@ -638,18 +638,18 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderRadius: radii.pill,
       backgroundColor: colors.active,
     },
-    quoteBtnLabel: { color: colors.white, fontSize: 12.5, fontFamily: fonts.bold },
+    quoteBtnLabel: { color: colors.white, fontSize: fontSizes.xs, fontFamily: fonts.bold },
 
-    sheetTitle: { fontSize: 17, fontFamily: fonts.extrabold, color: colors.ink },
-    sheetSubtitle: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkMuted, marginTop: 2, marginBottom: spacing.sm },
+    sheetTitle: { fontSize: fontSizes.lg, fontFamily: fonts.extrabold, color: colors.ink },
+    sheetSubtitle: { fontSize: fontSizes.sm, fontFamily: fonts.regular, color: colors.inkMuted, marginTop: 2, marginBottom: spacing.sm },
 
     // Centered title/message, same register as Apple's own action sheet -
     // this sheet is a short list of choices, not a form, so it gets that
     // treatment specifically rather than this app's usual left-aligned
     // headers.
-    dismissTitle: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink, textAlign: 'center' },
+    dismissTitle: { fontSize: fontSizes.lg, fontFamily: fonts.extrabold, color: colors.ink, textAlign: 'center' },
     dismissSubtitle: {
-      fontSize: 13,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.regular,
       color: colors.inkMuted,
       textAlign: 'center',
@@ -680,12 +680,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       alignItems: 'center',
       justifyContent: 'center',
     },
-    reasonLabel: { flex: 1, fontSize: 15.5, fontFamily: fonts.medium, color: colors.ink },
+    reasonLabel: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.ink },
     // Visually separate from the reasons above by extra top spacing, same
     // convention Apple's own action sheets use for Cancel - its own row
     // below a gap, not just the last item in the same list.
     skipRow: { marginTop: spacing.sm, backgroundColor: colors.paperDim },
-    skipLabel: { flex: 1, fontSize: 15.5, fontFamily: fonts.semibold, color: colors.inkFaint },
+    skipLabel: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.inkFaint },
 
     quoteHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     quoteHeaderIcon: {
@@ -697,7 +697,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       justifyContent: 'center',
     },
     quoteBudgetHint: {
-      fontSize: 13,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.medium,
       color: colors.inkFaint,
       backgroundColor: colors.paperDim,
@@ -707,7 +707,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       marginTop: spacing.lg,
     },
     quoteFieldLabel: {
-      fontSize: 11,
+      fontSize: fontSizes.xs,
       fontFamily: fonts.extrabold,
       color: colors.inkFaint,
       letterSpacing: 0.6,
@@ -729,8 +729,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       marginBottom: spacing.lg,
     },
     quotePriceFieldFocused: { borderWidth: 1.5, borderColor: colors.ink },
-    quotePriceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 17, fontFamily: fonts.medium },
-    quotePriceInput: { flex: 1, fontSize: 22, fontFamily: fonts.mono, color: colors.ink },
-    quoteErrorText: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger, marginTop: -spacing.sm, marginBottom: spacing.md },
+    quotePriceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: fontSizes.lg, fontFamily: fonts.medium },
+    quotePriceInput: { flex: 1, fontSize: fontSizes.xxl, fontFamily: fonts.mono, color: colors.ink },
+    quoteErrorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger, marginTop: -spacing.sm, marginBottom: spacing.md },
   });
 }

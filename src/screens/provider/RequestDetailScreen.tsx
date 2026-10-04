@@ -17,7 +17,7 @@ import { haptics } from '../../lib/haptics';
 import { buildQuoteDraft, etaLabelFor, MAX_QUOTE_ITEMS, type DraftRow } from '../../lib/quoteLogic';
 import { quoteBadgeFor } from '../../lib/quoteBadge';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 function timeAgo(iso: string) {
@@ -375,13 +375,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 3,
       ...shadow.card,
     },
-    summaryTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    summarySub: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkMuted },
-    directHint: { fontSize: 12, fontFamily: fonts.medium, color: colors.ink, marginTop: 4 },
-    desc: { fontSize: 14, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
+    summaryTitle: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
+    summarySub: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
+    directHint: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.ink, marginTop: 4 },
+    desc: { fontSize: fontSizes.sm, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
     photoRow: { gap: spacing.sm },
     photo: { width: 96, height: 96, borderRadius: radii.md, backgroundColor: colors.paperDim },
-    fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
+    fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.2 },
     priceField: {
       height: 52,
       borderRadius: radii.lg,
@@ -392,8 +392,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       paddingHorizontal: spacing.md,
     },
-    priceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: 16, fontFamily: fonts.medium },
-    priceInput: { flex: 1, fontSize: 16, fontFamily: fonts.medium, color: colors.ink },
+    priceCurrency: { color: colors.inkFaint, marginRight: 6, fontSize: fontSizes.md, fontFamily: fonts.medium },
+    priceInput: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.ink },
     reasonInput: {
       minHeight: 88,
       borderRadius: radii.lg,
@@ -401,7 +401,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       padding: spacing.md,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       lineHeight: 20,
       fontFamily: fonts.regular,
       color: colors.ink,
@@ -415,22 +415,22 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       paddingHorizontal: spacing.md,
-      fontSize: 14,
+      fontSize: fontSizes.sm,
       fontFamily: fonts.medium,
       color: colors.ink,
     },
     itemAmount: { width: 90 },
     addRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4 },
-    addRowText: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted },
-    hint: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
-    formError: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    addRowText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted },
+    hint: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
+    formError: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
     counterCard: {
       borderRadius: radii.lg,
       backgroundColor: colors.pendingBg,
       padding: spacing.md,
       gap: spacing.sm,
     },
-    counterTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    counterTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
     counterActions: { flexDirection: 'row', gap: spacing.sm },
     counterBtn: { flex: 1, height: 44 },
     readonlyField: {
@@ -442,7 +442,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       paddingHorizontal: spacing.md,
     },
-    readonlyValue: { fontSize: 15, fontFamily: fonts.medium, color: colors.ink },
+    readonlyValue: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.ink },
     footer: {
       padding: spacing.lg,
       paddingBottom: spacing.xl,

@@ -14,7 +14,7 @@ import { Button } from '../../components/Button';
 import { formatRelativeTime } from '../../lib/geo';
 import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote, ServiceRequest } from '../../types/database';
 
@@ -426,12 +426,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       ...shadow.card,
     },
     summaryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-    summaryTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
-    summaryMeta: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
-    summaryBudget: { fontSize: 15, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    summaryTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    summaryMeta: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
+    summaryBudget: { fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
     summaryActions: { flexDirection: 'row', gap: spacing.sm },
     summaryActionBtn: { flex: 1, height: 40 },
-    rejectInline: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
+    rejectInline: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
     rejectBanner: {
       padding: spacing.lg,
       borderRadius: radii.lg,
@@ -439,8 +439,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 4,
       ...shadow.card,
     },
-    rejectTitle: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
-    rejectBody: { fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19.5 },
+    rejectTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    rejectBody: { fontSize: fontSizes.sm, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 19 },
 
     quoteCard: {
       borderRadius: radii.lg,
@@ -453,7 +453,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     quoteIdentity: { flexDirection: 'row', gap: spacing.md, flexShrink: 1 },
     quoteNameWrap: { gap: 4, flexShrink: 1 },
     quoteNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-    quoteName: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink },
+    quoteName: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
 
     badge: {
       flexDirection: 'row',
@@ -465,13 +465,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     badgeVerified: { backgroundColor: colors.confirmBg },
     badgeCertified: { backgroundColor: colors.navy },
-    badgeTextVerified: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
-    badgeTextOnDark: { fontSize: 9, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
+    badgeTextVerified: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
+    badgeTextOnDark: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
 
     quoteMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    quoteMeta: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
-    quoteMetaDim: { fontSize: 13.5, fontFamily: fonts.medium, color: colors.inkFaint },
-    quotePrice: { fontSize: 20.5, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    quoteMeta: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },
+    quoteMetaDim: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
+    quotePrice: { fontSize: fontSizes.xl, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
 
     quoteActions: { flexDirection: 'row', gap: spacing.sm },
     halfBtn: { flex: 1, height: 46 },
@@ -479,13 +479,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     quoteBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
     itemsBox: { borderRadius: radii.md, backgroundColor: colors.paperDim, padding: spacing.md, gap: 4 },
     itemLine: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md },
-    itemLabel: { flex: 1, fontSize: 13, fontFamily: fonts.medium, color: colors.inkMuted },
-    itemAmount: { fontSize: 13, fontFamily: fonts.semibold, color: colors.ink, fontVariant: ['tabular-nums'] },
-    quoteNote: { fontSize: 13.5, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted, fontStyle: 'italic' },
-    counterStatus: { fontSize: 13, fontFamily: fonts.medium, color: colors.pending },
+    itemLabel: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
+    itemAmount: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    quoteNote: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.regular, color: colors.inkMuted, fontStyle: 'italic' },
+    counterStatus: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.pending },
     quoteSecondary: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 4 },
-    secondaryText: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.inkMuted },
+    secondaryText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted },
     checkbox: {
       width: 18,
       height: 18,
@@ -497,8 +497,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     checkboxOn: { backgroundColor: colors.ink, borderColor: colors.ink },
     sheetBody: { padding: spacing.lg, gap: spacing.md },
-    sheetTitle: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
-    sheetSub: { fontSize: 13.5, lineHeight: 19, fontFamily: fonts.regular, color: colors.inkMuted },
+    sheetTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    sheetSub: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.regular, color: colors.inkMuted },
     sheetInput: {
       height: 48,
       borderRadius: radii.lg,
@@ -506,10 +506,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
       paddingHorizontal: spacing.md,
-      fontSize: 15,
+      fontSize: fontSizes.md,
       fontFamily: fonts.medium,
       color: colors.ink,
     },
-    sheetError: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
+    sheetError: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
   });
 }

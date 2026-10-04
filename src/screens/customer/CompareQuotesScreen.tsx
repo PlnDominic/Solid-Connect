@@ -9,7 +9,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { haptics } from '../../lib/haptics';
 import { compareHighlights, type Highlight } from '../../lib/quoteLogic';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote } from '../../types/database';
 
@@ -131,10 +131,10 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg },
-    empty: { padding: spacing.xl, fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
+    empty: { padding: spacing.xl, fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
     table: { gap: spacing.md },
     row: { gap: 4 },
-    rowLabel: { fontSize: 10.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, textTransform: 'uppercase' },
+    rowLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, textTransform: 'uppercase' },
     rowCells: { flexDirection: 'row', gap: spacing.sm },
     cell: {
       width: COLUMN_WIDTH,
@@ -147,12 +147,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
     providerCell: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    providerName: { flex: 1, fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    price: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
-    flag: { fontSize: 11, fontFamily: fonts.bold, color: colors.confirm },
-    value: { fontSize: 14, fontFamily: fonts.semibold, color: colors.ink },
-    small: { fontSize: 12.5, lineHeight: 17, fontFamily: fonts.regular, color: colors.inkMuted },
-    dim: { fontSize: 13, fontFamily: fonts.regular, color: colors.inkFaint },
+    providerName: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
+    price: { fontSize: fontSizes.xl, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    flag: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: colors.confirm },
+    value: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
+    small: { fontSize: fontSizes.xs, lineHeight: 16, fontFamily: fonts.regular, color: colors.inkMuted },
+    dim: { fontSize: fontSizes.sm, fontFamily: fonts.regular, color: colors.inkFaint },
     acceptBtn: { height: 44 },
   });
 }

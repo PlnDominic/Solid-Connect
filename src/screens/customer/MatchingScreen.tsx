@@ -5,7 +5,7 @@ import { isApiConfigured } from '../../lib/api';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 // Same visual language as NewRequestScreen, which hands off here: dimmed
@@ -166,16 +166,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     statusIconActive: { backgroundColor: colors.activeBg },
     statusIconDone: { backgroundColor: colors.confirm },
     title: {
-      fontSize: 27,
-      lineHeight: 33,
+      fontSize: fontSizes.title,
+      lineHeight: 34,
       fontFamily: fonts.extrabold,
       color: colors.ink,
       letterSpacing: -0.6,
       textAlign: 'center',
     },
     subtitle: {
-      fontSize: 16.5,
-      lineHeight: 24,
+      fontSize: fontSizes.md,
+      lineHeight: 23,
       fontFamily: fonts.regular,
       color: colors.inkMuted,
       textAlign: 'center',
@@ -189,7 +189,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingVertical: spacing.md,
       ...shadow.card,
     },
-    cardTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink, paddingVertical: spacing.sm },
+    cardTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink, paddingVertical: spacing.sm },
     row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -199,8 +199,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.hairline,
     },
-    rowLabel: { fontSize: 16, fontFamily: fonts.medium, color: colors.inkMuted },
-    rowValue: { flexShrink: 1, fontSize: 16, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
+    rowLabel: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkMuted },
+    rowValue: { flexShrink: 1, fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
     rowValueMono: { fontFamily: fonts.mono },
     rowValueAccent: { color: colors.active },
 
@@ -220,8 +220,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    stepNumberText: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    stepText: { flex: 1, fontSize: 16, lineHeight: 23, fontFamily: fonts.regular, color: colors.ink, paddingTop: 1 },
+    stepNumberText: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
+    stepText: { flex: 1, fontSize: fontSizes.md, lineHeight: 23, fontFamily: fonts.regular, color: colors.ink, paddingTop: 1 },
 
     footer: {
       padding: spacing.lg,

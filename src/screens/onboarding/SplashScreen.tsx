@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { fonts } from '../../theme';
+import { fonts, fontSizes } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const logo = require('../../../assets/images/logo.jpeg');
@@ -64,6 +64,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     fill: { flex: 1, backgroundColor: colors.paper },
     content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18 },
     logo: { width: 150, height: 84 },
-    caption: { fontSize: 13, letterSpacing: 0.6, color: colors.inkFaint, fontFamily: fonts.medium },
+    caption: { fontSize: fontSizes.sm, letterSpacing: 0.6, color: colors.inkFaint, fontFamily: fonts.medium },
   });
 }

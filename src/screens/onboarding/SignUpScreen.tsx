@@ -6,7 +6,7 @@ import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
 import { LEGAL_SECTIONS } from '../../lib/legal';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Role } from '../../types/database';
 
@@ -144,9 +144,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
     textWrap: { gap: 8 },
-    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-    copy: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
-    errorText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.danger },
+    title: { fontSize: fontSizes.title, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 34 },
+    copy: { fontSize: fontSizes.md, lineHeight: 23, color: colors.inkMuted, fontFamily: fonts.regular },
+    errorText: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.danger },
 
     footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
 
@@ -162,12 +162,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
     checkboxChecked: { backgroundColor: colors.ink, borderColor: colors.ink },
-    termsText: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkMuted, flexShrink: 1 },
-    termsLink: { fontSize: 12.5, fontFamily: fonts.bold, color: colors.ink, textDecorationLine: 'underline' },
+    termsText: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted, flexShrink: 1 },
+    termsLink: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: colors.ink, textDecorationLine: 'underline' },
 
     legalScroll: { maxHeight: 420 },
     legalBody: { gap: spacing.md, paddingBottom: spacing.md },
-    legalHeading: { fontSize: 18, fontFamily: fonts.extrabold, color: colors.ink },
+    legalHeading: { fontSize: fontSizes.lg, fontFamily: fonts.extrabold, color: colors.ink },
     legalCard: {
       borderRadius: radii.lg,
       borderWidth: 1,
@@ -176,7 +176,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       padding: spacing.lg,
       gap: spacing.sm,
     },
-    legalCardTitle: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink },
-    legalCardBody: { fontSize: 13, lineHeight: 20, fontFamily: fonts.regular, color: colors.inkMuted },
+    legalCardTitle: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
+    legalCardBody: { fontSize: fontSizes.sm, lineHeight: 22, fontFamily: fonts.regular, color: colors.inkMuted },
   });
 }

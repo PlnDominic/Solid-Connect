@@ -8,7 +8,7 @@ import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified, verificationLevelLabel } from '../../lib/verification';
 
@@ -172,10 +172,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'flex-start',
       ...shadow.card,
     },
-    statusTitle: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
-    statusDetail: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
-    label: { fontSize: 15, fontFamily: fonts.semibold, color: colors.inkFaint },
-    note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
+    statusTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    statusDetail: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
+    label: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.inkFaint },
+    note: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
     rejectionNote: {
       flexDirection: 'row',
       gap: spacing.sm,
@@ -183,8 +183,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.lg,
       backgroundColor: colors.dangerBg,
     },
-    rejectionNoteTitle: { fontSize: 15, fontFamily: fonts.bold, color: colors.danger },
-    rejectionNoteText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger, lineHeight: 21 },
+    rejectionNoteTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.danger },
+    rejectionNoteText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger, lineHeight: 20 },
     thumbRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     thumbWrap: { width: 84, height: 84 },
     thumb: { width: 84, height: 84, borderRadius: radii.md, backgroundColor: colors.paperDim },
@@ -210,6 +210,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: colors.card,
     },
-    errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
+    errorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
   });
 }

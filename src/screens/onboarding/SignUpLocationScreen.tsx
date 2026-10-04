@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AreaPicker, isValidArea } from '../../components/AreaPicker';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 /**
@@ -94,8 +94,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     body: { paddingHorizontal: spacing.xl, paddingTop: spacing.xxl, gap: spacing.xl },
     textWrap: { gap: 8 },
-    title: { fontSize: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 32 },
-    subtitle: { fontSize: 15, lineHeight: 22, color: colors.inkMuted, fontFamily: fonts.regular },
+    title: { fontSize: fontSizes.title, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 34 },
+    subtitle: { fontSize: fontSizes.md, lineHeight: 23, color: colors.inkMuted, fontFamily: fonts.regular },
 
     footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
   });

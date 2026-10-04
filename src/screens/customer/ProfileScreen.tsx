@@ -28,7 +28,7 @@ import { Screen } from '../../components/Screen';
 import { signOut } from '../../lib/auth';
 import { markLandingSeen } from '../../lib/landing';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 // Preview count shown inline on Profile; "See all" leads to the full,
@@ -294,30 +294,30 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
 
-    heroName: { fontSize: 25, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: -0.4 },
-    heroTagline: { fontSize: 15.5, fontFamily: fonts.medium, color: 'rgba(255,255,255,0.88)', lineHeight: 22 },
-    heroMeta: { fontSize: 14, fontFamily: fonts.medium, color: 'rgba(255,255,255,0.65)' },
+    heroName: { fontSize: fontSizes.xxl, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: -0.4 },
+    heroTagline: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: 'rgba(255,255,255,0.88)', lineHeight: 23 },
+    heroMeta: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: 'rgba(255,255,255,0.65)' },
 
     roleSwitch: { flexDirection: 'row', gap: 4, padding: 4, borderRadius: radii.lg, backgroundColor: 'rgba(255,255,255,0.14)', marginTop: spacing.sm, alignSelf: 'flex-start' },
     rolePill: { paddingVertical: 9, paddingHorizontal: spacing.lg, borderRadius: radii.md, alignItems: 'center' },
     rolePillActive: { backgroundColor: colors.white },
-    rolePillText: { fontSize: 15, fontFamily: fonts.bold, color: 'rgba(255,255,255,0.8)' },
-    rolePillTextActive: { fontSize: 15, fontFamily: fonts.bold, color: colors.activeDeep },
+    rolePillText: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: 'rgba(255,255,255,0.8)' },
+    rolePillTextActive: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.activeDeep },
 
     body: { padding: spacing.lg, gap: spacing.xl },
-    photoErrorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
+    photoErrorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
 
     statementShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
     statement: { borderRadius: radii.xxxl, overflow: 'hidden' },
     statementRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: spacing.lg },
     statementRowBorder: { borderTopWidth: 1, borderTopColor: colors.hairline },
-    statementLabel: { fontSize: 15.5, fontFamily: fonts.medium, color: colors.inkMuted },
-    statementValueLg: { fontSize: 23, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
-    statementValue: { fontSize: 18, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
+    statementLabel: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkMuted },
+    statementValueLg: { fontSize: fontSizes.xxl, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
+    statementValue: { fontSize: fontSizes.lg, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
 
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    sectionTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    seeAll: { color: colors.active, fontSize: 15, fontFamily: fonts.bold, textDecorationLine: 'underline' },
+    sectionTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
+    seeAll: { color: colors.active, fontSize: fontSizes.md, fontFamily: fonts.bold, textDecorationLine: 'underline' },
     savedRow: {
       flexDirection: 'row',
       gap: spacing.md,
@@ -327,15 +327,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
-    savedName: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
+    savedName: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
     savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    savedMeta: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
+    savedMeta: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
     settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
     settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: 15, paddingHorizontal: spacing.lg },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
-    settingsLabel: { flex: 1, fontSize: 17, fontFamily: fonts.medium, color: colors.ink },
+    settingsLabel: { flex: 1, fontSize: fontSizes.lg, fontFamily: fonts.medium, color: colors.ink },
 
     signOutRow: { paddingVertical: spacing.lg, alignItems: 'center' },
-    signOutLabel: { fontSize: 17, fontFamily: fonts.extrabold, color: colors.danger, letterSpacing: 0.2 },
+    signOutLabel: { fontSize: fontSizes.lg, fontFamily: fonts.extrabold, color: colors.danger, letterSpacing: 0.2 },
   });
 }

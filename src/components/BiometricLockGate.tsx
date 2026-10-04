@@ -3,7 +3,7 @@ import { AppState, type AppStateStatus, StyleSheet, Text, View } from 'react-nat
 import { ShieldCheck } from 'lucide-react-native';
 import { authenticateWithBiometrics, useBiometricLockPreference } from '../hooks/useBiometricLock';
 import { Button } from './Button';
-import { fonts, spacing } from '../theme';
+import { fonts, fontSizes, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 /**
@@ -71,7 +71,7 @@ export function BiometricLockGate({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   backdrop: { alignItems: 'center', justifyContent: 'center', gap: spacing.md, padding: spacing.xl, zIndex: 999 },
-  title: { fontSize: 17, fontFamily: fonts.bold },
-  subtitle: { fontSize: 14, fontFamily: fonts.regular, textAlign: 'center' },
+  title: { fontSize: fontSizes.lg, fontFamily: fonts.bold },
+  subtitle: { fontSize: fontSizes.sm, fontFamily: fonts.regular, textAlign: 'center' },
   button: { marginTop: spacing.md, minWidth: 160 },
 });

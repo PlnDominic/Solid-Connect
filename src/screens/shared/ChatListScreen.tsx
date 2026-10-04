@@ -12,7 +12,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified } from '../../lib/verification';
 import type { ChatMessage, ChatThread, Profile } from '../../types/database';
@@ -242,7 +242,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       marginHorizontal: spacing.lg,
       marginBottom: spacing.md,
     },
-    searchInput: { flex: 1, fontSize: 14.5, fontFamily: fonts.medium, color: colors.ink },
+    searchInput: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.ink },
     filtersWrap: { paddingBottom: spacing.md },
     row: {
       flexDirection: 'row',
@@ -258,13 +258,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     rowPressed: { backgroundColor: colors.paperDim },
     nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    name: { fontSize: 16.5, fontFamily: fonts.semibold, color: colors.ink, letterSpacing: -0.15, flexShrink: 1 },
+    name: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink, letterSpacing: -0.15, flexShrink: 1 },
     nameUnread: { fontFamily: fonts.bold },
     previewRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    preview: { flex: 1, fontSize: 14.5, fontFamily: fonts.regular, color: colors.inkMuted },
+    preview: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.regular, color: colors.inkMuted },
     previewUnread: { fontFamily: fonts.semibold, color: colors.ink },
     trailing: { alignItems: 'flex-end', gap: 6 },
-    time: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
+    time: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
     unreadDot: { width: 9, height: 9, borderRadius: radii.pill, backgroundColor: colors.active },
   });
 }

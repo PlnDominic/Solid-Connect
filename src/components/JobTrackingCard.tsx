@@ -7,7 +7,7 @@ import { useProvider } from '../api/marketplace';
 import { estimateEtaMinutes, formatDistanceKm, formatEta, formatRelativeTime, haversineKm, openInMaps } from '../lib/geo';
 import { Avatar } from './Avatar';
 import { JobLiveMap } from './JobLiveMap';
-import { fonts, radii, shadow, spacing } from '../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import type { Job, JobStatus } from '../types/database';
 
@@ -209,23 +209,23 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: 8,
       borderRadius: radii.sm,
     },
-    mapEyebrow: { color: 'rgba(255,255,255,0.85)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
+    mapEyebrow: { color: 'rgba(255,255,255,0.85)', fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
     statusPill: { flexShrink: 0, paddingVertical: 4, paddingHorizontal: 9, borderRadius: radii.pill },
-    statusPillText: { color: colors.white, fontSize: 9.5, fontFamily: fonts.extrabold, letterSpacing: 0.4 },
+    statusPillText: { color: colors.white, fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.4 },
 
     refRow: { alignItems: 'center', gap: 3 },
-    refLabel: { color: 'rgba(255,255,255,0.45)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
-    refValue: { color: colors.white, fontSize: 16, fontFamily: fonts.mono, fontWeight: '700', letterSpacing: 0.5 },
+    refLabel: { color: 'rgba(255,255,255,0.45)', fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.6 },
+    refValue: { color: colors.white, fontSize: fontSizes.md, fontFamily: fonts.mono, fontWeight: '700', letterSpacing: 0.5 },
 
     divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
 
     infoRow: { flexDirection: 'row' },
-    infoLabel: { color: 'rgba(255,255,255,0.45)', fontSize: 10, fontFamily: fonts.extrabold, letterSpacing: 0.5 },
-    infoValue: { color: colors.white, fontSize: 13.5, fontFamily: fonts.semibold },
-    infoSub: { color: 'rgba(255,255,255,0.45)', fontSize: 11, fontFamily: fonts.medium },
+    infoLabel: { color: 'rgba(255,255,255,0.45)', fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.5 },
+    infoValue: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.semibold },
+    infoSub: { color: 'rgba(255,255,255,0.45)', fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     partnerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-    partnerName: { flex: 1, color: colors.white, fontSize: 13.5, fontFamily: fonts.bold },
+    partnerName: { flex: 1, color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
     partnerAction: {
       width: 34,
       height: 34,
@@ -245,6 +245,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.active,
     },
     ctaPillPressed: { opacity: 0.9 },
-    ctaPillText: { color: colors.white, fontSize: 14, fontFamily: fonts.bold },
+    ctaPillText: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
   });
 }

@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { onlineManager, useQueryClient } from '@tanstack/react-query';
-import { fonts, spacing } from '../theme';
+import { fonts, fontSizes, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 /**
@@ -62,5 +62,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs + 2,
     paddingHorizontal: spacing.lg,
   },
-  text: { fontSize: 12.5, fontFamily: fonts.semibold },
+  text: { fontSize: fontSizes.xs, fontFamily: fonts.semibold },
 });

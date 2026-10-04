@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { GoogleMark } from '../../components/GoogleMark';
 import { isAppleSignInAvailable } from '../../lib/auth';
-import { fonts, spacing } from '../../theme';
+import { fonts, fontSizes, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 type IdentifierMethod = 'email' | 'phone';
@@ -367,10 +367,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
       overflow: 'hidden',
     },
     logo: { width: 34, height: 34 },
-    brandName: { fontSize: 15, fontFamily: fonts.bold, color: '#FFFFFF', letterSpacing: 0.2 },
-    headline: { fontSize: 34, lineHeight: 40, fontFamily: fonts.extrabold, color: '#FFFFFF', letterSpacing: -0.8 },
+    brandName: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: '#FFFFFF', letterSpacing: 0.2 },
+    headline: { fontSize: fontSizes.display, lineHeight: 40, fontFamily: fonts.extrabold, color: '#FFFFFF', letterSpacing: -0.8 },
     headlineAccent: { color: ORANGE_SOFT },
-    subhead: { fontSize: 15, lineHeight: 22, fontFamily: fonts.regular, color: 'rgba(255,255,255,0.86)', maxWidth: 320 },
+    subhead: { fontSize: fontSizes.md, lineHeight: 23, fontFamily: fonts.regular, color: 'rgba(255,255,255,0.86)', maxWidth: 320 },
 
     card: {
       marginHorizontal: spacing.lg,
@@ -388,7 +388,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
       shadowOffset: { width: 0, height: 16 },
       elevation: 12,
     },
-    cardTitle: { fontSize: 22, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
+    cardTitle: { fontSize: fontSizes.xxl, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
 
     segment: {
       flexDirection: 'row',
@@ -410,11 +410,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
       elevation: 2,
     },
     segmentItem: { flex: 1, height: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-    segmentLabel: { fontSize: 14, fontFamily: fonts.semibold, color: colors.inkFaint },
+    segmentLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkFaint },
     segmentLabelOn: { color: colors.ink },
 
     fields: { gap: spacing.md },
-    fieldLabel: { fontSize: 12.5, fontFamily: fonts.semibold, color: colors.inkMuted, marginBottom: 6, letterSpacing: 0.1 },
+    fieldLabel: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted, marginBottom: 6, letterSpacing: 0.1 },
     field: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -429,10 +429,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
     fieldFocused: { borderColor: ORANGE, backgroundColor: colors.card },
     // outlineWidth: 0 removes the browser's own focus ring on the web preview;
     // the field's border already shows focus.
-    input: { flex: 1, height: '100%', fontSize: 16, fontFamily: fonts.medium, color: colors.ink, outlineWidth: 0 } as never,
+    input: { flex: 1, height: '100%', fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.ink, outlineWidth: 0 } as never,
 
     errorBox: { borderRadius: 12, padding: spacing.md, backgroundColor: colors.dangerBg },
-    errorText: { fontSize: 13, lineHeight: 18, fontFamily: fonts.medium, color: colors.danger },
+    errorText: { fontSize: fontSizes.sm, lineHeight: 19, fontFamily: fonts.medium, color: colors.danger },
 
     primary: {
       height: 56,
@@ -449,7 +449,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
       elevation: 6,
     },
     primaryDisabled: { opacity: 0.45, shadowOpacity: 0, elevation: 0 },
-    primaryLabel: { fontSize: 16, fontFamily: fonts.bold, color: '#FFFFFF', letterSpacing: 0.2 },
+    primaryLabel: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: '#FFFFFF', letterSpacing: 0.2 },
     primaryArrow: {
       width: 26,
       height: 26,
@@ -462,7 +462,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
 
     divider: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.hairlineStrong },
-    dividerLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    dividerLabel: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
 
     socialRow: { flexDirection: 'row', gap: spacing.md },
     social: {
@@ -476,17 +476,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
     },
     socialApple: { backgroundColor: isDark ? '#FFFFFF' : colors.black },
     socialGoogle: { backgroundColor: colors.card, borderWidth: 1.5, borderColor: colors.hairline },
-    socialLabel: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    socialLabel: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
     socialLabelApple: { color: isDark ? colors.black : '#FFFFFF' },
 
     signupRow: { alignItems: 'center', paddingTop: spacing.xs },
-    link: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkMuted },
+    link: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted },
     linkStrong: { fontFamily: fonts.bold, color: isDark ? ORANGE : ORANGE_DEEP },
 
     legal: {
       textAlign: 'center',
-      fontSize: 11.5,
-      lineHeight: 16,
+      fontSize: fontSizes.xs,
+      lineHeight: 17,
       fontFamily: fonts.regular,
       color: colors.inkFaint,
       marginTop: spacing.lg,

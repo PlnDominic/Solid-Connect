@@ -25,7 +25,7 @@ import { useRecentlyViewedProviderIds } from '../../hooks/useRecentlyViewedProvi
 import { formatDistanceKm } from '../../lib/geo';
 import { applyProviderFilters, matchReasons, sortProviders, type SearchProvider, type SortKey } from '../../lib/providerRanking';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const RATING_OPTIONS: FilterOption[] = [
@@ -317,10 +317,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       paddingHorizontal: spacing.md,
     },
-    searchInput: { flex: 1, fontSize: 14.5, fontFamily: fonts.medium, color: colors.ink },
+    searchInput: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.ink },
     body: { padding: spacing.lg, paddingTop: 0, gap: spacing.md, flexGrow: 1 },
     loadingWrap: { paddingVertical: spacing.xxl, alignItems: 'center' },
-    sectionLabel: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
+    sectionLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
     recentCard: {
       width: 84,
       alignItems: 'center',
@@ -331,7 +331,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    recentName: { fontSize: 11.5, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'center' },
+    recentName: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'center' },
     card: {
       flexDirection: 'row',
       gap: spacing.md,
@@ -342,13 +342,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    name: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    name: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    meta: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    meta: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     reasonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
     reasonChip: { paddingVertical: 2, paddingHorizontal: 8, borderRadius: radii.pill, backgroundColor: colors.paperDim },
-    reasonText: { fontSize: 11, fontFamily: fonts.semibold, color: colors.inkMuted },
-    originNote: { fontSize: 11.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    reasonText: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted },
+    originNote: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     moreButton: {
       alignItems: 'center',
       padding: spacing.md,
@@ -357,6 +357,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    moreText: { fontSize: 13.5, fontFamily: fonts.semibold, color: colors.ink },
+    moreText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
   });
 }

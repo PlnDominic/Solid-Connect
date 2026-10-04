@@ -13,7 +13,7 @@ import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useLocale } from '../../i18n';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, shadow, spacing } from '../../theme';
+import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Profile } from '../../types/database';
 
@@ -327,8 +327,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderColor: 'rgba(255,255,255,0.35)',
     },
     heroGreetText: { flex: 1, gap: 3 },
-    heroGreeting: { color: colors.white, fontSize: 19, letterSpacing: -0.4, fontFamily: fonts.extrabold },
-    heroLocation: { color: 'rgba(255,255,255,0.82)', fontSize: 12.5, fontFamily: fonts.medium },
+    heroGreeting: { color: colors.white, fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
+    heroLocation: { color: 'rgba(255,255,255,0.82)', fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     heroSearch: {
       height: 48,
@@ -341,7 +341,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.34)',
     },
-    heroSearchInput: { flex: 1, color: colors.white, fontSize: 14, fontFamily: fonts.medium, padding: 0 },
+    heroSearchInput: { flex: 1, color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
 
     heroCta: {
       flexDirection: 'row',
@@ -353,7 +353,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       height: 50,
     },
     heroCtaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-    heroCtaLabel: { color: isDark ? colors.white : colors.active, fontSize: 15, fontFamily: fonts.bold },
+    heroCtaLabel: { color: isDark ? colors.white : colors.active, fontSize: fontSizes.md, fontFamily: fonts.bold },
 
     heroActivity: {
       padding: spacing.md,
@@ -365,17 +365,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     },
     heroActivityPressed: { backgroundColor: colors.hairline },
     heroActivityTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md },
-    heroActivityEyebrow: { color: colors.pending, fontSize: 10, letterSpacing: 0.7, fontFamily: fonts.extrabold },
+    heroActivityEyebrow: { color: colors.pending, fontSize: fontSizes.xs, letterSpacing: 0.7, fontFamily: fonts.extrabold },
     heroActivityAction: { flexDirection: 'row', alignItems: 'center', gap: 1 },
-    heroActivityActionText: { color: colors.ink, fontSize: 12.5, fontFamily: fonts.bold },
-    heroActivityTitle: { color: colors.ink, fontSize: 14.5, letterSpacing: -0.2, fontFamily: fonts.bold },
-    heroActivityDetail: { color: colors.inkMuted, fontSize: 12.5, lineHeight: 18, fontFamily: fonts.medium },
+    heroActivityActionText: { color: colors.ink, fontSize: fontSizes.xs, fontFamily: fonts.bold },
+    heroActivityTitle: { color: colors.ink, fontSize: fontSizes.sm, letterSpacing: -0.2, fontFamily: fonts.bold },
+    heroActivityDetail: { color: colors.inkMuted, fontSize: fontSizes.xs, lineHeight: 17, fontFamily: fonts.medium },
 
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-    sectionTitle: { color: colors.ink, fontSize: 16.5, letterSpacing: -0.3, fontFamily: fonts.bold },
-    sectionCount: { color: colors.inkFaint, fontSize: 12, fontFamily: fonts.medium },
+    sectionTitle: { color: colors.ink, fontSize: fontSizes.md, letterSpacing: -0.3, fontFamily: fonts.bold },
+    sectionCount: { color: colors.inkFaint, fontSize: fontSizes.xs, fontFamily: fonts.medium },
     providerHeading: { marginTop: 4 },
-    seeAll: { color: colors.active, fontSize: 13, fontFamily: fonts.bold, textDecorationLine: 'underline' },
+    seeAll: { color: colors.active, fontSize: fontSizes.sm, fontFamily: fonts.bold, textDecorationLine: 'underline' },
 
     categoryRow: { gap: spacing.lg },
 
@@ -386,7 +386,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       alignItems: 'center',
       ...shadow.card,
     },
-    filterEmptyText: { color: colors.inkMuted, fontSize: 13.5, fontFamily: fonts.medium },
+    filterEmptyText: { color: colors.inkMuted, fontSize: fontSizes.sm, fontFamily: fonts.medium },
 
     providerGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   });
@@ -426,10 +426,10 @@ function makeCardStyles(colors: ReturnType<typeof useTheme>['colors']) {
     cardHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     cardNameWrap: { flex: 1, gap: 1 },
     cardNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    cardName: { flexShrink: 1, color: colors.ink, fontSize: 13.5, fontFamily: fonts.bold },
-    cardTrade: { color: colors.inkMuted, fontSize: 11.5, fontFamily: fonts.medium },
+    cardName: { flexShrink: 1, color: colors.ink, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    cardTrade: { color: colors.inkMuted, fontSize: fontSizes.xs, fontFamily: fonts.medium },
     cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-    cardMeta: { color: colors.inkFaint, fontSize: 11, fontFamily: fonts.medium, marginRight: 3 },
+    cardMeta: { color: colors.inkFaint, fontSize: fontSizes.xs, fontFamily: fonts.medium, marginRight: 3 },
     metaDot: { width: 2.5, height: 2.5, borderRadius: 2, backgroundColor: colors.inkFainter },
   });
 }
