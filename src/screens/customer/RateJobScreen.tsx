@@ -36,7 +36,7 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
       Alert.alert('Could not send your rating', e instanceof Error ? e.message : 'Please try again.');
       return;
     }
-    navigation.navigate('JobsHome');
+    navigation.navigate('ActivityHome');
   }
 
   return (

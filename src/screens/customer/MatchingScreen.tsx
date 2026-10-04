@@ -40,7 +40,7 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
     } catch {
       return;
     }
-    navigation.navigate('RequestsTab', { screen: 'RequestsHome' });
+    navigation.navigate('ActivityTab', { screen: 'ActivityHome' });
   }
 
   function goHome() {
@@ -48,7 +48,7 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
   }
 
   function goRequests() {
-    navigation.navigate('RequestsTab', { screen: 'RequestsHome' });
+    navigation.navigate('ActivityTab', { screen: 'ActivityHome' });
   }
 
   if (isDirect) {

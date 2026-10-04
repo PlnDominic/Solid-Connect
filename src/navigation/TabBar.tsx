@@ -2,7 +2,7 @@ import { Pressable, Text, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { LucideIcon } from 'lucide-react-native';
-import { House, LayoutGrid, ClipboardList, Briefcase, MessageCircle, User } from 'lucide-react-native';
+import { House, LayoutGrid, ClipboardList, Briefcase, Map as MapIcon, MessageCircle, User } from 'lucide-react-native';
 import { useLocale, type TranslationKey } from '../i18n';
 import { fonts } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
@@ -12,8 +12,8 @@ import { useUnreadChatCount, useUnreadNotificationCount } from '../api/badges';
 const routeIcons: Record<string, LucideIcon> = {
   HomeTab: House,
   FeedTab: LayoutGrid,
-  RequestsTab: ClipboardList,
-  JobsTab: Briefcase,
+  MapTab: MapIcon,
+  ActivityTab: ClipboardList,
   ChatTab: MessageCircle,
   ProfileTab: User,
 };
@@ -24,8 +24,8 @@ const routeIcons: Record<string, LucideIcon> = {
 const routeLabelKeys: Record<string, TranslationKey> = {
   HomeTab: 'tab.home',
   FeedTab: 'tab.feed',
-  RequestsTab: 'tab.requests',
-  JobsTab: 'tab.jobs',
+  MapTab: 'tab.map',
+  ActivityTab: 'tab.activity',
   ChatTab: 'tab.chat',
   ProfileTab: 'tab.profile',
 };
@@ -52,12 +52,16 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { t } = useLocale();
   const styles = makeStyles(colors);
   const badgeCounts = useTabBadges();
+  const role = useSessionStore((st) => st.profile?.role ?? 'customer');
   return (
     <SafeAreaView edges={['bottom']} style={styles.wrap} pointerEvents="box-none">
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
-          const labelKey = routeLabelKeys[route.name];
+          // One route name for both roles' merged Requests+Jobs tab (so
+          // jobs/:jobId links work for either), labelled for each role.
+          const labelKey =
+            route.name === 'ActivityTab' && role === 'provider' ? 'tab.work' : routeLabelKeys[route.name];
           const label = labelKey ? t(labelKey) : ((options.tabBarLabel ?? options.title ?? route.name) as string);
           const focused = state.index === index;
           const Icon = routeIcons[route.name] ?? House;

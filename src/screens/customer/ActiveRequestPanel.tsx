@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, Clock, MapPin, Search, ShieldCheck, Star, X } from 'lucide-react-native';
-import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { Alert, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import { friendlyQuoteError, useCounterQuote, useDeclineQuote } from '../../api/quotes';
 import { useCancelRequest, useMyActiveRequest, useNotifications } from '../../api/requests';
 import { BottomSheet } from '../../components/BottomSheet';
@@ -11,10 +11,6 @@ import { useProvider } from '../../api/marketplace';
 import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
-import { EmptyState } from '../../components/EmptyState';
-import { Screen } from '../../components/Screen';
-import { ScreenHeader } from '../../components/ScreenHeader';
-import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { formatRelativeTime } from '../../lib/geo';
 import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -22,7 +18,7 @@ import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote, ServiceRequest } from '../../types/database';
 
-// The customer-side equivalent of the provider RequestsScreen's own local
+// The customer-side equivalent of the provider Work tab's own local
 // StatusBadge - same Badge component, same bg/fg palette per outcome, so
 // "matching" / "declined" / "quotes received" read as the same visual
 // language on both sides of the marketplace.
@@ -256,33 +252,48 @@ function QuoteCard({
   );
 }
 
-export function RequestsScreen({ navigation }: { navigation: any }) {
+/** Whether ActiveRequestPanel has anything to show: a live request, or a
+ * provider's unread "declined your direct request" notice. */
+export function activeRequestHasContent(
+  request: { status: string; quotes: unknown[] } | null,
+  notifications: Array<{ type: string; read_at: string | null }>,
+): boolean {
+  if (notifications.some((n) => n.type === 'DIRECT_REJECTED' && !n.read_at)) return true;
+  if (!request) return false;
+  return (
+    request.status === 'rejected' ||
+    request.status === 'awaiting_provider' ||
+    request.status === 'matching' ||
+    request.status === 'open' ||
+    (request.status === 'quoted' && request.quotes.length > 0)
+  );
+}
+
+/**
+ * The customer's one live request (summary, status, edit/cancel) and the
+ * quotes on it. Rendered inside the Activity tab's "Active" section rather
+ * than as its own screen; renders nothing once there's no live request.
+ * Quote selection for Compare is owned by the caller, which also shows the
+ * Compare bar.
+ */
+export function ActiveRequestPanel({
+  navigation,
+  compareIds,
+  onToggleCompare,
+}: {
+  navigation: any;
+  compareIds: string[];
+  onToggleCompare: (id: string) => void;
+}) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: request, isLoading: requestLoading, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
-  const { data: notifications = [], refetch: refetchNotifs } = useNotifications(profile?.id ?? null);
+  const { data: request } = useMyActiveRequest(profile?.id ?? null);
+  const { data: notifications = [] } = useNotifications(profile?.id ?? null);
   const cancelRequest = useCancelRequest();
-  const { refreshing, onRefresh } = usePullToRefresh(async () => {
-    await Promise.all([refetchRequest(), refetchNotifs()]);
-  });
 
-  const hasQuotes = request && request.status === 'quoted' && request.quotes.length > 0;
+  const hasQuotes = !!request && request.status === 'quoted' && request.quotes.length > 0;
   const quoteCount = request?.quotes.length ?? 0;
-  const [compareIds, setCompareIds] = useState<string[]>([]);
-  // A quote that was declined, revised away or accepted can't stay selected.
-  const liveCompareIds = compareIds.filter((id) => request?.quotes.some((q) => q.id === id));
-
-  function toggleCompare(id: string) {
-    setCompareIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 3) {
-        Alert.alert('Compare up to 3', 'Deselect a quote first to add another.');
-        return prev;
-      }
-      return [...prev, id];
-    });
-  }
   const seenQuoteCount = useRef(quoteCount);
   // Fires only on a real increase while this screen is mounted (a fresh
   // quote landing via refetch/pull-to-refresh) - not on first load, which
@@ -320,124 +331,93 @@ export function RequestsScreen({ navigation }: { navigation: any }) {
     );
   }
 
-  const showFeed =
-    unreadReject.length > 0 || isRejected || isAwaiting || isMatching || hasQuotes;
+  const showFeed = activeRequestHasContent(request ?? null, notifications);
+
+  if (!showFeed) return null;
 
   return (
-    <Screen>
-      <ScreenHeader title="Requests" large />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
-        }
-      >
-        {requestLoading ? (
-          <View style={{ padding: spacing.xl, alignItems: 'center' }}>
-            <ActivityIndicator color={colors.ink} />
+    <View style={styles.body}>
+      {unreadReject.slice(0, 3).map((n) => (
+        <View key={n.id} style={styles.rejectBanner}>
+          <Text style={styles.rejectTitle}>{n.title}</Text>
+          <Text style={styles.rejectBody}>{n.body}</Text>
+        </View>
+      ))}
+
+      {request ? (
+        <View style={styles.summary}>
+          <View style={styles.summaryTop}>
+            <View style={{ flex: 1, gap: 3 }}>
+              <Text style={styles.summaryTitle} numberOfLines={1}>
+                {request.category_label.split('·').pop()?.trim()}
+              </Text>
+              <Text style={styles.summaryMeta}>
+                {request.location_label} · {formatRelativeTime(request.created_at)}
+              </Text>
+            </View>
+            {budget != null ? <Text style={styles.summaryBudget}>GHS {budget.toLocaleString()}</Text> : null}
           </View>
-        ) : showFeed ? (
-          <View style={styles.body}>
-            {unreadReject.slice(0, 3).map((n) => (
-              <View key={n.id} style={styles.rejectBanner}>
-                <Text style={styles.rejectTitle}>{n.title}</Text>
-                <Text style={styles.rejectBody}>{n.body}</Text>
-              </View>
-            ))}
 
-            {request ? (
-              <View style={styles.summary}>
-                <View style={styles.summaryTop}>
-                  <View style={{ flex: 1, gap: 3 }}>
-                    <Text style={styles.summaryTitle} numberOfLines={1}>
-                      {request.category_label.split('·').pop()?.trim()}
-                    </Text>
-                    <Text style={styles.summaryMeta}>
-                      {request.location_label} · {formatRelativeTime(request.created_at)}
-                    </Text>
-                  </View>
-                  {budget != null ? <Text style={styles.summaryBudget}>GHS {budget.toLocaleString()}</Text> : null}
-                </View>
+          {isAwaiting ? (
+            <RequestStatusBadge kind="awaiting" />
+          ) : isRejected ? (
+            <RequestStatusBadge kind="rejected" />
+          ) : hasQuotes ? (
+            <RequestStatusBadge kind="quoted" count={request.quotes.length} />
+          ) : (
+            <RequestStatusBadge kind="matching" />
+          )}
 
-                {isAwaiting ? (
-                  <RequestStatusBadge kind="awaiting" />
-                ) : isRejected ? (
-                  <RequestStatusBadge kind="rejected" />
-                ) : hasQuotes ? (
-                  <RequestStatusBadge kind="quoted" count={request.quotes.length} />
-                ) : (
-                  <RequestStatusBadge kind="matching" />
-                )}
+          {isRejected && request.rejection_reason ? (
+            <Text style={styles.rejectInline}>Reason: {request.rejection_reason}</Text>
+          ) : null}
 
-                {isRejected && request.rejection_reason ? (
-                  <Text style={styles.rejectInline}>Reason: {request.rejection_reason}</Text>
-                ) : null}
-
-                {(canEdit || canCancel) ? (
-                  <View style={styles.summaryActions}>
-                    {canEdit ? (
-                      <Button
-                        title="Edit"
-                        variant="outline"
-                        onPress={() => navigation.navigate('EditRequest', { requestId: request.id })}
-                        style={styles.summaryActionBtn}
-                      />
-                    ) : null}
-                    {canCancel ? (
-                      <Button
-                        title="Cancel"
-                        variant="outline"
-                        onPress={handleCancel}
-                        loading={cancelRequest.isPending}
-                        style={styles.summaryActionBtn}
-                      />
-                    ) : null}
-                  </View>
-                ) : null}
-              </View>
-            ) : null}
-
-            {hasQuotes && request
-              ? request.quotes.map((q) => (
-                  <QuoteCard
-                    key={q.id}
-                    quote={q}
-                    request={request}
-                    onAccepted={(jobId) =>
-                      navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId } })
-                    }
-                    onChat={(threadId, peerId) =>
-                      navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })
-                    }
-                    compareSelected={liveCompareIds.includes(q.id)}
-                    onToggleCompare={() => toggleCompare(q.id)}
-                  />
-                ))
-              : null}
-          </View>
-        ) : (
-          <EmptyState
-            title="No requests yet"
-            subtitle="Post a general request from Home, or pick a provider and send a direct request."
-            action={{ label: 'Post a request', onPress: () => navigation.navigate('HomeTab', { screen: 'Home' }) }}
-          />
-        )}
-      </ScrollView>
-      {liveCompareIds.length >= 2 ? (
-        <View style={styles.compareBar}>
-          <Button
-            title={`Compare ${liveCompareIds.length} quotes`}
-            onPress={() => navigation.navigate('CompareQuotes', { quoteIds: liveCompareIds })}
-          />
+          {(canEdit || canCancel) ? (
+            <View style={styles.summaryActions}>
+              {canEdit ? (
+                <Button
+                  title="Edit"
+                  variant="outline"
+                  onPress={() => navigation.navigate('EditRequest', { requestId: request.id })}
+                  style={styles.summaryActionBtn}
+                />
+              ) : null}
+              {canCancel ? (
+                <Button
+                  title="Cancel"
+                  variant="outline"
+                  onPress={handleCancel}
+                  loading={cancelRequest.isPending}
+                  style={styles.summaryActionBtn}
+                />
+              ) : null}
+            </View>
+          ) : null}
         </View>
       ) : null}
-    </Screen>
+
+      {hasQuotes && request
+        ? request.quotes.map((q) => (
+            <QuoteCard
+              key={q.id}
+              quote={q}
+              request={request}
+              onAccepted={(jobId) => navigation.navigate('JobDetail', { jobId })}
+              onChat={(threadId, peerId) =>
+                navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })
+              }
+              compareSelected={compareIds.includes(q.id)}
+              onToggleCompare={() => onToggleCompare(q.id)}
+            />
+          ))
+        : null}
+    </View>
   );
 }
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    body: { padding: spacing.lg, gap: spacing.md },
+    body: { gap: spacing.md },
     summary: {
       padding: spacing.lg,
       borderRadius: radii.lg,
@@ -531,12 +511,5 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       color: colors.ink,
     },
     sheetError: { fontSize: 13, fontFamily: fonts.medium, color: colors.danger },
-    compareBar: {
-      padding: spacing.lg,
-      paddingBottom: spacing.xl,
-      backgroundColor: colors.card,
-      borderTopWidth: 1,
-      borderTopColor: colors.hairline,
-    },
   });
 }

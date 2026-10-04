@@ -66,7 +66,7 @@ export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
               ProviderDetail: 'providers/:providerId',
             },
           },
-          JobsTab: {
+          ActivityTab: {
             screens: {
               JobDetail: 'jobs/:jobId',
               Receipt: 'jobs/:jobId/receipt',

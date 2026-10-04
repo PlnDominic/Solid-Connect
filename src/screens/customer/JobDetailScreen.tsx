@@ -146,7 +146,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <Pressable
-            onPress={() => navigation.navigate('JobsHome')}
+            onPress={() => navigation.navigate('ActivityHome')}
             hitSlop={12}
             style={styles.back}
             accessibilityRole="button"

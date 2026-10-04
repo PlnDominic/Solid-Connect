@@ -7,8 +7,7 @@ import { MatchingScreen } from '../screens/customer/MatchingScreen';
 import { AllProvidersScreen } from '../screens/customer/AllProvidersScreen';
 import { ProviderDetailScreen } from '../screens/customer/ProviderDetailScreen';
 import { CompareQuotesScreen } from '../screens/customer/CompareQuotesScreen';
-import { RequestsScreen } from '../screens/customer/RequestsScreen';
-import { JobsScreen } from '../screens/customer/JobsScreen';
+import { ActivityScreen } from '../screens/customer/ActivityScreen';
 import { JobDetailScreen } from '../screens/customer/JobDetailScreen';
 import { RateJobScreen } from '../screens/customer/RateJobScreen';
 import { ProfileScreen } from '../screens/customer/ProfileScreen';
@@ -30,6 +29,7 @@ import { DisputeScreen } from '../screens/shared/DisputeScreen';
 import { ReceiptScreen } from '../screens/shared/ReceiptScreen';
 import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
 import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
+import { MapScreen } from '../screens/shared/MapScreen';
 import { TabBar } from './TabBar';
 
 const HomeStackNav = createNativeStackNavigator();
@@ -45,27 +45,29 @@ function HomeStack() {
   );
 }
 
-const RequestsStackNav = createNativeStackNavigator();
-function RequestsStack() {
+const MapStackNav = createNativeStackNavigator();
+function MapStack() {
   return (
-    <RequestsStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <RequestsStackNav.Screen name="RequestsHome" component={RequestsScreen} />
-      <RequestsStackNav.Screen name="EditRequest" component={EditRequestScreen} />
-      <RequestsStackNav.Screen name="CompareQuotes" component={CompareQuotesScreen} />
-    </RequestsStackNav.Navigator>
+    <MapStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <MapStackNav.Screen name="MapHome">{(props) => <MapScreen {...props} role="customer" />}</MapStackNav.Screen>
+    </MapStackNav.Navigator>
   );
 }
 
-const JobsStackNav = createNativeStackNavigator();
-function JobsStack() {
+// Requests and Jobs as one tab: a request becomes a job once a quote is
+// accepted, so both live in the same stack.
+const ActivityStackNav = createNativeStackNavigator();
+function ActivityStack() {
   return (
-    <JobsStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <JobsStackNav.Screen name="JobsHome" component={JobsScreen} />
-      <JobsStackNav.Screen name="JobDetail" component={JobDetailScreen} />
-      <JobsStackNav.Screen name="RateJob" component={RateJobScreen} />
-      <JobsStackNav.Screen name="Dispute" component={DisputeScreen} />
-      <JobsStackNav.Screen name="Receipt" component={ReceiptScreen} />
-    </JobsStackNav.Navigator>
+    <ActivityStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <ActivityStackNav.Screen name="ActivityHome" component={ActivityScreen} />
+      <ActivityStackNav.Screen name="EditRequest" component={EditRequestScreen} />
+      <ActivityStackNav.Screen name="CompareQuotes" component={CompareQuotesScreen} />
+      <ActivityStackNav.Screen name="JobDetail" component={JobDetailScreen} />
+      <ActivityStackNav.Screen name="RateJob" component={RateJobScreen} />
+      <ActivityStackNav.Screen name="Dispute" component={DisputeScreen} />
+      <ActivityStackNav.Screen name="Receipt" component={ReceiptScreen} />
+    </ActivityStackNav.Navigator>
   );
 }
 
@@ -111,8 +113,8 @@ export function CustomerTabs() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
       <Tab.Screen name="HomeTab" component={HomeStack} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="RequestsTab" component={RequestsStack} options={{ tabBarLabel: 'Requests' }} />
-      <Tab.Screen name="JobsTab" component={JobsStack} options={{ tabBarLabel: 'Jobs' }} />
+      <Tab.Screen name="MapTab" component={MapStack} options={{ tabBarLabel: 'Map' }} />
+      <Tab.Screen name="ActivityTab" component={ActivityStack} options={{ tabBarLabel: 'Activity' }} />
       <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
       <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
     </Tab.Navigator>

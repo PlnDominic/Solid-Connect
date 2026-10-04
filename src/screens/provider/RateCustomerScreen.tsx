@@ -44,7 +44,7 @@ export function RateCustomerScreen({ navigation, route }: { navigation: any; rou
       rating,
       comment,
     });
-    navigation.navigate('JobsHome');
+    navigation.navigate('ActivityHome');
   }
 
   return (

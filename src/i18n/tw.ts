@@ -7,8 +7,7 @@ import type { TranslationKey } from './en';
 export const tw: Partial<Record<TranslationKey, string>> = {
   'tab.home': 'Fie',
   'tab.feed': 'Nsɛm',
-  'tab.requests': 'Abisadeɛ',
-  'tab.jobs': 'Adwuma',
+  'tab.work': 'Adwuma',
   'tab.chat': 'Nkɔmmɔdie',
   'tab.profile': 'Wo Ho Nsɛm',
 

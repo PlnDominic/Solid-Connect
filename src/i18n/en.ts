@@ -4,8 +4,9 @@
 export const en = {
   'tab.home': 'Home',
   'tab.feed': 'Feed',
-  'tab.requests': 'Requests',
-  'tab.jobs': 'Jobs',
+  'tab.map': 'Map',
+  'tab.activity': 'Activity',
+  'tab.work': 'Work',
   'tab.chat': 'Chat',
   'tab.profile': 'Profile',
 

@@ -138,7 +138,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
     }
     // Plain matching/open state (no quotes yet, nothing actionable) - no
     // banner rather than a "REQUEST IN PROGRESS" card with nothing to do
-    // from it besides look at the same Requests tab that's always there.
+    // from it besides look at the same Activity tab that's always there.
     return null;
   })();
 
@@ -189,7 +189,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           {activeJobIsLive ? (
             <Pressable
               style={({ pressed }) => [styles.heroActivity, pressed && styles.heroActivityPressed]}
-              onPress={() => navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId: activeJob.id } })}
+              onPress={() => navigation.navigate('ActivityTab', { screen: 'JobDetail', params: { jobId: activeJob.id } })}
               accessibilityRole="button"
               accessibilityLabel={`View active job: ${activeJob.title}`}
             >
@@ -218,7 +218,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           ) : hasActiveRequest && requestStatus ? (
             <Pressable
               style={({ pressed }) => [styles.heroActivity, pressed && styles.heroActivityPressed]}
-              onPress={() => navigation.navigate('RequestsTab', { screen: 'RequestsHome' })}
+              onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })}
               accessibilityRole="button"
               accessibilityLabel={`${requestStatus.action}: ${requestStatus.title}`}
             >

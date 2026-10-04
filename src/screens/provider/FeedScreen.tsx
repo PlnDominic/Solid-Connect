@@ -233,7 +233,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
 
           <Pressable
             style={({ pressed }) => [styles.heroCta, pressed && styles.heroCtaPressed]}
-            onPress={() => navigation.navigate('JobsTab', { screen: 'JobsHome' })}
+            onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })}
           >
             <Text style={styles.heroCtaLabel}>View my jobs</Text>
             <ArrowUpRight color={isDark ? colors.white : colors.active} size={18} strokeWidth={2.4} />
@@ -258,7 +258,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
           {activeJob ? (
             <Pressable
               style={({ pressed }) => [styles.heroActivity, pressed && styles.heroActivityPressed]}
-              onPress={() => navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId: activeJob.id } })}
+              onPress={() => navigation.navigate('ActivityTab', { screen: 'JobDetail', params: { jobId: activeJob.id } })}
               accessibilityRole="button"
               accessibilityLabel={`View active job: ${activeJob.title}`}
             >

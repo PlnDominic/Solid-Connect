@@ -2,8 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FeedScreen } from '../screens/provider/FeedScreen';
 import { RequestDetailScreen } from '../screens/provider/RequestDetailScreen';
-import { RequestsScreen } from '../screens/provider/RequestsScreen';
-import { JobsScreen } from '../screens/provider/JobsScreen';
+import { WorkScreen } from '../screens/provider/WorkScreen';
 import { JobDetailScreen } from '../screens/provider/JobDetailScreen';
 import { RateCustomerScreen } from '../screens/provider/RateCustomerScreen';
 import { ProfileScreen } from '../screens/provider/ProfileScreen';
@@ -28,6 +27,8 @@ import { DisputeScreen } from '../screens/shared/DisputeScreen';
 import { ReceiptScreen } from '../screens/shared/ReceiptScreen';
 import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
 import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
+import { MapScreen } from '../screens/shared/MapScreen';
+import { PresenceSync } from '../components/PresenceSync';
 import { TabBar } from './TabBar';
 
 const FeedStackNav = createNativeStackNavigator();
@@ -40,25 +41,27 @@ function FeedStack() {
   );
 }
 
-const RequestsStackNav = createNativeStackNavigator();
-function RequestsStack() {
+const MapStackNav = createNativeStackNavigator();
+function MapStack() {
   return (
-    <RequestsStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <RequestsStackNav.Screen name="RequestsHome" component={RequestsScreen} />
-    </RequestsStackNav.Navigator>
+    <MapStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <MapStackNav.Screen name="MapHome">{(props) => <MapScreen {...props} role="provider" />}</MapStackNav.Screen>
+    </MapStackNav.Navigator>
   );
 }
 
-const JobsStackNav = createNativeStackNavigator();
-function JobsStack() {
+// My Requests and Jobs as one "Work" tab. Same route name as the
+// customer's Activity tab, so jobs/:jobId links resolve for either role.
+const ActivityStackNav = createNativeStackNavigator();
+function ActivityStack() {
   return (
-    <JobsStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <JobsStackNav.Screen name="JobsHome" component={JobsScreen} />
-      <JobsStackNav.Screen name="JobDetail" component={JobDetailScreen} />
-      <JobsStackNav.Screen name="RateCustomer" component={RateCustomerScreen} />
-      <JobsStackNav.Screen name="Dispute" component={DisputeScreen} />
-      <JobsStackNav.Screen name="Receipt" component={ReceiptScreen} />
-    </JobsStackNav.Navigator>
+    <ActivityStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <ActivityStackNav.Screen name="ActivityHome" component={WorkScreen} />
+      <ActivityStackNav.Screen name="JobDetail" component={JobDetailScreen} />
+      <ActivityStackNav.Screen name="RateCustomer" component={RateCustomerScreen} />
+      <ActivityStackNav.Screen name="Dispute" component={DisputeScreen} />
+      <ActivityStackNav.Screen name="Receipt" component={ReceiptScreen} />
+    </ActivityStackNav.Navigator>
   );
 }
 
@@ -104,12 +107,15 @@ const Tab = createBottomTabNavigator();
 
 export function ProviderTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
-      <Tab.Screen name="FeedTab" component={FeedStack} options={{ tabBarLabel: 'Feed' }} />
-      <Tab.Screen name="RequestsTab" component={RequestsStack} options={{ tabBarLabel: 'Requests' }} />
-      <Tab.Screen name="JobsTab" component={JobsStack} options={{ tabBarLabel: 'Jobs' }} />
-      <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
-    </Tab.Navigator>
+    <>
+      <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
+        <Tab.Screen name="FeedTab" component={FeedStack} options={{ tabBarLabel: 'Feed' }} />
+        <Tab.Screen name="MapTab" component={MapStack} options={{ tabBarLabel: 'Map' }} />
+        <Tab.Screen name="ActivityTab" component={ActivityStack} options={{ tabBarLabel: 'Work' }} />
+        <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
+        <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
+      </Tab.Navigator>
+      <PresenceSync />
+    </>
   );
 }

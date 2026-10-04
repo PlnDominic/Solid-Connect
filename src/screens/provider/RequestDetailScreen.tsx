@@ -134,7 +134,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
       haptics.success();
       const jobId = (data as { job?: { id?: string } })?.job?.id;
       if (jobId) {
-        navigation.navigate('JobsTab' as never, {
+        navigation.navigate('ActivityTab' as never, {
           screen: 'JobDetail',
           params: { jobId },
         } as never);
@@ -195,7 +195,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
         ) : myQuote?.status === 'accepted' ? (
           <View style={styles.summary}>
             <Text style={styles.summaryTitle}>The customer accepted your quote</Text>
-            <Text style={styles.summarySub}>Find the job under the Jobs tab.</Text>
+            <Text style={styles.summarySub}>Find the job under the Work tab.</Text>
           </View>
         ) : null}
 

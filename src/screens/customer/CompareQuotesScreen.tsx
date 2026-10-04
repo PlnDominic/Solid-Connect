@@ -49,7 +49,7 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
     try {
       const job = await acceptQuote.mutateAsync({ requestId: request.id, quoteId: quote.id, customerId: profile.id });
       haptics.success();
-      navigation.navigate('JobsTab', { screen: 'JobDetail', params: { jobId: job.id } });
+      navigation.navigate('ActivityTab', { screen: 'JobDetail', params: { jobId: job.id } });
     } catch {
       // The quote may have just been withdrawn or changed; go back to the live list.
       navigation.goBack();

@@ -7,8 +7,7 @@ import type { TranslationKey } from './en';
 export const ga: Partial<Record<TranslationKey, string>> = {
   'tab.home': 'Shĩa',
   'tab.feed': 'Feed',
-  'tab.requests': 'Bimɔ',
-  'tab.jobs': 'Nitsumɔ',
+  'tab.work': 'Nitsumɔ',
   'tab.chat': 'Wiemɔ',
   'tab.profile': 'Ohe Sane',
 
