@@ -83,7 +83,7 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
   const unreadCount = rows.filter((n) => !n.read_at).length;
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Notifications" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.sectionHeaderRow}>
@@ -139,7 +139,7 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
                 <Switch
                   value={prefs[row.key]}
                   onValueChange={() => toggle(row.key)}
-                  trackColor={{ false: colors.hairline, true: colors.ink }}
+                  trackColor={{ false: colors.hairline, true: colors.active }}
                   thumbColor={Platform.OS === 'android' ? colors.white : undefined}
                 />
               </View>
@@ -157,8 +157,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2, marginBottom: 4 },
     sectionLabel: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     clearAll: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
-    cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card, marginBottom: spacing.md },
-    card: { borderRadius: radii.lg, overflow: 'hidden' },
+    cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card, marginBottom: spacing.md },
+    card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     row: { flexDirection: 'row', alignItems: 'flex-start', padding: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.sm },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     dotSlot: { width: 8, alignItems: 'center', paddingTop: 6 },

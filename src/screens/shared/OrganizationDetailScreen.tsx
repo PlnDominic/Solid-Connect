@@ -126,7 +126,7 @@ export function OrganizationDetailScreen({ navigation, route }: { navigation: an
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title={org?.name ?? 'Organization'} onBack={() => navigation.goBack()} />
       {isLoading || !org ? (
         <ActivityIndicator color={colors.ink} style={{ marginTop: spacing.xl }} />
@@ -209,7 +209,7 @@ export function OrganizationDetailScreen({ navigation, route }: { navigation: an
             value={requestLocation}
             onChangeText={setRequestLocation}
           />
-          <Button title="Post workforce request" onPress={onWorkforceRequest} loading={createRequest.isPending} />
+          <Button variant="active" title="Post workforce request" onPress={onWorkforceRequest} loading={createRequest.isPending} />
           <Button title="Schedule weekly recurring" variant="outline" onPress={onRecurring} loading={createRecurring.isPending} />
 
           <Text style={styles.section}>Recurring</Text>

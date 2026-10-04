@@ -36,7 +36,7 @@ export function HelpSupportScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Help & support" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.cardShadow}>
@@ -70,14 +70,14 @@ export function HelpSupportScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.xl },
-    cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
-    card: { borderRadius: radii.lg, overflow: 'hidden' },
+    cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
+    card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
     rowBorder: { height: 1, backgroundColor: colors.hairline },
     contactLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
     contactValue: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
     sectionTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    faqCard: { borderRadius: radii.lg, backgroundColor: colors.card, padding: spacing.md, gap: 6, ...shadow.card },
+    faqCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.md, gap: 6, ...shadow.card },
     faqQ: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
     faqA: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
   });

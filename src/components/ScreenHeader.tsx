@@ -40,7 +40,7 @@ export function ScreenHeader({
               pressed && styles.backPressed,
             ]}
           >
-            <ChevronLeft size={19} strokeWidth={2.5} color={foreground} />
+            <ChevronLeft size={21} strokeWidth={2.5} color={foreground} />
           </Pressable>
           <Text style={[styles.title, { color: foreground, flex: 1 }]} numberOfLines={1}>{title}</Text>
         </View>
@@ -56,14 +56,14 @@ const styles = StyleSheet.create({
   large: { paddingTop: spacing.xxl, paddingBottom: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   back: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
   backPressed: { opacity: 0.6, transform: [{ scale: 0.92 }] },
-  title: { fontSize: 18, letterSpacing: -0.3, fontFamily: fonts.bold },
-  titleLarge: { fontSize: 28, letterSpacing: -0.7, fontFamily: fonts.extrabold },
+  title: { fontSize: 20, letterSpacing: -0.4, fontFamily: fonts.bold },
+  titleLarge: { fontSize: 30, letterSpacing: -0.7, fontFamily: fonts.extrabold },
 });

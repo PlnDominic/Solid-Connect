@@ -6,7 +6,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { useCreateOrganization, useMyOrganizations } from '../../api/organizations';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { isApiConfigured } from '../../lib/api';
 
@@ -40,7 +40,7 @@ export function OrganizationsScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Organizations" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.lead}>
@@ -64,7 +64,7 @@ export function OrganizationsScreen({ navigation }: { navigation: any }) {
             onChangeText={setArea}
           />
           {error ? <Text style={styles.error}>{error}</Text> : null}
-          <Button title="Create organization" onPress={onCreate} loading={createOrg.isPending} />
+          <Button variant="active" title="Create organization" onPress={onCreate} loading={createOrg.isPending} />
         </View>
 
         <Text style={styles.section}>Your organizations</Text>
@@ -100,12 +100,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     body: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
     lead: { fontFamily: fonts.regular, fontSize: 17, color: colors.inkMuted, lineHeight: 25 },
     card: {
-      backgroundColor: colors.surface,
-      borderRadius: radii.lg,
+      backgroundColor: colors.card,
+      borderRadius: radii.xxxl,
       padding: spacing.lg,
       gap: spacing.sm,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.hairline,
+      ...shadow.card,
     },
     section: {
       fontFamily: fonts.semibold,
@@ -132,10 +131,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       gap: spacing.md,
       padding: spacing.lg,
-      backgroundColor: colors.surface,
-      borderRadius: radii.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.hairline,
+      backgroundColor: colors.card,
+      borderRadius: radii.xxxl,
+      ...shadow.card,
     },
     rowTitle: { fontFamily: fonts.semibold, fontSize: 18, color: colors.ink },
     rowSub: { fontFamily: fonts.regular, fontSize: 15, color: colors.inkMuted, marginTop: 2 },

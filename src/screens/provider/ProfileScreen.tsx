@@ -97,7 +97,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const uploadPhoto = useUploadProfilePhoto();
   const [photoError, setPhotoError] = useState<string | null>(null);
 
-  if (!profile) return <Screen />;
+  if (!profile) return <Screen bg={colors.paperDim} />;
 
   // Ends the real Supabase session and returns to sign-in (not the
   // first-run marketing landing). Walks up to the root stack to reset.
@@ -368,14 +368,14 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     rolePill: { paddingVertical: 9, paddingHorizontal: spacing.lg, borderRadius: radii.md, alignItems: 'center' },
     rolePillActive: { backgroundColor: colors.white },
     rolePillText: { fontSize: 15, fontFamily: fonts.bold, color: 'rgba(255,255,255,0.8)' },
-    rolePillTextActive: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    rolePillTextActive: { fontSize: 15, fontFamily: fonts.bold, color: colors.activeDeep },
 
     body: { padding: spacing.lg, gap: spacing.xl },
     photoErrorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
     badgeRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
 
-    statementShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
-    statement: { borderRadius: radii.lg, overflow: 'hidden' },
+    statementShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
+    statement: { borderRadius: radii.xxxl, overflow: 'hidden' },
     statementRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: spacing.lg },
     statementRowBorder: { borderTopWidth: 1, borderTopColor: colors.hairline },
     statementLabel: { fontSize: 15.5, fontFamily: fonts.medium, color: colors.inkMuted },
@@ -388,14 +388,16 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     portfolioThumb: { width: 84, height: 84, borderRadius: radii.md, backgroundColor: colors.paperDim },
 
     reviewsSection: { gap: spacing.sm },
-    distCard: { borderRadius: radii.lg, backgroundColor: colors.card, padding: spacing.md, gap: 7, ...shadow.card },
+    distCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.md, gap: 7, ...shadow.card },
     distRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     distLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkMuted, width: 8, textAlign: 'right' },
     distTrack: { flex: 1, height: 5, borderRadius: radii.pill, backgroundColor: colors.paperDim, overflow: 'hidden' },
     distFill: { height: '100%', borderRadius: radii.pill, backgroundColor: colors.ink },
     distCount: { fontSize: 13, fontFamily: fonts.mono, color: colors.inkFaint, width: 20, textAlign: 'right' },
 
-    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, overflow: 'hidden' },
+    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card,
+      ...shadow.card,
+    },
     settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: 15, paddingHorizontal: spacing.lg },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     settingsLabel: { flex: 1, fontSize: 17, fontFamily: fonts.medium, color: colors.ink },

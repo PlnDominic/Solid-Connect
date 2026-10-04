@@ -87,7 +87,7 @@ export function ServiceAreasScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Service areas" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>
@@ -142,7 +142,7 @@ export function ServiceAreasScreen({ navigation }: { navigation: any }) {
             </View>
           </>
         )}
-        <Button
+        <Button variant="active"
           title={saving ? 'Saving…' : 'Save coverage'}
           onPress={persist}
           disabled={saving || selected.length === 0}
@@ -168,9 +168,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
     chipPrimary: { borderWidth: 2, borderColor: colors.navy },
     chipLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.paper },
+    chipLabelActive: { color: colors.white },
   });
 }

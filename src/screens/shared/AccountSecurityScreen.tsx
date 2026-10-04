@@ -12,7 +12,7 @@ import { authenticateWithBiometrics, useBiometricLockPreference } from '../../ho
 import { friendlyAuthError } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 function stamp(iso: string): string {
@@ -104,7 +104,7 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Account security" onBack={() => navigation.goBack()} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
@@ -133,7 +133,7 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
             style={styles.input}
           />
           {error ? <Text style={styles.error}>{error}</Text> : null}
-          <Button title="Update password" onPress={handleSave} disabled={!canSave} loading={saving} />
+          <Button variant="active" title="Update password" onPress={handleSave} disabled={!canSave} loading={saving} />
 
           {biometrics.available ? (
             <>
@@ -148,7 +148,7 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
                     value={biometrics.enabled}
                     onValueChange={handleToggleBiometrics}
                     disabled={biometricBusy || !biometrics.loaded}
-                    trackColor={{ false: colors.hairline, true: colors.ink }}
+                    trackColor={{ false: colors.hairline, true: colors.active }}
                     thumbColor={Platform.OS === 'android' ? colors.white : undefined}
                   />
                 </View>
@@ -202,13 +202,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md },
     card: {
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
       padding: spacing.lg,
       gap: 4,
       marginBottom: spacing.sm,
+      ...shadow.card,
     },
     label: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.5 },
     value: { fontSize: 17, fontFamily: fonts.semibold, color: colors.ink },

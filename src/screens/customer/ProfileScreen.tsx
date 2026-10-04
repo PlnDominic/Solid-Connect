@@ -103,7 +103,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
     ]);
   }
 
-  if (!profile) return <Screen />;
+  if (!profile) return <Screen bg={colors.paperDim} />;
 
   async function handlePickPhoto() {
     if (!profile) return;
@@ -302,13 +302,13 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     rolePill: { paddingVertical: 9, paddingHorizontal: spacing.lg, borderRadius: radii.md, alignItems: 'center' },
     rolePillActive: { backgroundColor: colors.white },
     rolePillText: { fontSize: 15, fontFamily: fonts.bold, color: 'rgba(255,255,255,0.8)' },
-    rolePillTextActive: { fontSize: 15, fontFamily: fonts.bold, color: colors.ink },
+    rolePillTextActive: { fontSize: 15, fontFamily: fonts.bold, color: colors.activeDeep },
 
     body: { padding: spacing.lg, gap: spacing.xl },
     photoErrorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
 
-    statementShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
-    statement: { borderRadius: radii.lg, overflow: 'hidden' },
+    statementShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
+    statement: { borderRadius: radii.xxxl, overflow: 'hidden' },
     statementRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: spacing.lg },
     statementRowBorder: { borderTopWidth: 1, borderTopColor: colors.hairline },
     statementLabel: { fontSize: 15.5, fontFamily: fonts.medium, color: colors.inkMuted },
@@ -317,21 +317,20 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     sectionTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
-    seeAll: { color: colors.ink, fontSize: 15, fontFamily: fonts.bold, textDecorationLine: 'underline' },
+    seeAll: { color: colors.active, fontSize: 15, fontFamily: fonts.bold, textDecorationLine: 'underline' },
     savedRow: {
       flexDirection: 'row',
       gap: spacing.md,
       alignItems: 'center',
       padding: spacing.md,
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.hairline,
+      ...shadow.card,
     },
     savedName: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
     savedMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     savedMeta: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
-    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, overflow: 'hidden' },
+    settingsCard: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
     settingsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, paddingVertical: 15, paddingHorizontal: spacing.lg },
     settingsRowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     settingsLabel: { flex: 1, fontSize: 17, fontFamily: fonts.medium, color: colors.ink },

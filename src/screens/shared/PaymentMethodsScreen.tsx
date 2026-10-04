@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const STORAGE_KEY = 'solid-connect:payment-method';
@@ -34,7 +34,7 @@ export function PaymentMethodsScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Payment methods" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>
@@ -71,11 +71,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     body: { padding: spacing.lg, gap: spacing.lg },
     note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
     card: {
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      overflow: 'hidden',
+      ...shadow.card,
     },
     row: {
       flexDirection: 'row',
@@ -96,8 +94,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    radioActive: { borderColor: colors.ink },
-    radioDot: { width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.ink },
+    radioActive: { borderColor: colors.active },
+    radioDot: { width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.active },
     addRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: spacing.md },
     addLabel: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
   });

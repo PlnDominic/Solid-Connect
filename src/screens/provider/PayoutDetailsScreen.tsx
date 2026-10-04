@@ -156,7 +156,7 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Payout details" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         {/* Balance Hero Card */}
@@ -453,7 +453,7 @@ export function PayoutDetailsScreen({ navigation }: { navigation: any }) {
           ) : null}
 
           <View style={styles.modalActionRow}>
-            <Button
+            <Button variant="active"
               title={updatePayout.isPending ? 'Saving...' : 'Save payout account'}
               onPress={handleSave}
               loading={updatePayout.isPending}
@@ -485,8 +485,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     editActionRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     editActionText: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
 
-    cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, ...shadow.card },
-    card: { borderRadius: radii.lg, overflow: 'hidden' },
+    cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
+    card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     loadingCard: { padding: spacing.xl, alignItems: 'center', justifyContent: 'center' },
 
     configuredRow: {
@@ -611,7 +611,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.md,
     },
     typeTabActive: {
-      backgroundColor: colors.ink,
+      backgroundColor: colors.active,
       ...shadow.card,
     },
     typeTabText: { fontSize: 15.5, fontFamily: fonts.semibold, color: colors.ink },
@@ -636,8 +636,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.paper,
     },
     networkChipActive: {
-      backgroundColor: colors.ink,
-      borderColor: colors.ink,
+      backgroundColor: colors.active,
+      borderColor: colors.active,
     },
     networkChipText: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
     networkChipTextActive: { color: colors.white },
@@ -652,8 +652,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.paper,
     },
     bankChipActive: {
-      backgroundColor: colors.ink,
-      borderColor: colors.ink,
+      backgroundColor: colors.active,
+      borderColor: colors.active,
     },
     bankChipText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.ink },
     bankChipTextActive: { color: colors.white },

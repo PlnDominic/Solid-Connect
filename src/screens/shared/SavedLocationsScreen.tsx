@@ -5,7 +5,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 /**
@@ -21,7 +21,7 @@ export function SavedLocationsScreen({ navigation }: { navigation: any }) {
   const deleteLocation = useDeleteSavedLocation();
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Saved locations" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         {locations.length ? (
@@ -62,10 +62,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: spacing.md,
       alignItems: 'center',
       padding: spacing.md,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
+      ...shadow.card,
     },
     iconWrap: {
       width: 36,

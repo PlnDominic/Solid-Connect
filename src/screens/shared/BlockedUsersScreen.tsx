@@ -6,7 +6,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function BlockedUsersScreen({ navigation }: { navigation: any }) {
@@ -28,7 +28,7 @@ export function BlockedUsersScreen({ navigation }: { navigation: any }) {
   });
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Blocked users" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         {!isLoading && blocks.length === 0 ? (
@@ -61,9 +61,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
       padding: spacing.md,
+      ...shadow.card,
     },
     name: { flex: 1, fontSize: 17, fontFamily: fonts.semibold, color: colors.ink },
     btn: { height: 40, paddingHorizontal: 16 },

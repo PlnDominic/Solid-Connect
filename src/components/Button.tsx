@@ -68,7 +68,7 @@ export function Button({
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     base: {
-      height: 52,
+      height: 54,
       borderRadius: radii.lg,
       alignItems: 'center',
       justifyContent: 'center',
@@ -102,6 +102,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     ghost: { backgroundColor: 'transparent' },
     disabled: { opacity: 0.4 },
     pressed: { opacity: 0.88, transform: [{ scale: 0.985 }] },
-    label: { fontFamily: fonts.bold, fontSize: 15.5, letterSpacing: -0.1 },
+    label: { fontFamily: fonts.bold, fontSize: 17, letterSpacing: -0.1 },
   });
 }

@@ -424,7 +424,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
     },
-    headerTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontFamily: fonts.bold, color: colors.ink },
+    headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
     iconBtn: {
       width: 40,
       height: 40,
@@ -478,27 +478,27 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       backgroundColor: 'rgba(21,24,26,0.72)',
     },
-    thumbMoreText: { color: colors.paper, fontSize: 16, fontFamily: fonts.extrabold },
+    thumbMoreText: { color: colors.paper, fontSize: 18, fontFamily: fonts.extrabold },
 
     metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
-    categoryLabel: { flex: 1, fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    categoryLabel: { flex: 1, fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
     ratingPill: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    ratingText: { fontSize: 14, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
+    ratingText: { fontSize: 16, fontFamily: fonts.bold, color: colors.ink, fontVariant: ['tabular-nums'] },
 
-    name: { fontSize: 22, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
+    name: { fontSize: 25, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4 },
 
     locationRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
-    locationText: { fontSize: 13, fontFamily: fonts.medium, color: colors.inkFaint },
+    locationText: { fontSize: 15, fontFamily: fonts.medium, color: colors.inkFaint },
 
     divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.hairline },
 
-    eyebrow: { fontSize: 11, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -2 },
+    eyebrow: { fontSize: 13, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6, marginBottom: -2 },
 
     providerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     providerAvatarImage: { width: 44, height: 44, borderRadius: radii.pill, backgroundColor: colors.paperDim },
     providerInfo: { flex: 1, gap: 1 },
-    providerName: { fontSize: 15.5, fontFamily: fonts.bold, color: colors.ink },
-    providerRole: { fontSize: 12.5, fontFamily: fonts.medium, color: colors.inkFaint },
+    providerName: { fontSize: 17.5, fontFamily: fonts.bold, color: colors.ink },
+    providerRole: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.inkFaint },
     actionIconBtn: {
       width: 40,
       height: 40,
@@ -511,8 +511,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     actionIconBtnPrimary: { backgroundColor: colors.ink, borderColor: colors.ink },
 
-    bioText: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
-    readMore: { fontSize: 14, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    bioText: { fontSize: 16, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
+    readMore: { fontSize: 16, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
 
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
@@ -524,7 +524,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
     },
     chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-    chipLabel: { fontSize: 14.5, fontFamily: fonts.semibold, color: colors.ink },
+    chipLabel: { fontSize: 16.5, fontFamily: fonts.semibold, color: colors.ink },
     chipLabelActive: { color: colors.paper },
 
     // A normal flex sibling below the ScrollView (not absolutely
@@ -543,9 +543,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopColor: colors.hairline,
     },
     footerInfo: { gap: 2 },
-    footerLabel: { fontSize: 12, fontFamily: fonts.medium, color: colors.inkFaint },
+    footerLabel: { fontSize: 14, fontFamily: fonts.medium, color: colors.inkFaint },
     footerRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    footerValue: { fontSize: 14.5, fontFamily: fonts.bold, color: colors.ink },
+    footerValue: { fontSize: 16.5, fontFamily: fonts.bold, color: colors.ink },
     footerCta: { flex: 1 },
   });
 }

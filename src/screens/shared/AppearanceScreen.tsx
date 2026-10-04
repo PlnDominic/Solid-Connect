@@ -15,7 +15,7 @@ export function AppearanceScreen({ navigation }: { navigation: any }) {
   const styles = makeStyles(colors);
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Appearance" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>Choose how Solid Connect looks on this device. Your choice is saved here only.</Text>
@@ -52,12 +52,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     body: { padding: spacing.lg, gap: spacing.lg },
     note: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },
     cardShadow: {
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
       ...shadow.card,
     },
     card: {
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       overflow: 'hidden',
     },
     row: {
@@ -79,7 +79,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    radioActive: { borderColor: colors.ink },
+    radioActive: { borderColor: colors.active },
     radioDot: { width: 10, height: 10, borderRadius: radii.pill, backgroundColor: colors.ink },
   });
 }

@@ -9,7 +9,7 @@ import {
   type ReferralSummary,
 } from '../../api/referrals';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const STATUS_LABEL: Record<ReferralSummary['invited'][number]['status'], string> = {
@@ -45,7 +45,7 @@ export function ReferralScreen({ navigation }: { navigation: any }) {
   const code = summary?.code ?? '········';
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Invite friends" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.lead}>
@@ -138,18 +138,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     statsRow: { flexDirection: 'row', gap: spacing.md },
     statCard: {
       flex: 1,
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.hairline,
       paddingVertical: spacing.md,
       alignItems: 'center',
       gap: 2,
+      ...shadow.card,
     },
     statValue: { fontSize: 20, fontFamily: fonts.extrabold, color: colors.ink },
     statLabel: { fontSize: 13, fontFamily: fonts.semibold, color: colors.inkFaint, letterSpacing: 0.4 },
-    cardShadow: { borderRadius: radii.lg, backgroundColor: colors.card, overflow: 'hidden' },
-    card: { borderRadius: radii.lg, overflow: 'hidden' },
+    cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
+    card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     row: { flexDirection: 'row', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.sm },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
     rowLabel: { fontSize: 16, fontFamily: fonts.semibold, color: colors.ink },

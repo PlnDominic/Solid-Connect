@@ -49,9 +49,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
       marginBottom: 4,
     },
-    title: { fontSize: 16, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
-    subtitle: { fontSize: 13, color: colors.inkMuted, lineHeight: 20, textAlign: 'center', maxWidth: 260, fontFamily: fonts.regular },
+    title: { fontSize: 18.5, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
+    subtitle: { fontSize: 15.5, color: colors.inkMuted, lineHeight: 23, textAlign: 'center', maxWidth: 290, fontFamily: fonts.regular },
     action: { marginTop: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
-    actionLabel: { fontSize: 14, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    actionLabel: { fontSize: 16, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
   });
 }

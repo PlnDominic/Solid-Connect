@@ -10,7 +10,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { friendlyAuthError } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -64,7 +64,7 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
     };
   }, [profile?.id, profile?.role]);
 
-  if (!profile) return <Screen />;
+  if (!profile) return <Screen bg={colors.paperDim} />;
   const p = profile;
 
   const isProvider = p.role === 'provider';
@@ -121,75 +121,82 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Edit profile" onBack={() => navigation.goBack()} />
       <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-          <View style={styles.field}>
-            <Text style={styles.label}>Full name</Text>
-            <TextInput
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Full name"
-              placeholderTextColor={colors.inkFainter}
-              autoCapitalize="words"
-              autoCorrect={false}
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.field}>
-            <View style={styles.labelRow}>
-              <Text style={styles.label}>Tagline</Text>
-              <Text style={styles.labelCount}>{tagline.length}/{TAGLINE_MAX}</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>About you</Text>
+            <View style={styles.field}>
+              <Text style={styles.label}>Full name</Text>
+              <TextInput
+                value={fullName}
+                onChangeText={setFullName}
+                placeholder="Full name"
+                placeholderTextColor={colors.inkFainter}
+                autoCapitalize="words"
+                autoCorrect={false}
+                style={styles.input}
+              />
             </View>
-            <TextInput
-              value={tagline}
-              onChangeText={(t) => setTagline(t.slice(0, TAGLINE_MAX))}
-              placeholder="A short line about you (optional)"
-              placeholderTextColor={colors.inkFainter}
-              multiline
-              style={[styles.input, styles.inputMultiline]}
-            />
+
+            <View style={styles.field}>
+              <View style={styles.labelRow}>
+                <Text style={styles.label}>Tagline</Text>
+                <Text style={styles.labelCount}>{tagline.length}/{TAGLINE_MAX}</Text>
+              </View>
+              <TextInput
+                value={tagline}
+                onChangeText={(t) => setTagline(t.slice(0, TAGLINE_MAX))}
+                placeholder="A short line about you (optional)"
+                placeholderTextColor={colors.inkFainter}
+                multiline
+                style={[styles.input, styles.inputMultiline]}
+              />
+            </View>
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="024 123 4567"
-              placeholderTextColor={colors.inkFainter}
-              keyboardType="phone-pad"
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={styles.input}
-            />
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Contact</Text>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Phone</Text>
+              <TextInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="024 123 4567"
+                placeholderTextColor={colors.inkFainter}
+                keyboardType="phone-pad"
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={styles.input}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="you@email.com"
+                placeholderTextColor={colors.inkFainter}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={styles.input}
+              />
+              {pendingEmailNotice ? <Text style={styles.notice}>{pendingEmailNotice}</Text> : null}
+            </View>
           </View>
 
-          <View style={styles.field}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="you@email.com"
-              placeholderTextColor={colors.inkFainter}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={styles.input}
-            />
-            {pendingEmailNotice ? <Text style={styles.notice}>{pendingEmailNotice}</Text> : null}
-          </View>
-
-          <View style={styles.field}>
-            <Text style={styles.label}>Location</Text>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Location</Text>
             <AreaPicker value={area} onChangeValue={setArea} />
           </View>
 
           {isProvider && categoriesLoaded ? (
-            <View style={styles.field}>
-              <Text style={styles.label}>Services you offer</Text>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Services you offer</Text>
               <CategoryPicker multi values={categoryIds} onChangeValues={setCategoryIds} />
             </View>
           ) : null}
@@ -198,7 +205,7 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
         </ScrollView>
 
         <View style={styles.footer}>
-          <Button title="Save changes" onPress={handleSave} disabled={!isValid || saving} loading={saving} />
+          <Button title="Save changes" variant="active" onPress={handleSave} disabled={!isValid || saving} loading={saving} />
         </View>
       </KeyboardAvoidingView>
     </Screen>
@@ -209,6 +216,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
   fill: { flex: 1 },
   body: { padding: spacing.lg, gap: spacing.xl },
+  // Raised white card on the dimmed page - shadow does the separating.
+  card: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.lg, gap: spacing.lg, ...shadow.card },
+  cardTitle: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
   field: { gap: spacing.sm },
   label: { fontSize: 15, fontFamily: fonts.semibold, color: colors.inkFaint },
   labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -217,16 +227,22 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     fontSize: 18,
     fontFamily: fonts.medium,
     color: colors.ink,
-    borderWidth: 1,
-    borderColor: colors.hairline,
+    // Recessed fill inside the raised card, rather than a bordered box.
     borderRadius: radii.lg,
-    backgroundColor: colors.card,
+    backgroundColor: colors.paperDim,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
   },
   inputMultiline: { minHeight: 72, textAlignVertical: 'top' },
   notice: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.confirm, lineHeight: 21 },
   errorText: { fontSize: 14.5, fontFamily: fonts.medium, color: colors.danger },
-  footer: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.lg },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
+    backgroundColor: colors.paper,
+    borderTopWidth: 1,
+    borderTopColor: colors.hairline,
+  },
 });
 }

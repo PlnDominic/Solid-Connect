@@ -7,7 +7,7 @@ import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Profile } from '../../types/database';
 
@@ -56,7 +56,7 @@ export function SavedProvidersScreen({ navigation }: { navigation: any }) {
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Saved providers" onBack={() => navigation.goBack()} />
       <ScrollView
         contentContainerStyle={styles.body}
@@ -91,10 +91,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: spacing.md,
       alignItems: 'center',
       padding: spacing.md,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
+      ...shadow.card,
     },
     name: { fontSize: 17, fontFamily: fonts.bold, color: colors.ink },
     metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },

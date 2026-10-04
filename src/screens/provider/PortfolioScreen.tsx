@@ -28,7 +28,7 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [previewVideoUrl, setPreviewVideoUrl] = useState<string | null>(null);
 
-  if (!profile) return <Screen />;
+  if (!profile) return <Screen bg={colors.paperDim} />;
 
   async function pickAndUpload() {
     setError(null);
@@ -66,7 +66,7 @@ export function PortfolioScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Portfolio" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         {photos.length === 0 && !upload.isPending ? (

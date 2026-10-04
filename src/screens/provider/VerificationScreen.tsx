@@ -8,7 +8,7 @@ import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
-import { fonts, radii, spacing } from '../../theme';
+import { fonts, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified, verificationLevelLabel } from '../../lib/verification';
 
@@ -113,7 +113,7 @@ function SubmissionForm({ providerId, rejectionNote }: { providerId: string; rej
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-      <Button
+      <Button variant="active"
         title="Submit for review"
         onPress={handleSubmit}
         disabled={images.length === 0 || submit.isPending}
@@ -129,10 +129,10 @@ export function VerificationScreen({ navigation }: { navigation: any }) {
   const profile = useSessionStore((s) => s.profile);
   const { data: latest, isLoading } = useLatestVerification(profile?.id ?? null);
 
-  if (!profile) return <Screen />;
+  if (!profile) return <Screen bg={colors.paperDim} />;
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Verification" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         {isIdentityVerified(profile) ? (
@@ -166,12 +166,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     body: { padding: spacing.lg, gap: spacing.lg },
     statusPanel: {
       padding: spacing.lg,
-      borderRadius: radii.lg,
-      borderWidth: 1,
-      borderColor: colors.hairline,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
       gap: spacing.sm,
       alignItems: 'flex-start',
+      ...shadow.card,
     },
     statusTitle: { fontSize: 18, fontFamily: fonts.bold, color: colors.ink },
     statusDetail: { fontSize: 15, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 22 },

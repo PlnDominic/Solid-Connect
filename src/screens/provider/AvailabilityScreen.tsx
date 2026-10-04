@@ -37,7 +37,7 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
 
   if (!isApiConfigured()) {
     return (
-      <Screen>
+      <Screen bg={colors.paperDim}>
         <ScreenHeader title="Availability" onBack={() => navigation.goBack()} />
         <View style={styles.body}>
           <Text style={styles.note}>Set EXPO_PUBLIC_API_URL and apply migration 0012 to manage availability on the server.</Text>
@@ -47,7 +47,7 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
   }
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Availability" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
         <Text style={styles.note}>Control whether you appear in customer search and matching right now.</Text>
@@ -124,8 +124,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
+    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
     chipLabel: { fontSize: 15, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.paper },
+    chipLabelActive: { color: colors.white },
   });
 }

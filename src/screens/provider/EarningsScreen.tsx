@@ -33,7 +33,7 @@ export function EarningsScreen({ navigation }: { navigation: any }) {
   const maxMonth = Math.max(...summary.months.map((m) => m.net), 1);
 
   return (
-    <Screen>
+    <Screen bg={colors.paperDim}>
       <ScreenHeader title="Earnings" onBack={() => navigation.goBack()} />
       <ScrollView
         contentContainerStyle={styles.body}
@@ -134,7 +134,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xl * 2 },
     grid: { gap: spacing.md },
-    card: { borderRadius: radii.lg, backgroundColor: colors.card, padding: spacing.lg, gap: 6, ...shadow.card },
+    card: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.lg, gap: 6, ...shadow.card },
     hero: { backgroundColor: colors.active },
     label: { fontSize: 12.5, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     heroValue: { fontSize: 33, fontFamily: fonts.bold, color: colors.white, fontVariant: ['tabular-nums'] },
@@ -149,7 +149,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     row: {
       flexDirection: 'row',
       gap: spacing.md,
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       backgroundColor: colors.card,
       padding: spacing.md,
       ...shadow.card,
@@ -165,7 +165,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       alignItems: 'center',
       gap: spacing.md,
       backgroundColor: colors.card,
-      borderRadius: radii.lg,
+      borderRadius: radii.xxxl,
       padding: spacing.md,
       paddingHorizontal: spacing.lg,
       ...shadow.card,
