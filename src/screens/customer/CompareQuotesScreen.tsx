@@ -80,7 +80,7 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
             <View style={styles.table}>
               {row('Provider', (q, i) => (
                 <View style={styles.providerCell}>
-                  <Avatar initials={providers[i]?.initials ?? ''} size={36} />
+                  <Avatar initials={providers[i]?.initials ?? ''} photoUrl={providers[i]?.photo_url} size={36} />
                   <Text style={styles.providerName} numberOfLines={2}>{providers[i]?.full_name ?? '…'}</Text>
                 </View>
               ))}

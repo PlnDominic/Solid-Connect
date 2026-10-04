@@ -44,7 +44,7 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
       <ScreenHeader title="Rate this job" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View style={styles.peerCard}>
-          <Avatar initials={provider?.initials ?? ''} size={44} />
+          <Avatar initials={provider?.initials ?? ''} photoUrl={provider?.photo_url} size={44} />
           <View style={{ gap: 3 }}>
             <Text style={styles.peerName} numberOfLines={1}>{provider?.full_name}</Text>
             <Text style={styles.peerMeta}>{job.title} · GHS {job.price}</Text>

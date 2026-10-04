@@ -132,7 +132,7 @@ function QuoteCard({
     <View style={styles.quoteCard}>
       <View style={styles.quoteTop}>
         <View style={styles.quoteIdentity}>
-          <Avatar initials={provider.initials} size={44} />
+          <Avatar initials={provider.initials} photoUrl={provider.photo_url} size={44} />
           <View style={styles.quoteNameWrap}>
             <View style={styles.quoteNameRow}>
               <Text style={styles.quoteName}>{provider.full_name}</Text>
