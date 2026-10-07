@@ -32,7 +32,8 @@ export function isValidEmail(v: string): boolean {
 }
 
 /** The first required step that isn't satisfied yet, in sign-up order, or
- * null when the account has everything it needs. */
+ * null when the account has everything it needs. Used while walking the
+ * sign-up wizard (including a first-time Google/Apple account). */
 export function firstMissingSignUpStep(d: SignUpDetailsSoFar): SignUpStep | null {
   if ((d.fullName ?? '').trim().length < 2) return 'name';
   if (!isPlausiblePhone(d.phone ?? '')) return 'phone';
@@ -41,6 +42,20 @@ export function firstMissingSignUpStep(d: SignUpDetailsSoFar): SignUpStep | null
   if (!d.role || !d.termsAccepted) return 'role';
   if (d.role === 'provider' && !d.hasProviderCategory) return 'category';
   return null;
+}
+
+/**
+ * True when this profile has already finished onboarding as an app user.
+ * Phone/email are collected during sign-up, but a Google account can end
+ * up with role + terms and no phone (column null). That person is still
+ * onboarded — do not restart the funnel on the next Google sign-in.
+ */
+export function isProfileOnboarded(d: SignUpDetailsSoFar): boolean {
+  if ((d.fullName ?? '').trim().length < 2) return false;
+  if ((d.area ?? '').trim().length < 2) return false;
+  if (!d.role || !d.termsAccepted) return false;
+  if (d.role === 'provider' && !d.hasProviderCategory) return false;
+  return true;
 }
 
 /** What an existing profile row already satisfies. */

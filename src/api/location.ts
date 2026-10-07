@@ -1,8 +1,8 @@
+import * as Location from 'expo-location';
 import { getDevicePosition } from '../lib/devicePosition';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
-import { AREAS } from '../constants/areas';
-import { AREA_COORDS, coordsForLabel } from '../lib/areaCoords';
+import { AREA_COORDS, coordsForLabel, matchAreaName } from '../lib/areaCoords';
 import { haversineKm } from '../lib/geo';
 import type { Profile } from '../types/database';
 
@@ -37,44 +37,189 @@ export function distanceBetweenLabelsKm(fromLabel: string, toLabel: string): num
   return haversineKm({ lat: from.lat, lng: from.lng }, { lat: to.lat, lng: to.lng });
 }
 
+/** A place the user picked: display label + optional WGS84 point for PostGIS. */
+export type ResolvedLocation = {
+  area: string;
+  lat?: number;
+  lng?: number;
+};
+
 export type DetectAreaResult =
-  | { area: string }
-  | { error: 'PERMISSION_DENIED' | 'LOCATION_UNAVAILABLE' };
+  | ResolvedLocation
+  | { error: 'PERMISSION_DENIED' | 'SERVICES_OFF' | 'LOCATION_UNAVAILABLE' };
+
+/** Prefer a known Accra neighbourhood when GPS is this close — more
+ * reliable than OS "Ga North Municipal" style labels for Ga West towns. */
+const NEIGHBOURHOOD_LABEL_MAX_KM = 3.5;
+
+/** Only use a looser Accra centroid if geocoders give nothing useful. */
+const CENTROID_FALLBACK_MAX_KM = 12;
+
+/** Ghana MMDA / region labels — too coarse and often wrong from Apple/Google. */
+const COARSE_ADMIN_RE =
+  /\b(municipal|metropolis|metropolitan|district assembly|district|region|constituency)\b/i;
+const GENERIC_GEO_RE =
+  /^(ghana|greater accra|accra|africa|west africa|unnamed road|null)$/i;
 
 /**
- * "Use my current location" - reads the device's actual GPS position and
- * picks the nearest of AREA_COORDS' known neighborhoods by straight-line
- * distance. Deliberately not a reverse-geocoding API call: the app only
- * ever models location as one of these named areas (AreaPicker), never a
- * street address, so snapping to the closest known area is the correct
- * granularity here, not an approximation of a finer one.
+ * "Use my current location" — Ghana-wide.
+ *
+ * Label (what you see) and point (what matching uses) are separate:
+ * 1. Read GPS from the phone → always stored for PostGIS.
+ * 2. If GPS is within ~3.5 km of a known Accra neighbourhood, use that
+ *    name (Sapiman, Amasaman, …). OS geocoders often return the wrong
+ *    municipal assembly (Ga North vs Ga West) instead of the town.
+ * 3. Else reverse-geocode for a town/suburb — skip Municipal/District
+ *    names; prefer OpenStreetMap locality, then the phone OS geocoder.
+ * 4. Else nearest Accra centroid within ~12 km, or "Current location".
  */
 export async function detectNearestArea(): Promise<DetectAreaResult> {
   const pos = await getDevicePosition();
-  if (!pos.ok) return { error: pos.reason === 'PERMISSION_DENIED' ? 'PERMISSION_DENIED' : 'LOCATION_UNAVAILABLE' };
+  if (!pos.ok) {
+    if (pos.reason === 'PERMISSION_DENIED') return { error: 'PERMISSION_DENIED' };
+    if (pos.reason === 'SERVICES_OFF') return { error: 'SERVICES_OFF' };
+    return { error: 'LOCATION_UNAVAILABLE' };
+  }
 
   try {
-    const position = { coords: { latitude: pos.lat, longitude: pos.lng } };
-    let nearestArea: string | null = null;
-    let nearestDistanceKm = Infinity;
-    // Snaps to the quick-pick areas (AreaPicker's chips), as before.
-    for (const name of AREAS) {
-      const coords = AREA_COORDS[name];
-      if (!coords) continue;
-      const distanceKm = haversineKm(
-        { lat: position.coords.latitude, lng: position.coords.longitude },
-        { lat: coords.lat, lng: coords.lng },
-      );
-      if (distanceKm < nearestDistanceKm) {
-        nearestDistanceKm = distanceKm;
-        nearestArea = name;
-      }
-    }
-    if (!nearestArea) return { error: 'LOCATION_UNAVAILABLE' };
-    return { area: nearestArea };
+    const here = { lat: pos.lat, lng: pos.lng };
+
+    const neighbourhood = nearestCentroidWithin(here, NEIGHBOURHOOD_LABEL_MAX_KM);
+    if (neighbourhood) return { area: neighbourhood, lat: here.lat, lng: here.lng };
+
+    const geoArea = await areaFromReverseGeocode(here.lat, here.lng);
+    if (geoArea) return { area: geoArea, lat: here.lat, lng: here.lng };
+
+    const nearby = nearestCentroidWithin(here, CENTROID_FALLBACK_MAX_KM);
+    if (nearby) return { area: nearby, lat: here.lat, lng: here.lng };
+
+    return { area: 'Current location', lat: here.lat, lng: here.lng };
   } catch {
     return { error: 'LOCATION_UNAVAILABLE' };
   }
+}
+
+/** Accra chip → known centroid coords (no GPS). */
+export function resolvedLocationFromAreaLabel(area: string): ResolvedLocation {
+  const label = area.trim();
+  const matched = matchAreaName(label);
+  const coords = matched ? AREA_COORDS[matched] : undefined;
+  return {
+    area: matched ?? label,
+    ...(coords ? { lat: coords.lat, lng: coords.lng } : {}),
+  };
+}
+
+function cleanPlaceLabel(raw: string | null | undefined): string | null {
+  if (typeof raw !== 'string') return null;
+  const label = raw.trim().replace(/\s+/g, ' ');
+  if (label.length < 2 || label.length > 48) return null;
+  if (GENERIC_GEO_RE.test(label) || COARSE_ADMIN_RE.test(label)) return null;
+  // Street numbers / plot ids ("12", "Plot 4") are not neighbourhoods.
+  if (/^[\d\s./#-]+$/.test(label)) return null;
+  return label;
+}
+
+function pickBestLabel(candidates: Array<string | null | undefined>): string | null {
+  const cleaned = candidates.map(cleanPlaceLabel).filter((v): v is string => !!v);
+  for (const label of cleaned) {
+    const matched = matchAreaName(label);
+    if (matched) return matched;
+  }
+  return cleaned[0] ?? null;
+}
+
+/**
+ * Locality label from OSM (suburb/village) then the OS geocoder.
+ * Never returns "Ga West Municipal" — those assemblies are coarse and
+ * Apple/Google often flip Ga West ↔ Ga North around Amasaman/Sapiman.
+ */
+async function areaFromReverseGeocode(lat: number, lng: number): Promise<string | null> {
+  const fromOsm = await areaFromNominatim(lat, lng);
+  if (fromOsm) return fromOsm;
+
+  try {
+    const places = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
+    const place = places[0];
+    if (!place) return null;
+
+    // Prefer place/street locality over district/subregion (often MMDA names).
+    const best = pickBestLabel([
+      place.name,
+      place.street,
+      place.city,
+      place.district,
+      place.subregion,
+      typeof place.formattedAddress === 'string'
+        ? place.formattedAddress.split(',')[0]
+        : null,
+    ]);
+    if (best) return best;
+
+    const city = cleanPlaceLabel(place.city);
+    const region = cleanPlaceLabel(place.region);
+    if (city && region) return `${city}, ${region}`;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** OpenStreetMap Nominatim — better Ghana locality names than MMDA labels. */
+async function areaFromNominatim(lat: number, lng: number): Promise<string | null> {
+  try {
+    const url =
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}` +
+      `&zoom=16&addressdetails=1`;
+    const res = await Promise.race([
+      fetch(url, {
+        headers: {
+          Accept: 'application/json',
+          // Nominatim usage policy requires a descriptive User-Agent.
+          'User-Agent': 'SolidConnect/1.0 (location; https://solidconnect.app)',
+        },
+      }),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+    ]);
+    if (!res || !res.ok) return null;
+    const json = (await res.json()) as {
+      name?: string;
+      address?: Record<string, string | undefined>;
+    };
+    const a = json.address ?? {};
+    return pickBestLabel([
+      a.neighbourhood,
+      a.suburb,
+      a.village,
+      a.hamlet,
+      a.town,
+      a.city_district,
+      a.quarter,
+      a.residential,
+      json.name,
+      a.city,
+      a.municipality,
+    ]);
+  } catch {
+    return null;
+  }
+}
+
+function nearestCentroidWithin(
+  here: { lat: number; lng: number },
+  maxKm: number,
+): string | null {
+  let nearestNamed: string | null = null;
+  let nearestNamedKm = Infinity;
+  for (const [name, coords] of Object.entries(AREA_COORDS)) {
+    const distanceKm = haversineKm(here, { lat: coords.lat, lng: coords.lng });
+    if (distanceKm < nearestNamedKm) {
+      nearestNamedKm = distanceKm;
+      nearestNamed = name;
+    }
+  }
+  if (!nearestNamed || nearestNamedKm > maxKm) return null;
+  return nearestNamed;
 }
 
 export function useMyServiceAreas() {

@@ -60,35 +60,30 @@ Source: §19–22, §25–28 of the concept document.
 | Jobs and completion | ✅ | | |
 | Reviews | ✅ | | |
 | Payments | ✅ (subject to final design) | | |
-| Business / agency accounts | | ✅ | |
-| Projects and workforce requests | | ✅ | |
-| Recurring services | | ✅ | |
+| Business / agency accounts | ✅ (Phase K orgs) | | |
+| Projects and workforce requests | ✅ (Phase K) | | |
+| Recurring services | ✅ (Phase K) | | |
 | Advanced analytics | | ✅ | |
 | OpenSearch | | As required | |
 | AI matching | | | ✅ |
 | Predictive pricing | | | ✅ |
 | Advanced workforce optimization | | | ✅ |
 
-> **Where the prototype stands against MVP scope (updated 2026-09-13,
-> schema at migration `0029` - see README.md's Status section for the
+> **Where the prototype stands against MVP scope (updated 2026-10-07,
+> schema at migration `0076` - see README.md's Status section for the
 > fuller current-state summary):** registration/auth is real Supabase
-> email/password + Apple Sign-In, not anonymous/demo. Customer & provider
-> profiles, service categories (with archive), service requests, quotes,
-> chat, jobs & completion, and reviews (with moderation) are built.
-> Provider verification is a real staged workflow (`REGISTERED` →
-> `IDENTITY_VERIFIED` → `PROFESSION_VERIFIED` → `EXPERIENCE_VERIFIED` →
-> `SOLID_CONNECT_VERIFIED`) with admin approve/reject, not a boolean flag.
-> Location/GIS matching is implemented (PostGIS, `area_centroids`), as is
-> live location sharing during an active job. A full admin panel exists
-> (analytics, verifications, providers/customers/jobs/disputes/reviews,
-> team management, broadcast, search, CSV export). **Real payments are
-> still not implemented** - `payments`/`provider_payouts` model the
-> two-leg escrow flow (customer → platform → provider, net of
-> commission) and have full admin tooling, but nothing calls an actual
-> payment gateway (Paystack/Flutterwave) yet; this remains the actual
-> gap - see [system-architecture.md](./system-architecture.md) and
-> [marketplace-mechanics.md](./marketplace-mechanics.md), themselves not
-> updated to match this note.
+> email/password + Google OAuth + Apple Sign-In (Apple needs dashboard
+> config). Customer & provider profiles, service categories (with
+> archive), service requests, quotes, chat, jobs & completion, two-sided
+> reviews, organizations/projects/recurring, and Hubtel deposit/balance
+> escrow are built. Provider verification is a real staged workflow with
+> admin approve/reject. Location/GIS matching and live job location are
+> implemented. Nest owns marketplace APIs when configured; admin covers
+> analytics through payouts/orgs. Remaining gaps are mostly ops: Hubtel
+> credentials + webhooks in each env, push credentials on device builds,
+> and production hosting/store submit - see
+> [system-architecture.md](./system-architecture.md) and
+> [marketplace-mechanics.md](./marketplace-mechanics.md).
 
 ## Proposed development roadmap
 

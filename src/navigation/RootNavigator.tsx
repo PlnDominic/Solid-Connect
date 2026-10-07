@@ -7,7 +7,7 @@ import { usePushRegistration } from '../hooks/usePushRegistration';
 import { useSyncAuthEmail } from '../hooks/useSyncAuthEmail';
 import { getCurrentUserId } from '../lib/auth';
 import { markLandingSeen } from '../lib/landing';
-import { firstMissingSignUpStep, profileSignUpDetails } from '../lib/signUpSteps';
+import { isProfileOnboarded, profileSignUpDetails } from '../lib/signUpSteps';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { AuthFlowScreen } from '../screens/onboarding/AuthFlowScreen';
 import { useSessionStore } from '../store/useSessionStore';
@@ -48,10 +48,9 @@ export function RootNavigator() {
         if (userId) {
           await markLandingSeen();
           const profile = await fetchProfile(userId);
-          // Only a fully onboarded account opens on Main - one missing a
-          // required detail (e.g. made by a Google sign-in that skipped
-          // steps) stays on Auth, which resumes at the first missing step.
-          if (profile && !cancelled && firstMissingSignUpStep(profileSignUpDetails(profile)) === null) {
+          // Role + terms (+ provider trade) is enough to open Main. Missing
+          // phone alone must not keep a finished Google account on Auth.
+          if (profile && !cancelled && isProfileOnboarded(profileSignUpDetails(profile))) {
             setProfile(profile);
             setInitialRoute('Main');
           }

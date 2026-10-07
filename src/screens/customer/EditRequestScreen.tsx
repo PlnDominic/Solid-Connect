@@ -7,6 +7,7 @@ import { Button } from '../../components/Button';
 import { LocationField } from '../../components/LocationField';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { resolvedLocationFromAreaLabel } from '../../api/location';
 import { isValidArea } from '../../components/AreaPicker';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
@@ -37,6 +38,8 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
   const [budgetText, setBudgetText] = useState('');
   const [budgetFocused, setBudgetFocused] = useState(false);
   const [location, setLocation] = useState('');
+  const [locationLat, setLocationLat] = useState<number | undefined>();
+  const [locationLng, setLocationLng] = useState<number | undefined>();
   const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
   const [newPhotoUris, setNewPhotoUris] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -45,7 +48,11 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
     if (!request) return;
     setDescription(request.description ?? '');
     setBudgetText(String(request.customer_budget ?? request.budget_min ?? ''));
-    setLocation(request.location_label?.split(',')[0]?.trim() ?? '');
+    const label = request.location_label?.trim() ?? '';
+    const resolved = label ? resolvedLocationFromAreaLabel(label) : { area: '' };
+    setLocation(label);
+    setLocationLat(resolved.lat);
+    setLocationLng(resolved.lng);
     setExistingPhotos(request.photos ?? []);
   }, [request]);
 
@@ -74,7 +81,9 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
         customerId: profile.id,
         description: description.trim(),
         budget: Math.round(budget),
-        locationLabel: location.includes('Accra') ? location : `${location}, Accra`,
+        locationLabel: location.trim(),
+        locationLat,
+        locationLng,
         existingPhotoUrls: existingPhotos,
         newPhotoUris,
       });
@@ -118,7 +127,16 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
         </View>
 
         <View style={styles.field}>
-          <LocationField value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
+          <LocationField
+            value={location}
+            onChangeValue={setLocation}
+            onChangeLocation={(loc) => {
+              setLocation(loc.area);
+              setLocationLat(loc.lat);
+              setLocationLng(loc.lng);
+            }}
+            userId={profile?.id ?? null}
+          />
         </View>
 
         <Text style={styles.groupLabel}>DETAILS</Text>

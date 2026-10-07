@@ -240,6 +240,7 @@ export async function signInWithApple() {
     token: credential.identityToken,
   });
   if (error) throw error;
+  await supabase.auth.getUser();
 
   if (credential.fullName) {
     const nameParts = [
@@ -287,6 +288,9 @@ async function createSessionFromUrl(url: string) {
   if (params.code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(params.code);
     if (error) throw error;
+    // Force the in-memory session to be readable before callers hit RPCs
+    // that use auth.uid() (e.g. my_private_profile after Google sign-in).
+    await supabase.auth.getUser();
     return data;
   }
 
@@ -295,6 +299,7 @@ async function createSessionFromUrl(url: string) {
   if (access_token && refresh_token) {
     const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
     if (error) throw error;
+    await supabase.auth.getUser();
     return data;
   }
 

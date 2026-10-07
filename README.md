@@ -11,48 +11,55 @@ app backed by a real Supabase project (Postgres + RLS + Realtime).
 
 ## Status
 
-_Last updated 2026-09-13. Schema is at migration `0029`; this section is
+_Last updated 2026-10-07. Schema is at migration `0076`; this section is
 kept in sync by hand, so if it looks stale, the migrations folder and git
 log are the source of truth, not this file._
 
 **Built and working:**
 
-- Real Supabase email/password auth + Apple Sign-In (`src/lib/auth.ts`) -
-  not anonymous/demo. One account, switchable between customer and
-  provider roles.
+- Real Supabase email/password auth + Google OAuth + Apple Sign-In
+  (`src/lib/auth.ts`) - not anonymous/demo. One account, switchable
+  between customer and provider roles.
 - Full job lifecycle: post request → PostGIS-matched providers → quote →
-  accept → chat → progress → completion → (simulated) payment → review.
+  accept → chat (incl. voice notes) → progress → completion → Hubtel
+  deposit/balance escrow → two-sided reviews.
+- Nest API (`api/`) owns marketplace rules when `EXPO_PUBLIC_API_URL` is
+  set: requests, matching, quotes, jobs, chat, Hubtel payments, trust,
+  organizations / projects / workforce / recurring.
 - Staged provider verification (`REGISTERED` → `IDENTITY_VERIFIED` →
   `PROFESSION_VERIFIED` → `EXPERIENCE_VERIFIED` → `SOLID_CONNECT_VERIFIED`),
   with a real admin approve/reject workflow and a full audit trail.
 - Live location sharing during an active job (`useReportJobLocation`,
   distance + "Open in Maps" on mobile, an ops map-equivalent table in
   admin) - foreground-only, deleted the moment a job completes.
+- In-app notifications inbox + Expo push outbox (`push_outbox` worker);
+  EAS `projectId` is set in `app.json` (device still needs a build with
+  push credentials for FCM/APNs).
+- Organizations (Phase K) on mobile + admin; recurring job worker on Nest.
 - A full admin panel (`admin/`, Next.js): analytics + coverage-by-area,
   verifications (single and bulk), providers/customers/jobs/disputes/
-  reviews with detail pages, live jobs, categories (with archive, not
-  delete), team management with owner/support roles and an audit log,
-  a broadcast composer, global search, CSV export, and a two-leg payments
-  model (`payments` = customer → platform, `provider_payouts` = platform
-  → provider, net of a configurable commission rate).
+  reviews/requests/organizations with detail pages, live jobs, categories
+  (with archive, not delete), team management with owner/support roles
+  and an audit log, a broadcast composer, global search, CSV export, and
+  Hubtel escrow + provider payouts (net of configurable commission).
 - Account suspension (admin-initiated, enforced at the next app-launch
   sign-in) and review moderation (hide/restore, with the provider's
   rating correctly recomputed either way).
 
-**Explicitly still simulated / not real:**
+**Still incomplete / ops-dependent:**
 
-- **Payments.** No live MoMo/card charging - `payments`/`provider_payouts`
-  are real tables with real admin tooling, but nothing calls an actual
-  payment gateway (Paystack/Flutterwave) yet. This is the actual blocker
-  to the business model; everything else is built around it.
-- **Push notifications.** No EAS project is linked, so a device can't get
-  a push token; `notifications` rows are written (job events, admin
-  broadcasts) but no mobile screen reads them yet.
-- **Production deployment.** The Nest API only runs via `npm run start:dev`
-  locally (no hosting target); there's no EAS build/submit configured for
-  the App Store or Play Store.
-- **Legal.** `LegalScreen.tsx` is honest placeholder copy, not documents
-  reviewed by counsel.
+- **Payments.** Hubtel checkout + webhooks are implemented; live charges
+  need valid Hubtel credentials and successful end-to-end webhook
+  delivery in each environment.
+- **Push on device.** Requires a development/production build with FCM
+  and APNs configured (Expo Go is limited).
+- **Apple Sign-In.** Native path is in the app; Apple Developer +
+  Supabase Apple provider must be configured (Services ID / App ID
+  `com.solidconnect.app`).
+- **Production deployment.** Nest and admin hosting targets, plus App
+  Store / Play Store submit, are not fully productionized.
+- **Legal.** In-app summary reflects Hubtel escrow; long-form docs in
+  `docs/legal/` are not counsel-reviewed or published.
 
 See `docs/roadmap-and-risks.md` for the fuller gap list and sequencing.
 

@@ -1,6 +1,7 @@
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ChevronLeft } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { ResolvedLocation } from '../../api/location';
 import { AreaPicker, isValidArea } from '../../components/AreaPicker';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
@@ -8,17 +9,16 @@ import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 /**
- * Same chip picker as ServiceAreasScreen (a provider's own screen for the
- * same underlying "area" concept) via the shared AreaPicker component,
- * plus a text fallback behind an "Other" chip for anyone outside the eight
- * neighborhoods listed - not every customer or provider lives in one of
- * them.
+ * Same chip picker as ServiceAreasScreen via AreaPicker — Accra shortcuts
+ * plus "Other" / GPS for anywhere in Ghana. GPS also yields lat/lng for
+ * PostGIS matching.
  */
 export function SignUpLocationScreen({
   totalSteps,
   activeIndex,
   value,
   onChangeValue,
+  onChangeLocation,
   onBack,
   onNext,
 }: {
@@ -26,6 +26,7 @@ export function SignUpLocationScreen({
   activeIndex: number;
   value: string;
   onChangeValue: (v: string) => void;
+  onChangeLocation?: (loc: ResolvedLocation) => void;
   onBack: () => void;
   onNext: () => void;
 }) {
@@ -54,11 +55,16 @@ export function SignUpLocationScreen({
           <View style={styles.textWrap}>
             <Text style={styles.title}>Where are you based?</Text>
             <Text style={styles.subtitle}>
-              This is the neighborhood providers and customers will see on your profile.
+              Anywhere in Ghana. Use your current location, pick a common Accra area, or type your town.
             </Text>
           </View>
 
-          <AreaPicker value={value} onChangeValue={onChangeValue} autoDetect />
+          <AreaPicker
+            value={value}
+            onChangeValue={onChangeValue}
+            onChangeLocation={onChangeLocation}
+            autoDetect
+          />
         </ScrollView>
 
         <View style={styles.footer}>

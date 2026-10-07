@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { resolvedLocationFromAreaLabel, type ResolvedLocation } from '../api/location';
 import { useAddSavedLocation, useSavedLocations } from '../api/savedLocations';
 import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
@@ -16,11 +17,13 @@ export function LocationField({
   label = 'Location',
   value,
   onChangeValue,
+  onChangeLocation,
   userId,
 }: {
   label?: string;
   value: string;
   onChangeValue: (v: string) => void;
+  onChangeLocation?: (loc: ResolvedLocation) => void;
   userId: string | null;
 }) {
   const { colors } = useTheme();
@@ -51,7 +54,11 @@ export function LocationField({
             return (
               <Pressable
                 key={loc.id}
-                onPress={() => onChangeValue(loc.area)}
+                onPress={() => {
+                  const resolved = resolvedLocationFromAreaLabel(loc.area);
+                  onChangeValue(resolved.area);
+                  onChangeLocation?.(resolved);
+                }}
                 style={[styles.chip, active && styles.chipActive]}
               >
                 <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{loc.label}</Text>
@@ -61,7 +68,7 @@ export function LocationField({
         </View>
       ) : null}
 
-      <AreaPicker value={value} onChangeValue={onChangeValue} />
+      <AreaPicker value={value} onChangeValue={onChangeValue} onChangeLocation={onChangeLocation} />
 
       {canOfferSave ? (
         saving ? (

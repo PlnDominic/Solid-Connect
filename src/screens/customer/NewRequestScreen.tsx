@@ -4,6 +4,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useCreateRequest } from '../../api/requests';
 import { useAllProviders, useCategories } from '../../api/marketplace';
+import { resolvedLocationFromAreaLabel } from '../../api/location';
 import { isValidArea } from '../../components/AreaPicker';
 import { Button } from '../../components/Button';
 import { CategoryGridTile } from '../../components/CategoryTile';
@@ -77,8 +78,18 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const [description, setDescription] = useState(params.initialDescription ?? '');
   const [budgetText, setBudgetText] = useState('');
   const [location, setLocation] = useState(() => {
-    const fromProfile = profile?.area?.split(',')[0]?.trim();
+    const fromProfile = profile?.area?.trim();
     return fromProfile && isValidArea(fromProfile) ? fromProfile : 'Achimota';
+  });
+  const [locationLat, setLocationLat] = useState<number | undefined>(() => {
+    const fromProfile = profile?.area?.trim();
+    const label = fromProfile && isValidArea(fromProfile) ? fromProfile : 'Achimota';
+    return resolvedLocationFromAreaLabel(label).lat;
+  });
+  const [locationLng, setLocationLng] = useState<number | undefined>(() => {
+    const fromProfile = profile?.area?.trim();
+    const label = fromProfile && isValidArea(fromProfile) ? fromProfile : 'Achimota';
+    return resolvedLocationFromAreaLabel(label).lng;
   });
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [preferredTime, setPreferredTime] = useState<string | null>(null);
@@ -166,7 +177,9 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         categoryLabel: category.default_label,
         description: description.trim(),
         budget,
-        locationLabel: location.includes('Accra') ? location : `${location}, Accra`,
+        locationLabel: location.trim(),
+        locationLat,
+        locationLng,
         photoUris,
         preferredProviderId,
         preferredTime: preferredTime ? new Date(preferredTime) : undefined,
@@ -361,7 +374,17 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
               styles={styles}
             />
             <View style={styles.card}>
-              <LocationField label="Area" value={location} onChangeValue={setLocation} userId={profile?.id ?? null} />
+              <LocationField
+                label="Area"
+                value={location}
+                onChangeValue={setLocation}
+                onChangeLocation={(loc) => {
+                  setLocation(loc.area);
+                  setLocationLat(loc.lat);
+                  setLocationLng(loc.lng);
+                }}
+                userId={profile?.id ?? null}
+              />
             </View>
 
             {isDirect && preferredProviderId ? (

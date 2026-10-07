@@ -91,9 +91,14 @@ export class RequestsService {
         ? new Date(dto.preferredTime).toISOString()
         : null;
 
-    const locationLabel = dto.locationLabel.includes('Accra')
-      ? dto.locationLabel
-      : `${dto.locationLabel}, Accra`;
+    // Keep the customer's label as typed/geocoded — do not force ", Accra"
+    // (breaks Kumasi/Tamale/Sapiman and Ghana-wide use).
+    const locationLabel = dto.locationLabel.trim();
+    const hasGps =
+      typeof dto.locationLat === 'number' &&
+      typeof dto.locationLng === 'number' &&
+      Number.isFinite(dto.locationLat) &&
+      Number.isFinite(dto.locationLng);
 
     const { data: request, error } = await this.supabase.client
       .from('service_requests')
@@ -122,7 +127,15 @@ export class RequestsService {
       throw new BadRequestException({ code: 'REQUEST_CREATE_FAILED', message: error.message });
     }
 
-    await this.supabase.client.rpc('set_request_location_from_label', { p_request_id: request.id });
+    if (hasGps) {
+      await this.supabase.client.rpc('set_request_gps_location', {
+        p_request_id: request.id,
+        p_lat: dto.locationLat,
+        p_lng: dto.locationLng,
+      });
+    } else {
+      await this.supabase.client.rpc('set_request_location_from_label', { p_request_id: request.id });
+    }
 
     const opportunities = isDirect
       ? await this.assignDirectProvider(request.id, dto.preferredProviderId!)
@@ -274,6 +287,18 @@ export class RequestsService {
       throw new BadRequestException({ code: 'NOTIFICATIONS_FAILED', message: error.message });
     }
     return data ?? [];
+  }
+
+  async unreadNotificationCount(userId: string) {
+    const { count, error } = await this.supabase.client
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .is('read_at', null);
+    if (error) {
+      throw new BadRequestException({ code: 'NOTIFICATION_COUNT_FAILED', message: error.message });
+    }
+    return { unreadCount: count ?? 0 };
   }
 
   async markAllNotificationsRead(userId: string) {

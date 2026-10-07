@@ -49,6 +49,52 @@ export class TrustService {
     return data;
   }
 
+  /** Provider → customer rating (customer_reviews / 0062). */
+  async createCustomerReview(providerId: string, dto: CreateReviewDto) {
+    const job = await this.job(dto.jobId);
+    if (job.provider_id !== providerId) {
+      throw new ForbiddenException({
+        code: 'NOT_JOB_PROVIDER',
+        message: 'Only the job provider can rate this customer.',
+      });
+    }
+    if (job.status !== 'completed') {
+      throw new BadRequestException({ code: 'JOB_NOT_COMPLETED', message: 'Rate the customer after the job is completed.' });
+    }
+
+    const { data: existing } = await this.supabase.client
+      .from('customer_reviews')
+      .select('id')
+      .eq('job_id', job.id)
+      .maybeSingle();
+    if (existing) {
+      throw new ConflictException({ code: 'CUSTOMER_REVIEW_EXISTS', message: 'This job already has a customer review.' });
+    }
+
+    const { data, error } = await this.supabase.client
+      .from('customer_reviews')
+      .insert({
+        job_id: job.id,
+        provider_id: providerId,
+        customer_id: job.customer_id,
+        rating: dto.rating,
+        comment: dto.comment?.trim() || null,
+      })
+      .select('*')
+      .single();
+    if (error) throw new BadRequestException({ code: 'CUSTOMER_REVIEW_FAILED', message: error.message });
+
+    await this.supabase.client.from('notifications').insert({
+      user_id: job.customer_id,
+      type: 'CUSTOMER_REVIEW_RECEIVED',
+      title: 'New review',
+      body: `A provider rated you ${dto.rating} stars.`,
+      data: { jobId: job.id, reviewId: data.id },
+    });
+
+    return data;
+  }
+
   async providerReviews(providerId: string) {
     if (!providerId) {
       throw new BadRequestException({ code: 'PROVIDER_REQUIRED', message: 'providerId is required.' });

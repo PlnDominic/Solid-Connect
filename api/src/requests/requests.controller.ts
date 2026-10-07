@@ -41,6 +41,14 @@ export class RequestsController {
     return { data, meta: { unread: data.filter((n) => !n.read_at).length } };
   }
 
+  // Before @Get(':id') so "notifications" path segments stay unambiguous.
+  @Get('notifications/unread-count')
+  @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
+  async unreadNotificationCount(@CurrentUser() user: RequestUser) {
+    const data = await this.requests.unreadNotificationCount(user.id);
+    return { data, meta: {} };
+  }
+
   @Post('notifications/read-all')
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async readAllNotifications(@CurrentUser() user: RequestUser) {

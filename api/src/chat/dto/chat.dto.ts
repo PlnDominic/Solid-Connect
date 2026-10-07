@@ -1,8 +1,20 @@
-import { IsIn, IsOptional, IsString, IsUUID, IsUrl, MaxLength, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsUrl,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+} from 'class-validator';
 
 export class SendMessageDto {
-  // Optional now - an image-only message has none. Service-layer
-  // validation still rejects a message with neither.
+  // Optional - image-only or voice-only messages have none. Service-layer
+  // validation still rejects a message with no text, image, or audio.
   @IsOptional()
   @IsString()
   @MinLength(1)
@@ -12,6 +24,18 @@ export class SendMessageDto {
   @IsOptional()
   @IsUrl()
   imageUrl?: string;
+
+  /** Public URL from the chat-audio storage bucket (0058). */
+  @IsOptional()
+  @IsUrl()
+  audioUrl?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(600)
+  audioDurationSeconds?: number;
 }
 
 export class CreateThreadDto {

@@ -4,9 +4,11 @@ import {
   IsArray,
   IsInt,
   IsISO8601,
+  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -57,6 +59,21 @@ export class CreateRequestDto {
   @IsString()
   @MinLength(2)
   locationLabel!: string;
+
+  /** Real GPS (or Accra chip centroid) for PostGIS matching. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  locationLat?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  locationLng?: number;
 
   @IsOptional()
   @Type(() => Number)

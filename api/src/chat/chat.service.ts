@@ -24,6 +24,18 @@ export class ChatService {
     return data ?? [];
   }
 
+  /** Tab-bar badge: threads with at least one unread peer message (0062). */
+  async unreadThreadCount(userId: string, role: 'customer' | 'provider') {
+    const { data, error } = await this.supabase.client.rpc('count_unread_threads', {
+      p_user_id: userId,
+      p_role: role,
+    });
+    if (error) {
+      throw new BadRequestException({ code: 'UNREAD_COUNT_FAILED', message: error.message });
+    }
+    return { unreadCount: (data as number) ?? 0 };
+  }
+
   async getThread(threadId: string, userId: string) {
     const { data, error } = await this.supabase.client
       .from('chat_threads')
@@ -86,8 +98,11 @@ export class ChatService {
     const thread = await this.getThread(threadId, userId);
     const senderRole = thread.customer_id === userId ? 'customer' : 'provider';
     const text = dto.text?.trim() || null;
-    if (!text && !dto.imageUrl) {
-      throw new BadRequestException({ code: 'EMPTY_MESSAGE', message: 'Message text or an image is required.' });
+    if (!text && !dto.imageUrl && !dto.audioUrl) {
+      throw new BadRequestException({
+        code: 'EMPTY_MESSAGE',
+        message: 'Message text, an image, or a voice note is required.',
+      });
     }
 
     const { data, error } = await this.supabase.client
@@ -98,6 +113,8 @@ export class ChatService {
         sender_role: senderRole,
         text,
         image_url: dto.imageUrl ?? null,
+        audio_url: dto.audioUrl ?? null,
+        audio_duration_seconds: dto.audioUrl ? (dto.audioDurationSeconds ?? null) : null,
       })
       .select('*')
       .single();

@@ -24,6 +24,14 @@ export class TrustController {
     return { data, meta: {} };
   }
 
+  @Post('customer-reviews')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Roles('PROVIDER', 'PROFESSIONAL', 'ADMIN', 'SUPER_ADMIN')
+  async customerReview(@CurrentUser() user: RequestUser, @Body() body: CreateReviewDto) {
+    const data = await this.trust.createCustomerReview(user.id, body);
+    return { data, meta: {} };
+  }
+
   @Get('reviews')
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
   async list(@Query('providerId') providerId: string) {

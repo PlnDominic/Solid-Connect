@@ -1,4 +1,9 @@
-import { firstMissingSignUpStep, isPlausiblePhone, profileSignUpDetails } from '../signUpSteps';
+import {
+  firstMissingSignUpStep,
+  isPlausiblePhone,
+  isProfileOnboarded,
+  profileSignUpDetails,
+} from '../signUpSteps';
 
 const complete = {
   fullName: 'Ama Mensah',
@@ -74,6 +79,27 @@ describe('profileSignUpDetails', () => {
       provider_category: 'Plumbing',
     });
     expect(firstMissingSignUpStep(details)).toBeNull();
+    expect(isProfileOnboarded(details)).toBe(true);
+  });
+
+  it('treats an onboarded Google provider with no phone as already done', () => {
+    const details = profileSignUpDetails({
+      full_name: 'Benjamin Tetteh Nartey',
+      phone: null,
+      area: 'Achimota, Accra',
+      email: 'benjaminnartey37@gmail.com',
+      role: 'provider',
+      terms_accepted_at: '2026-10-01T07:43:26Z',
+      provider_category: 'Web & Tech',
+    });
+    expect(firstMissingSignUpStep(details)).toBe('phone');
+    expect(isProfileOnboarded(details)).toBe(true);
+  });
+});
+
+describe('isProfileOnboarded', () => {
+  it('rejects a profile that never accepted terms', () => {
+    expect(isProfileOnboarded({ ...complete, termsAccepted: false })).toBe(false);
   });
 });
 

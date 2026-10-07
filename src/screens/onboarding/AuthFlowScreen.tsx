@@ -17,10 +17,15 @@ import {
   getSignUpMetadata,
   signUpWithPassword,
 } from '../../lib/auth';
-import { hasSeenLanding, markLandingSeen } from '../../lib/landing';
+import { getSignedOutStartPhase, markLandingSeen, markSplashSeen } from '../../lib/landing';
 import { LEGAL_VERSION } from '../../lib/legal';
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
-import { firstMissingSignUpStep, profileSignUpDetails, type SignUpStep } from '../../lib/signUpSteps';
+import {
+  firstMissingSignUpStep,
+  isProfileOnboarded,
+  profileSignUpDetails,
+  type SignUpStep,
+} from '../../lib/signUpSteps';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes } from '../../theme';
@@ -77,9 +82,9 @@ const PHASE_FOR_STEP: Record<SignUpStep, Phase> = {
  * Orchestrates the cold-start flow. Real accounts only - no anonymous
  * session.
  *
- * - Signed-in with a profile → Main (never the marketing landing).
- * - Returning / signed-out device → splash is skipped; login/signup only.
- * - First install → splash → landing (location + Get started / Sign in).
+ * - Signed-in with a profile → Main (never splash / marketing landing).
+ * - Returning signed-out device → sign-in only (no splash, no onboarding).
+ * - First install only → splash → marketing onboarding → sign-in / sign-up.
  *
  * "Create an account" then runs name → phone → area → email → role →
  * password (providers pick a trade before password).
@@ -98,6 +103,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [area, setArea] = useState('');
+  const [areaLat, setAreaLat] = useState<number | undefined>();
+  const [areaLng, setAreaLng] = useState<number | undefined>();
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [providerCategoryIds, setProviderCategoryIds] = useState<string[]>([]);
@@ -194,19 +201,28 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         }
         const userId = await getCurrentUserId();
         if (userId) {
-          // Signed-in users never see the marketing landing.
           await markLandingSeen();
-          setAuthUserId(userId);
           const profile = await fetchProfile(userId);
           setBootstrapping(false);
-          // Finished accounts go to Main; anything unfinished continues
-          // sign-up rather than going through splash/landing again.
-          await finishOrResume(profile);
+          // Fully onboarded → Main. An incomplete leftover session (e.g.
+          // Google sign-in that never finished phone/role) must NOT dump
+          // people on a sign-up step when they simply open the app — clear
+          // it and show login. Explicit Sign in / Google still resumes via
+          // afterSignIn → finishOrResume.
+          if (profile && isProfileOnboarded(profileSignUpDetails(profile))) {
+            setAuthUserId(userId);
+            setProfile(profile);
+            await claimReferralAfterAuth();
+            onDone();
+            return;
+          }
+          await signOut().catch(() => {});
+          setAuthUserId(null);
+          setPhase(await getSignedOutStartPhase());
           return;
         }
         setBootstrapping(false);
-        const seenLanding = await hasSeenLanding();
-        setPhase(seenLanding ? 'signin' : 'splash');
+        setPhase(await getSignedOutStartPhase());
       } catch (e: any) {
         setError(friendlyAuthError(e, 'Something went wrong connecting to Solid Connect.'));
         setPhase('error');
@@ -218,6 +234,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   async function finishLanding(next: 'signin' | 'signup-name') {
     await markLandingSeen();
     setPhase(next);
+  }
+
+  async function finishSplash() {
+    await markSplashSeen();
+    setPhase('onboarding');
   }
 
   async function handleChooseRole(role: Role) {
@@ -237,7 +258,15 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     try {
       const userId = await getCurrentUserId();
       if (userId) {
-        const profile = await createOrUpdateOwnProfile(userId, role, { fullName, phone, email, area, ...termsMeta() });
+        const profile = await createOrUpdateOwnProfile(userId, role, {
+          fullName,
+          phone,
+          email,
+          area,
+          areaLat,
+          areaLng,
+          ...termsMeta(),
+        });
         setProfile(profile);
         await claimReferralAfterAuth();
         setPhase('signup-notifications');
@@ -262,6 +291,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
           phone,
           email,
           area,
+          areaLat,
+          areaLng,
           ...providerDetails(),
           ...termsMeta(),
         });
@@ -304,6 +335,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         phone,
         email,
         area,
+        areaLat,
+        areaLng,
         ...(selectedRole === 'provider' ? providerDetails() : {}),
         ...termsMeta(),
       });
@@ -349,6 +382,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
    * passed through directly because state set a moment ago isn't readable
    * until the next render. */
   async function afterSignIn(userId: string, hints: SignInHints = {}) {
+    // Any successful sign-in means this device is past the first-run funnel.
+    await markLandingSeen();
     setAuthUserId(userId);
     const profile = await fetchProfile(userId);
     await finishOrResume(profile, hints);
@@ -360,13 +395,38 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
    * at the first missing step and walks forward through every later step
    * (prefilled) - a Google/Apple sign-in hands us a name and email, but
    * never a phone, area, role, terms acceptance or trade.
+   *
+   * Phone/email are column-revoked on profiles (0073/0076) and come from
+   * private RPCs; also accept the auth user's email / OAuth hints so a
+   * finished Google account is not treated as a new sign-up when those
+   * RPCs briefly lag the session.
    */
   async function finishOrResume(profile: Profile | null, hints: SignInHints = {}) {
-    if (profile && firstMissingSignUpStep(profileSignUpDetails(profile)) === null) {
-      setProfile(profile);
-      await claimReferralAfterAuth();
-      onDone();
-      return;
+    if (profile) {
+      const details = profileSignUpDetails({
+        ...profile,
+        full_name: profile.full_name || hints.fullName || profile.full_name,
+        email: profile.email || hints.email || profile.email,
+        phone: profile.phone,
+      });
+      // Role + terms (+ trade for providers) means already onboarded — even
+      // when phone was never stored (common for early Google accounts).
+      if (isProfileOnboarded(details)) {
+        setProfile(profile);
+        await claimReferralAfterAuth();
+        onDone();
+        return;
+      }
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log('[auth] resume sign-up; missing =', firstMissingSignUpStep(details), {
+          hasPhone: !!details.phone,
+          hasEmail: !!details.email,
+          hasRole: !!details.role,
+          hasTerms: !!details.termsAccepted,
+          hasCategory: !!details.hasProviderCategory,
+        });
+      }
     }
     await resumeUnfinishedSignUp(profile, hints);
   }
@@ -510,7 +570,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   }
 
   if (phase === 'splash') {
-    return <SplashScreen onFinish={() => setPhase('onboarding')} />;
+    return <SplashScreen onFinish={() => void finishSplash()} />;
   }
 
   if (phase === 'onboarding') {
@@ -557,6 +617,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         activeIndex={5}
         value={area}
         onChangeValue={setArea}
+        onChangeLocation={(loc) => {
+          setArea(loc.area);
+          setAreaLat(loc.lat);
+          setAreaLng(loc.lng);
+        }}
         onBack={() => setPhase('signup-phone')}
         onNext={() => setPhase('signup-email')}
       />

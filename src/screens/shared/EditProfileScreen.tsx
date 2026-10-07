@@ -34,6 +34,8 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
   const [tagline, setTagline] = useState(profile?.tagline ?? '');
   const [phone, setPhone] = useState(profile?.phone ?? '');
   const [area, setArea] = useState(profile?.area ?? '');
+  const [areaLat, setAreaLat] = useState<number | undefined>();
+  const [areaLng, setAreaLng] = useState<number | undefined>();
   const [email, setEmail] = useState(profile?.email ?? '');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
@@ -107,6 +109,8 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
         fullName: fullName.trim(),
         phone: trimmedPhone,
         area,
+        areaLat,
+        areaLng,
         providerCategoryIds: isProvider ? categoryIds : undefined,
         tagline,
       });
@@ -191,7 +195,15 @@ export function EditProfileScreen({ navigation }: { navigation: any }) {
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Location</Text>
-            <AreaPicker value={area} onChangeValue={setArea} />
+            <AreaPicker
+              value={area}
+              onChangeValue={setArea}
+              onChangeLocation={(loc) => {
+                setArea(loc.area);
+                setAreaLat(loc.lat);
+                setAreaLng(loc.lng);
+              }}
+            />
           </View>
 
           {isProvider && categoriesLoaded ? (

@@ -10,12 +10,12 @@
  * own last-edited date, recorded on `profiles.terms_version` at sign-up
  * so a future rewrite can tell who agreed to which wording.
  */
-export const LEGAL_VERSION = '2026-10-04';
+export const LEGAL_VERSION = '2026-10-07';
 
 export const LEGAL_SECTIONS: { title: string; body: string }[] = [
   {
     title: 'Terms of service',
-    body: 'Solid Connect connects customers in Accra with service providers, and marks the ones Solid Connect has verified. You must be 18 or older to create an account. By using the app you agree to post accurate job details, keep communication on-platform where possible, and treat the other party with respect. Quotes and job confirmations create a binding engagement between customer and provider; Solid Connect facilitates matching, chat, and (when live) payment rails but is not the employer of providers.',
+    body: 'Solid Connect connects customers in Accra with service providers, and marks the ones Solid Connect has verified. You must be 18 or older to create an account. By using the app you agree to post accurate job details, keep communication on-platform where possible, and treat the other party with respect. Quotes and job confirmations create a binding engagement between customer and provider; Solid Connect facilitates matching, chat, and payment rails but is not the employer of providers.',
   },
   {
     title: 'Privacy',
@@ -23,7 +23,7 @@ export const LEGAL_SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: 'Payments & disputes',
-    body: 'Until live mobile-money / card rails ship, payment screens are simulated. When live payments land, releasing payment after job confirmation moves funds per the agreed quote, subject to platform commission. Open a dispute from a job within the window shown on that screen if work was incomplete, poor quality, overcharged, or a no-show.',
+    body: 'Customers pay through Hubtel (mobile money or card): a deposit when the job is booked, then the balance around completion. Funds are held in escrow and released to the provider after confirmation, net of platform commission. Open a dispute from a job within the window shown on that screen if work was incomplete, poor quality, overcharged, or a no-show.',
   },
 ];
 

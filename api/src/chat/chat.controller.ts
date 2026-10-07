@@ -26,6 +26,20 @@ export class ChatController {
     return { data, meta: {} };
   }
 
+  // Registered before threads/:id/* so "unread-count" is never treated as an id.
+  @Get('threads/unread-count')
+  @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')
+  async unreadCount(
+    @CurrentUser() user: RequestUser,
+    @Query('role') role: 'customer' | 'provider' = 'customer',
+  ) {
+    const data = await this.chat.unreadThreadCount(
+      user.id,
+      role === 'provider' ? 'provider' : 'customer',
+    );
+    return { data, meta: {} };
+  }
+
   @Post('threads')
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Roles('CUSTOMER', 'PROVIDER', 'PROFESSIONAL', 'ORGANIZATION_MEMBER', 'ADMIN', 'SUPER_ADMIN')

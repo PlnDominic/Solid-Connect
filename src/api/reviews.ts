@@ -149,6 +149,17 @@ export function useSubmitCustomerReview() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: { jobId: string; providerId: string; customerId: string; rating: number; comment?: string }) => {
+      if (isApiConfigured()) {
+        await apiFetch('/api/v1/customer-reviews', {
+          method: 'POST',
+          body: JSON.stringify({
+            jobId: input.jobId,
+            rating: input.rating,
+            comment: input.comment?.trim() || undefined,
+          }),
+        });
+        return;
+      }
       const { error } = await supabase.from('customer_reviews').insert({
         job_id: input.jobId,
         provider_id: input.providerId,

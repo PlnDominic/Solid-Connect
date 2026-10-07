@@ -12,12 +12,29 @@ export interface SignUpDetails {
   phone: string;
   email: string;
   area?: string;
+  /** WGS84 from "Use my current location" or an Accra chip centroid. */
+  areaLat?: number;
+  areaLng?: number;
   providerCategory?: string;
   /** Category ids for multi-service providers. */
   providerCategoryIds?: string[];
   /** Set together, only once the sign-up consent checkbox was checked - see SignUpScreen. */
   termsAcceptedAt?: string;
   termsVersion?: string;
+}
+
+/** Persist area label + PostGIS point (GPS or Accra centroid fallback). */
+async function persistProfileLocation(area: string, lat?: number, lng?: number) {
+  const { error } = await supabase.rpc('set_own_profile_location', {
+    p_area: area,
+    p_lat: lat ?? null,
+    p_lng: lng ?? null,
+  });
+  if (error?.code === 'PGRST202') {
+    // Migration 0078 not applied yet — area string alone is already on the row.
+    return;
+  }
+  if (error) throw error;
 }
 
 function initialsFrom(fullName: string): string {
@@ -122,6 +139,8 @@ export async function createOrUpdateOwnProfile(
     .select(PROFILE_COLUMNS)
     .single();
   if (error) rethrowFriendly(error);
+  const areaLabel = details.area?.trim() || 'Achimota, Accra';
+  await persistProfileLocation(areaLabel, details.areaLat, details.areaLng).catch(() => null);
   if (isApiConfigured()) {
     await syncIdentity(details.fullName, details.phone).catch(() => null);
     if (role === 'provider') {
@@ -157,18 +176,21 @@ export async function updateOwnProfile(
     fullName: string;
     phone: string;
     area: string;
+    areaLat?: number;
+    areaLng?: number;
     providerCategory?: string;
     providerCategoryIds?: string[];
     tagline?: string;
   },
 ): Promise<Profile> {
+  const areaLabel = updates.area.trim() || 'Achimota, Accra';
   const { data, error } = await supabase
     .from('profiles')
     .update({
       full_name: updates.fullName,
       initials: initialsFrom(updates.fullName),
       phone: updates.phone || null,
-      area: updates.area.trim() || 'Achimota, Accra',
+      area: areaLabel,
       tagline: updates.tagline?.trim() || null,
       ...(role === 'provider' && !updates.providerCategoryIds?.length
         ? { provider_category: updates.providerCategory?.trim() || null }
@@ -178,6 +200,7 @@ export async function updateOwnProfile(
     .select(PROFILE_COLUMNS)
     .single();
   if (error) rethrowFriendly(error);
+  await persistProfileLocation(areaLabel, updates.areaLat, updates.areaLng).catch(() => null);
 
   if (role === 'provider' && updates.providerCategoryIds?.length) {
     const { setMyProviderCategories } = await import('./identity');

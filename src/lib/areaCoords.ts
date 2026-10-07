@@ -1,9 +1,13 @@
 /**
- * Approximate centres of the Accra neighbourhoods the app can place on a
- * map. Mirrors public.area_centroids (0012 + 0068) - the same table the
- * server uses to place providers and requests - so a request in "Labadi"
- * lands in the same spot for a provider as it does server-side. Add a
- * neighbourhood there and here together.
+ * Accra map / matching centroids only — NOT a full Ghana place list.
+ *
+ * profiles.area is free text (anywhere in Ghana). These coordinates exist
+ * so we can put "Labadi" on the map and compute distance when the label
+ * matches. "Use my current location" reverse-geocodes nationwide; it only
+ * falls back to the nearest of these when geocode fails and GPS is nearby.
+ *
+ * Mirrors public.area_centroids (0012 + 0068 + 0077). Add a neighbourhood
+ * here and in a migration together when you need Accra map coverage.
  */
 export const AREA_COORDS: Record<string, { lng: number; lat: number }> = {
   Achimota: { lng: -0.232, lat: 5.627 },
@@ -38,6 +42,32 @@ export const AREA_COORDS: Record<string, { lng: number; lat: number }> = {
   Ashaiman: { lng: -0.033, lat: 5.694 },
   Weija: { lng: -0.336, lat: 5.556 },
   Kasoa: { lng: -0.425, lat: 5.534 },
+  // Ga West / NW Accra (0077) — without these, Sapiman/Opa snapped to Kwabenya.
+  Sapiman: { lng: -0.312, lat: 5.725 },
+  Opa: { lng: -0.324, lat: 5.721 },
+  Ofankor: { lng: -0.28, lat: 5.68 },
+  Pokuase: { lng: -0.283, lat: 5.69 },
+  Amasaman: { lng: -0.305, lat: 5.705 },
+  Achiman: { lng: -0.295, lat: 5.695 },
+  Taifa: { lng: -0.245, lat: 5.675 },
+  Atomic: { lng: -0.215, lat: 5.67 },
+  'Dome Pillar 2': { lng: -0.24, lat: 5.655 },
+  Ablekuma: { lng: -0.28, lat: 5.57 },
+  Mallam: { lng: -0.295, lat: 5.555 },
+  Gbawe: { lng: -0.31, lat: 5.565 },
+  'McCarthy Hill': { lng: -0.275, lat: 5.575 },
+  Sowutuom: { lng: -0.27, lat: 5.62 },
+  Anyaa: { lng: -0.275, lat: 5.64 },
+  CP: { lng: -0.255, lat: 5.64 },
+};
+
+/** Common spellings / alternate names → canonical AREA_COORDS key. */
+const AREA_ALIASES: Record<string, string> = {
+  sapeman: 'Sapiman',
+  sapieman: 'Sapiman',
+  sarpeiman: 'Sapiman',
+  pokoasi: 'Pokuase',
+  achiaman: 'Achiman',
 };
 
 // Longest first, so "Roman Ridge, Accra" resolves to Roman Ridge, not Ridge.
@@ -52,9 +82,21 @@ const NAMES_LONGEST_FIRST = Object.keys(AREA_COORDS).sort((a, b) => b.length - a
 export function matchAreaName(label: string | null | undefined): string | null {
   const n = (label ?? '').trim().toLowerCase();
   if (n.length < 2) return null;
-  const inLabel = NAMES_LONGEST_FIRST.find((name) => n.includes(name.toLowerCase()));
+  if (AREA_ALIASES[n]) return AREA_ALIASES[n];
+  for (const [alias, canonical] of Object.entries(AREA_ALIASES)) {
+    if (alias.length >= 4 && n.includes(alias)) return canonical;
+  }
+  // Exact match first (covers short names like Osu / CP).
+  const exact = NAMES_LONGEST_FIRST.find((name) => name.toLowerCase() === n);
+  if (exact) return exact;
+  // Substring match only for names 4+ chars ("Osu" inside "Osudoku" is ok
+  // to miss; "CP" must not match inside unrelated words).
+  const inLabel = NAMES_LONGEST_FIRST.find((name) => {
+    const key = name.toLowerCase();
+    return key.length >= 4 && n.includes(key);
+  });
   if (inLabel) return inLabel;
-  if (n.length < 3) return null;
+  if (n.length < 4) return null;
   return NAMES_LONGEST_FIRST.find((name) => name.toLowerCase().includes(n)) ?? null;
 }
 

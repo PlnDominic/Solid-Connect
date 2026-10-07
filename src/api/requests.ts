@@ -95,6 +95,8 @@ export function useCreateRequest() {
       description: string;
       budget: number;
       locationLabel: string;
+      locationLat?: number;
+      locationLng?: number;
       photoUris?: string[];
       preferredProviderId?: string;
       /** The appointment the customer picked from the provider's open slots. */
@@ -104,6 +106,11 @@ export function useCreateRequest() {
       for (const uri of input.photoUris ?? []) {
         photos.push(await uploadRequestPhoto(input.customerId, uri));
       }
+      const hasGps =
+        typeof input.locationLat === 'number' &&
+        typeof input.locationLng === 'number' &&
+        Number.isFinite(input.locationLat) &&
+        Number.isFinite(input.locationLng);
 
       if (isApiConfigured()) {
         const res = await apiFetch<{
@@ -120,6 +127,9 @@ export function useCreateRequest() {
             budgetMin: input.budget,
             budgetMax: input.budget,
             locationLabel: input.locationLabel,
+            ...(hasGps
+              ? { locationLat: input.locationLat, locationLng: input.locationLng }
+              : {}),
             ...(input.preferredProviderId
               ? { preferredProviderId: input.preferredProviderId }
               : {}),
@@ -155,6 +165,16 @@ export function useCreateRequest() {
         .select('*')
         .single();
       if (error) throw error;
+
+      if (hasGps) {
+        await supabase.rpc('set_request_gps_location', {
+          p_request_id: data.id,
+          p_lat: input.locationLat,
+          p_lng: input.locationLng,
+        });
+      } else {
+        await supabase.rpc('set_request_location_from_label', { p_request_id: data.id });
+      }
 
       if (input.preferredProviderId) {
         await supabase.from('request_opportunities').insert({
@@ -650,6 +670,8 @@ export function useUpdateRequest() {
       description: string;
       budget: number;
       locationLabel: string;
+      locationLat?: number;
+      locationLng?: number;
       existingPhotoUrls: string[];
       newPhotoUris: string[];
     }) => {
@@ -670,6 +692,22 @@ export function useUpdateRequest() {
         p_photos: photos,
       });
       if (error) throw error;
+
+      const hasGps =
+        typeof input.locationLat === 'number' &&
+        typeof input.locationLng === 'number' &&
+        Number.isFinite(input.locationLat) &&
+        Number.isFinite(input.locationLng);
+      if (hasGps) {
+        await supabase.rpc('set_request_gps_location', {
+          p_request_id: input.requestId,
+          p_lat: input.locationLat,
+          p_lng: input.locationLng,
+        });
+      } else {
+        await supabase.rpc('set_request_location_from_label', { p_request_id: input.requestId });
+      }
+
       return data as ServiceRequest;
     },
     onSuccess: (request) => {
