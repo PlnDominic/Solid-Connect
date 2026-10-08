@@ -2,21 +2,24 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { LocateFixed } from 'lucide-react-native';
+import { LEAFLET_CSS, LEAFLET_JS } from '../lib/leafletAssets.generated';
 import { radii } from '../theme';
 
 type LatLng = { lat: number; lng: number };
 
-// A self-contained Leaflet page loaded from CDN inside the WebView - this
-// app deliberately has no native map SDK (see openInMaps/JobTrackingCard's
-// own comment), but an embedded web map needs neither a native module nor
-// an API key: OpenStreetMap's tile server is free, and Leaflet's own touch
-// handling gives real pan/pinch-zoom for free once the page loads.
+// A self-contained Leaflet page inside the WebView - this app deliberately
+// has no native map SDK (see openInMaps/JobTrackingCard's own comment), but
+// an embedded web map needs neither a native module nor an API key:
+// OpenStreetMap's tile server is free, and Leaflet's own touch handling
+// gives real pan/pinch-zoom for free once the page loads. Leaflet is
+// inlined from the app bundle rather than a CDN, so no script host sees
+// who is viewing a live job and the code can't change under us.
 const MAP_HTML = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>${LEAFLET_CSS}</style>
 <style>
   html, body, #map { height: 100%; margin: 0; padding: 0; background: #1c1c1c; }
   /* The other party's marker is the one actually being "tracked" - a
@@ -43,7 +46,7 @@ const MAP_HTML = `<!DOCTYPE html>
 </head>
 <body>
 <div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>${LEAFLET_JS}</script>
 <script>
   var map = L.map('map', { zoomControl: false }).setView([5.6037, -0.1870], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

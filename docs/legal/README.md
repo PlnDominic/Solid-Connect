@@ -23,6 +23,18 @@ approved them.** That review should specifically cover:
 - **Professional licensing** for regulated trades (electrical work in
   particular often has statutory licensing requirements) — `verification.md`
   below flags this but doesn't resolve it.
+- **Copyright in user uploads** (Terms §11). Users upload profile, portfolio,
+  request and chat photos. The notice-and-takedown process, repeat-infringer
+  rule and in-app report reason (`copyright`, migration `0077`) are built.
+  Counsel should confirm how Ghana's Electronic Transactions Act, 2008
+  (Act 772) protects a host that takes content down on notice. If the app
+  ever serves US users, the US DMCA safe harbour also needs a **designated
+  agent registered with the US Copyright Office** (dmca.copyright.gov, $6,
+  renewed every 3 years). That's a manual filing, not something the code can do.
+- **Age.** Sign-up requires ticking "I'm 18 or older and agree to the Terms
+  & Privacy Policy" (`SignUpScreen.tsx`, recorded as `terms_accepted_at` /
+  `terms_version`). Counsel should confirm a self-declaration is enough under
+  Act 843's rules on children's data.
 
 ## What's here
 

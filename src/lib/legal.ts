@@ -10,7 +10,7 @@
  * own last-edited date, recorded on `profiles.terms_version` at sign-up
  * so a future rewrite can tell who agreed to which wording.
  */
-export const LEGAL_VERSION = '2026-10-04';
+export const LEGAL_VERSION = '2026-10-08';
 
 export const LEGAL_SECTIONS: { title: string; body: string }[] = [
   {
@@ -18,8 +18,12 @@ export const LEGAL_SECTIONS: { title: string; body: string }[] = [
     body: 'Solid Connect connects customers in Accra with service providers, and marks the ones Solid Connect has verified. You must be 18 or older to create an account. By using the app you agree to post accurate job details, keep communication on-platform where possible, and treat the other party with respect. Quotes and job confirmations create a binding engagement between customer and provider; Solid Connect facilitates matching, chat, and (when live) payment rails but is not the employer of providers.',
   },
   {
+    title: 'Your photos & copyright',
+    body: "You keep ownership of the photos, videos and text you upload, and let Solid Connect show them in the app to run the marketplace. Only upload what you own or have permission to use - a portfolio must show your own work. If someone uses your photos or work without permission, report it from their profile or chat (Report → Stolen photos or work) or email support@solidconnect.co. We take infringing content down and remove repeat offenders.",
+  },
+  {
     title: 'Privacy',
-    body: 'We store your profile, job history, chat messages, and verification documents to run the marketplace. Photos you upload (profile, portfolio, request attachments, verification) are stored in Supabase Storage under access rules that match their purpose. We do not sell personal data. You can request account deletion from Settings, or by contacting support.',
+    body: 'We store your profile, job history, chat messages, and verification documents to run the marketplace. Photos you upload (profile, portfolio, request attachments, verification) are stored in Supabase Storage under access rules that match their purpose. Map images come from OpenStreetMap, which sees your IP address and the area shown, not who you are. We use no ad trackers, analytics or session recording, and we do not sell personal data. You can request account deletion from Settings, or by contacting support.',
   },
   {
     title: 'Payments & disputes',

@@ -14,6 +14,7 @@ const REASON_LABELS: Record<string, string> = {
   inappropriate_content: 'Inappropriate content',
   unsafe_behavior: 'Unsafe behaviour',
   fake_profile: 'Fake profile',
+  copyright: 'Stolen photos or work',
   other: 'Something else',
   contact_sharing: 'Shared contact details',
 };

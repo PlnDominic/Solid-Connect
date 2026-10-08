@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 
-export type ReportReason = 'harassment' | 'scam_or_fraud' | 'inappropriate_content' | 'unsafe_behavior' | 'fake_profile' | 'other';
+export type ReportReason =
+  | 'harassment'
+  | 'scam_or_fraud'
+  | 'inappropriate_content'
+  | 'unsafe_behavior'
+  | 'fake_profile'
+  | 'copyright'
+  | 'other';
 export type ReportContext = 'profile' | 'chat' | 'job';
 
 export const REPORT_REASONS: { key: ReportReason; label: string; hint: string }[] = [
@@ -10,6 +17,7 @@ export const REPORT_REASONS: { key: ReportReason; label: string; hint: string }[
   { key: 'inappropriate_content', label: 'Inappropriate content', hint: 'Offensive photos or messages' },
   { key: 'unsafe_behavior', label: 'Unsafe behaviour', hint: 'Made you feel unsafe' },
   { key: 'fake_profile', label: 'Fake profile', hint: 'Pretending to be someone else' },
+  { key: 'copyright', label: 'Stolen photos or work', hint: "Using your photos or someone else's work without permission" },
   { key: 'other', label: 'Something else', hint: '' },
 ];
 
@@ -92,7 +100,7 @@ export function useReportUser(reporterId: string | null | undefined) {
       jobId?: string | null;
       threadId?: string | null;
     }) => {
-      const { error } = await supabase.from('user_reports').insert({
+      const row = {
         reporter_id: reporterId as string,
         reported_id: input.reportedId,
         reason: input.reason,
@@ -100,7 +108,15 @@ export function useReportUser(reporterId: string | null | undefined) {
         details: (input.details ?? '').trim(),
         job_id: input.jobId ?? null,
         thread_id: input.threadId ?? null,
-      });
+      };
+      let { error } = await supabase.from('user_reports').insert(row);
+      // Until 0077 is applied the database only knows the older reasons
+      // (check_violation); file a copyright report as "other", labelled in
+      // the details, so it still reaches the admin queue.
+      if (error?.code === '23514' && row.reason === 'copyright') {
+        const details = `[Stolen photos or work] ${row.details}`.trim().slice(0, 1000);
+        ({ error } = await supabase.from('user_reports').insert({ ...row, reason: 'other', details }));
+      }
       if (error) throw error;
     },
   });

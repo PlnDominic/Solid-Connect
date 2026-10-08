@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { LEAFLET_CSS, LEAFLET_JS } from '../lib/leafletAssets.generated';
 import type { MapBounds } from '../lib/mapPins';
 
 /** One marker on the map.
@@ -45,14 +46,16 @@ export type ServiceMapHandle = {
 };
 
 // Same approach as JobLiveMap: a Leaflet page in a WebView with free
-// OpenStreetMap tiles, so no native map SDK or API key. Every label comes
-// in as data and is written with textContent, never as HTML.
+// OpenStreetMap tiles, so no native map SDK or API key. Leaflet itself is
+// inlined from the app bundle (see leafletAssets.generated.ts), so the only
+// outside requests are the map tiles. Every label comes in as data and is
+// written with textContent, never as HTML.
 const MAP_HTML = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>${LEAFLET_CSS}</style>
 <style>
   html, body, #map { height: 100%; margin: 0; padding: 0; background: #eceae6; font-family: -apple-system, Roboto, sans-serif; }
   .pin { display: flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: 999px; background: #fff;
@@ -99,7 +102,7 @@ const MAP_HTML = `<!DOCTYPE html>
 </head>
 <body>
 <div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>${LEAFLET_JS}</script>
 <script>
   var map = L.map('map', { zoomControl: false }).setView([5.6037, -0.1870], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);

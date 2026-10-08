@@ -3,7 +3,7 @@
 **DRAFT — not reviewed by counsel. See `README.md` in this folder before
 using this document for anything.**
 
-_Last drafted: 2026-09-13._
+_Last drafted: 2026-10-08._
 
 ## 1. Who this agreement is with
 
@@ -37,7 +37,7 @@ switch between them at any time in the app.
   and keep it up to date. Account recovery, support, and dispute handling
   all depend on this being correct.
 - You are responsible for anything that happens under your account. Tell us
-  immediately (see Section 11) if you believe your account has been
+  immediately (see Section 12) if you believe your account has been
   compromised.
 - One person may not hold more than one account. We may merge, suspend, or
   remove accounts that violate this.
@@ -129,25 +129,67 @@ You agree not to:
   a dispute.
 - Attempt to access another user's account or Solid Connect's systems
   without authorization.
+- Upload photos, videos, or text you don't own or don't have permission
+  to share (see Section 11).
 
 Solid Connect may suspend or remove an account for violating this section.
 A suspended account cannot post new jobs, submit new quotes, or otherwise
 use the marketplace; work already in progress is handled case by case. See
 `provider-agreement.md` for provider-specific conduct terms.
 
-## 11. Contact and account issues
+## 11. Your content and copyright
+
+**What counts as your content.** Your profile photo, portfolio photos and
+videos, the photos you attach to a request, chat images and voice notes,
+your tagline, and your reviews.
+
+**You keep ownership.** You still own what you upload. You give Solid
+Connect a non-exclusive, royalty-free licence to store it, show it to other
+users, and resize or compress it, only as needed to run the App (for
+example, showing your portfolio on your provider profile). The licence ends
+when you delete the content or your account, except for copies we must keep
+for a dispute or as described in the Privacy Policy.
+
+**Only upload what you have the right to share.** A provider's portfolio
+must show their own work, photographed by them or with the photographer's
+permission. Don't use photos from other providers, websites, or social
+media, and don't post pictures of people who haven't agreed to it.
+
+**Reporting content that infringes your copyright.** If something in the
+App uses your photo or work without permission, report it from the
+person's profile or chat (**Report → Stolen photos or work**), or email
+**support@solidconnect.co** with:
+
+1. the work you own (or a link to it);
+2. where it appears in the App (the person's name and which photo or
+   message);
+3. your name and contact details;
+4. a statement that you believe in good faith the use isn't authorised by
+   you, your agent, or the law; and
+5. a statement that the information in your notice is accurate and that
+   you own the work or are authorised to act for its owner.
+
+We review every notice and remove infringing content promptly. We tell the
+person who uploaded it, and they can reply with their side (for example,
+that they took the photo themselves). We put content back only if the
+evidence supports them.
+
+**Repeat infringers.** We remove the accounts of people who repeatedly
+upload content that isn't theirs.
+
+## 12. Contact and account issues
 
 For account security concerns, disputes you can't resolve through the app,
 or anything else, contact **support@solidconnect.co**.
 
-## 12. Changes to these Terms
+## 13. Changes to these Terms
 
 We may update these Terms as the App changes (for example, once real
 payments go live). We'll make a reasonable effort to notify you of material
 changes before they take effect. Continuing to use the App after a change
 takes effect means you accept the updated Terms.
 
-## 13. Limitation of liability
+## 14. Limitation of liability
 
 _[Placeholder — this section requires counsel input specific to Ghanaian
 law before it can be relied on. A facilitator marketplace typically limits
@@ -155,7 +197,7 @@ its liability for the underlying service performed by a third party, but
 the exact scope, any statutory limits on what can be disclaimed, and
 required consumer-protection carve-outs need legal review.]_
 
-## 14. Governing law
+## 15. Governing law
 
 _[Placeholder — to be confirmed with counsel; expected to be the laws of
 the Republic of Ghana given the app's operating market.]_

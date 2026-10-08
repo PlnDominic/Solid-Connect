@@ -5,7 +5,7 @@ using this document for anything, especially regarding Ghana's Data
 Protection Act, 2012 (Act 843) and Data Protection Commission
 registration.**
 
-_Last drafted: 2026-09-13._
+_Last drafted: 2026-10-08._
 
 ## 1. What this covers
 
@@ -120,6 +120,20 @@ provider, with row-level security policies restricting who can read what —
 for example, only you and an admin can read your verification documents;
 only the two parties on a job (and admins) can read that job's live
 location or chat.
+
+**Outside services the App uses.** Only these services receive data from
+your device, and only for the purpose listed:
+
+| Service | What it receives | Why |
+|---|---|---|
+| Supabase | Everything described in Section 2 | Hosts our database, file storage and sign-in |
+| OpenStreetMap tile servers | Your device's IP address and the part of the map on screen (not your name or account) | Draws the map images on the Map tab and the live-job map. The map code itself is built into the App, so no other site is contacted to show a map |
+| Expo push service (with Apple or Google) | Your push-notification token and the notification text | Delivers notifications, only if you turn them on |
+| Google or Apple sign-in | Your name and email, from them to us | Only if you choose to sign in that way |
+| Hubtel | Your payment amount and mobile-money or card details | Processes payments, once live payments are switched on (see Section 2) |
+
+The App does not use advertising trackers, analytics tools, or session
+recording, and does not load fonts or scripts from other websites.
 
 _[Placeholder — needs a statement on where Supabase's servers are located
 (data residency), whether that satisfies Act 843's cross-border transfer
