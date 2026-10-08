@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
+import { accessFromProfile } from './users.access';
 import type { RoleCode, UserStatus } from './users.types';
 
 export type AppUserRecord = {
@@ -51,7 +52,24 @@ export class UsersService {
       })
       .select('*')
       .single();
-    if (error) throw new BadRequestException({ code: 'USER_CREATE_FAILED', message: error.message });
+    if (error) {
+      // A new person's first two requests can race to create this row; the
+      // loser should read what the winner wrote instead of failing.
+      if (error.code === '23505') {
+        const winner = await this.findByAuthId(input.authUserId);
+        if (winner) {
+          return {
+            user: winner,
+            roles: await this.getRoleCodes(winner.id),
+            created: false,
+          };
+        }
+      }
+      throw new BadRequestException({
+        code: 'USER_CREATE_FAILED',
+        message: error.message,
+      });
+    }
 
     await this.grantRole(data.id, 'CUSTOMER');
 
@@ -102,6 +120,17 @@ export class UsersService {
       .maybeSingle();
     if (data?.role === 'provider' || data?.role === 'customer') return data.role;
     return null;
+  }
+
+  /** Active role and suspension state, read on every authenticated request. Throws if it can't be read. */
+  async getAccessState(authUserId: string): Promise<{ activeRole: 'customer' | 'provider' | null; suspended: boolean }> {
+    const { data, error } = await this.supabase.client
+      .from('profiles')
+      .select('role, suspended_at')
+      .eq('id', authUserId)
+      .maybeSingle();
+    if (error) throw new BadRequestException({ code: 'PROFILE_LOOKUP_FAILED', message: error.message });
+    return accessFromProfile(data);
   }
 
   async grantRole(userId: string, code: RoleCode): Promise<void> {

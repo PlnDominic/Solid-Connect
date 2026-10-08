@@ -480,11 +480,8 @@ export function useSendQuote() {
         .select('*')
         .single();
       if (error) throw error;
-      await supabase
-        .from('service_requests')
-        .update({ status: 'quoted' })
-        .eq('id', input.requestId)
-        .in('status', ['open', 'matching']);
+      // The request is marked quoted by a database trigger on quote insert
+      // (0069); app users can't update requests directly (0079).
       await supabase
         .from('request_opportunities')
         .update({ status: 'QUOTED' })

@@ -46,6 +46,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
     "eas-cli": "^24.8.0",
@@ -60,6 +61,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "sync-leaflet": "node scripts/sync-leaflet.mjs",
+    "test:rls": "node supabase/tests/lockdown.test.mjs",
     "test": "jest"
   },
   "private": true,

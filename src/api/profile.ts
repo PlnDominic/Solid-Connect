@@ -6,6 +6,7 @@ import { useSessionStore } from '../store/useSessionStore';
 import type { Profile, Role } from '../types/database';
 import { isApiConfigured } from '../lib/api';
 import { PROFILE_COLUMNS, withOwnPrivate } from './profileColumns';
+import { isProfileAlreadyExists } from '../lib/profileWrites';
 
 export interface SignUpDetails {
   fullName: string;
@@ -96,31 +97,32 @@ export async function createOrUpdateOwnProfile(
   role: Role,
   details: SignUpDetails
 ): Promise<Profile> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .upsert(
-      {
-        id: userId,
-        role,
-        full_name: details.fullName,
-        initials: initialsFrom(details.fullName),
-        phone: details.phone || null,
-        email: details.email || null,
-        area: details.area?.trim() || 'Achimota, Accra',
-        provider_category:
-          role === 'provider' ? details.providerCategory?.trim() || null : null,
-        is_seed: false,
-        // Omitted entirely (not set to null) when the caller has no consent
-        // to record, so an upsert from a later step never overwrites an
-        // already-recorded acceptance with nothing.
-        ...(details.termsAcceptedAt
-          ? { terms_accepted_at: details.termsAcceptedAt, terms_version: details.termsVersion ?? null }
-          : {}),
-      },
-      { onConflict: 'id' }
-    )
-    .select(PROFILE_COLUMNS)
-    .single();
+  const row = {
+    id: userId,
+    role,
+    full_name: details.fullName,
+    initials: initialsFrom(details.fullName),
+    phone: details.phone || null,
+    email: details.email || null,
+    area: details.area?.trim() || 'Achimota, Accra',
+    provider_category: role === 'provider' ? details.providerCategory?.trim() || null : null,
+    // Omitted entirely (not set to null) when the caller has no consent
+    // to record, so a later step never overwrites an already-recorded
+    // acceptance with nothing.
+    ...(details.termsAcceptedAt
+      ? { terms_accepted_at: details.termsAcceptedAt, terms_version: details.termsVersion ?? null }
+      : {}),
+  };
+  // Insert, and update if the profile is already there. Not a single upsert:
+  // the phone and email columns are hidden from app users, and Postgres
+  // refuses an `ON CONFLICT DO UPDATE` that names columns the caller can't
+  // read. Profiles are never flagged is_seed (or verified, rated ...) from
+  // here - those columns aren't writable by app users (0078).
+  let { data, error } = await supabase.from('profiles').insert(row).select(PROFILE_COLUMNS).single();
+  if (isProfileAlreadyExists(error)) {
+    const { id: _id, ...changes } = row;
+    ({ data, error } = await supabase.from('profiles').update(changes).eq('id', userId).select(PROFILE_COLUMNS).single());
+  }
   if (error) rethrowFriendly(error);
   if (isApiConfigured()) {
     await syncIdentity(details.fullName, details.phone).catch(() => null);

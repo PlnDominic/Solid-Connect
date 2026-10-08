@@ -2,6 +2,7 @@ import {
   CanActivate,
   ExecutionContext,
   Injectable,
+  ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -42,7 +43,9 @@ export class SupabaseJwtGuard implements CanActivate {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { user?: RequestUser }>();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: RequestUser }>();
     const header = request.headers.authorization;
     if (!header?.startsWith('Bearer ')) {
       throw new UnauthorizedException({
@@ -52,38 +55,25 @@ export class SupabaseJwtGuard implements CanActivate {
     }
 
     const token = header.slice('Bearer '.length).trim();
+    let sub: string;
+    let email: string | null;
+    let phone: string | null;
     try {
       const { payload } = await jwtVerify(token, this.getJwks(), {
         issuer: `${this.config.get<string>('supabase.url')}/auth/v1`,
         audience: 'authenticated',
       });
 
-      const sub = typeof payload.sub === 'string' ? payload.sub : null;
-      if (!sub) {
+      const subject = typeof payload.sub === 'string' ? payload.sub : null;
+      if (!subject) {
         throw new UnauthorizedException({
           code: 'INVALID_TOKEN',
           message: 'Token subject is missing.',
         });
       }
-
-      const email = typeof payload.email === 'string' ? payload.email : null;
-      const phone = typeof payload.phone === 'string' ? payload.phone : null;
-
-      let roles: RoleCode[] = ['CUSTOMER'];
-      let status: UserStatus = 'ACTIVE';
-      let activeRole: 'customer' | 'provider' | null = null;
-
-      try {
-        const ensured = await this.users.ensureUser({ authUserId: sub, email, phone });
-        roles = ensured.roles.length ? ensured.roles : ['CUSTOMER'];
-        status = ensured.user.status;
-        activeRole = await this.users.getActiveRole(sub);
-      } catch {
-        roles = ['CUSTOMER'];
-      }
-
-      request.user = { id: sub, email, phone, roles, status, activeRole };
-      return true;
+      sub = subject;
+      email = typeof payload.email === 'string' ? payload.email : null;
+      phone = typeof payload.phone === 'string' ? payload.phone : null;
     } catch (err) {
       if (err instanceof UnauthorizedException) throw err;
       throw new UnauthorizedException({
@@ -91,5 +81,35 @@ export class SupabaseJwtGuard implements CanActivate {
         message: 'Access token is invalid or expired.',
       });
     }
+
+    // Who this is and whether they may act. If the lookup fails we cannot
+    // tell a suspended account from a good one, so refuse (503, which the app
+    // treats as "try again") rather than let the request through as an
+    // active customer.
+    let roles: RoleCode[];
+    let status: UserStatus;
+    let activeRole: 'customer' | 'provider' | null;
+    try {
+      const ensured = await this.users.ensureUser({
+        authUserId: sub,
+        email,
+        phone,
+      });
+      roles = ensured.roles.length ? ensured.roles : ['CUSTOMER'];
+      status = ensured.user.status;
+      const access = await this.users.getAccessState(sub);
+      activeRole = access.activeRole;
+      // An admin suspension sets profiles.suspended_at (the admin site never
+      // touches users.status), so honour it here as well.
+      if (access.suspended) status = 'SUSPENDED';
+    } catch {
+      throw new ServiceUnavailableException({
+        code: 'AUTH_LOOKUP_FAILED',
+        message: 'Could not verify your account right now. Please try again.',
+      });
+    }
+
+    request.user = { id: sub, email, phone, roles, status, activeRole };
+    return true;
   }
 }
