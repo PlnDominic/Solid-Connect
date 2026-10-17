@@ -740,3 +740,79 @@ textarea.input { height: auto; padding: 12px 14px; line-height: 1.45; }
 
 .safety-banner { display: block; margin-bottom: 16px; padding: 12px 16px; border-radius: var(--r-xxl); background: var(--red-bg); color: var(--red); font-size: var(--fs-sm); font-weight: 600; }
 .safety-banner:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+/* ===== Admin map (app/(protected)/map) =====
+   The card holds a toolbar, the Leaflet map and a details panel. Pins are
+   the app's Map-tab pins (src/components/ServiceMap.tsx) verbatim: white
+   provider cards with a round photo, dark request cards, orange ring for
+   "Available now", orange fill when selected. */
+.admin-map-card { background: var(--bg-card); border-radius: var(--r-card); box-shadow: var(--shadow-card); overflow: hidden; margin-bottom: 16px; }
+.admin-map-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.admin-map-toolbar .input { width: auto; min-width: 180px; }
+.admin-map-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; }
+.filter-btn.active .admin-map-dot { background: #ffffff; }
+.admin-map-body { display: grid; grid-template-columns: minmax(0, 1fr) 320px; }
+.admin-map { height: max(520px, calc(100vh - 360px)); background: #eceae6; z-index: 0; }
+[data-theme="dark"] .admin-map { background: #1b1b1a; }
+/* Same OSM tiles in both themes; dark mode inverts them to sit on the dark page. */
+[data-theme="dark"] .admin-map .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.9); }
+.admin-map .leaflet-control-attribution { font-size: 10px; }
+.admin-map-panel { border-left: 1px solid var(--border); padding: 20px; overflow-y: auto; max-height: max(520px, calc(100vh - 360px)); }
+.admin-map-detail { display: flex; flex-direction: column; gap: 14px; }
+.admin-map-detail h3 { font-size: var(--fs-md); font-weight: 700; letter-spacing: -.3px; margin: 0; }
+.admin-map-detail .btn { min-height: 40px; padding: 8px 16px; }
+.admin-map-who { display: flex; align-items: center; gap: 12px; }
+.admin-map-avatar { width: 48px; height: 48px; border-radius: var(--r-pill); flex-shrink: 0; overflow: hidden;
+  background: var(--active-bg); color: var(--active-deep); display: grid; place-items: center; font-weight: 800; font-size: var(--fs-sm); }
+[data-theme="dark"] .admin-map-avatar { color: var(--active); }
+.admin-map-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.admin-map-photo { width: 100%; height: 160px; object-fit: cover; border-radius: var(--r-lg); background: var(--bg-input); }
+.admin-map-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
+.admin-map-facts dt { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+.admin-map-facts dd { margin: 0; font-size: var(--fs-sm); font-weight: 500; font-variant-numeric: tabular-nums; }
+.admin-map-legend { list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: var(--fs-sm); color: var(--text-secondary); }
+.admin-map-legend li { display: flex; align-items: center; gap: 10px; }
+.map-pin-key { width: 18px; height: 18px; border-radius: 50%; background: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,.25); flex-shrink: 0; }
+.map-pin-key.now { box-shadow: 0 0 0 2px #f27511, 0 1px 4px rgba(0,0,0,.25); }
+.map-pin-key.off { opacity: .45; }
+.map-pin-key.req { background: #15181a; border-radius: 5px; }
+
+.map-pin { display: flex; align-items: center; gap: 4px; padding: 5px 9px; border-radius: 999px; background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18); font-family: var(--font-inter), -apple-system, Roboto, sans-serif;
+  font-size: 12px; font-weight: 700; color: #15181a; white-space: nowrap; line-height: 1.2;
+  transform: translate(-50%, -100%); position: absolute; cursor: pointer; transition: transform .1s; }
+.map-pin:hover { transform: translate(-50%, -100%) scale(1.04); }
+.map-pin::after { content: ''; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent; border-top-color: #fff; border-bottom: 0; }
+.map-pin .star { color: #f27511; }
+.map-pin .tick { color: #0e6b45; font-size: 11px; }
+.map-pin.now { box-shadow: 0 0 0 2px #f27511, 0 2px 8px rgba(0,0,0,.18); }
+.map-pin.off { opacity: .5; }
+.map-pin.pro { gap: 8px; padding: 4px 12px 4px 4px; }
+.map-pin .av { position: relative; flex: none; width: 34px; height: 34px; border-radius: 50%; background: #fce9da;
+  color: #c85a08; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.map-pin .av img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; display: block; }
+.map-pin .nowdot { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 50%; background: #0e6b45; border: 2px solid #fff; }
+.map-pin .info { display: flex; flex-direction: column; min-width: 0; }
+.map-pin .nm { font-size: 13px; font-weight: 700; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+.map-pin .sk { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #5d6063; max-width: 160px; }
+.map-pin .sk .skill { overflow: hidden; text-overflow: ellipsis; }
+.map-pin.req { background: #15181a; color: #fff; }
+.map-pin.req::after { border-top-color: #15181a; }
+.map-pin.req .sk { color: rgba(255,255,255,.75); }
+.map-pin.req .av, .map-pin.req .av img { border-radius: 9px; }
+.map-pin.req .av { background: #f27511; color: #fff; }
+.map-pin.sel { background: #f27511; color: #fff; z-index: 1000; opacity: 1; }
+.map-pin.sel::after { border-top-color: #f27511; }
+.map-pin.sel .sk { color: rgba(255,255,255,.92); }
+.map-pin.sel .av { background: #fff; color: #c85a08; }
+.map-pin.sel .star, .map-pin.sel .tick { color: #fff; }
+
+@media (max-width: 1100px) {
+  .admin-map-body { grid-template-columns: 1fr; }
+  .admin-map-panel { border-left: 0; border-top: 1px solid var(--border); max-height: none; }
+}
+@media (max-width: 760px) {
+  .admin-map { height: 60vh; }
+  .admin-map-toolbar { padding: 12px 16px; }
+  .admin-map-toolbar .input { width: 100%; }
+}
