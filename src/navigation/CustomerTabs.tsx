@@ -20,7 +20,6 @@ import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
 import { NotificationsScreen } from '../screens/shared/NotificationsScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
 import { AppearanceScreen } from '../screens/shared/AppearanceScreen';
-import { LanguageScreen } from '../screens/shared/LanguageScreen';
 import { AccountSecurityScreen } from '../screens/shared/AccountSecurityScreen';
 import { ReferralScreen } from '../screens/shared/ReferralScreen';
 import { BlockedUsersScreen } from '../screens/shared/BlockedUsersScreen';
@@ -98,7 +97,6 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
       <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
       <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />
-      <ProfileStackNav.Screen name="Language" component={LanguageScreen} />
       <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />
       <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
       <ProfileStackNav.Screen name="BlockedUsers" component={BlockedUsersScreen} />

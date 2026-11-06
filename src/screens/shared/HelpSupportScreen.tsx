@@ -4,8 +4,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
-const SUPPORT_PHONE = '+233 30 200 0000';
-const SUPPORT_EMAIL = 'support@solidconnect.app';
+const SUPPORT_EMAIL = 'support@solidconnect.co';
 
 const FAQS = [
   { q: 'How does Solid Connect verify providers?', a: 'Providers go through identity checks, and the highest tier earns a Solid Connect certified badge shown on their profile.' },
@@ -17,24 +16,6 @@ export function HelpSupportScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
 
-  function handleCallSupport() {
-    Alert.alert(
-      'Call customer support?',
-      `Speak with a Solid Connect support agent in Accra at ${SUPPORT_PHONE}. Standard call rates apply.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Call',
-          onPress: () => {
-            Linking.openURL(`tel:${SUPPORT_PHONE.replace(/[^\d+]/g, '')}`).catch(() => {
-              Alert.alert('Could not dial', 'Your device could not open the phone dialer.');
-            });
-          },
-        },
-      ],
-    );
-  }
-
   return (
     <Screen bg={colors.paperDim}>
       <ScreenHeader title="Help & support" onBack={() => navigation.goBack()} />
@@ -44,11 +25,6 @@ export function HelpSupportScreen({ navigation }: { navigation: any }) {
           <Pressable style={styles.contactRow} onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`)}>
             <Text style={styles.contactLabel}>Email support</Text>
             <Text style={styles.contactValue}>{SUPPORT_EMAIL}</Text>
-          </Pressable>
-          <View style={styles.rowBorder} />
-          <Pressable style={styles.contactRow} onPress={handleCallSupport}>
-            <Text style={styles.contactLabel}>Call support</Text>
-            <Text style={styles.contactValue}>{SUPPORT_PHONE}</Text>
           </Pressable>
         </View>
         </View>
@@ -73,7 +49,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card },
     card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: spacing.md, paddingHorizontal: spacing.lg },
-    rowBorder: { height: 1, backgroundColor: colors.hairline },
     contactLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     contactValue: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     sectionTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },

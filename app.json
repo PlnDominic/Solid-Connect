@@ -12,6 +12,7 @@
       [
         "expo-notifications",
         {
+          "icon": "./assets/notification-icon.png",
           "color": "#3459d4"
         }
       ],
@@ -29,13 +30,21 @@
         }
       ],
       "expo-video",
-      "expo-localization",
       [
         "expo-audio",
         {
           "microphonePermission": "Solid Connect uses your microphone so you can record and send voice notes in chat.",
           "enableBackgroundPlayback": true,
           "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#FFFFFF",
+          "imageWidth": 220,
+          "resizeMode": "contain"
         }
       ]
     ],
@@ -51,9 +60,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
@@ -80,6 +88,9 @@
     "description": "Find and book trusted local service providers in Ghana.",
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": false
     },
     "extra": {
       "eas": {

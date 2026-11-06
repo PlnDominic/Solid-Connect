@@ -24,8 +24,6 @@ export const en = {
   'home.startRequest': 'Start a request',
   'home.chooseCategory': 'Choose a category',
 
-  'settings.language': 'Language',
-  'settings.languageIntro': 'Choose the language for navigation and key screens. The rest of the app still reads in English while translation coverage grows.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

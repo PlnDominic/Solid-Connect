@@ -7,7 +7,6 @@ import {
   Camera,
   Clock,
   FileText,
-  Globe,
   Images,
   KeyRound,
   LifeBuoy,
@@ -68,7 +67,6 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     rows: [
       { label: 'Notifications', screen: 'Notifications', icon: Bell },
       { label: 'Appearance', screen: 'Appearance', icon: Moon },
-      { label: 'Language', screen: 'Language', icon: Globe },
     ],
   },
   {
