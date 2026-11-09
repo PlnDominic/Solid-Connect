@@ -16,6 +16,10 @@ export default () => ({
   expo: {
     accessToken: process.env.EXPO_ACCESS_TOKEN ?? '',
   },
+  subscription: {
+    priceGhs: Number(process.env.SUBSCRIPTION_PRICE_GHS) > 0 ? Number(process.env.SUBSCRIPTION_PRICE_GHS) : 50,
+    periodDays: Number(process.env.SUBSCRIPTION_PERIOD_DAYS) > 0 ? Number(process.env.SUBSCRIPTION_PERIOD_DAYS) : 365,
+  },
   hubtel: {
     clientId: process.env.HUBTEL_CLIENT_ID ?? '',
     clientSecret: process.env.HUBTEL_CLIENT_SECRET ?? '',

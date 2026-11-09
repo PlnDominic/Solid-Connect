@@ -8,6 +8,7 @@ import { RateCustomerScreen } from '../screens/provider/RateCustomerScreen';
 import { ProfileScreen } from '../screens/provider/ProfileScreen';
 import { EarningsScreen } from '../screens/provider/EarningsScreen';
 import { PayoutDetailsScreen } from '../screens/provider/PayoutDetailsScreen';
+import { SubscriptionScreen } from '../screens/provider/SubscriptionScreen';
 import { ServiceAreasScreen } from '../screens/provider/ServiceAreasScreen';
 import { AvailabilityScreen } from '../screens/provider/AvailabilityScreen';
 import { VerificationScreen } from '../screens/provider/VerificationScreen';
@@ -89,6 +90,7 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="Portfolio" component={PortfolioScreen} />
       <ProfileStackNav.Screen name="Earnings" component={EarningsScreen} />
       <ProfileStackNav.Screen name="PayoutDetails" component={PayoutDetailsScreen} />
+      <ProfileStackNav.Screen name="Subscription" component={SubscriptionScreen} />
       <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
       <ProfileStackNav.Screen name="Availability" component={AvailabilityScreen} />
       <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />

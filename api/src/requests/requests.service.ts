@@ -4,12 +4,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { SubscriptionsService } from '../payments/subscriptions.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import type { CreateRequestDto } from './dto/requests.dto';
 
 @Injectable()
 export class RequestsService {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly subscriptions: SubscriptionsService,
+  ) {}
 
   async create(customerId: string, dto: CreateRequestDto) {
     const { data: category, error: catErr } = await this.supabase.client
@@ -215,6 +219,7 @@ export class RequestsService {
   }
 
   async acceptDirect(requestId: string, providerId: string) {
+    await this.subscriptions.assertCanTakeWork(providerId);
     const { data, error } = await this.supabase.client.rpc('accept_direct_request', {
       p_request_id: requestId,
       p_provider_id: providerId,

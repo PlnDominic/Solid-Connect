@@ -3,6 +3,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { HubtelService } from './hubtel.service';
 import { clientReferenceFromCallback, momoChannel, toMsisdn } from './hubtel.util';
 import { nextCharge, stageReference } from './payment.stage';
+import { SubscriptionsService } from './subscriptions.service';
 
 type PaymentRow = {
   id: string;
@@ -28,6 +29,7 @@ export class PaymentsService {
   constructor(
     private readonly supabase: SupabaseService,
     private readonly hubtel: HubtelService,
+    private readonly subscriptions: SubscriptionsService,
   ) {}
 
   async checkout(jobId: string, customerId: string) {
@@ -110,6 +112,10 @@ export class PaymentsService {
   async handleCallback(body: Record<string, unknown>) {
     const reference = clientReferenceFromCallback(body);
     if (!reference) return { ok: true, ignored: true };
+    if (reference.startsWith('ss_')) {
+      await this.subscriptions.captureIfPaid(reference);
+      return { ok: true };
+    }
     await this.captureIfPaid(reference);
     return { ok: true };
   }

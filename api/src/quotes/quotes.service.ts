@@ -5,12 +5,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { SubscriptionsService } from '../payments/subscriptions.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import type { AcceptQuoteDto, CreateQuoteDto, ReviseQuoteDto } from './dto/quotes.dto';
 
 @Injectable()
 export class QuotesService {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly subscriptions: SubscriptionsService,
+  ) {}
 
   private badgeFor(profile: {
     provider_certified?: boolean | null;
@@ -27,6 +31,7 @@ export class QuotesService {
   }
 
   async create(providerId: string, dto: CreateQuoteDto) {
+    await this.subscriptions.assertCanTakeWork(providerId);
     const { data: request, error: rErr } = await this.supabase.client
       .from('service_requests')
       .select('*')

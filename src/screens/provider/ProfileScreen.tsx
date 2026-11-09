@@ -50,6 +50,7 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
       { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
       { label: 'Earnings', screen: 'Earnings', icon: TrendingUp },
       { label: 'Payout details', screen: 'PayoutDetails', icon: Wallet },
+      { label: 'Subscription', screen: 'Subscription', icon: Star },
     ],
   },
   {
