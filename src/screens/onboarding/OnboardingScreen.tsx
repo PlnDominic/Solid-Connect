@@ -23,7 +23,7 @@ const SLIDES: Slide[] = [
     title: 'Post a job in minutes',
     body: "Describe what you need fixed and we'll connect you with plumbers, electricians and artisans near you - verified pros carry a badge.",
     cta: 'Next',
-    heroImage: require('../../../assets/images/onboarding/onboarding-1.png'),
+    heroImage: require('../../../assets/images/onboarding/onboarding-1.jpg'),
   },
   {
     title: 'Compare quotes side by side',
