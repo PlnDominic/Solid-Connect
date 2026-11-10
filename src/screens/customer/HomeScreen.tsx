@@ -363,9 +363,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
                 </Pressable>
               ) : null}
             </View>
-          ) : (
-            <PromoBanner onPress={() => navigation.navigate('AllProviders')} />
-          )}
+          ) : null}
 
           {activeJobIsLive ? (
             <Pressable
@@ -415,6 +413,8 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             </Pressable>
           ) : null}
         </View>
+
+        {!searchFocused ? <PromoBanner onPress={() => navigation.navigate('AllProviders')} /> : null}
 
         <View style={styles.postJobCard}>
           <View style={styles.postJobTop}>
