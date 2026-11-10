@@ -7,6 +7,7 @@ import {
   START_LABELS,
   formatJobPostBudget,
   formatJobPostStart,
+  friendlyPostError,
   useCreateJobPost,
   type JobPostBudgetType,
   type JobPostStart,
@@ -190,7 +191,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
       haptics.success();
       navigation.replace('JobPostDetail', { postId: post.id, justPosted: true });
     } catch (e: any) {
-      setError(e?.message ?? 'Could not post that job. Please try again.');
+      setError(friendlyPostError(e));
     }
   }
 

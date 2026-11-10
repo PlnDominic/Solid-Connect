@@ -35,7 +35,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { FilterChips, type FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
-import { useLocale } from '../../i18n';
+import { useGreeting, useLocale } from '../../i18n';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -74,6 +74,7 @@ function formatMinutes(mins: number): string {
 export function FeedScreen({ navigation }: { navigation: any }) {
   const { colors, scheme } = useTheme();
   const { t } = useLocale();
+  const greeting = useGreeting();
   const styles = makeStyles(colors, scheme);
   const isDark = scheme === 'dark';
   const profile = useSessionStore((s) => s.profile);
@@ -230,7 +231,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
         <View style={styles.heroCard}>
           <View style={styles.heroGreetRow}>
             <View style={styles.heroGreetText}>
-              <Text style={styles.heroGreeting}>{t('home.greeting')}, {firstName}</Text>
+              <Text style={styles.heroGreeting}>{greeting}, {firstName}</Text>
               <Text style={styles.heroLocation}>
                 {profile?.area ?? 'Accra'}
                 {isApiConfigured() ? ' · matched opportunities' : ' · within 5 km'}

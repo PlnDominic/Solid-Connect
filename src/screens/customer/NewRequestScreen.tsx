@@ -180,7 +180,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
       });
       if (jobPostId && jobPostInterestId && preferredProviderId) {
         try {
-          await completeJobPostHire({ postId: jobPostId, interestId: jobPostInterestId, providerId: preferredProviderId });
+          await completeJobPostHire({ postId: jobPostId, interestId: jobPostInterestId, providerId: preferredProviderId, requestId: request.id });
           queryClient.invalidateQueries({ queryKey: ['jobPosts'] });
         } catch {
           // The request itself went through; the post can be closed by hand.

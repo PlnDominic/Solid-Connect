@@ -56,6 +56,7 @@ create table public.user_blocks (blocker_id uuid not null, blocked_id uuid not n
 create function public.is_blocked_between(p_a uuid, p_b uuid) returns boolean language sql stable security definer set search_path = public
   as $$ select exists (select 1 from public.user_blocks where (blocker_id = p_a and blocked_id = p_b) or (blocker_id = p_b and blocked_id = p_a)) $$;
 create table public.jobs (id uuid primary key default gen_random_uuid());
+create table public.service_requests (id uuid primary key default gen_random_uuid(), customer_id uuid references public.profiles(id), status text not null default 'open');
 create table public.user_reports (
   id uuid primary key default gen_random_uuid(),
   reporter_id uuid references public.profiles(id),
@@ -119,9 +120,9 @@ const blocked = (r) => !r.ok && /row-level security|violates check|permission de
 async function main() {
   await db.exec(PRELUDE);
   await db.exec(FIXTURES);
-  for (const f of ['0082_job_posts.sql', '0083_job_post_expiry_alerts_reports.sql']) await db.exec(migration(f));
+  for (const f of ['0082_job_posts.sql', '0083_job_post_expiry_alerts_reports.sql', '0084_job_post_blocks_limits_notices.sql']) await db.exec(migration(f));
   // Must be safe to re-run.
-  for (const f of ['0082_job_posts.sql', '0083_job_post_expiry_alerts_reports.sql']) await db.exec(migration(f));
+  for (const f of ['0082_job_posts.sql', '0083_job_post_expiry_alerts_reports.sql', '0084_job_post_blocks_limits_notices.sql']) await db.exec(migration(f));
 
   console.log('\njob_posts - creating');
   let r = await as(
@@ -236,6 +237,87 @@ async function main() {
   r = await as(ID.alice, `delete from public.job_posts where id = '${ID.post}'`);
   row = (await db.query(`select count(*)::int as n from public.job_posts`)).rows[0];
   check('customer can delete their post', r.ok && row.n === 0, r.error ?? JSON.stringify(row));
+
+
+  // -- 0084: blocks, rate limit, notices, reopen, sweep --
+  const mkPost = async (customer, title) =>
+    (await db.query(`insert into public.job_posts (customer_id, category_id, category_label, title, description, location_label) values ('${customer}', 'plumbing', 'Plumbing', '${title}', 'A description that is long enough.', 'Osu') returning id`)).rows[0].id;
+  const notices = async (user, type) =>
+    (await db.query(`select count(*)::int as n from public.notifications where user_id = '${user}' and type = '${type}'`)).rows[0].n;
+  const interest = (post, provider, status = 'pending') =>
+    db.exec(`insert into public.job_post_interests (post_id, provider_id, message, status) values ('${post}', '${provider}', 'Happy to help.', '${status}')`);
+
+  console.log('\nblocks');
+  const pb = await mkPost(ID.alice, 'Blocked board post');
+  await db.exec(`insert into public.user_blocks (blocker_id, blocked_id) values ('${ID.alice}', '${ID.rex}')`);
+  r = await as(ID.rex, `select id from public.job_posts where id = '${pb}'`);
+  check("a blocked provider cannot see the customer's post", r.ok && r.count === 0, r.error);
+  r = await as(ID.rex, `insert into public.job_post_interests (post_id, provider_id, message) values ('${pb}', '${ID.rex}', 'Hi')`);
+  check('a blocked provider cannot show interest', blocked(r), r.ok ? 'it worked' : r.error);
+  r = await as(ID.pat, `select id from public.job_posts where id = '${pb}'`);
+  check('an unblocked provider still sees it', r.ok && r.count === 1, r.error);
+  await db.exec(`delete from public.user_blocks`);
+  r = await as(ID.rex, `select id from public.job_posts where id = '${pb}'`);
+  check('unblocking brings the post back', r.ok && r.count === 1, r.error);
+  await db.exec(`delete from public.job_posts where id = '${pb}'`);
+
+  console.log('\nrate limit');
+  for (let i = 0; i < 5; i += 1) {
+    r = await as(ID.bob, `insert into public.job_posts (customer_id, category_label, title, description, location_label) values ('${ID.bob}', 'Plumbing', 'Spam ${i} post', 'A description that is long enough.', 'Osu')`);
+    if (!r.ok) break;
+  }
+  check('a customer can post 5 jobs in a day', r.ok, r.error);
+  r = await as(ID.bob, `insert into public.job_posts (customer_id, category_label, title, description, location_label) values ('${ID.bob}', 'Plumbing', 'Sixth post', 'A description that is long enough.', 'Osu')`);
+  check('the 6th is refused', !r.ok && /JOB_POST_RATE_LIMIT/.test(r.error), r.ok ? 'it worked' : r.error);
+  await db.exec(`delete from public.job_posts where customer_id = '${ID.bob}'`);
+
+  console.log('\nclosing notices');
+  const p2 = await mkPost(ID.alice, 'Post to close');
+  await interest(p2, ID.rex);
+  await interest(p2, ID.quinn, 'shortlisted');
+  await db.exec(`update public.job_posts set status = 'closed' where id = '${p2}'`);
+  check('interested providers hear a post was closed', (await notices(ID.rex, 'job_post_closed')) === 1 && (await notices(ID.quinn, 'job_post_closed')) === 1);
+
+  const p3 = await mkPost(ID.alice, 'Post to fill');
+  await interest(p3, ID.rex);
+  await interest(p3, ID.pat, 'hired');
+  await db.exec(`update public.job_posts set status = 'hired', hired_provider_id = '${ID.pat}' where id = '${p3}'`);
+  check('the other providers hear it was filled', (await notices(ID.rex, 'job_post_filled')) === 1);
+  check('the hired provider is not told it was filled', (await notices(ID.pat, 'job_post_filled')) === 0);
+
+  console.log('\nreopen when the hire falls through');
+  const req = (await db.query(`insert into public.service_requests (customer_id) values ('${ID.alice}') returning id`)).rows[0].id;
+  await db.exec(`update public.job_posts set hire_request_id = '${req}' where id = '${p3}'`);
+  await db.exec(`update public.service_requests set status = 'rejected' where id = '${req}'`);
+  row = (await db.query(`select status, hired_provider_id, hire_request_id from public.job_posts where id = '${p3}'`)).rows[0];
+  check('a declined direct request reopens the post', row.status === 'open' && row.hired_provider_id === null && row.hire_request_id === null, JSON.stringify(row));
+  row = (await db.query(`select status from public.job_post_interests where post_id = '${p3}' and provider_id = '${ID.pat}'`)).rows[0];
+  check("the provider's interest is marked declined", row.status === 'declined', JSON.stringify(row));
+  check('the customer is told the job is open again', (await notices(ID.alice, 'job_post_reopened')) === 1);
+  const req2 = (await db.query(`insert into public.service_requests (customer_id) values ('${ID.alice}') returning id`)).rows[0].id;
+  await db.exec(`update public.job_posts set status = 'hired', hired_provider_id = '${ID.pat}', hire_request_id = '${req2}' where id = '${p3}'`);
+  await db.exec(`update public.service_requests set status = 'cancelled' where id = '${req2}'`);
+  row = (await db.query(`select status from public.job_posts where id = '${p3}'`)).rows[0];
+  check('cancelling the request also reopens the post', row.status === 'open', JSON.stringify(row));
+  check('a cancel does not notify the customer', (await notices(ID.alice, 'job_post_reopened')) === 1);
+
+  console.log('\nexpiry sweep');
+  const soon = await mkPost(ID.alice, 'Expires soon');
+  const old = await mkPost(ID.alice, 'Already expired');
+  await interest(old, ID.rex);
+  await db.exec(`update public.job_posts set expires_at = now() + interval '12 hours' where id = '${soon}'`);
+  await db.exec(`update public.job_posts set expires_at = now() - interval '1 hour' where id = '${old}'`);
+  r = await as(ID.alice, `select public.sweep_job_posts()`);
+  check('an app user cannot run the sweep', denied(r), r.ok ? 'it worked' : r.error);
+  await db.exec(`select public.sweep_job_posts()`);
+  check('the customer is warned a day before expiry', (await notices(ID.alice, 'job_post_expiring')) === 1);
+  check('the customer is told when a post has expired', (await notices(ID.alice, 'job_post_expired')) === 1);
+  check('interested providers are told it expired', (await notices(ID.rex, 'job_post_expired')) === 1);
+  await db.exec(`select public.sweep_job_posts()`);
+  check('running the sweep again sends nothing twice', (await notices(ID.alice, 'job_post_expiring')) === 1 && (await notices(ID.alice, 'job_post_expired')) === 1);
+  await db.exec(`update public.job_posts set expires_at = now() + interval '12 hours' where id = '${old}'`);
+  await db.exec(`select public.sweep_job_posts()`);
+  check('a reposted post can be warned about again', (await notices(ID.alice, 'job_post_expiring')) === 2);
 
   console.log(`\n${passes} passed, ${failures} failed`);
   process.exit(failures ? 1 : 0);

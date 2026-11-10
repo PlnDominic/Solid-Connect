@@ -20,7 +20,9 @@ export const en = {
   'common.share': 'Share',
   'common.done': 'Done',
 
-  'home.greeting': 'Good morning',
+  'home.greetingMorning': 'Good morning',
+  'home.greetingAfternoon': 'Good afternoon',
+  'home.greetingEvening': 'Good evening',
   'home.startRequest': 'Start a request',
   'home.chooseCategory': 'Choose a category',
 
