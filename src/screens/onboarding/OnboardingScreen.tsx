@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
 import { StepDots } from '../../components/StepDots';
 import { useLocationPermission } from '../../hooks/useLocationPermission';
+import { setLocationSkipped } from '../../lib/locationChoice';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -21,19 +22,25 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     title: 'Post a job in minutes',
-    body: "Describe what you need fixed and we'll connect you with plumbers, electricians and artisans near you - verified pros carry a badge.",
+    body: 'Describe what you need fixed and plumbers, electricians and artisans near you send you quotes. Verified pros carry a badge.',
     cta: 'Next',
     heroImage: require('../../../assets/images/onboarding/onboarding-1.jpg'),
   },
   {
-    title: 'Compare quotes side by side',
-    body: "See ratings, prices, availability and who's verified, then chat directly with the provider you choose.",
+    title: 'Compare quotes, pay directly',
+    body: "See ratings, prices and who's verified. Chat with the provider you choose and pay them directly once the work is done. Solid Connect never holds your money.",
     cta: 'Next',
     heroImage: require('../../../assets/images/onboarding/onboarding-2.jpg'),
   },
   {
-    title: 'Enable your location',
-    body: 'We use your location to find pros near you in Accra and estimate arrival times.',
+    title: 'Offer a service? Get hired nearby',
+    body: 'Providers are matched to jobs in their area. Your first job is free, then a yearly fee, with no commission on what you earn.',
+    cta: 'Next',
+    heroImage: require('../../../assets/images/onboarding/onboarding-2.jpg'),
+  },
+  {
+    title: 'Find pros near you',
+    body: 'Turn on location to see the closest pros and arrival times. Prefer not to? Skip it and use your neighbourhood instead.',
     cta: 'Turn on location',
     heroImage: require('../../../assets/images/onboarding/onboarding-3.jpg'),
     isConfirmStep: true,
@@ -69,8 +76,9 @@ export function OnboardingScreen({
   const locationBlocked = location.blocked;
   const animatedStyle = { opacity: fade, transform: [{ translateY: slideY }] };
 
-  // Location is required on the last slide. Already-granted counts (e.g.
-  // reinstall). Otherwise the button asks the OS, then continues.
+  // The last slide asks for location, but it is optional ("Not now"). Already
+  // granted counts (e.g. reinstall). Otherwise the button asks the OS, then
+  // continues.
   async function handleCta() {
     if (!isLocationStep) {
       setStep((s) => s + 1);
@@ -93,6 +101,11 @@ export function OnboardingScreen({
     }
   }
 
+  async function handleNotNow() {
+    await setLocationSkipped(true);
+    onGetStarted();
+  }
+
   // Coming back from Settings with location switched on continues by itself.
   useEffect(() => {
     if (isLocationStep && location.attempted && location.state === 'granted') {
@@ -104,14 +117,15 @@ export function OnboardingScreen({
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.skipRow}>
         {isLocationStep ? (
-          <Pressable onPress={onSignIn} hitSlop={14}>
-            <Text style={styles.skip}>Sign in</Text>
-          </Pressable>
+          <View />
         ) : (
-          <Pressable onPress={() => setStep(SLIDES.length - 1)} hitSlop={14}>
+          <Pressable onPress={() => setStep(SLIDES.length - 1)} hitSlop={14} accessibilityRole="button">
             <Text style={styles.skip}>Skip</Text>
           </Pressable>
         )}
+        <Pressable onPress={onSignIn} hitSlop={14} accessibilityRole="button" accessibilityLabel="I already have an account, sign in">
+          <Text style={styles.signIn}>Sign in</Text>
+        </Pressable>
       </View>
 
       <Animated.View style={[styles.body, animatedStyle]}>
@@ -136,12 +150,13 @@ export function OnboardingScreen({
       <View style={styles.footer}>
         <StepDots count={SLIDES.length} activeIndex={step} />
         <Button
-          title={isLocationStep && locationBlocked ? 'Reload' : slide.cta}
+          title={isLocationStep && locationBlocked ? 'Open settings' : slide.cta}
           variant="active"
           onPress={handleCta}
           loading={requesting}
           disabled={requesting}
         />
+        {isLocationStep ? <Button title="Not now" variant="ghost" onPress={handleNotNow} disabled={requesting} /> : null}
       </View>
     </SafeAreaView>
   );
@@ -150,8 +165,9 @@ export function OnboardingScreen({
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     fill: { flex: 1, backgroundColor: colors.paper },
-    skipRow: { alignItems: 'flex-end', paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
+    skipRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
     skip: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint, letterSpacing: 0.1 },
+    signIn: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.active, letterSpacing: 0.1 },
 
     body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.md, gap: spacing.xxl },
 
@@ -193,7 +209,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       fontFamily: fonts.regular,
     },
 
-    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg, gap: spacing.lg },
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.lg, gap: spacing.md },
     deniedHint: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.medium, color: colors.danger },
   });
 }

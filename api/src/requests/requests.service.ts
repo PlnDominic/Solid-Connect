@@ -34,7 +34,6 @@ export class RequestsService {
     }
 
     const bandMin = category.budget_min ?? 0;
-    const bandMax = category.budget_max ?? 999999;
     const stated =
       dto.budget ??
       (dto.budgetMin != null && dto.budgetMax != null && dto.budgetMin === dto.budgetMax
@@ -49,10 +48,12 @@ export class RequestsService {
         message: 'Enter a budget for this request.',
       });
     }
-    if (stated < bandMin || stated > bandMax) {
+    // Only the minimum is a rule (providers rarely take work that pays less);
+    // a bigger job than usual is allowed and providers quote what it needs.
+    if (stated < bandMin || stated > 1_000_000) {
       throw new BadRequestException({
         code: 'BUDGET_OUT_OF_RANGE',
-        message: `Budget must be between GHS ${bandMin} and GHS ${bandMax} for this service.`,
+        message: `Budget must be at least GHS ${bandMin} for this service.`,
       });
     }
 

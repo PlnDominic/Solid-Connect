@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { confirmRoleSwitch } from '../../lib/confirmRoleSwitch';
 import { ratingLabel } from '../../lib/rating';
 import {
   Ban,
@@ -163,7 +164,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             <View style={[styles.rolePill, styles.rolePillActive]}>
               <Text style={styles.rolePillTextActive}>Customer</Text>
             </View>
-            <Pressable style={styles.rolePill} onPress={() => switchRole.mutate({ userId: profile.id, role: 'provider' })}>
+            <Pressable style={styles.rolePill} onPress={() => confirmRoleSwitch('provider', () => switchRole.mutate({ userId: profile.id, role: 'provider' }))}>
               <Text style={styles.rolePillText}>Provider</Text>
             </Pressable>
           </View>

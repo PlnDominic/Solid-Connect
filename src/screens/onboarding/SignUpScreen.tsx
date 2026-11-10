@@ -67,10 +67,21 @@ export function SignUpScreen({
       <View style={styles.body}>
         <View style={styles.textWrap}>
           <Text style={styles.title}>Almost there, {firstName}</Text>
-          <Text style={styles.copy}>
-            How will you use Solid Connect - post a job and get matched with verified pros, or get hired
-            for jobs nearby?
-          </Text>
+          <Text style={styles.copy}>How will you use Solid Connect? You can add the other role later from your profile.</Text>
+        </View>
+        <View style={styles.roleCards}>
+          <View style={styles.roleCard}>
+            <Text style={styles.roleTitle}>Customer</Text>
+            <Text style={styles.roleBody}>
+              Post jobs for free, compare quotes from verified pros, and pay your provider directly when the work is done.
+            </Text>
+          </View>
+          <View style={styles.roleCard}>
+            <Text style={styles.roleTitle}>Provider</Text>
+            <Text style={styles.roleBody}>
+              Get matched to jobs near you. Your first job is free, then a yearly fee. No commission on what you earn.
+            </Text>
+          </View>
         </View>
         {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
       </View>
@@ -148,6 +159,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     textWrap: { gap: 8 },
     title: { fontSize: fontSizes.title, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.4, lineHeight: 34 },
     copy: { fontSize: fontSizes.md, lineHeight: 23, color: colors.inkMuted, fontFamily: fonts.regular },
+    roleCards: { gap: spacing.md },
+    roleCard: {
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      backgroundColor: colors.paperDim,
+      padding: spacing.lg,
+      gap: 4,
+    },
+    roleTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
+    roleBody: { fontSize: fontSizes.sm, lineHeight: 21, fontFamily: fonts.regular, color: colors.inkMuted },
     errorText: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.danger },
 
     footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },

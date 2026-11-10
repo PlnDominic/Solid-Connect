@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronLeft, MailCheck } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/Button';
+import { resendConfirmationEmail } from '../../lib/auth';
+import { friendlyAuthError } from '../../lib/friendlyAuthError';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -15,6 +18,31 @@ import { useTheme } from '../../theme/ThemeProvider';
 export function SignUpConfirmEmailScreen({ email, onGoToSignIn }: { email: string; onGoToSignIn: () => void }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
+  // The first email was just sent, so wait a minute before offering another.
+  const [cooldown, setCooldown] = useState(60);
+  const [resending, setResending] = useState(false);
+  const [note, setNote] = useState<{ text: string; error: boolean } | null>(null);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [cooldown]);
+
+  async function handleResend() {
+    setResending(true);
+    setNote(null);
+    try {
+      await resendConfirmationEmail(email);
+      setNote({ text: 'Sent again. Check your inbox and your spam folder.', error: false });
+      setCooldown(60);
+    } catch (e) {
+      setNote({ text: friendlyAuthError(e, "We couldn't send it again right now. Please try in a few minutes."), error: true });
+    } finally {
+      setResending(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.fill} edges={['top', 'bottom']}>
       <View style={styles.header}>
@@ -38,13 +66,21 @@ export function SignUpConfirmEmailScreen({ email, onGoToSignIn }: { email: strin
           <Text style={styles.title}>Check your email</Text>
           <Text style={styles.copy}>
             We sent a confirmation link to <Text style={styles.email}>{email}</Text>. Open it, then come
-            back and sign in.
+            back and sign in. Can't find it? Check your spam folder, or send it again below.
           </Text>
+          {note ? <Text style={[styles.copy, { color: note.error ? colors.danger : colors.confirm }]}>{note.text}</Text> : null}
         </View>
       </View>
 
       <View style={styles.footer}>
         <Button title="I've confirmed, sign in" onPress={onGoToSignIn} />
+        <Button
+          title={cooldown > 0 ? `Send it again in ${cooldown}s` : 'Send the email again'}
+          variant="outline"
+          onPress={handleResend}
+          disabled={cooldown > 0 || resending}
+          loading={resending}
+        />
       </View>
     </SafeAreaView>
   );
@@ -90,6 +126,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     copy: { fontSize: fontSizes.md, lineHeight: 23, color: colors.inkMuted, fontFamily: fonts.regular },
     email: { fontFamily: fonts.bold, color: colors.ink },
 
-    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg },
+    footer: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.lg, gap: spacing.md },
   });
 }

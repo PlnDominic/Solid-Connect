@@ -279,7 +279,11 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
               action={filtersActive ? { label: 'Clear filters', onPress: clearFilters } : undefined}
             />
           ) : (
-            <EmptyState title="No providers yet" subtitle="Check back soon - new providers are joining Solid Connect." />
+            <EmptyState
+              title="No providers yet"
+              subtitle="New providers are joining Solid Connect. Post a job and the right ones will come to you."
+              action={{ label: 'Post a job', onPress: () => navigation.navigate('PostJob') }}
+            />
           )
         }
         ListFooterComponent={

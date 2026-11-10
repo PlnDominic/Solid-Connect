@@ -48,7 +48,7 @@ export function SignUpPhoneScreen({
       totalSteps={totalSteps}
       activeIndex={activeIndex}
       title="What's your phone number?"
-      subtitle="Providers and customers use this to reach you about a job. No OTP for now - that's coming before launch."
+      subtitle="We only share your number with the person you're working with, once a job is agreed."
       value={value}
       onChangeValue={(v) => {
         setDupError(null);

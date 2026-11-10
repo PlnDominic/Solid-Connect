@@ -26,6 +26,17 @@ const isExpoGo =
  * Supabase Site URL must stay an https:// URL (e.g. your project URL).
  * Put deep links only under Additional Redirect URLs.
  */
+/** Sends the sign-up confirmation email again (it may have gone to spam or
+ * not arrived). Uses the same return address as the original email. */
+export async function resendConfirmationEmail(email: string): Promise<void> {
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email: email.trim(),
+    options: { emailRedirectTo: getOAuthRedirectUrl() },
+  });
+  if (error) throw error;
+}
+
 function getOAuthRedirectUrl(): string {
   if (isExpoGo) {
     return makeRedirectUri({

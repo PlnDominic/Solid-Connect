@@ -15,6 +15,7 @@ import {
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { linking } from './src/navigation/linking';
 import { BiometricLockGate } from './src/components/BiometricLockGate';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { JobReminderSync } from './src/components/JobReminderSync';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { LocaleProvider } from './src/i18n';
@@ -46,13 +47,15 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <LocaleProvider>
           <ThemeProvider>
-            <BiometricLockGate>
-              <NavigationContainer linking={linking}>
-                <RootNavigator />
-              </NavigationContainer>
-              <OfflineBanner />
-              <JobReminderSync />
-            </BiometricLockGate>
+            <ErrorBoundary>
+              <BiometricLockGate>
+                <NavigationContainer linking={linking}>
+                  <RootNavigator />
+                </NavigationContainer>
+                <OfflineBanner />
+                <JobReminderSync />
+              </BiometricLockGate>
+            </ErrorBoundary>
           </ThemeProvider>
         </LocaleProvider>
       </QueryClientProvider>

@@ -494,7 +494,12 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           </View>
         ) : filteredProviders.length === 0 ? (
           <View style={styles.filterEmpty}>
-            <Text style={styles.filterEmptyText}>No providers match this filter right now.</Text>
+            <Text style={styles.filterEmptyText}>
+              {providers.length ? 'No providers match this filter right now.' : 'No providers have joined near you yet.'}
+            </Text>
+            <Pressable onPress={() => navigation.navigate('PostJob')} hitSlop={8} accessibilityRole="button">
+              <Text style={styles.seeAll}>Post a job and let providers come to you</Text>
+            </Pressable>
           </View>
         ) : (
           <View style={styles.providerGrid}>
@@ -692,7 +697,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       backgroundColor: colors.card,
       borderRadius: radii.lg,
       paddingVertical: spacing.xxl,
+      paddingHorizontal: spacing.lg,
       alignItems: 'center',
+      gap: spacing.md,
       ...shadow.card,
     },
     filterEmptyText: { color: colors.inkMuted, fontSize: fontSizes.sm, fontFamily: fonts.medium },

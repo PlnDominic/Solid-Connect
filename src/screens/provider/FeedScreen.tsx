@@ -27,6 +27,9 @@ import { fetchProviderCategories, type ProviderCategoryRow } from '../../api/ide
 import { coordsForLabel, distanceBetweenLabelsKm } from '../../api/location';
 import { useDismissOpportunity, useFeedRequests, useSendQuote } from '../../api/requests';
 import { useMyAvailabilityMode, type AvailabilityMode } from '../../hooks/useMyAvailabilityMode';
+import { useMyAvailability } from '../../api/location';
+import { usePortfolioPhotos } from '../../api/portfolio';
+import { providerSetupItems, type SetupKey } from '../../lib/providerSetup';
 import type { FeedItem } from '../../api/requests';
 import { useProviderJobs } from '../../api/jobs';
 import { formatJobPostBudget, formatJobPostStart, postedAgo, useJobBoard, useMyJobPostInterests } from '../../api/jobPosts';
@@ -40,6 +43,7 @@ import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { FilterChips, type FilterOption } from '../../components/FilterChips';
+import { ProviderSetupCard } from '../../components/ProviderSetupCard';
 import { PromoBanner } from '../../components/PromoBanner';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
@@ -68,6 +72,7 @@ function timeAgo(iso: string) {
 function availabilityBanner(
   mode: AvailabilityMode | null,
   colors: ReturnType<typeof useTheme>['colors'],
+  weeklyDays = 1,
 ): { title: string; detail: string; accent: string; icon: LucideIcon; live: boolean } {
   switch (mode) {
     case 'AVAILABLE_NOW':
@@ -77,6 +82,10 @@ function availabilityBanner(
     case 'PAUSED':
       return { title: 'Your profile is paused', detail: 'You are hidden from new customers.', accent: colors.pending, icon: Pause, live: false };
     case 'SCHEDULE':
+      // On schedule with no hours set means never available: say so.
+      if (weeklyDays === 0) {
+        return { title: 'Add your working hours', detail: 'You are on schedule mode with no hours, so customers cannot book you.', accent: colors.pending, icon: CalendarClock, live: false };
+      }
       return { title: 'On your schedule', detail: 'Available during the hours you set.', accent: colors.active, icon: CalendarClock, live: false };
     default:
       return { title: 'Set your availability', detail: 'Tell customers when you can work.', accent: colors.active, icon: SlidersHorizontal, live: false };
@@ -103,7 +112,21 @@ export function FeedScreen({ navigation }: { navigation: any }) {
   );
   const { data: jobs = [], refetch: refetchJobs } = useProviderJobs(profile?.id ?? null);
   const availabilityMode = useMyAvailabilityMode();
-  const availability = availabilityBanner(availabilityMode, colors);
+  const { data: myAvailability } = useMyAvailability();
+  const weeklyDays = myAvailability?.weekly ? new Set(myAvailability.weekly.map((w) => w.day_of_week)).size : undefined;
+  const availability = availabilityBanner(availabilityMode, colors, weeklyDays ?? 1);
+  const { data: portfolio } = usePortfolioPhotos(profile?.id ?? null);
+  const setupItems = providerSetupItems({
+    hasServices: !!profile?.provider_category?.trim(),
+    weeklyDays: weeklyDays ?? 1, // do not nag while the hours are still loading
+    verified: !!profile?.provider_verified,
+    verificationLevel: profile?.verification_level ?? null,
+    portfolioCount: portfolio?.length ?? 1, // same: assume done until we know
+  });
+  const openSetup = (key: SetupKey) =>
+    navigation.navigate('ProfileTab', {
+      screen: key === 'services' ? 'EditProfile' : key === 'hours' ? 'Availability' : key === 'verify' ? 'Verification' : 'Portfolio',
+    });
   const sendQuote = useSendQuote();
   const { data: boardPosts = [], isLoading: boardLoading, refetch: refetchBoard } = useJobBoard(profile?.id ?? null);
   const { data: myInterests, refetch: refetchInterests } = useMyJobPostInterests(profile?.id ?? null);
@@ -319,6 +342,8 @@ export function FeedScreen({ navigation }: { navigation: any }) {
           pulse={availability.live}
           onPress={() => navigation.navigate('ProfileTab', { screen: 'Availability' })}
         />
+
+        <ProviderSetupCard items={setupItems} onOpen={openSetup} />
 
         <FilterChips
           options={viewOptions}

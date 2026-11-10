@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { budgetAllowed, budgetStatus } from '../../lib/budget';
 import { ImagePlus, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
@@ -95,10 +96,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
 
   const band = bandFor(category);
   const budget = parseInt(budgetText.replace(/[^\d]/g, ''), 10);
-  const budgetValid = Boolean(budget) && budget >= band.min && budget <= band.max;
+  const budgetState = budgetStatus(budget, band, budgetText.length > 0);
+  const budgetValid = budgetAllowed(budgetState);
   // Dynamic validation per entering-data.md: surface the problem the
   // moment it's true, rather than only after Continue is tapped.
   const budgetOutOfRange = budgetText.length > 0 && !budgetValid;
+  const budgetAboveUsual = budgetState === 'above';
   // Providers quote from this text, so it has to describe this job - never
   // fall back to the sample sentence in the placeholder.
   const descriptionLength = description.trim().length;
@@ -331,7 +334,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           <>
             <Question
               title="What's your budget?"
-              subtitle={`Most ${tradeName ? tradeName + ' ' : ''}jobs cost between GHS ${band.min} and GHS ${band.max}.`}
+              subtitle={`Most ${tradeName ? tradeName + ' ' : ''}jobs cost between GHS ${band.min} and GHS ${band.max}. A bigger job is fine too.`}
               styles={styles}
             />
             <View style={styles.section}>
@@ -356,9 +359,13 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
                 />
               </View>
               <Text style={[styles.hint, budgetOutOfRange && styles.hintError]}>
-                {budgetOutOfRange
-                  ? `Enter an amount between GHS ${band.min} and GHS ${band.max}.`
-                  : 'Providers can quote above or below this. You choose who to hire.'}
+                {budgetState === 'below'
+                  ? `Providers rarely take ${tradeName ? tradeName + ' ' : ''}jobs under GHS ${band.min}. Enter GHS ${band.min} or more.`
+                  : budgetState === 'invalid'
+                    ? 'Enter a whole amount in Ghana cedis.'
+                    : budgetAboveUsual
+                      ? `That is above the usual GHS ${band.min} to ${band.max}, which is fine for a bigger job. Providers will quote what it needs.`
+                      : 'Providers can quote above or below this. You choose who to hire.'}
               </Text>
             </View>
           </>
