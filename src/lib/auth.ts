@@ -62,7 +62,16 @@ export async function getCurrentUserId(): Promise<string | null> {
     await supabase.auth.signOut();
     return null;
   }
-  const { data: profile } = await supabase.from('profiles').select('suspended_at, suspended_reason').eq('id', user.id).maybeSingle();
+  // The reason is not publicly readable (0089): ask for your own. An older
+  // database that does not have the function yet still has the column.
+  let profile: { suspended_at: string | null; suspended_reason: string | null } | null = null;
+  const rpc = await supabase.rpc('my_suspension');
+  if (!rpc.error) {
+    profile = ((rpc.data ?? [])[0] as typeof profile | undefined) ?? null;
+  } else if (rpc.error.code === 'PGRST202') {
+    const { data } = await supabase.from('profiles').select('suspended_at, suspended_reason').eq('id', user.id).maybeSingle();
+    profile = data;
+  }
   if (profile?.suspended_at) {
     await supabase.auth.signOut();
     throw new Error(

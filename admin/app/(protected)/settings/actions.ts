@@ -32,6 +32,29 @@ export async function updatePlatformSettings(formData: FormData): Promise<void> 
   revalidatePath('/settings');
 }
 
+/** Owner-only: turns the provider subscription requirement on or off. While it
+ * is off every provider can quote freely; when it is on, a provider whose free
+ * job is used needs an active subscription to quote or accept direct requests
+ * (enforced in the database, migration 0088). Turn it on only once providers
+ * have a working way to pay. */
+export async function updateSubscriptionRequired(formData: FormData): Promise<void> {
+  const owner = await requireOwner();
+  if (!owner) return;
+
+  const required = String(formData.get('subscription_required')) === 'on';
+  const { error } = await createAdminClient()
+    .from('platform_config')
+    .update({ subscription_required: required, updated_at: new Date().toISOString(), updated_by: owner.id })
+    .eq('id', true);
+  assertOk(error, 'Updating the subscription setting');
+
+  await logAdminAction(owner, 'UPDATED_SUBSCRIPTION_REQUIRED', {
+    targetType: 'platform_config',
+    note: required ? 'Subscription now required' : 'Subscription no longer required',
+  });
+  revalidatePath('/settings');
+}
+
 /**
  * Physically deletes the storage objects run_data_retention_cleanup()
  * (0035) queued but couldn't delete itself - Supabase's storage.

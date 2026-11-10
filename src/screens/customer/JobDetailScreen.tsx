@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { friendlyActionError } from '../../api/quotes';
 import { ratingLabel } from '../../lib/rating';
 import { ChevronLeft, MapPin, MessageCircle, Phone, ShieldAlert, Siren, Star } from 'lucide-react-native';
 import { Alert, Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
@@ -53,7 +54,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     try {
       await confirmCompletion.mutateAsync(job);
     } catch (e: unknown) {
-      setConfirmError(e instanceof Error ? e.message : 'Could not confirm completion. Please try again.');
+      setConfirmError(friendlyActionError(e, 'Could not confirm completion. Please try again.'));
       return;
     }
     setShowConfirm(false);

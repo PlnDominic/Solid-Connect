@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useSignedUrls } from '../../lib/storageUrls';
 import { ratingLabel } from '../../lib/rating';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronRight, Eye, EyeOff, LocateFixed, MapPin, ShieldCheck, Star, X } from 'lucide-react-native';
@@ -88,6 +89,17 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
   );
 
   const providers = role === 'customer' ? providersQuery.data ?? [] : [];
+  // Request photos are private, so the thumbnails on the map need signed links.
+  const firstPhotos = useMemo(
+    () => (role === 'provider' ? [...new Set(feed.map((r) => r.photos?.[0]).filter((u): u is string => !!u))] : []),
+    [role, feed],
+  );
+  const signedFirstPhotos = useSignedUrls(firstPhotos);
+  const signedByOriginal = useMemo(() => {
+    const map = new Map<string, string>();
+    if (signedFirstPhotos.length === firstPhotos.length) firstPhotos.forEach((u, i) => map.set(u, signedFirstPhotos[i]));
+    return map;
+  }, [firstPhotos, signedFirstPhotos]);
   const requestPins = useMemo(() => {
     if (role !== 'provider') return [] as Array<{ pin: Pin; request: FeedItem }>;
     const out: Array<{ pin: Pin; request: FeedItem }> = [];
@@ -111,13 +123,13 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
           label: budgetLabel ?? service,
           title: service,
           subtitle,
-          photoUrl: r.photos?.[0] ?? null,
+          photoUrl: r.photos?.[0] ? (signedByOriginal.get(r.photos[0]) ?? null) : null,
           badge: initialsOf(service),
         },
       });
     }
     return out;
-  }, [role, feed]);
+  }, [role, feed, signedByOriginal]);
 
   const pins = useMemo(() => {
     const list: Pin[] =

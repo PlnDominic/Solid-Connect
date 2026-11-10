@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useSignedUrl } from '../lib/storageUrls';
 import { Pause, Play } from 'lucide-react-native';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
@@ -23,7 +24,8 @@ export function VoiceNoteBubble({
   isMine: boolean;
 }) {
   const { colors } = useTheme();
-  const player = useAudioPlayer(audioUrl);
+  const signedAudioUrl = useSignedUrl(audioUrl);
+  const player = useAudioPlayer(signedAudioUrl);
   const status = useAudioPlayerStatus(player);
 
   const isPlaying = Boolean(status?.playing);

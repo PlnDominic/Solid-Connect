@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SecureImage } from '../../components/SecureImage';
 import { Camera, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
@@ -141,7 +142,7 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
             <View style={styles.photoRow}>
               {existingPhotos.map((url) => (
                 <View key={url} style={styles.photoWrap}>
-                  <Image source={{ uri: url }} style={styles.photo} />
+                  <SecureImage uri={url} style={styles.photo} />
                   <Pressable
                     hitSlop={10}
                     style={styles.photoRemove}

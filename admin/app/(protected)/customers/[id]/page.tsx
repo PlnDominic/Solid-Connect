@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { readSuspensionReason } from '../../../../lib/storage';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
 import { contactsFor } from '../../../../lib/phones';
@@ -21,11 +22,12 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
 
   const { data: customer } = await supabase
     .from('profiles')
-    .select('id, full_name, initials, area, created_at, suspended_at, suspended_reason')
+    .select('id, full_name, initials, area, created_at, suspended_at')
     .eq('id', id)
     .eq('role', 'customer')
     .maybeSingle();
   if (!customer) notFound();
+  const suspendedReason = customer.suspended_at ? await readSuspensionReason(customer.id) : null;
   const contact = (await contactsFor(supabase, [customer.id]))[customer.id];
 
   const [{ data: jobs }, { data: disputes }, { data: reviews }] = await Promise.all([
@@ -116,7 +118,7 @@ export default async function CustomerDetailPage({ params }: { params: Promise<{
             id={customer.id}
             redirectPath={`/customers/${customer.id}`}
             suspendedAt={customer.suspended_at}
-            suspendedReason={customer.suspended_reason}
+            suspendedReason={suspendedReason}
           />
         </aside>
       </div>

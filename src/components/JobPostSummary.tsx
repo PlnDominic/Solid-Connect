@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useSignedUrls } from '../lib/storageUrls';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CalendarDays, MapPin, Users, Wallet } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
@@ -9,6 +10,7 @@ import { useTheme } from '../theme/ThemeProvider';
 /** The body of a job post, shared by the customer's and the provider's view. */
 export function JobPostSummary({ post, aside }: { post: JobPost; aside?: ReactNode }) {
   const { colors } = useTheme();
+  const photoUrls = useSignedUrls(post.photos);
   const styles = makeStyles(colors);
   return (
     <View style={styles.card}>
@@ -34,9 +36,9 @@ export function JobPostSummary({ post, aside }: { post: JobPost; aside?: ReactNo
 
       <Text style={styles.description}>{post.description}</Text>
 
-      {post.photos.length ? (
+      {photoUrls.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photos}>
-          {post.photos.map((uri) => (
+          {photoUrls.map((uri) => (
             <Image key={uri} source={{ uri }} style={styles.photo} accessibilityLabel="Job photo" />
           ))}
         </ScrollView>

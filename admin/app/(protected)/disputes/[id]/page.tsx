@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { signPrivateUrls } from '../../../../lib/storage';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
 import { getJobActivity } from '../../../../lib/jobActivity';
@@ -61,7 +62,7 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
     }))
     .filter((e): e is { id: string; url: string; side: string } => !!e.url);
 
-  const photos = request?.photos ?? [];
+  const photos = ((await signPrivateUrls(request?.photos ?? [])).filter(Boolean)) as string[];
   const resolve = resolveDispute.bind(null, dispute.id);
 
   return (

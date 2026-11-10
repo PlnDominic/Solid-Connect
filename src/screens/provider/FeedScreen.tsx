@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { friendlyActionError } from '../../api/quotes';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
   Ban,
@@ -226,7 +227,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
       setQuoteTargetId(null);
       setQuotePrice('');
     } catch (e: any) {
-      setQuoteError(e?.message ?? 'Could not send that quote. Please try again.');
+      setQuoteError(friendlyActionError(e, 'Could not send that quote. Please try again.'));
     }
   }
 

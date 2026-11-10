@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createServerSupabase } from '../../../lib/supabase';
 import { SettingsClient } from './SettingsClient';
-import { purgeStorageQueue, updatePlatformSettings } from './actions';
+import { purgeStorageQueue, updatePlatformSettings, updateSubscriptionRequired } from './actions';
 
 const DEFAULT_SUPPORT_EMAIL = 'support@solidconnect.co';
 
@@ -23,7 +23,7 @@ export default async function SettingsPage() {
   // silently does nothing.
   const [{ data: me }, { data: config }, { count: pendingPurgeCount }, { count: teamCount }] = await Promise.all([
     supabase.from('admins').select('email, role, disabled_at, created_at').eq('id', user?.id ?? '').maybeSingle(),
-    supabase.from('platform_config').select('support_email').eq('id', true).maybeSingle(),
+    supabase.from('platform_config').select('support_email, subscription_required').eq('id', true).maybeSingle(),
     supabase.from('storage_purge_queue').select('id', { count: 'exact', head: true }).is('purged_at', null),
     supabase.from('admins').select('id', { count: 'exact', head: true }).is('disabled_at', null),
   ]);
@@ -63,6 +63,31 @@ export default async function SettingsPage() {
                 />
               </div>
               <button className="btn" style={{ alignSelf: 'start' }}>Save</button>
+            </form>
+          </div>
+        )}
+
+        {isOwner && (
+          <div className="chart-panel">
+            <div className="chart-panel-header">
+              <h3>Provider subscription</h3>
+            </div>
+            <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginBottom: 16 }}>
+              When on, a provider whose free first job is used needs an active yearly subscription to send quotes or
+              accept direct requests. Only turn this on once providers can actually pay (the API and Hubtel are live).
+              Currently <strong>{config?.subscription_required ? 'required' : 'not required'}</strong>. Owner-only.
+            </p>
+            <form action={updateSubscriptionRequired} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <select
+                name="subscription_required"
+                defaultValue={config?.subscription_required ? 'on' : 'off'}
+                className="input"
+                style={{ width: 180 }}
+              >
+                <option value="off">Not required</option>
+                <option value="on">Required</option>
+              </select>
+              <button className="btn">Save</button>
             </form>
           </div>
         )}

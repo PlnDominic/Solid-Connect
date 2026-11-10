@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { friendlyActionError } from '../../api/quotes';
+import { useSignedUrls } from '../../lib/storageUrls';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { Plus, X } from 'lucide-react-native';
 import { friendlyQuoteError, useMyQuote, useRespondToCounter, useReviseQuote } from '../../api/quotes';
@@ -48,6 +50,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
   const [rejectReason, setRejectReason] = useState('');
   const [showReject, setShowReject] = useState(false);
   const imageViewer = useImageViewer();
+  const photoUrls = useSignedUrls(request?.photos);
 
   // Editing an already-sent quote starts from what was sent.
   // Keyed on the revision, so a change that bumps it (e.g. accepting a
@@ -142,7 +145,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
         navigation.navigate('Feed');
       }
     } catch (e: any) {
-      Alert.alert('Could not accept', e?.message ?? 'Try again.');
+      Alert.alert('Could not accept', friendlyActionError(e, 'Try again.'));
     }
   }
 
@@ -155,7 +158,7 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
       await rejectDirect.mutateAsync({ requestId, reason: rejectReason.trim() });
       navigation.navigate('Feed');
     } catch (e: any) {
-      Alert.alert('Could not decline', e?.message ?? 'Try again.');
+      Alert.alert('Could not decline', friendlyActionError(e, 'Try again.'));
     }
   }
 
@@ -179,14 +182,14 @@ export function RequestDetailScreen({ navigation, route }: { navigation: any; ro
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Job details</Text>
           <Text style={styles.desc}>{request.description}</Text>
-          {request.photos?.length ? (
+          {photoUrls.length ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photoRow}>
-              {request.photos.map((uri, i) => (
+              {photoUrls.map((uri, i) => (
                 <Pressable
                   key={uri}
-                  onPress={() => imageViewer.open(request.photos, i)}
+                  onPress={() => imageViewer.open(photoUrls, i)}
                   accessibilityRole="imagebutton"
-                  accessibilityLabel={`Job photo ${i + 1} of ${request.photos.length}`}
+                  accessibilityLabel={`Job photo ${i + 1} of ${photoUrls.length}`}
                 >
                   <Image source={{ uri }} style={styles.photo} />
                 </Pressable>

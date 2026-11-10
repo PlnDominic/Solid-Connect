@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { signPrivateUrls } from '../../../../lib/storage';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
 
@@ -50,7 +51,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   const providerMap = Object.fromEntries((providers ?? []).map((p) => [p.id, p.full_name]));
 
   const budget = request.customer_budget ?? request.budget_max ?? request.budget_min;
-  const photos = (request.photos ?? []) as string[];
+  const photos = ((await signPrivateUrls((request.photos ?? []) as string[])).filter(Boolean)) as string[];
 
   return (
     <>

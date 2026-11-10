@@ -60,7 +60,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "sync-leaflet": "node scripts/sync-leaflet.mjs",
-    "test:rls": "node supabase/tests/lockdown.test.mjs && node supabase/tests/job-posts.test.mjs && node supabase/tests/no-payments.test.mjs && node supabase/tests/real-ratings.test.mjs && node supabase/tests/availability.test.mjs",
+    "test:rls": "node supabase/tests/lockdown.test.mjs && node supabase/tests/job-posts.test.mjs && node supabase/tests/no-payments.test.mjs && node supabase/tests/real-ratings.test.mjs && node supabase/tests/availability.test.mjs && node supabase/tests/hardening.test.mjs && node supabase/tests/private-media.test.mjs",
     "test": "jest"
   },
   "private": true,

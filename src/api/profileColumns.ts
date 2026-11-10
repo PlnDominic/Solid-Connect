@@ -13,7 +13,7 @@ import type { Profile } from '../types/database';
  * Add new profiles columns here once their migration grants them.
  */
 export const PROFILE_COLUMNS =
-  'id,role,full_name,initials,area,is_seed,provider_category,provider_rating,provider_jobs_count,provider_distance_km,provider_verified,provider_certified,created_at,push_permission_status,photo_url,tagline,verification_level,location,availability_mode,suspended_at,suspended_reason,suspended_by,terms_accepted_at,terms_version,notification_prefs,customer_rating,customer_reviews_count';
+  'id,role,full_name,initials,area,is_seed,provider_category,provider_rating,provider_jobs_count,provider_distance_km,provider_verified,provider_certified,created_at,push_permission_status,photo_url,tagline,verification_level,location,availability_mode,suspended_at,terms_accepted_at,terms_version,notification_prefs,customer_rating,customer_reviews_count';
 
 /** A profiles row read with PROFILE_COLUMNS, typed as a Profile whose
  * phone is unknown (null) - use contact_phone() when a number is needed. */

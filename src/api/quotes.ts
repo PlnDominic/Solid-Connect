@@ -15,13 +15,30 @@ const ERROR_COPY: Record<string, string> = {
   COUNTER_DECLINED: 'The provider declined your counter-offer. You can accept the quote or decline it.',
   NO_COUNTER: 'There is no counter-offer to answer.',
   FORBIDDEN: 'You are not part of this quote.',
+  SUBSCRIPTION_REQUIRED: 'Your free job is used. Subscribe to keep taking new work.',
+  REVIEW_NOT_ALLOWED: 'You can only review a completed job you took part in.',
+  CANNOT_ACCEPT_OWN_QUOTE: 'You cannot accept your own quote.',
+  CANNOT_ACCEPT_OWN_REQUEST: 'You cannot accept your own request.',
+  JOB_DISPUTED: 'This job has an open dispute. It can be confirmed once Solid Connect resolves it.',
+  'row-level security': "You can't quote on this request. It may be yours, closed, or sent to another provider.",
 };
 
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : typeof err === 'object' && err && 'message' in err ? String((err as { message: unknown }).message) : '';
+}
+
 export function friendlyQuoteError(err: unknown): string {
-  const message =
-    err instanceof Error ? err.message : typeof err === 'object' && err && 'message' in err ? String((err as { message: unknown }).message) : '';
+  const message = errorMessage(err);
   const code = Object.keys(ERROR_COPY).find((c) => message.includes(c));
   return code ? ERROR_COPY[code] : 'Something went wrong. Please try again.';
+}
+
+/** For other actions (accepting, reviewing, confirming): plain words for the
+ * rules the database enforces, otherwise the caller's own fallback. */
+export function friendlyActionError(err: unknown, fallback: string): string {
+  const message = errorMessage(err);
+  const code = Object.keys(ERROR_COPY).find((c) => message.includes(c));
+  return code ? ERROR_COPY[code] : message || fallback;
 }
 
 /** Every screen showing quotes reads them from one of these caches. */

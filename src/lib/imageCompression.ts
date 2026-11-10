@@ -19,8 +19,9 @@ const COMPRESS = 0.72;
 
 /**
  * Compresses and resizes one image URI, returning a new local file URI.
- * Falls back to the original URI if manipulation fails (e.g. unsupported
- * format) - an uncompressed upload beats a broken one.
+ * Re-encoding also drops the photo's hidden metadata (including GPS
+ * coordinates). If that fails the upload is refused rather than sending the
+ * untouched original, which would carry the location data.
  */
 export async function compressImage(imageUri: string): Promise<string> {
   try {
@@ -43,6 +44,6 @@ export async function compressImage(imageUri: string): Promise<string> {
     });
     return saved.uri;
   } catch {
-    return imageUri;
+    throw new Error('We could not prepare that photo. Please choose a different one.');
   }
 }

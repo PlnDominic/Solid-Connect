@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { readSuspensionReason } from '../../../../lib/storage';
 import { notFound } from 'next/navigation';
 import { createServerSupabase } from '../../../../lib/supabase';
 import { contactsFor } from '../../../../lib/phones';
@@ -21,11 +22,12 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
 
   const { data: provider } = await supabase
     .from('profiles')
-    .select('id, full_name, initials, area, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, verification_level, availability_mode, created_at, tagline, suspended_at, suspended_reason')
+    .select('id, full_name, initials, area, provider_category, provider_rating, provider_jobs_count, provider_verified, provider_certified, verification_level, availability_mode, created_at, tagline, suspended_at')
     .eq('id', id)
     .eq('role', 'provider')
     .maybeSingle();
   if (!provider) notFound();
+  const suspendedReason = provider.suspended_at ? await readSuspensionReason(provider.id) : null;
   const contact = (await contactsFor(supabase, [provider.id]))[provider.id];
 
   const [
@@ -156,7 +158,7 @@ export default async function ProviderDetailPage({ params }: { params: Promise<{
             id={provider.id}
             redirectPath={`/providers/${provider.id}`}
             suspendedAt={provider.suspended_at}
-            suspendedReason={provider.suspended_reason}
+            suspendedReason={suspendedReason}
           />
         </aside>
       </div>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { friendlyActionError } from '../../api/quotes';
 import { Star } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, TextInput, StyleSheet } from 'react-native';
 import { useJob } from '../../api/jobs';
@@ -33,7 +34,7 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
     try {
       await submitReview.mutateAsync({ jobId: job.id, providerId: job.provider_id, customerId: profile.id, rating, comment });
     } catch (e: unknown) {
-      Alert.alert('Could not send your rating', e instanceof Error ? e.message : 'Please try again.');
+      Alert.alert('Could not send your rating', friendlyActionError(e, 'Please try again.'));
       return;
     }
     navigation.navigate('ActivityHome');

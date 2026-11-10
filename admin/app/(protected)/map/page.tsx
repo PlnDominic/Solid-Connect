@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { signPrivateUrls } from '../../../lib/storage';
 import { createAdminClient, requireAdmin } from '../../../lib/admin';
 import { placeProvider, placeRequest } from '../../../lib/mapPoints';
 import { ErrorBanner } from '../../components/ErrorBanner';
@@ -78,6 +79,10 @@ export default async function MapPage() {
 
   const requests: MapRequest[] = [];
   let unplacedRequests = 0;
+  const signedFirstPhotos = await signPrivateUrls(
+    requestRows.map((r) => (Array.isArray(r.photos) && typeof r.photos[0] === 'string' ? (r.photos[0] as string) : null)),
+  );
+  const signedPhotoById = new Map(requestRows.map((r, i) => [r.id as string, signedFirstPhotos[i]]));
   for (const r of requestRows) {
     const at = placeRequest(r);
     if (!at) { unplacedRequests++; continue; }
@@ -91,7 +96,7 @@ export default async function MapPage() {
       mode: r.request_mode ?? 'GENERAL',
       budget: r.customer_budget ?? r.budget_min ?? null,
       budgetMax: r.customer_budget == null ? r.budget_max ?? null : null,
-      photoUrl: Array.isArray(r.photos) && typeof r.photos[0] === 'string' ? r.photos[0] : null,
+      photoUrl: signedPhotoById.get(r.id as string) ?? null,
       createdAt: r.created_at,
       customerName: customerName.get(r.customer_id) ?? null,
       lat: at.lat,

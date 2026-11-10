@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SecureImage } from '../../components/SecureImage';
 import { ArrowUp, Check, CheckCheck, ChevronLeft, ImagePlus, MoreVertical, Phone } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Linking from 'expo-linking';
@@ -240,7 +241,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
               <View style={{ flexDirection: 'row', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
                 <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs, item.image_url && styles.bubbleImageWrap]}>
                   {item.image_url ? (
-                    <Image source={{ uri: item.image_url }} style={styles.bubbleImage} resizeMode="cover" />
+                    <SecureImage uri={item.image_url} style={styles.bubbleImage} resizeMode="cover" />
                   ) : null}
                   {item.audio_url ? (
                     <VoiceNoteBubble
