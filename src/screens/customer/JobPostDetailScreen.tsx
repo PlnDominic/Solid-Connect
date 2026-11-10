@@ -1,6 +1,9 @@
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CheckCircle2, ShieldCheck, Star, Users } from 'lucide-react-native';
 import {
+  expiryLabel,
+  isPostExpired,
+  isPostOpen,
   useDeleteJobPost,
   useJobPost,
   useJobPostInterests,
@@ -50,38 +53,33 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
     );
   }
 
-  const badge = statusBadge(post, colors);
+  const expired = isPostExpired(post);
+  const badge = expired
+    ? { label: 'Expired', bg: colors.paperDim, fg: colors.inkMuted }
+    : statusBadge(post, colors);
+  const expiry = expiryLabel(post);
+  const open = isPostOpen(post);
   const currentPost = post;
 
   function hire(interest: JobPostInterestWithProvider) {
     const name = interest.provider?.full_name ?? 'this provider';
     Alert.alert(
       `Hire ${name}?`,
-      `We'll start a direct request to ${name} with your job details, and your post will stop taking new interest.`,
+      `We'll open a direct request to ${name} with your job details. Your post is marked hired once you send it.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Continue',
-          onPress: async () => {
-            try {
-              await setInterestStatus.mutateAsync({ interestId: interest.id, postId: currentPost.id, status: 'hired' });
-              await setPostStatus.mutateAsync({
-                postId: currentPost.id,
-                status: 'hired',
-                hiredProviderId: interest.provider_id,
-              });
-            } catch (e: any) {
-              Alert.alert('Could not update the post', e?.message ?? 'Please try again.');
-              return;
-            }
+          onPress: () =>
             navigation.navigate('NewRequest', {
               preferredProviderId: interest.provider_id,
               preferredProviderName: interest.provider?.full_name,
               initialCategoryId: currentPost.category_id ?? undefined,
               initialCategoryName: currentPost.category_label,
               initialDescription: `${currentPost.title}. ${currentPost.description}`.slice(0, 1000),
-            });
-          },
+              jobPostId: currentPost.id,
+              jobPostInterestId: interest.id,
+            }),
         },
       ],
     );
@@ -100,7 +98,9 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
   }
 
   function closeOrReopen() {
-    const next = currentPost.status === 'open' ? 'closed' : 'open';
+    // An expired post is still 'open' in the database: closing it would do
+    // nothing useful, so the button reposts it instead.
+    const next = isPostOpen(currentPost) ? 'closed' : 'open';
     setPostStatus.mutate(
       { postId: currentPost.id, status: next, ...(next === 'open' ? { hiredProviderId: null } : {}) },
       { onError: (e: any) => Alert.alert('Could not update the post', e?.message ?? 'Please try again.') },
@@ -132,7 +132,7 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
     <Screen bg={colors.paperDim}>
       <ScreenHeader title="Job post" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
-        {justPosted && post.status === 'open' ? (
+        {justPosted && open ? (
           <View style={styles.liveBanner}>
             <CheckCircle2 size={20} strokeWidth={2.4} color={colors.confirm} />
             <View style={{ flex: 1 }}>
@@ -143,6 +143,7 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
         ) : null}
 
         <JobPostSummary post={post} aside={<Badge label={badge.label} bg={badge.bg} fg={badge.fg} />} />
+        {expiry ? <Text style={[styles.expiry, expired && styles.expiryOver]}>{expiry}</Text> : null}
 
         <View style={styles.sectionHeading}>
           <Text style={styles.sectionTitle}>Interested providers</Text>
@@ -156,7 +157,7 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
             icon={Users}
             title="No one yet"
             subtitle={
-              post.status === 'open'
+              open
                 ? 'Providers who want this job will show up here.'
                 : 'This post is not taking new interest.'
             }
@@ -166,7 +167,7 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
             <InterestCard
               key={i.id}
               interest={i}
-              canAct={post.status === 'open'}
+              canAct={open}
               onViewProfile={() => navigation.navigate('ProviderDetail', { providerId: i.provider_id })}
               onHire={() => hire(i)}
               onShortlist={() => toggleShortlist(i)}
@@ -179,7 +180,7 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
 
         <View style={styles.actions}>
           <Button
-            title={post.status === 'open' ? 'Close post' : 'Reopen post'}
+            title={open ? 'Close post' : expired ? 'Repost for 14 days' : 'Reopen post'}
             variant="outline"
             onPress={closeOrReopen}
             loading={setPostStatus.isPending}
@@ -304,6 +305,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
     },
     ghostLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
+    expiry: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted, textAlign: 'center', marginTop: -spacing.sm },
+    expiryOver: { color: colors.danger },
     declinedNote: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint, textAlign: 'center' },
     actions: { gap: spacing.sm, marginTop: spacing.md },
     deleteBtn: { alignSelf: 'center', paddingVertical: spacing.md },

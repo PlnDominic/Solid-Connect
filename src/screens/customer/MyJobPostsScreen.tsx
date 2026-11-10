@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ChevronRight, ClipboardList, Plus, Users } from 'lucide-react-native';
-import { formatJobPostBudget, postedAgo, useMyJobPosts, type JobPost } from '../../api/jobPosts';
+import { expiryLabel, formatJobPostBudget, isPostExpired, isPostOpen, postedAgo, useMyJobPosts, type JobPost } from '../../api/jobPosts';
 import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
 import { FilterChips, type FilterOption } from '../../components/FilterChips';
@@ -12,7 +12,8 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
-export function statusBadge(post: Pick<JobPost, 'status'>, colors: ReturnType<typeof useTheme>['colors']) {
+export function statusBadge(post: Pick<JobPost, 'status' | 'expires_at'>, colors: ReturnType<typeof useTheme>['colors']) {
+  if (isPostExpired(post)) return { label: 'Expired', bg: colors.paperDim, fg: colors.inkMuted };
   switch (post.status) {
     case 'open':
       return { label: 'Open', bg: colors.confirmBg, fg: colors.confirm };
@@ -35,16 +36,16 @@ export function MyJobPostsScreen({ navigation }: { navigation: any }) {
 
   const counts = useMemo(
     () => ({
-      open: posts.filter((p) => p.status === 'open').length,
-      done: posts.filter((p) => p.status !== 'open').length,
+      open: posts.filter((p) => isPostOpen(p)).length,
+      done: posts.filter((p) => !isPostOpen(p)).length,
     }),
     [posts],
   );
   const options: FilterOption[] = [
     { id: 'open', label: `Open (${counts.open})` },
-    { id: 'done', label: `Closed and hired (${counts.done})` },
+    { id: 'done', label: `Closed, hired and expired (${counts.done})` },
   ];
-  const visible = posts.filter((p) => (filter === 'open' ? p.status === 'open' : p.status !== 'open'));
+  const visible = posts.filter((p) => (filter === 'open' ? isPostOpen(p) : !isPostOpen(p)));
 
   return (
     <Screen bg={colors.paperDim}>
@@ -85,7 +86,7 @@ export function MyJobPostsScreen({ navigation }: { navigation: any }) {
             subtitle={
               filter === 'open'
                 ? 'Post a job and providers who want it will let you know.'
-                : 'Posts you close or hire from will move here.'
+                : 'Posts you close, hire from or that expire will move here.'
             }
             action={filter === 'open' ? { label: 'Post a Job', onPress: () => navigation.navigate('PostJob') } : undefined}
           />
@@ -108,6 +109,7 @@ export function MyJobPostsScreen({ navigation }: { navigation: any }) {
                   </View>
                   <Badge label={badge.label} bg={badge.bg} fg={badge.fg} />
                 </View>
+                {expiryLabel(p) ? <Text style={styles.cardMeta}>{expiryLabel(p)}</Text> : null}
                 <View style={styles.cardBottom}>
                   <Text style={styles.cardBudget}>{formatJobPostBudget(p)}</Text>
                   <View style={styles.interest}>

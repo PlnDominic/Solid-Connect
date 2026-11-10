@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, Switch, Text, View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -111,7 +111,15 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
                 return (
                   <Pressable
                     key={n.id}
-                    onPress={() => unread && markRead.mutate(n.id)}
+                    onPress={() => {
+                      if (unread) markRead.mutate(n.id);
+                      // Notifications that carry a deep link (job posts do)
+                      // open their screen through the app's linking config.
+                      const url = n.data?.url;
+                      if (typeof url === 'string' && url.startsWith('solidconnect://')) {
+                        Linking.openURL(url).catch(() => {});
+                      }
+                    }}
                     style={[styles.row, i < rows.length - 1 && styles.rowBorder]}
                   >
                     <View style={styles.dotSlot}>{unread ? <View style={styles.dot} /> : null}</View>

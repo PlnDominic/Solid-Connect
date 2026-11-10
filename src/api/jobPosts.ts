@@ -33,6 +33,8 @@ export interface JobPost {
   interest_count: number;
   created_at: string;
   updated_at: string;
+  /** Added in 0083. Older rows and old databases may not have it. */
+  expires_at?: string | null;
 }
 
 export interface JobPostInterest {
@@ -46,6 +48,28 @@ export interface JobPostInterest {
 }
 
 export type JobPostInterestWithProvider = JobPostInterest & { provider: Profile | null };
+
+/** Days a post stays on the board before it expires (also the repost length). */
+export const POST_LIFETIME_DAYS = 14;
+
+/** Open, and not past its expiry. This is what providers can still respond to. */
+export function isPostOpen(post: Pick<JobPost, 'status' | 'expires_at'>): boolean {
+  if (post.status !== 'open') return false;
+  return !post.expires_at || new Date(post.expires_at).getTime() > Date.now();
+}
+
+export function isPostExpired(post: Pick<JobPost, 'status' | 'expires_at'>): boolean {
+  return post.status === 'open' && !isPostOpen(post);
+}
+
+/** "Expires in 3 days", "Expires today" or "Expired". */
+export function expiryLabel(post: Pick<JobPost, 'status' | 'expires_at'>): string | null {
+  if (post.status !== 'open' || !post.expires_at) return null;
+  const ms = new Date(post.expires_at).getTime() - Date.now();
+  if (ms <= 0) return 'Expired';
+  const days = Math.ceil(ms / 86_400_000);
+  return days <= 1 ? 'Expires today' : `Expires in ${days} days`;
+}
 
 export type JobPostDraft = {
   categoryId: string;
@@ -144,6 +168,7 @@ export function useJobBoard(viewerId: string | null) {
         .from('job_posts')
         .select('*')
         .eq('status', 'open')
+        .gt('expires_at', new Date().toISOString())
         .neq('customer_id', viewerId as string)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -284,6 +309,8 @@ export function useSetJobPostStatus() {
         .update({
           status: input.status,
           ...(input.hiredProviderId !== undefined ? { hired_provider_id: input.hiredProviderId } : {}),
+          // Reopening (or reposting) starts a fresh lifetime.
+          ...(input.status === 'open' ? { expires_at: new Date(Date.now() + POST_LIFETIME_DAYS * 86_400_000).toISOString() } : {}),
         })
         .eq('id', input.postId);
       if (error) throw error;
@@ -365,4 +392,20 @@ export function useSetInterestStatus() {
     },
     onSuccess: (_d, input) => qc.invalidateQueries({ queryKey: KEYS.interests(input.postId) }),
   });
+}
+
+/** Called once the direct request to the chosen provider has actually been
+ * sent: only then is the post marked hired and its other interest closed
+ * out. Backing out of the request screen leaves the post untouched. */
+export async function completeJobPostHire(input: { postId: string; interestId: string; providerId: string }) {
+  const { error: interestError } = await supabase
+    .from('job_post_interests')
+    .update({ status: 'hired' })
+    .eq('id', input.interestId);
+  if (interestError) throw interestError;
+  const { error } = await supabase
+    .from('job_posts')
+    .update({ status: 'hired', hired_provider_id: input.providerId })
+    .eq('id', input.postId);
+  if (error) throw error;
 }

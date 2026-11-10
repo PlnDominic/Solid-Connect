@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CheckCircle2 } from 'lucide-react-native';
-import { useExpressInterest, useJobPost, useMyJobPostInterests, useWithdrawInterest } from '../../api/jobPosts';
+import { isPostExpired, isPostOpen, useExpressInterest, useJobPost, useMyJobPostInterests, useWithdrawInterest } from '../../api/jobPosts';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { JobPostSummary } from '../../components/JobPostSummary';
+import { ReportSheet } from '../../components/ReportSheet';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { haptics } from '../../lib/haptics';
@@ -27,6 +28,7 @@ export function JobPostScreen({ navigation, route }: { navigation: any; route: a
   const withdraw = useWithdrawInterest();
 
   const [editing, setEditing] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const [message, setMessage] = useState('');
   const [priceText, setPriceText] = useState('');
   const [focused, setFocused] = useState<string | null>(null);
@@ -97,7 +99,8 @@ export function JobPostScreen({ navigation, route }: { navigation: any; route: a
     );
   }
 
-  const showForm = post.status === 'open' && (!mine || editing);
+  const open = isPostOpen(post);
+  const showForm = open && (!mine || editing);
 
   return (
     <Screen bg={colors.paperDim}>
@@ -105,10 +108,12 @@ export function JobPostScreen({ navigation, route }: { navigation: any; route: a
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <JobPostSummary post={post} />
 
-        {post.status !== 'open' ? (
+        {!open ? (
           <View style={styles.notice}>
             <Text style={styles.noticeText}>
-              {post.status === 'hired'
+              {isPostExpired(post)
+                ? 'This post has expired and is no longer taking interest.'
+                : post.status === 'hired'
                 ? post.hired_provider_id === profile?.id
                   ? 'The customer chose you for this job. Look out for their direct request.'
                   : 'The customer has hired someone for this job.'
@@ -129,7 +134,7 @@ export function JobPostScreen({ navigation, route }: { navigation: any; route: a
             {mine.proposed_price ? (
               <Text style={styles.sentPrice}>Your price: GHS {Number(mine.proposed_price).toLocaleString()}</Text>
             ) : null}
-            {post.status === 'open' ? (
+            {open ? (
               <View style={styles.sentActions}>
                 <Pressable style={styles.ghostBtn} onPress={() => setEditing(true)} accessibilityRole="button">
                   <Text style={styles.ghostLabel}>Edit</Text>
@@ -193,7 +198,20 @@ export function JobPostScreen({ navigation, route }: { navigation: any; route: a
             ) : null}
           </View>
         ) : null}
+
+        <Pressable onPress={() => setReporting(true)} style={styles.reportBtn} accessibilityRole="button">
+          <Text style={styles.reportLabel}>Report this post</Text>
+        </Pressable>
       </ScrollView>
+
+      <ReportSheet
+        visible={reporting}
+        onClose={() => setReporting(false)}
+        reportedId={post.customer_id}
+        reportedName="this customer"
+        context="job_post"
+        jobPostId={post.id}
+      />
     </Screen>
   );
 }
@@ -252,6 +270,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     priceCurrency: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.inkFaint },
     priceInput: { flex: 1, fontSize: fontSizes.xl, fontFamily: fonts.mono, color: colors.ink, padding: 0 },
     error: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.semibold, color: colors.danger },
+    reportBtn: { alignSelf: 'center', paddingVertical: spacing.md },
+    reportLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkFaint, textDecorationLine: 'underline' },
     cancel: { alignSelf: 'center', paddingVertical: spacing.sm },
     cancelLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.inkMuted },
   });

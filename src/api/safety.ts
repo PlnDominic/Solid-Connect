@@ -9,7 +9,7 @@ export type ReportReason =
   | 'fake_profile'
   | 'copyright'
   | 'other';
-export type ReportContext = 'profile' | 'chat' | 'job';
+export type ReportContext = 'profile' | 'chat' | 'job' | 'job_post';
 
 export const REPORT_REASONS: { key: ReportReason; label: string; hint: string }[] = [
   { key: 'harassment', label: 'Harassment or abuse', hint: 'Insults, threats or unwanted contact' },
@@ -99,6 +99,7 @@ export function useReportUser(reporterId: string | null | undefined) {
       details?: string;
       jobId?: string | null;
       threadId?: string | null;
+      jobPostId?: string | null;
     }) => {
       const row = {
         reporter_id: reporterId as string,
@@ -109,7 +110,15 @@ export function useReportUser(reporterId: string | null | undefined) {
         job_id: input.jobId ?? null,
         thread_id: input.threadId ?? null,
       };
-      let { error } = await supabase.from('user_reports').insert(row);
+      const withPost = input.jobPostId ? { ...row, job_post_id: input.jobPostId } : row;
+      let { error } = await supabase.from('user_reports').insert(withPost);
+      // Until 0083 is applied the database has no job_post context or
+      // column; file it as a profile report that names the post, so it
+      // still reaches the admin queue.
+      if (error && input.jobPostId && (error.code === '23514' || error.code === 'PGRST204' || error.code === '42703')) {
+        const details = `[Job post ${input.jobPostId}] ${row.details}`.trim().slice(0, 1000);
+        ({ error } = await supabase.from('user_reports').insert({ ...row, context: 'profile', details }));
+      }
       // Until 0077 is applied the database only knows the older reasons
       // (check_violation); file a copyright report as "other", labelled in
       // the details, so it still reaches the admin queue.

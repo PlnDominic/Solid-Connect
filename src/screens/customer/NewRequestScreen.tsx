@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { ImagePlus, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { completeJobPostHire } from '../../api/jobPosts';
 import { useCreateRequest } from '../../api/requests';
 import { useAllProviders, useCategories } from '../../api/marketplace';
 import { isValidArea } from '../../components/AreaPicker';
@@ -60,11 +62,16 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const { data: allProviders = [] } = useAllProviders(null, profile?.area ?? null);
   const verifiedCount = allProviders.filter((p) => p.provider_verified).length;
   const createRequest = useCreateRequest();
+  const queryClient = useQueryClient();
 
   const params = route?.params ?? {};
   const tradeLocked = Boolean(params.initialCategoryId || params.initialCategoryName);
   const preferredProviderId: string | undefined = params.preferredProviderId;
   const preferredProviderName: string | undefined = params.preferredProviderName;
+  // Set when this direct request comes from hiring an interested provider
+  // on a job post; the post is only marked hired once the request is sent.
+  const jobPostId: string | undefined = params.jobPostId;
+  const jobPostInterestId: string | undefined = params.jobPostInterestId;
   const isDirect = Boolean(preferredProviderId);
 
   const steps: StepKey[] =
@@ -171,6 +178,14 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         preferredProviderId,
         preferredTime: preferredTime ? new Date(preferredTime) : undefined,
       });
+      if (jobPostId && jobPostInterestId && preferredProviderId) {
+        try {
+          await completeJobPostHire({ postId: jobPostId, interestId: jobPostInterestId, providerId: preferredProviderId });
+          queryClient.invalidateQueries({ queryKey: ['jobPosts'] });
+        } catch {
+          // The request itself went through; the post can be closed by hand.
+        }
+      }
       navigation.replace('Matching', {
         requestId: request.id,
         matchedCount: (request as { matchedCount?: number }).matchedCount ?? 0,

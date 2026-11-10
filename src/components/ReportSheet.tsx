@@ -18,6 +18,7 @@ export function ReportSheet({
   context,
   jobId,
   threadId,
+  jobPostId,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -26,6 +27,7 @@ export function ReportSheet({
   context: ReportContext;
   jobId?: string | null;
   threadId?: string | null;
+  jobPostId?: string | null;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -39,7 +41,7 @@ export function ReportSheet({
   async function submit() {
     if (!reason) return;
     try {
-      await report.mutateAsync({ reportedId, reason, context, details, jobId, threadId });
+      await report.mutateAsync({ reportedId, reason, context, details, jobId, threadId, jobPostId });
       setReason(null);
       setDetails('');
       onClose();

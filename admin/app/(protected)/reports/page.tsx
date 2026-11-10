@@ -40,7 +40,7 @@ export default async function ReportsPage({ searchParams }: Props) {
 
   const { data: reports, error: listError } = await supabase
     .from('user_reports')
-    .select('id, reporter_id, reported_id, context, job_id, thread_id, reason, details, status, admin_note, created_at')
+    .select('*') // '*' so this still works before 0083 adds job_post_id
     .eq('status', status)
     .order('created_at', { ascending: status !== 'open' ? false : true })
     .range(from, from + PAGE_SIZE - 1);
@@ -79,7 +79,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         <div className="page-header-eyebrow">Trust &amp; safety</div>
         <h1>User reports</h1>
         <p className="page-header-sub">
-          Reports filed from chats, provider profiles and jobs, plus automatic flags when someone tries to share a phone
+          Reports filed from chats, provider profiles, jobs and job posts, plus automatic flags when someone tries to share a phone
           number or account details in chat. To act on a report, open the reported person and suspend
           the account if needed, then close the report here with a note.
         </p>
@@ -113,7 +113,11 @@ export default async function ReportsPage({ searchParams }: Props) {
                       {r.context} report · {stamp(r.created_at)}
                     </span>
                   </div>
-                  {r.job_id ? (
+                  {r.job_post_id ? (
+                    <Link className="link-accent" href={`/job-posts?id=${r.job_post_id}`}>
+                      View job post
+                    </Link>
+                  ) : r.job_id ? (
                     <Link className="link-accent" href={`/jobs/${r.job_id}`}>
                       View job
                     </Link>
