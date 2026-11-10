@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTabBarClearance } from '../../navigation/TabBar';
 import { ratingLabel } from '../../lib/rating';
 import { ActivityIndicator, Image, Keyboard, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
@@ -121,6 +122,7 @@ function TopProviderCard({ provider, onPress }: { provider: Profile; onPress: ()
 }
 
 export function HomeScreen({ navigation }: { navigation: any }) {
+  const tabClearance = useTabBarClearance();
   const { colors, scheme } = useTheme();
   const { t } = useLocale();
   const greeting = useGreeting();
@@ -244,7 +246,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
     <Screen edges={['top']} bg={colors.paper}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.body}
+        contentContainerStyle={[styles.body, { paddingBottom: tabClearance }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         refreshControl={

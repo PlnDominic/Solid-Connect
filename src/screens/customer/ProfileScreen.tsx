@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTabBarClearance } from '../../navigation/TabBar';
 import { confirmRoleSwitch } from '../../lib/confirmRoleSwitch';
 import { ratingLabel } from '../../lib/rating';
 import {
@@ -72,6 +73,7 @@ function memberSince(iso: string) {
 }
 
 export function ProfileScreen({ navigation }: { navigation: any }) {
+  const tabClearance = useTabBarClearance();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const profile = useSessionStore((s) => s.profile);
@@ -122,7 +124,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
 
   return (
     <Screen edges={['top']} bg={colors.paperDim}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabClearance }]} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           {profile.photo_url ? (
             <Image source={{ uri: profile.photo_url }} style={StyleSheet.absoluteFill} />

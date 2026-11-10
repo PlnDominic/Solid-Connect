@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTabBarClearance } from '../../navigation/TabBar';
 import { useQueries } from '@tanstack/react-query';
 import { Check, CheckCheck, Search, ShieldCheck, Trash2 } from 'lucide-react-native';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
@@ -109,6 +110,7 @@ function ThreadRow({
 }
 
 export function ChatListScreen({ navigation, role }: { navigation: any; role: 'customer' | 'provider' }) {
+  const tabClearance = useTabBarClearance();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
@@ -190,6 +192,7 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
         <FilterChips options={filters} value={filter} onChange={setFilter} />
       </View>
       <ScrollView
+        contentContainerStyle={{ paddingBottom: tabClearance }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }

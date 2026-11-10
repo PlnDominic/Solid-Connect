@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { useTabBarClearance } from '../../navigation/TabBar';
 import { useSignedUrls } from '../../lib/storageUrls';
 import { ratingLabel } from '../../lib/rating';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -58,6 +59,7 @@ function useLiveJobPin(job: Job | null, role: 'customer' | 'provider'): Pin | nu
 }
 
 export function MapScreen({ navigation, role }: { navigation: any; role: 'customer' | 'provider' }) {
+  const tabClearance = useTabBarClearance();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
@@ -220,7 +222,7 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
           )}
         </View>
 
-        <View style={styles.bottom} pointerEvents="box-none">
+        <View style={[styles.bottom, { bottom: tabClearance - 8 }]} pointerEvents="box-none">
           {me ? (
             <Pressable
               style={({ pressed }) => [styles.locateBtn, pressed && styles.pressed]}

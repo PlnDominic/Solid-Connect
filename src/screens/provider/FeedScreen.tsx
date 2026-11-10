@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTabBarClearance } from '../../navigation/TabBar';
 import { friendlyActionError } from '../../api/quotes';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
@@ -101,6 +102,7 @@ function availabilityBanner(
 // reinvented, so the app's two "home" screens actually feel like the same
 // app.
 export function FeedScreen({ navigation }: { navigation: any }) {
+  const tabClearance = useTabBarClearance();
   const { colors, scheme } = useTheme();
   const { t } = useLocale();
   const greeting = useGreeting();
@@ -266,7 +268,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
     <Screen edges={['top']} bg={colors.paper}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.body}
+        contentContainerStyle={[styles.body, { paddingBottom: tabClearance }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />

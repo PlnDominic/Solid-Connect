@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTabBarClearance } from '../../navigation/TabBar';
 import { Check, ChevronRight, Clock, X } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useProviderJobs } from '../../api/jobs';
@@ -116,6 +117,7 @@ function JobRow({ job, onPress, needsRating }: { job: Job; onPress: () => void; 
  * A won quote isn't listed separately - it is the job under Active.
  */
 export function WorkScreen({ navigation }: { navigation: any }) {
+  const tabClearance = useTabBarClearance();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
@@ -155,7 +157,7 @@ export function WorkScreen({ navigation }: { navigation: any }) {
         <FilterChips options={sections} value={section} onChange={(id) => setSection(id as Section)} />
       </View>
       <ScrollView
-        contentContainerStyle={[styles.body, !loading && isEmpty && styles.bodyEmpty]}
+        contentContainerStyle={[styles.body, !loading && isEmpty && styles.bodyEmpty, { paddingBottom: tabClearance }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
