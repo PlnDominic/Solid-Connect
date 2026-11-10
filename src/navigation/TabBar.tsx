@@ -34,7 +34,7 @@ const routeIcons: Record<string, LucideIcon> = {
 // Keyed by tab route name rather than by the tabBarLabel string each
 // navigator passes, so every screen's translated label lives in one place
 // instead of duplicated across CustomerTabs.tsx and ProviderTabs.tsx.
-const routeLabelKeys: Record<string, TranslationKey> = {
+export const routeLabelKeys: Record<string, TranslationKey> = {
   HomeTab: 'tab.home',
   FeedTab: 'tab.feed',
   MapTab: 'tab.map',
@@ -63,7 +63,7 @@ export function useTabBarClearance(): number {
 /** Which tab carries which unread counter, if any. The TabBar renders on
  * every screen for the whole session, so the counters live in tiny,
  * cheap hooks (src/api/badges.ts) rather than the screen-level queries. */
-function useTabBadges(): Record<string, number> {
+export function useTabBadges(): Record<string, number> {
   const profile = useSessionStore((s) => s.profile);
   const userId = profile?.id ?? null;
   const chat = useUnreadChatCount(userId, profile?.role ?? 'customer');

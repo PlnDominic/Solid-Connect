@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FeedScreen } from '../screens/provider/FeedScreen';
 import { RequestDetailScreen } from '../screens/provider/RequestDetailScreen';
 import { JobPostScreen } from '../screens/provider/JobPostScreen';
@@ -27,7 +26,7 @@ import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
 import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
 import { MapScreen } from '../screens/shared/MapScreen';
 import { PresenceSync } from '../components/PresenceSync';
-import { TabBar } from './TabBar';
+import { AppTabs, type TabSpec } from './AppTabs';
 
 const FeedStackNav = createNativeStackNavigator();
 function FeedStack() {
@@ -99,18 +98,18 @@ function ProfileStack() {
   );
 }
 
-const Tab = createBottomTabNavigator();
+const tabs: TabSpec[] = [
+  { name: 'FeedTab', component: FeedStack },
+  { name: 'MapTab', component: MapStack },
+  { name: 'ActivityTab', component: ActivityStack },
+  { name: 'ChatTab', component: ChatStack },
+  { name: 'ProfileTab', component: ProfileStack },
+];
 
 export function ProviderTabs() {
   return (
     <>
-      <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
-        <Tab.Screen name="FeedTab" component={FeedStack} options={{ tabBarLabel: 'Feed' }} />
-        <Tab.Screen name="MapTab" component={MapStack} options={{ tabBarLabel: 'Map' }} />
-        <Tab.Screen name="ActivityTab" component={ActivityStack} options={{ tabBarLabel: 'Work' }} />
-        <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
-        <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
-      </Tab.Navigator>
+      <AppTabs tabs={tabs} />
       <PresenceSync />
     </>
   );

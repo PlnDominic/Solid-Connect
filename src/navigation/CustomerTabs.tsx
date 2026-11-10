@@ -1,5 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeScreen } from '../screens/customer/HomeScreen';
 import { NewRequestScreen } from '../screens/customer/NewRequestScreen';
 import { PostJobScreen } from '../screens/customer/PostJobScreen';
@@ -30,7 +29,7 @@ import { DisputeScreen } from '../screens/shared/DisputeScreen';
 import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
 import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
 import { MapScreen } from '../screens/shared/MapScreen';
-import { TabBar } from './TabBar';
+import { AppTabs, type TabSpec } from './AppTabs';
 
 const HomeStackNav = createNativeStackNavigator();
 function HomeStack() {
@@ -107,16 +106,14 @@ function ProfileStack() {
   );
 }
 
-const Tab = createBottomTabNavigator();
+const tabs: TabSpec[] = [
+  { name: 'HomeTab', component: HomeStack },
+  { name: 'MapTab', component: MapStack },
+  { name: 'ActivityTab', component: ActivityStack },
+  { name: 'ChatTab', component: ChatStack },
+  { name: 'ProfileTab', component: ProfileStack },
+];
 
 export function CustomerTabs() {
-  return (
-    <Tab.Navigator screenOptions={{ headerShown: false }} tabBar={(props) => <TabBar {...props} />}>
-      <Tab.Screen name="HomeTab" component={HomeStack} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="MapTab" component={MapStack} options={{ tabBarLabel: 'Map' }} />
-      <Tab.Screen name="ActivityTab" component={ActivityStack} options={{ tabBarLabel: 'Activity' }} />
-      <Tab.Screen name="ChatTab" component={ChatStack} options={{ tabBarLabel: 'Chat' }} />
-      <Tab.Screen name="ProfileTab" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
-    </Tab.Navigator>
-  );
+  return <AppTabs tabs={tabs} />;
 }
