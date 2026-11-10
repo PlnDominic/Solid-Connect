@@ -20,12 +20,13 @@ cleaning, and similar categories) with **providers** — plumbers,
 electricians, artisans, and cleaners — who offer those services.
 
 **Solid Connect is a facilitator, not the employer of providers and not the
-performer of any service.** We provide the app, the matching, the chat, the
-escrow/payment flow, and the review system. The actual work is a contract
-directly between the customer and the provider. We are not a party to that
-work contract and do not guarantee its outcome, though we do provide the
-verification, dispute, and refund mechanisms described below to make that
-trust real rather than assumed.
+performer of any service.** We provide the app, the matching, the chat, job
+tracking, and the review system. The actual work, and the payment for it,
+is a contract directly between the customer and the provider. We are not a
+party to that work contract, we do not collect or hold payment for it, and
+we do not guarantee its outcome, though we do provide the verification and
+dispute mechanisms described below to make that trust real rather than
+assumed.
 
 One account can hold both a customer role and a provider role; you can
 switch between them at any time in the app.
@@ -68,8 +69,8 @@ submitted information was false or the provider's conduct warrants it.
   matches nearby, relevant providers using the location and category you
   provide.
 - A provider who responds gives you a quote. You choose whether to accept
-  it. Accepting a quote creates a job and a payment held by Solid Connect
-  (see Section 7) — it does **not** create an employment relationship
+  it. Accepting a quote creates a job (payment is agreed and made directly
+  between you and the provider, see Section 7) — it does **not** create an employment relationship
   between you and the provider, or between the provider and Solid Connect.
 - Once a job is accepted, in-app chat, progress tracking, and (for the
   duration the job is active) each party's live location become available
@@ -81,23 +82,23 @@ submitted information was false or the provider's conduct warrants it.
 ## 6. Job completion and confirmation
 
 - The provider marks the job as done when they've finished the work.
-- The customer then confirms completion in the app. Confirming releases the
-  held payment (see Section 7) and unlocks the ability to leave a review.
+- The customer then confirms completion in the app. Confirming closes the
+  job and unlocks the ability to leave a review. It does not move any
+  money (see Section 7).
 - If something is wrong with the completed work, do not confirm — open a
   dispute instead (see `refund-dispute-policy.md`).
 
-## 7. Payments and commission
+## 7. Payments
 
-- When a customer accepts a quote, the agreed price is held by Solid
-  Connect on the customer's behalf until the job is confirmed complete.
-- On confirmation, Solid Connect releases that amount to the provider,
-  minus a commission (the rate shown in the app at the time — see
-  `docs/legal/README.md` for why this isn't a fixed number here).
-- **As of this draft, Solid Connect does not yet process real payments.**
-  Card and mobile money charging is being built; until it is live, any
-  in-app payment status is for tracking purposes only and no real funds
-  move through the app. This section describes the intended mechanics once
-  real payment processing is connected, not the current state.
+- **Solid Connect does not collect, hold or pay out money for jobs.** The
+  customer and the provider agree the price and settle payment directly with
+  each other, in cash or Mobile Money, when the work is done.
+- Solid Connect charges no commission on jobs and takes no deposit.
+- Because we never hold the money, we cannot refund, reverse or recover a
+  payment between customer and provider. Pay only when you are satisfied
+  with the work, and avoid paying in advance for work that has not started.
+- Providers pay Solid Connect a subscription for using the platform; see
+  `provider-agreement.md`. That is the only payment taken through the App.
 
 ## 8. Reviews
 
@@ -122,8 +123,8 @@ to see that license directly.
 You agree not to:
 
 - Use the App for anything illegal, fraudulent, or deceptive.
-- Attempt to move a job's communication or payment off-platform to avoid
-  Solid Connect's dispute and refund protections.
+- Attempt to move a job's communication off-platform to avoid Solid
+  Connect's dispute and verification protections.
 - Harass, threaten, or discriminate against another user.
 - Submit false information during signup, verification, a job, a review, or
   a dispute.
@@ -184,8 +185,7 @@ or anything else, contact **support@solidconnect.co**.
 
 ## 13. Changes to these Terms
 
-We may update these Terms as the App changes (for example, once real
-payments go live). We'll make a reasonable effort to notify you of material
+We may update these Terms as the App changes. We'll make a reasonable effort to notify you of material
 changes before they take effect. Continuing to use the App after a change
 takes effect means you accept the updated Terms.
 

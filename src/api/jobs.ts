@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
 import { supabase } from '../lib/supabase';
-import type { Job, Payment } from '../types/database';
+import type { Job } from '../types/database';
 
 export function useAcceptQuote() {
   const queryClient = useQueryClient();
@@ -17,7 +17,7 @@ export function useAcceptQuote() {
       }
 
       // One transaction in the database: accept this quote, decline the
-      // others, create the job, its pending payment and chat thread.
+      // others, create the job and its chat thread.
       // Doing these as separate client writes could strand a request as
       // "accepted" with no job if a later step failed (e.g. a double booking).
       const { data, error } = await supabase.rpc('accept_quote', {
@@ -239,19 +239,17 @@ export function useConfirmCompletion() {
   return useMutation({
     mutationFn: async (job: Job) => {
       if (isApiConfigured()) {
-        const res = await apiFetch<{ data: { job: Job; payment: Payment } }>(`/api/v1/jobs/${job.id}/confirm`, {
-          method: 'POST',
-        });
-        return res.data.payment;
+        await apiFetch<{ data: { job: Job } }>(`/api/v1/jobs/${job.id}/confirm`, { method: 'POST' });
+        return;
       }
       const { data, error } = await supabase.rpc('confirm_job_completion', {
         p_job_id: job.id,
         p_customer_id: job.customer_id,
       });
       if (error) throw error;
-      return (data as { payment: Payment }).payment;
+      return;
     },
-    onSuccess: (_payment, job) => {
+    onSuccess: (_result, job) => {
       queryClient.invalidateQueries({ queryKey: ['activeJob', 'customer', job.customer_id] });
       queryClient.invalidateQueries({ queryKey: ['job', job.id] });
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest', job.customer_id] });
@@ -274,44 +272,3 @@ export function useCustomerJobsCount(customerId: string | null) {
     enabled: !!customerId,
   });
 }
-
-export function useProviderEarningsThisMonth(providerId: string | null) {
-  return useQuery({
-    queryKey: ['earnings', 'thisMonth', providerId],
-    queryFn: async (): Promise<number> => {
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
-      // What the provider actually takes home - net of commission, the same
-      // figure the Earnings screen shows - not the gross job price.
-      const { data, error } = await supabase
-        .from('provider_payouts')
-        .select('net_amount')
-        .eq('provider_id', providerId as string)
-        .gte('created_at', monthStart.toISOString());
-      if (error) throw error;
-      return (data ?? []).reduce((sum, p) => sum + Number(p.net_amount), 0);
-    },
-    enabled: !!providerId,
-  });
-}
-
-/** The one payment row tied to a job - the pending/released amount shown
- * on the job receipt/invoice. Payments are inserted alongside the job
- * itself (see useAcceptQuote) so this is always exactly one row. */
-export function usePayment(jobId: string | null | undefined) {
-  return useQuery({
-    queryKey: ['payment', jobId],
-    queryFn: async (): Promise<Payment | null> => {
-      const { data, error } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('job_id', jobId as string)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!jobId,
-  });
-}
-

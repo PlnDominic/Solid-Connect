@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
-import { assertOk } from '../../../lib/payments';
+import { assertOk } from '../../../lib/assert';
 
 /** Closes a user report. "Dismissed" means no action was needed;
  * "actioned" means the admin dealt with it (for example by suspending the

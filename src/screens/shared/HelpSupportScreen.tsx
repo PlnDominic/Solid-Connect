@@ -8,7 +8,7 @@ const SUPPORT_EMAIL = 'support@solidconnect.co';
 
 const FAQS = [
   { q: 'How does Solid Connect verify providers?', a: 'Providers go through identity checks, and the highest tier earns a Solid Connect certified badge shown on their profile.' },
-  { q: 'How do payments work?', a: 'You confirm completion once the job is done, which releases payment to the provider. You can open a dispute within 48 hours.' },
+  { q: 'How do payments work?', a: 'You agree the price with your provider and pay them directly, in cash or Mobile Money, once the work is done. Solid Connect does not take or hold payment. You confirm completion in the app, and can open a dispute if something goes wrong.' },
   { q: 'What if a provider cancels?', a: "You'll be notified immediately and can request quotes from other nearby providers at no extra cost." },
 ];
 

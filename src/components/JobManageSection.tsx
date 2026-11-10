@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { googleCalendarUrl } from '../lib/jobReminders';
-import { usePayment } from '../api/jobs';
 import { CalendarClock } from 'lucide-react-native';
 import {
   friendlyJobError,
@@ -39,25 +38,17 @@ const REASON_LABEL: Record<string, string> = {
   other: 'Cancelled',
 };
 
-/** What cancelling does to the money (0065): a customer backing out after
- * paying the deposit loses it; otherwise whatever was paid goes back. */
-function cancelConsequence(
-  role: 'customer' | 'provider',
-  reason: JobCancelReason | null,
-  payment: { status: string; deposit_amount?: number } | null | undefined,
-): string {
-  const deposit = Number(payment?.deposit_amount ?? 0);
-  const depositPaid = payment?.status === 'deposit_held' && deposit > 0;
+/** What cancelling means now that there is nothing to refund: the two sides
+ * settle directly, so it is only about the other person and their standing. */
+function cancelConsequence(role: 'customer' | 'provider', reason: JobCancelReason | null): string {
   if (role === 'customer') {
-    if (!depositPaid) return 'You have not paid anything yet, so nothing is charged. The provider is told.';
-    if (reason === 'no_show_provider') return `Your GHS ${deposit.toLocaleString()} deposit is refunded because the provider did not show up.`;
-    return `You paid a GHS ${deposit.toLocaleString()} deposit. If you cancel, Solid Connect keeps it and part of it pays the provider for their time.`;
+    return reason === 'no_show_provider'
+      ? 'The provider is told, and the no-show is recorded. No money has moved through Solid Connect.'
+      : 'The provider is told. No money has moved through Solid Connect, so there is nothing to refund.';
   }
-  if (!depositPaid) return 'The customer has not paid anything yet. Cancelling often can hurt your standing.';
-  if (reason === 'no_show_customer') {
-    return `The customer did not show up, so they lose their GHS ${deposit.toLocaleString()} deposit and part of it comes to you.`;
-  }
-  return `The customer's GHS ${deposit.toLocaleString()} deposit is refunded to them. Cancelling often can hurt your standing.`;
+  return reason === 'no_show_customer'
+    ? 'The customer is told, and the no-show is recorded. Cancelling often can hurt your standing.'
+    : 'The customer is told. Cancelling often can hurt your standing.';
 }
 
 function formatWhen(iso: string) {
@@ -96,7 +87,6 @@ export function JobManageSection({ job, role, userId }: { job: Job; role: Role; 
   const propose = useProposeReschedule();
   const respond = useRespondReschedule();
   const cancel = useCancelJob();
-  const { data: payment } = usePayment(job.id);
 
   const [showPicker, setShowPicker] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
@@ -276,7 +266,7 @@ export function JobManageSection({ job, role, userId }: { job: Job; role: Role; 
 
       <BottomSheet visible={showCancel} onClose={() => setShowCancel(false)}>
         <Text style={styles.sheetTitle}>Cancel this job?</Text>
-        <Text style={styles.sheetBody}>{cancelConsequence(role, reason, payment)}</Text>
+        <Text style={styles.sheetBody}>{cancelConsequence(role, reason)}</Text>
         {reasons.map((r) => (
           <Pressable
             key={r.key}

@@ -291,7 +291,6 @@ export default async function AnalyticsPage() {
     recentJobsRes,
     recentReviewsRes,
     categoryLinksRes,
-    paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
     areaCoverageRes,
@@ -300,8 +299,6 @@ export default async function AnalyticsPage() {
     openRequestsRes,
     activeJobsRes,
     openDisputesRes,
-    commissionRes,
-    payoutCommissionRes,
     organizationsRes,
   ] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'provider'),
@@ -325,7 +322,6 @@ export default async function AnalyticsPage() {
       .order('created_at', { ascending: false })
       .limit(5),
     supabase.from('provider_categories').select('category_id, categories(name)'),
-    supabase.rpc('admin_dashboard_money', { p_since: windowStart }),
     supabase.from('jobs').select('started_at').gte('started_at', windowStart),
     supabase.from('profiles').select('created_at').eq('role', 'provider').gte('created_at', windowStart),
     supabase.rpc('admin_area_coverage'),
@@ -340,8 +336,6 @@ export default async function AnalyticsPage() {
       .select('*', { count: 'exact', head: true })
       .in('status', ['accepted', 'in_progress', 'awaiting_completion_confirmation']),
     supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-    supabase.from('platform_config').select('commission_percent').eq('id', true).maybeSingle(),
-    supabase.from('provider_payouts').select('commission_amount'),
     supabase.from('organizations').select('*', { count: 'exact', head: true }).eq('status', 'active'),
   ]);
 
@@ -354,7 +348,6 @@ export default async function AnalyticsPage() {
     recentJobsRes,
     recentReviewsRes,
     categoryLinksRes,
-    paymentsRes,
     jobsTimelineRes,
     providersTimelineRes,
     areaCoverageRes,
@@ -363,8 +356,6 @@ export default async function AnalyticsPage() {
     openRequestsRes,
     activeJobsRes,
     openDisputesRes,
-    commissionRes,
-    payoutCommissionRes,
     organizationsRes,
   ]
     .map((r) => r.error?.message)
@@ -381,11 +372,6 @@ export default async function AnalyticsPage() {
   const openRequests = openRequestsRes.count ?? 0;
   const activeJobs = activeJobsRes.count ?? 0;
   const openDisputes = openDisputesRes.count ?? 0;
-  const commissionPercent = Number(commissionRes.data?.commission_percent ?? 15);
-  const platformCommission = (payoutCommissionRes.data ?? []).reduce(
-    (sum, row) => sum + (Number((row as { commission_amount?: number }).commission_amount) || 0),
-    0,
-  );
   const recentJobs = recentJobsRes.data ?? [];
   const recentReviews = recentReviewsRes.data ?? [];
   const reviewJobIds = [...new Set(recentReviews.map((r) => r.job_id).filter(Boolean))] as string[];
@@ -393,13 +379,6 @@ export default async function AnalyticsPage() {
     ? await supabase.from('jobs').select('id, title').in('id', reviewJobIds)
     : { data: [] as { id: string; title: string | null }[] };
   const jobTitleById = Object.fromEntries((reviewJobs ?? []).map((j) => [j.id, j.title]));
-  const money = (paymentsRes.data ?? { released_total: 0, pending_total: 0, by_month: [] }) as {
-    released_total: number;
-    pending_total: number;
-    by_month: { month: string; amount: number }[];
-  };
-  const totalRevenue = Number(money.released_total) || 0;
-  const pendingPayments = Number(money.pending_total) || 0;
   const completionRate = jobs > 0 ? ((completed / jobs) * 100).toFixed(1) : '0';
   const verificationRate = providers > 0 ? ((verified / providers) * 100).toFixed(1) : '0';
 
@@ -432,11 +411,6 @@ export default async function AnalyticsPage() {
   const providersByMonth = countByMonth((providersTimelineRes.data ?? []).map((p) => p.created_at));
   const monthLabels = months.map((m) => m.label);
 
-  const revenueBuckets: Record<string, number> = Object.fromEntries(
-    money.by_month.map((row) => [row.month, Number(row.amount) || 0]),
-  );
-  const revenueByMonth = months.map((m) => revenueBuckets[m.key] ?? 0);
-
   // Cumulative sparkline series from monthly signups / jobs
   const cumulative = (series: number[]) => {
     let sum = 0;
@@ -466,7 +440,7 @@ export default async function AnalyticsPage() {
         <div className="page-header-eyebrow">Platform Overview</div>
         <h1>Solid Connect Dashboard</h1>
         <p className="page-header-sub">
-          Real-time insights into your provider marketplace: jobs, verifications, and revenue.
+          Real-time insights into your provider marketplace: jobs, verifications and providers.
         </p>
         <div className="page-header-actions">
           <span className="date-badge">
@@ -505,11 +479,6 @@ export default async function AnalyticsPage() {
           <div className="stat-card-label">Open disputes</div>
           <div className="stat-card-value">{fmt(openDisputes)}</div>
           <div className="stat-card-sub">Needs admin resolution</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-card-label">Platform commission</div>
-          <div className="stat-card-value">{currency(platformCommission)}</div>
-          <div className="stat-card-sub">From payouts at {commissionPercent}%</div>
         </div>
         <div className="stat-card">
           <div className="stat-card-label">Verified providers</div>
@@ -555,22 +524,6 @@ export default async function AnalyticsPage() {
             <MiniBars data={jobsByMonth} color="var(--blue)" />
           </div>
           <div className="viz-foot">{completionRate}% completion rate</div>
-        </div>
-        <div className="stat-card viz-card">
-          <div className="viz-head">
-            <div className="stat-card-label">Revenue</div>
-            <span className="viz-icon" style={{ background: 'var(--green-bg)', color: 'var(--green)' }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6" /></svg>
-            </span>
-          </div>
-          <div className="viz-body">
-            <div>
-              <div className="stat-card-value">{currency(totalRevenue)}</div>
-              <div className="stat-card-sub">{currency(pendingPayments)} pending</div>
-            </div>
-          </div>
-          <Sparkline data={revenueByMonth} labels={monthLabels} color="var(--green)" id="revenue" format={currency} unit="Revenue" />
-          <div className="viz-foot">From released payments</div>
         </div>
         <div className="stat-card viz-card">
           <div className="viz-head">

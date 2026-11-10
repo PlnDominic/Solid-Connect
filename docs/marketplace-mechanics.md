@@ -111,15 +111,21 @@ Payment architecture should be **modular** so Solid Connect can support
 multiple payment methods/providers. For Ghana, mobile money and card
 payments are important.
 
+> **Decision (2026-11-10): Solid Connect does not collect payment on behalf of
+> providers.** The customer and provider settle directly, in cash or Mobile
+> Money, when the work is done. There is no deposit, balance, escrow,
+> commission on jobs, payout or refund in the app; disputes record an outcome
+> and can lead to action on an account, but cannot move money. The platform's
+> own revenue from providers is the yearly subscription (migration `0081`).
+> The diagram and gap note below describe the original concept and are kept
+> for history only.
+
 ```
 Customer -> Payment gateway -> Solid Connect transaction
      -> Platform commission
      -> Provider payout
      -> Refund / dispute process where applicable
 ```
-
-An escrow-style model may be considered for suitable jobs, subject to the
-selected payment provider, business rules and legal requirements.
 
 > **Gap:** no real payment integration exists. `types/database.ts` has a
 > `Payment` shape (`PaymentStatus = 'pending' | 'released' | 'refunded'`)

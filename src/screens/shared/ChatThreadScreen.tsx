@@ -205,8 +205,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm, flexGrow: 1 }}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
           ListHeaderComponent={
-            // Customers never pay providers directly - every payment goes
-            // through Solid Connect (deposit, then balance).
+            // Solid Connect holds no money: the two sides settle directly.
             <Text
               style={{
                 alignSelf: 'center',
@@ -219,7 +218,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
                 lineHeight: 17,
               }}
             >
-              Payments only go through Solid Connect. Never pay or ask for payment directly in chat.
+              Pay your provider directly once the work is done. Solid Connect does not take payment, so never pay in advance for work that has not started.
             </Text>
           }
           ListEmptyComponent={

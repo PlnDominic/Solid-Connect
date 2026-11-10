@@ -49,7 +49,7 @@ export function SignUpEmailScreen({
       totalSteps={totalSteps}
       activeIndex={activeIndex}
       title="What's your email?"
-      subtitle="For receipts and account updates."
+      subtitle="For account updates and sign in."
       value={value}
       onChangeValue={(v) => {
         setDupError(null);

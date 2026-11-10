@@ -59,7 +59,6 @@ function useInvalidateJob() {
     queryClient.invalidateQueries({ queryKey: ['jobReschedules', jobId] });
     queryClient.invalidateQueries({ queryKey: ['jobs'] });
     queryClient.invalidateQueries({ queryKey: ['activeJob'] });
-    queryClient.invalidateQueries({ queryKey: ['payment', jobId] });
     queryClient.invalidateQueries({ queryKey: ['notifications'] });
   };
 }

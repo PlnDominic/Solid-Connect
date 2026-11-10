@@ -195,9 +195,7 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
         {d.status === 'open' ? (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>
-              {d.payment_already_released
-                ? 'This payment was already released. Our team will follow up with both of you.'
-                : 'The payment is on hold until this dispute is resolved.'}
+              Our team is reviewing this dispute and will contact both of you. Solid Connect does not hold payment, so it cannot refund money paid directly.
             </Text>
           </View>
         ) : null}

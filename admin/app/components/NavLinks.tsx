@@ -11,11 +11,11 @@ function NavIcon({ d }: { d: string }) {
 // `scope` is set only on pages that are pure action/workflow surfaces -
 // nothing to see there once a support admin can't act (an empty review
 // queue they can't touch, a broadcast composer they can't send from).
-// Everything else (Providers, Customers, Jobs, Payments, Payouts,
+// Everything else (Providers, Customers, Jobs,
 // Reviews) stays visible to every admin regardless of permissions: those
 // are informational directories in their own right - looking someone up
 // is a baseline admin capability - and their individual mutating actions
-// (suspend, release, hide, mark paid) are already enforced server-side
+// (suspend, hide, close) are already enforced server-side
 // by requirePermission() either way, so lacking the scope there just
 // means that one button quietly does nothing, not a security gap.
 const links: { href: string; label: string; d: string; scope?: AdminPermission; ownerOnly?: boolean }[] = [
@@ -26,8 +26,6 @@ const links: { href: string; label: string; d: string; scope?: AdminPermission; 
   { href: '/organizations', label: 'Organizations', d: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
   { href: '/requests', label: 'Requests', d: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' },
   { href: '/jobs', label: 'Jobs', d: 'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
-  { href: '/payments', label: 'Payments', d: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z' },
-  { href: '/payouts', label: 'Payouts', d: 'M7 11l5-5m0 0l5 5m-5-5v12' },
   { href: '/map', label: 'Map', d: 'M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' },
   { href: '/live', label: 'Live Jobs', d: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
   { href: '/reviews', label: 'Reviews', d: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' },

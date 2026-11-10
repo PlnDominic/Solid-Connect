@@ -24,7 +24,6 @@ export default () => ({
     clientId: process.env.HUBTEL_CLIENT_ID ?? '',
     clientSecret: process.env.HUBTEL_CLIENT_SECRET ?? '',
     merchantAccount: process.env.HUBTEL_MERCHANT_ACCOUNT ?? '',
-    prepaidAccount: process.env.HUBTEL_PREPAID_ACCOUNT ?? '',
     callbackUrl: process.env.HUBTEL_CALLBACK_URL ?? '',
     returnUrl: process.env.HUBTEL_RETURN_URL ?? '',
   },

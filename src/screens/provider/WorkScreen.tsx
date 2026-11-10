@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, ChevronRight, Clock, X } from 'lucide-react-native';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useProviderEarningsThisMonth, useProviderJobs } from '../../api/jobs';
+import { useProviderJobs } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useProviderRequestHistory, type ProviderRequestHistoryItem, type ProviderRequestStatus } from '../../api/requests';
 import { useProviderReviewedJobIds } from '../../api/reviews';
@@ -109,9 +109,9 @@ function JobRow({ job, onPress, needsRating }: { job: Job; onPress: () => void; 
 
 /**
  * The provider's Work tab: what used to be two tabs (My Requests and Jobs)
- * as one place, following a piece of work from quote to payout.
+ * as one place, following a piece of work from quote to completion.
  * - Quoted: quotes sent and direct requests awaiting a reply
- * - Active: jobs won and under way, with this month's earnings
+ * - Active: jobs won and under way
  * - Completed: finished and cancelled jobs, plus quotes that weren't picked
  * A won quote isn't listed separately - it is the job under Active.
  */
@@ -124,7 +124,6 @@ export function WorkScreen({ navigation }: { navigation: any }) {
 
   const { data: history = [], isLoading: historyLoading, refetch: refetchHistory } = useProviderRequestHistory(userId);
   const { data: jobs = [], isLoading: jobsLoading, refetch: refetchJobs } = useProviderJobs(userId);
-  const { data: earnings } = useProviderEarningsThisMonth(userId);
   const { data: reviewedJobIds } = useProviderReviewedJobIds(userId);
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
     await Promise.all([refetchHistory(), refetchJobs()]);
@@ -160,13 +159,6 @@ export function WorkScreen({ navigation }: { navigation: any }) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
-        {section === 'active' && earnings != null && earnings > 0 ? (
-          <View style={styles.statsCard}>
-            <Text style={styles.statsLabel}>EARNED THIS MONTH</Text>
-            <Text style={styles.statsValue}>GHS {earnings.toLocaleString()}</Text>
-          </View>
-        ) : null}
-
         {loading ? (
           <View style={styles.loading}>
             <ActivityIndicator color={colors.ink} />

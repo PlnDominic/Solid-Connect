@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, requireAdmin } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
-import { assertOk } from '../../../lib/payments';
+import { assertOk } from '../../../lib/assert';
 
 /** Marks a safety alert as followed up. Open to every active admin, not a
  * scoped permission: an alert should never sit unanswered because the

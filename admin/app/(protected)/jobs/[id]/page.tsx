@@ -57,7 +57,7 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
       {job.status === 'cancelled' ? (
         <p className="notice">
           Cancelled ({job.cancel_reason?.replaceAll('_', ' ') ?? 'no reason'}){job.cancel_note ? `: ${job.cancel_note}` : ''}.
-          {job.cancel_reason === 'no_show_customer' ? ' Payment was left pending for an admin decision.' : ''}
+          
         </p>
       ) : null}
 

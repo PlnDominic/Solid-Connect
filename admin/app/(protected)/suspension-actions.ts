@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, requirePermission } from '../../lib/admin';
 import { logAdminAction } from '../../lib/audit';
-import { assertOk } from '../../lib/payments';
+import { assertOk } from '../../lib/assert';
 
 /** Freezes a customer or provider account. Enforcement is minimal and
  * deliberate: the mobile app checks suspended_at once at app-launch

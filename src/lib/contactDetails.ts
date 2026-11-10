@@ -2,7 +2,7 @@
  * Spots contact details in a chat message: phone numbers (in digits or
  * words), bank / mobile-money account details, personal emails, social
  * media handles and platforms, and links. Contact details stay off the
- * chat so every booking and payment goes through Solid Connect (and so
+ * chat so every booking stays on Solid Connect (and so
  * nobody is pulled into an off-app deal). Mirrored server-side by
  * public.find_contact_details (0071, 0072), which strips anything the app
  * missed - keep the two rules in step.
@@ -139,7 +139,7 @@ export function maskContactDetails(text: string): string {
 export const CONTACT_DETAILS_MESSAGE: Record<ContactDetailKind, string> = {
   phone: "Phone numbers can't be shared in chat. Keep the conversation here on Solid Connect.",
   account:
-    "Bank and mobile money details can't be shared in chat. Every payment goes through Solid Connect, so you're both protected.",
+    "Bank and mobile money details can't be shared in chat. Use the Call button on the job to get your provider's number, and pay directly once the work is done.",
   email: "Email addresses can't be shared in chat. Keep the conversation here on Solid Connect.",
   social:
     "Social media and messaging app details can't be shared in chat. Keep the conversation here on Solid Connect.",

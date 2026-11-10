@@ -14,7 +14,7 @@ export function CreateFlagForm() {
           type="text"
           name="key"
           required
-          placeholder="live_payments"
+          placeholder="new_feature"
           pattern="[a-z][a-z0-9_]*"
           className="search-input mono"
           style={{ flex: '1 1 180px', minWidth: 160 }}

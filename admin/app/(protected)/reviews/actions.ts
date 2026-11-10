@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
-import { assertOk } from '../../../lib/payments';
+import { assertOk } from '../../../lib/assert';
 
 /** Hides or restores a review, keeping the provider's running-average
  * rating/jobs-count (see apply_review() in 0001_init.sql) in sync either

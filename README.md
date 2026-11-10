@@ -32,19 +32,19 @@ log are the source of truth, not this file._
   verifications (single and bulk), providers/customers/jobs/disputes/
   reviews with detail pages, live jobs, categories (with archive, not
   delete), team management with owner/support roles and an audit log,
-  a broadcast composer, global search, CSV export, and a two-leg payments
-  model (`payments` = customer → platform, `provider_payouts` = platform
-  → provider, net of a configurable commission rate).
+  a broadcast composer, global search, and CSV export.
 - Account suspension (admin-initiated, enforced at the next app-launch
   sign-in) and review moderation (hide/restore, with the provider's
   rating correctly recomputed either way).
 
 **Explicitly still simulated / not real:**
 
-- **Payments.** No live MoMo/card charging - `payments`/`provider_payouts`
-  are real tables with real admin tooling, but nothing calls an actual
-  payment gateway (Paystack/Flutterwave) yet. This is the actual blocker
-  to the business model; everything else is built around it.
+- **Job payments.** Solid Connect does not collect, hold or pay out money
+  for jobs (decision of 2026-11-10): customers pay providers directly, in
+  cash or Mobile Money. The old `payments` / `provider_payouts` tables and
+  their deposit and commission settings are kept as an archive and nothing
+  reads or writes them any more (migration `0085`). The only payment taken
+  through the app is the provider's yearly subscription (Hubtel, `0081`).
 - **Push notifications.** No EAS project is linked, so a device can't get
   a push token; `notifications` rows are written (job events, admin
   broadcasts) but no mobile screen reads them yet.

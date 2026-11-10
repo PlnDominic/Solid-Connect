@@ -59,27 +59,27 @@ accept, and for being able to show it to a customer who asks.
 - You may quote on a customer's posted request, or accept a request sent
   directly to you.
 - A quote you submit is an offer at that price; once a customer accepts it,
-  you are agreeing to perform the described job at that price, subject to
-  the customer's payment being held by Solid Connect per the escrow flow
-  in `refund-dispute-policy.md`.
+  you are agreeing to perform the described job at that price, to be paid
+  directly by the customer when the work is done (see Section 6).
 - If you can no longer do a job you've been matched to, communicate that to
   the customer through the App as early as possible rather than going
   silent — repeated no-shows or unresponsiveness are conduct issues under
   Section 8.
 
-## 6. Getting paid
+## 6. Getting paid and your subscription
 
-- When a customer confirms a job complete, Solid Connect releases the held
-  payment to you, minus Solid Connect's commission (the rate shown in the
-  app at the time of the job — see the note in `docs/legal/README.md`).
-- Payout is sent to the mobile money number or bank account you provide in
-  your payout details. **As of this draft, real payment processing is not
-  yet connected** — see `terms-of-service.md` Section 7. This section
-  describes the intended mechanics once it is.
-- If a dispute results in a refund to the customer after you were already
-  paid out, Solid Connect will contact you directly about resolving that —
-  this is not something the App does automatically (see
-  `refund-dispute-policy.md`).
+- **You are paid directly by the customer**, in cash or Mobile Money, when
+  the work is done. Solid Connect does not collect, hold or pay out money for
+  jobs and takes no commission on them.
+- Agree the price and how you will be paid with the customer before you
+  start. Solid Connect cannot recover an unpaid job for you; if a customer
+  does not pay, report it to support and it may count against that
+  customer's standing.
+- **Subscription.** Your first accepted job is free. After that, quoting and
+  accepting direct requests needs an active yearly subscription, paid to
+  Solid Connect through the App. A subscription buys a fixed period and
+  renewing adds a new period on top. It is the only payment taken through the
+  App.
 
 ## 7. Reviews and your rating
 
@@ -97,8 +97,8 @@ In addition to the general conduct rules in `terms-of-service.md` Section
 
 - Accept a job you don't intend to complete, or accept work outside a
   license you're required to hold.
-- Solicit a customer to pay you directly, off-platform, to avoid Solid
-  Connect's commission or escrow protection.
+- Take a job that was found through the App off the App to avoid its
+  dispute and verification protections.
 - Misrepresent your trade, experience, or verification status.
 
 Violating this section can result in suspension. A suspended provider
@@ -110,7 +110,8 @@ the note on suspension enforcement in `docs/roadmap-and-risks.md`).
 
 If a customer disputes a job you performed, Solid Connect's admin team
 reviews the evidence (job timeline, chat, any photos) and may resolve it
-with or without a refund to the customer. See `refund-dispute-policy.md`
+and record an outcome (it cannot move money, since Solid Connect does not
+hold any). See `refund-dispute-policy.md`
 for the customer-facing version of this process. You will be able to see
 the dispute's outcome; if you disagree with a resolution, contact
 **support@solidconnect.co**.
@@ -119,9 +120,8 @@ the dispute's outcome; if you disagree with a resolution, contact
 
 You may stop using the App at any time. Solid Connect may suspend or
 terminate your provider access for a Terms or Provider Agreement
-violation, with the reason given to you in the App. Payouts already owed
-for completed, undisputed jobs are not forfeited by account termination.
+violation, with the reason given to you in the App.
 
 _[Placeholder — the exact wind-down process for a terminated provider with
-in-progress jobs or pending payouts needs a defined policy before this can
-be relied on operationally.]_
+in-progress jobs, and whether any unused subscription time is refunded, needs
+a defined policy before this can be relied on operationally.]_

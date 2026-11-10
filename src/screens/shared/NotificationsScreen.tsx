@@ -25,7 +25,7 @@ const STORAGE_KEY = 'solid-connect:notification-prefs';
 type Prefs = NotificationPrefs;
 
 const ROWS: { key: keyof Prefs; label: string; detail: string }[] = [
-  { key: 'jobUpdates', label: 'Job updates', detail: 'Progress, completion and payment status' },
+  { key: 'jobUpdates', label: 'Job updates', detail: 'Progress and completion' },
   { key: 'newQuotes', label: 'New quotes', detail: 'When a provider responds to your request' },
   { key: 'messages', label: 'Messages', detail: 'New chat messages from providers or customers' },
   { key: 'promotions', label: 'Promotions', detail: 'Offers and product updates from Solid Connect' },

@@ -14,15 +14,12 @@ import {
   Moon,
   ShieldCheck,
   Star,
-  TrendingUp,
   UserCog,
   Users,
-  Wallet,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useProviderEarningsThisMonth } from '../../api/jobs';
 import { useProviderReviews } from '../../api/reviews';
 import { useSwitchRole, useUploadProfilePhoto } from '../../api/profile';
 import { usePortfolioPhotos } from '../../api/portfolio';
@@ -48,8 +45,6 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     rows: [
       { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
       { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
-      { label: 'Earnings', screen: 'Earnings', icon: TrendingUp },
-      { label: 'Payout details', screen: 'PayoutDetails', icon: Wallet },
       { label: 'Subscription', screen: 'Subscription', icon: Star },
     ],
   },
@@ -89,7 +84,6 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const profile = useSessionStore((s) => s.profile);
-  const { data: earnings = 0 } = useProviderEarningsThisMonth(profile?.id ?? null);
   const { data: reviews = [] } = useProviderReviews(profile?.id ?? null);
   const { data: portfolio = [] } = usePortfolioPhotos(profile?.id);
   const switchRole = useSwitchRole();
@@ -229,13 +223,9 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           <View style={styles.statementShadow}>
           <View style={styles.statement}>
             <View style={styles.statementRow}>
-              <Text style={styles.statementLabel}>This month</Text>
-              <Text style={styles.statementValueLg}>GHS {earnings.toLocaleString()}</Text>
-            </View>
-            <View style={[styles.statementRow, styles.statementRowBorder]}>
               <Text style={styles.statementLabel}>Rating</Text>
               <View style={styles.statementRatingValue}>
-                <Text style={styles.statementValue}>{profile.provider_rating.toFixed(1)}</Text>
+                <Text style={styles.statementValueLg}>{profile.provider_rating.toFixed(1)}</Text>
                 <Star color={colors.active} fill={colors.active} size={14} strokeWidth={2} />
               </View>
             </View>

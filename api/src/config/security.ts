@@ -59,10 +59,11 @@ const has = (env: Env, key: string) => Boolean((env[key] ?? '').trim());
  * What is wrong with this configuration for a production start. Empty means
  * fine (and always empty outside production).
  *
- * Payments matter most: without Hubtel the API falls back to releasing money
- * on confirmation with nothing charged, so a half-configured production
- * deploy would run jobs for free. Running that way on purpose (a staging
- * environment) needs ALLOW_SIMULATED_PAYMENTS=true.
+ * Hubtel only collects the provider subscription (Solid Connect does not
+ * collect job payments). Without it the API cannot charge subscriptions, so a
+ * half-configured production deploy would let providers quote for free.
+ * Running that way on purpose (a staging environment) needs
+ * ALLOW_SIMULATED_PAYMENTS=true.
  */
 export function productionConfigProblems(env: Env): string[] {
   if (!isProduction(env)) return [];

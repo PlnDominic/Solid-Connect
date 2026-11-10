@@ -52,11 +52,11 @@ your name and the job.
 **Notifications**: in-app messages we send you about job updates, quotes,
 and (if you opt in) product announcements.
 
-**Payment information**: once real payment processing is connected (see
-`terms-of-service.md` Section 7), the amount, status, and timing of
-payments and payouts tied to your jobs. We do not store your card or mobile
-money credentials ourselves — that will be handled by our payment
-processor once one is integrated.
+**Subscription payments (providers)**: if you are a provider, the amount,
+status and timing of your subscription payments. We do not store your card
+or mobile money credentials ourselves; that is handled by our payment
+processor. Job payments are made directly between customer and provider and
+never pass through Solid Connect, so we hold no record of them.
 
 **Usage and device information**: a push-notification token if you enable
 notifications, and standard technical data (device type, app version)
@@ -79,7 +79,7 @@ needed to make the app work reliably.
 | Verification documents | Only you and Solid Connect's admin/verification team |
 | Live job location | Only the other party on that specific job, and Solid Connect's admin team |
 | Chat messages | Only the two parties on that thread, and Solid Connect's admin team (for disputes/support) |
-| Payment/payout details | You, and Solid Connect's admin/finance team |
+| Subscription payment records (providers) | You, and Solid Connect's admin/finance team |
 
 ## 5. How long we keep it
 
@@ -87,7 +87,7 @@ needed to make the app work reliably.
 - **Verification documents**: kept for as long as your account is verified
   or under review, and for a reasonable period after in case a dispute or
   regulatory question arises about that verification.
-- **Job, chat, review, and payment records**: kept for the life of your
+- **Job, chat, review, and subscription records**: kept for the life of your
   account, since they form the accountability history the whole trust model
   depends on (a provider's rating and job history need to persist to mean
   anything).
@@ -101,7 +101,7 @@ When you do:
 
 - Your account information, verification documents, and any personally
   identifying profile details are removed.
-- Job, payment, and dispute records tied to jobs with **other** users may
+- Job and dispute records tied to jobs with **other** users may
   be retained in an anonymized or minimally-identifying form, since those
   other users' own accountability history depends on the job having
   happened — this mirrors how the provider rating/job-count system works
@@ -130,7 +130,7 @@ your device, and only for the purpose listed:
 | OpenStreetMap tile servers | Your device's IP address and the part of the map on screen (not your name or account) | Draws the map images on the Map tab and the live-job map. The map code itself is built into the App, so no other site is contacted to show a map |
 | Expo push service (with Apple or Google) | Your push-notification token and the notification text | Delivers notifications, only if you turn them on |
 | Google or Apple sign-in | Your name and email, from them to us | Only if you choose to sign in that way |
-| Hubtel | Your payment amount and mobile-money or card details | Processes payments, once live payments are switched on (see Section 2) |
+| Hubtel | Your subscription payment amount and mobile-money or card details (providers only) | Processes the provider subscription |
 
 The App does not use advertising trackers, analytics tools, or session
 recording, and does not load fonts or scripts from other websites.

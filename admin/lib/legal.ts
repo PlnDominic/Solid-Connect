@@ -5,7 +5,7 @@ export type LegalSlug = keyof typeof LEGAL_MARKDOWN;
 export const LEGAL_DOCS: Record<LegalSlug, string> = {
   terms: 'Terms of Service',
   privacy: 'Privacy Policy',
-  refunds: 'Refund & Dispute Policy',
+  refunds: 'Dispute Policy',
   providers: 'Provider Agreement',
 };
 

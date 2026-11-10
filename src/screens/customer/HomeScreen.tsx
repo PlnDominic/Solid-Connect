@@ -389,7 +389,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               <Text style={styles.heroActivityTitle}>{activeJob.title}</Text>
               <Text style={styles.heroActivityDetail}>
                 {activeJob.status === 'awaiting_completion_confirmation'
-                  ? 'Provider finished · confirm to release payment'
+                  ? 'Provider finished · confirm the job is done'
                   : activeJob.status === 'accepted'
                     ? 'Waiting for provider to start'
                     : `In progress · ${activeJob.location_label}`}

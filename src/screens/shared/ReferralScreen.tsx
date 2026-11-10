@@ -22,7 +22,7 @@ const STATUS_LABEL: Record<ReferralSummary['invited'][number]['status'], string>
  * Invite friends. The code and ledger live server-side
  * (supabase/migrations/0060_referral_rewards.sql); this screen shows the
  * real code, who joined, and credit earned on their first completed job.
- * Credit is paid out with real payouts (Phase G) - the copy says so.
+ * Credit is only recorded here: Solid Connect makes no payouts.
  */
 export function ReferralScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
@@ -105,7 +105,7 @@ export function ReferralScreen({ navigation }: { navigation: any }) {
         ) : null}
 
         <Text style={styles.note}>
-          Credit is paid out with your next payout once real payouts are live. One reward per friend, on their first completed job.
+          Credit is recorded here as you earn it, and Solid Connect will tell you how it can be used. One reward per friend, on their first completed job.
         </Text>
       </ScrollView>
     </Screen>

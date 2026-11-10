@@ -5,7 +5,7 @@
  *
  * This is a short in-app summary, not the drafted long-form documents in
  * `docs/legal/` (Terms of Service, Privacy Policy, Provider Agreement,
- * Refund & Dispute Policy) - those are markdown files reviewed by no one
+ * Dispute Policy) - those are markdown files reviewed by no one
  * yet and not shipped in the app. `LEGAL_VERSION` tracks this summary's
  * own last-edited date, recorded on `profiles.terms_version` at sign-up
  * so a future rewrite can tell who agreed to which wording.
@@ -27,7 +27,7 @@ export const LEGAL_SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: 'Payments & disputes',
-    body: 'Until live mobile-money / card rails ship, payment screens are simulated. When live payments land, releasing payment after job confirmation moves funds per the agreed quote, subject to platform commission. Open a dispute from a job within the window shown on that screen if work was incomplete, poor quality, overcharged, or a no-show.',
+    body: 'Solid Connect does not collect, hold or pay out money for jobs. You and the provider agree the price and settle payment directly, in cash or Mobile Money, when the work is done. Providers pay Solid Connect a yearly subscription for using the platform. If work was incomplete, poor quality, overcharged, or a no-show, open a dispute from the job: our team can review it and act on accounts, but cannot refund or recover money that was paid directly.',
   },
 ];
 
@@ -42,7 +42,7 @@ const LEGAL_BASE_URL = (process.env.EXPO_PUBLIC_LEGAL_URL ?? '').replace(/\/+$/,
 export const LEGAL_DOCS = [
   { slug: 'terms', title: 'Terms of Service' },
   { slug: 'privacy', title: 'Privacy Policy' },
-  { slug: 'refunds', title: 'Refund & Dispute Policy' },
+  { slug: 'refunds', title: 'Dispute Policy' },
   { slug: 'providers', title: 'Provider Agreement' },
 ] as const;
 

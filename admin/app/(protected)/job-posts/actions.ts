@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
-import { assertOk } from '../../../lib/payments';
+import { assertOk } from '../../../lib/assert';
 
 /** Takes a post off the board without deleting it (the customer still sees
  * it as closed, and the record stays for any report about it). */

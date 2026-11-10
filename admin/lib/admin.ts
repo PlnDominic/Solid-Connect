@@ -58,15 +58,13 @@ export async function requireAdmin(): Promise<{ id: string; email: string } | nu
 /**
  * The feature scopes a support admin can be individually granted or
  * denied (0032_granular_admin_permissions.sql). Deliberately doesn't
- * include team management, the audit log, or the commission rate - those
+ * include team management or the audit log - those
  * stay owner-only and non-delegable, same as before this existed (see
  * requireOwner and settings/actions.ts's own comment on why).
  */
 export const ADMIN_PERMISSIONS = [
   'verifications',
   'disputes',
-  'payments',
-  'payouts',
   'categories',
   'reviews',
   'accounts',
@@ -78,8 +76,6 @@ export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];
 export const ADMIN_PERMISSION_LABELS: Record<AdminPermission, string> = {
   verifications: 'Provider verifications',
   disputes: 'Disputes',
-  payments: 'Payments',
-  payouts: 'Payouts',
   categories: 'Categories',
   reviews: 'Reviews',
   accounts: 'Suspensions, reports & deletion requests',

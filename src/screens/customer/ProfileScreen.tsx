@@ -5,7 +5,6 @@ import {
   Building2,
   Camera,
   ChevronRight,
-  CreditCard,
   FileText,
   Heart,
   KeyRound,
@@ -46,7 +45,6 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
       { label: 'Organizations', screen: 'Organizations', icon: Building2 },
       { label: 'Saved locations', screen: 'SavedLocations', icon: MapPin },
       { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
-      { label: 'Payment methods', screen: 'PaymentMethods', icon: CreditCard },
     ],
   },
   {

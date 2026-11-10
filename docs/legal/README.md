@@ -10,16 +10,18 @@ approved them.** That review should specifically cover:
   Commission registration/compliance requirements for a platform storing
   names, phone numbers, addresses, verification documents, and (while a job
   is active) live location.
-- **Bank of Ghana payment service provider rules** — relevant the moment a
-  real MoMo/card gateway is connected (see `docs/roadmap-and-risks.md`); a
-  marketplace holding customer funds in escrow before releasing them to a
+- **Bank of Ghana payment service provider rules** — Solid Connect no longer
+  collects or holds job payments (customers pay providers directly), which
+  removes most of this, but counsel should confirm that charging providers a
+  subscription through a gateway needs nothing further. The earlier concern
+  was a marketplace holding customer funds in escrow before releasing them to a
   provider may have specific licensing or partnership requirements.
 - **Consumer protection law** applicable to services (not goods) marketplaces
   in Ghana.
 - Whether Solid Connect should be structured as an **agent/facilitator** or
   something else for liability purposes — the drafts below assume "agent",
   matching `LegalScreen.tsx`'s existing framing ("facilitates matching, chat,
-  and (when live) payment... is not the employer of providers").
+  and ... is not the employer of providers").
 - **Professional licensing** for regulated trades (electrical work in
   particular often has statutory licensing requirements) — `verification.md`
   below flags this but doesn't resolve it.
@@ -45,13 +47,13 @@ approved them.** That review should specifically cover:
 - [`provider-agreement.md`](./provider-agreement.md) — terms specific to
   providers: verification, commission, payout, conduct, suspension.
 - [`refund-dispute-policy.md`](./refund-dispute-policy.md) — the customer-
-  facing version of the escrow/dispute mechanics the admin panel already
-  implements (`admin/app/(protected)/disputes`, `payments`, `payouts`).
+  facing version of the dispute process the admin panel implements
+  (`admin/app/(protected)/disputes`). It no longer covers refunds.
 
 ## What's grounded vs. what's a placeholder
 
 Every concrete mechanic named in these drafts (verification levels, the
-escrow flow, commission, dispute resolution windows, suspension) matches
+payment (direct between customer and provider), dispute resolution windows, suspension) matches
 something real in the schema and admin tooling as of migration `0035` — I
 did not invent workflow steps to sound formal. One thing is explicitly
 **not** grounded and needs a business decision before these documents can be

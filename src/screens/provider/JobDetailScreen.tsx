@@ -1,22 +1,20 @@
 import { useState } from 'react';
-import { ChevronLeft, MapPin, MessageCircle, Phone, Receipt, ShieldAlert, Siren } from 'lucide-react-native';
+import { ChevronLeft, MapPin, MessageCircle, Phone, ShieldAlert, Siren } from 'lucide-react-native';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import * as Linking from 'expo-linking';
-import { useFinishJob, useJob, useJobCheckIn, usePayment, useStartJob } from '../../api/jobs';
+import { useFinishJob, useJob, useJobCheckIn, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { getOrCreateThread } from '../../api/chat';
-import { friendlyDisputeError, useJobDispute, useReportUnpaidBalance } from '../../api/disputes';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { JobManageSection } from '../../components/JobManageSection';
-import { JobPaymentCard } from '../../components/JobPaymentCard';
+import { DirectPaymentNote } from '../../components/DirectPaymentNote';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
-import { bookingSecured } from '../../lib/paymentStage';
 import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
@@ -34,9 +32,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: customerPhone } = useContactPhone(job?.customer_id);
   const startJob = useStartJob();
   const finishJob = useFinishJob();
-  const { data: payment } = usePayment(jobId);
-  const { data: dispute } = useJobDispute(jobId);
-  const reportUnpaid = useReportUnpaidBalance();
   const markEnRoute = useJobCheckIn('en_route');
   const markArrived = useJobCheckIn('arrived');
   useReportJobLocation(job);
@@ -99,43 +94,10 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     }
   }
 
-  // No travel or work until the customer's deposit is with Solid Connect
-  // (the database refuses too - DEPOSIT_REQUIRED, 0065).
-  const secured = bookingSecured(payment);
-
-  // 72 hours after finishing with the balance still unpaid (or the job not
-  // confirmed), the provider can hand it to Solid Connect.
-  const canReportUnpaid =
-    job.status === 'awaiting_completion_confirmation' &&
-    !dispute &&
-    !!job.provider_completed_at &&
-    Date.now() - new Date(job.provider_completed_at).getTime() >= 72 * 60 * 60 * 1000;
-
-  function handleReportUnpaid() {
-    Alert.alert(
-      'Report unpaid balance?',
-      'Solid Connect will contact the customer and settle it. The deposit stays held until then.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Report',
-          onPress: async () => {
-            try {
-              await reportUnpaid.mutateAsync({ jobId: job!.id });
-              navigation.navigate('Dispute', { jobId: job!.id });
-            } catch (e) {
-              Alert.alert('Could not report', friendlyDisputeError(e));
-            }
-          },
-        },
-      ],
-    );
-  }
-
   // Optional steps before "Start work": tell the customer you're coming,
   // then that you're there. Skipping them never blocks starting the job.
   const checkIn =
-    job.status !== 'accepted' || job.arrived_at || !secured
+    job.status !== 'accepted' || job.arrived_at
       ? null
       : job.en_route_at
         ? { title: "I've arrived", onPress: () => handleCheckIn(markArrived), loading: markArrived.isPending }
@@ -150,15 +112,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   }
 
   const primaryCta =
-    job.status === 'accepted' && !secured
-      ? {
-          title: 'Waiting for the customer’s deposit',
-          onPress: () => {},
-          loading: false,
-          disabled: true,
-          variant: 'primary' as const,
-        }
-      : job.status === 'accepted'
+    job.status === 'accepted'
       ? {
           title: 'Start work',
           onPress: handleStart,
@@ -178,14 +132,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             // less consequential states use.
             variant: 'active' as const,
           }
-        : canReportUnpaid
-          ? {
-              title: 'Report unpaid balance',
-              onPress: handleReportUnpaid,
-              loading: reportUnpaid.isPending,
-              disabled: false,
-              variant: 'primary' as const,
-            }
         : job.status === 'awaiting_completion_confirmation'
           ? {
               title: 'Waiting for customer',
@@ -206,9 +152,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
     ...(job.status !== 'completed' && job.status !== 'cancelled' && customerPhone
       ? [{ key: 'call', label: 'Call', icon: Phone, onPress: handleCall }]
-      : []),
-    ...(job.status === 'completed'
-      ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
       : []),
     ...(job.status !== 'completed' && job.status !== 'cancelled'
       ? [{ key: 'safety', label: 'Safety', icon: Siren, onPress: () => setShowSafety(true), tone: 'danger' as const }]
@@ -272,7 +215,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </View>
         </View>
 
-        {payment ? <JobPaymentCard job={job} payment={payment} role="provider" /> : null}
+        {job.status !== 'cancelled' ? (
+          <DirectPaymentNote role="provider" price={job.status === 'completed' ? undefined : job.price} />
+        ) : null}
 
         {profile ? <JobManageSection job={job} role="provider" userId={profile.id} /> : null}
 

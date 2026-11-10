@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { ADMIN_PERMISSIONS, createAdminClient, requireOwner, type AdminPermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
-import { assertOk } from '../../../lib/payments';
+import { assertOk } from '../../../lib/assert';
 import { ACCEPT_INVITE_PATH, adminSiteUrl } from '../../../lib/siteUrl';
 
 type ActionResult = { error?: string; success?: boolean };

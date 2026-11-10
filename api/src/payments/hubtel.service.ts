@@ -76,55 +76,6 @@ export class HubtelService {
     };
   }
 
-  async sendMobileMoney(input: {
-    recipientName: string;
-    recipientMsisdn: string;
-    channel: string;
-    amount: number;
-    clientReference: string;
-    description: string;
-    callbackUrl: string;
-  }): Promise<{ ok: boolean; reference: string | null; message: string }> {
-    this.assertConfigured();
-    const account = this.config.get<string>('hubtel.prepaidAccount') || this.merchantAccount;
-    const res = await fetch(
-      `https://smp.hubtel.com/api/merchants/${encodeURIComponent(account!)}/send/mobilemoney`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: this.basicAuth(),
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          RecipientName: input.recipientName,
-          RecipientMsisdn: input.recipientMsisdn,
-          CustomerEmail: '',
-          Channel: input.channel,
-          Amount: input.amount,
-          PrimaryCallbackURL: input.callbackUrl,
-          Description: input.description,
-          ClientReference: input.clientReference,
-        }),
-      },
-    );
-    const json = (await res.json().catch(() => ({}))) as {
-      responseCode?: string;
-      ResponseCode?: string;
-      message?: string;
-      Message?: string;
-      data?: { transactionId?: string; TransactionId?: string };
-      Data?: { TransactionId?: string };
-    };
-    const code = json.responseCode ?? json.ResponseCode;
-    const reference =
-      json.data?.transactionId ?? json.data?.TransactionId ?? json.Data?.TransactionId ?? input.clientReference;
-    return {
-      ok: res.ok && (code === '0000' || code === '0001'),
-      reference,
-      message: json.message ?? json.Message ?? '',
-    };
-  }
-
   callbackUrl(): string {
     return this.config.get<string>('hubtel.callbackUrl') ?? '';
   }

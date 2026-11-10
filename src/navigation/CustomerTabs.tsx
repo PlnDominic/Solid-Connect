@@ -19,7 +19,6 @@ import { SavedLocationsScreen } from '../screens/shared/SavedLocationsScreen';
 import { ChatListScreen } from '../screens/shared/ChatListScreen';
 import { ChatThreadScreen } from '../screens/shared/ChatThreadScreen';
 import { EditProfileScreen } from '../screens/shared/EditProfileScreen';
-import { PaymentMethodsScreen } from '../screens/shared/PaymentMethodsScreen';
 import { NotificationsScreen } from '../screens/shared/NotificationsScreen';
 import { HelpSupportScreen } from '../screens/shared/HelpSupportScreen';
 import { AppearanceScreen } from '../screens/shared/AppearanceScreen';
@@ -28,7 +27,6 @@ import { ReferralScreen } from '../screens/shared/ReferralScreen';
 import { BlockedUsersScreen } from '../screens/shared/BlockedUsersScreen';
 import { LegalScreen } from '../screens/shared/LegalScreen';
 import { DisputeScreen } from '../screens/shared/DisputeScreen';
-import { ReceiptScreen } from '../screens/shared/ReceiptScreen';
 import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
 import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
 import { MapScreen } from '../screens/shared/MapScreen';
@@ -71,7 +69,6 @@ function ActivityStack() {
       <ActivityStackNav.Screen name="JobDetail" component={JobDetailScreen} />
       <ActivityStackNav.Screen name="RateJob" component={RateJobScreen} />
       <ActivityStackNav.Screen name="Dispute" component={DisputeScreen} />
-      <ActivityStackNav.Screen name="Receipt" component={ReceiptScreen} />
     </ActivityStackNav.Navigator>
   );
 }
@@ -100,7 +97,6 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="Organizations" component={OrganizationsScreen} />
       <ProfileStackNav.Screen name="OrganizationDetail" component={OrganizationDetailScreen} />
       <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
-      <ProfileStackNav.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
       <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
       <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />
       <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />

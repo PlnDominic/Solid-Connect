@@ -130,20 +130,8 @@ export default async function DisputeDetailPage({ params }: { params: Promise<{ 
           {dispute.status === 'open' ? (
             <form action={resolve} className="actions">
               <textarea className="field" name="note" required placeholder="Explain the outcome for both sides." />
-              <label style={{ display: 'block', fontSize: 'var(--fs-sm)' }}>
-                Refund amount (optional)
-                <input
-                  type="number"
-                  name="refundAmount"
-                  min={0}
-                  max={job?.price ?? undefined}
-                  placeholder={`Up to GH₵${job?.price ?? 0} · leave blank for none`}
-                  className="search-input"
-                  style={{ marginTop: 6, width: '100%' }}
-                />
-              </label>
               <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', margin: 0 }}>
-                The full price is a full refund; anything less splits it - the provider still gets paid for the rest.
+                Solid Connect holds no payment, so there is no refund to make. Record the outcome; to act on an account, use the person&apos;s profile page.
               </p>
               <button className="btn approve" type="submit">Resolve dispute</button>
             </form>

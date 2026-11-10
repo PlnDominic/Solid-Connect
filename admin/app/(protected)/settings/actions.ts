@@ -3,83 +3,22 @@
 import { revalidatePath } from 'next/cache';
 import { requireOwner, createAdminClient } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
-import { assertOk } from '../../../lib/payments';
+import { assertOk } from '../../../lib/assert';
 
-/** Owner-only: the commission rate is a platform-wide revenue policy, not
- * routine ops work, so it gets the same gate as admin-team management
- * rather than the any-admin gate categories/disputes/reviews use. */
-export async function updateCommission(formData: FormData): Promise<void> {
-  const owner = await requireOwner();
-  if (!owner) return;
-
-  const raw = Number(formData.get('commission_percent'));
-  if (!Number.isFinite(raw) || raw < 0 || raw > 100) return;
-
-  const adminClient = createAdminClient();
-  const { error } = await adminClient
-    .from('platform_config')
-    .update({ commission_percent: raw, updated_at: new Date().toISOString(), updated_by: owner.id })
-    .eq('id', true);
-  assertOk(error, 'Updating the commission rate');
-
-  await logAdminAction(owner, 'UPDATED_COMMISSION', { targetType: 'platform_config', note: `Set to ${raw}%` });
-  revalidatePath('/settings');
-}
-
-/** Owner-only, same tier as commission: how much of the price a customer
- * pays Solid Connect up front to secure a booking, and what share of a
- * forfeited deposit (customer cancelled after paying it) goes to the
- * provider. A 0% deposit turns deposits off - one payment, as before. Only
- * affects bookings made after the change (see 0065). */
-export async function updateDepositPolicy(formData: FormData): Promise<void> {
-  const owner = await requireOwner();
-  if (!owner) return;
-
-  const deposit = Number(formData.get('deposit_percent'));
-  const compensation = Number(formData.get('cancel_compensation_percent'));
-  const valid = (n: number) => Number.isFinite(n) && n >= 0 && n <= 100;
-  if (!valid(deposit) || !valid(compensation)) return;
-
-  const adminClient = createAdminClient();
-  const { error } = await adminClient
-    .from('platform_config')
-    .update({
-      deposit_percent: deposit,
-      cancel_compensation_percent: compensation,
-      updated_at: new Date().toISOString(),
-      updated_by: owner.id,
-    })
-    .eq('id', true);
-  assertOk(error, 'Updating the deposit policy');
-
-  await logAdminAction(owner, 'UPDATED_DEPOSIT_POLICY', {
-    targetType: 'platform_config',
-    note: `Deposit ${deposit}%, provider share of a forfeited deposit ${compensation}%`,
-  });
-  revalidatePath('/settings');
-}
-
-const PAYOUT_METHODS = ['', 'MTN MoMo', 'Vodafone Cash', 'AirtelTigo Money', 'Bank transfer'] as const;
-
-/** Owner-only, same tier as the commission rate: the support email is
- * shown across the panel (this page, the sidebar) and the default payout
- * method pre-selects the dropdown every "Mark paid" action on /payouts
- * starts from, so both are platform-wide policy rather than routine ops. */
+/** Owner-only: the support email is shown across the panel (this page, the
+ * sidebar), so it is platform-wide policy rather than routine ops. */
 export async function updatePlatformSettings(formData: FormData): Promise<void> {
   const owner = await requireOwner();
   if (!owner) return;
 
   const supportEmail = String(formData.get('support_email') ?? '').trim();
-  const defaultPayoutMethod = String(formData.get('default_payout_method') ?? '');
   if (!supportEmail || !/^\S+@\S+\.\S+$/.test(supportEmail)) return;
-  if (!PAYOUT_METHODS.includes(defaultPayoutMethod as (typeof PAYOUT_METHODS)[number])) return;
 
   const adminClient = createAdminClient();
   const { error } = await adminClient
     .from('platform_config')
     .update({
       support_email: supportEmail,
-      default_payout_method: defaultPayoutMethod || null,
       updated_at: new Date().toISOString(),
       updated_by: owner.id,
     })
@@ -88,10 +27,9 @@ export async function updatePlatformSettings(formData: FormData): Promise<void> 
 
   await logAdminAction(owner, 'UPDATED_PLATFORM_SETTINGS', {
     targetType: 'platform_config',
-    note: `Support email: ${supportEmail}; default payout method: ${defaultPayoutMethod || 'none'}`,
+    note: `Support email: ${supportEmail}`,
   });
   revalidatePath('/settings');
-  revalidatePath('/payouts');
 }
 
 /**
@@ -102,7 +40,7 @@ export async function updatePlatformSettings(formData: FormData): Promise<void> 
  * orphaning a file at the storage layer, so the actual bytes only come
  * off through the real Storage API, which this JS client call goes
  * through properly. Owner-only: an irreversible bulk deletion, same tier
- * as team management and the commission rate.
+ * as team management.
  */
 export async function purgeStorageQueue(): Promise<void> {
   const owner = await requireOwner();

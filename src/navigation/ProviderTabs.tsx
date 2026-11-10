@@ -7,8 +7,6 @@ import { WorkScreen } from '../screens/provider/WorkScreen';
 import { JobDetailScreen } from '../screens/provider/JobDetailScreen';
 import { RateCustomerScreen } from '../screens/provider/RateCustomerScreen';
 import { ProfileScreen } from '../screens/provider/ProfileScreen';
-import { EarningsScreen } from '../screens/provider/EarningsScreen';
-import { PayoutDetailsScreen } from '../screens/provider/PayoutDetailsScreen';
 import { SubscriptionScreen } from '../screens/provider/SubscriptionScreen';
 import { ServiceAreasScreen } from '../screens/provider/ServiceAreasScreen';
 import { AvailabilityScreen } from '../screens/provider/AvailabilityScreen';
@@ -25,7 +23,6 @@ import { ReferralScreen } from '../screens/shared/ReferralScreen';
 import { BlockedUsersScreen } from '../screens/shared/BlockedUsersScreen';
 import { LegalScreen } from '../screens/shared/LegalScreen';
 import { DisputeScreen } from '../screens/shared/DisputeScreen';
-import { ReceiptScreen } from '../screens/shared/ReceiptScreen';
 import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
 import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
 import { MapScreen } from '../screens/shared/MapScreen';
@@ -62,7 +59,6 @@ function ActivityStack() {
       <ActivityStackNav.Screen name="JobDetail" component={JobDetailScreen} />
       <ActivityStackNav.Screen name="RateCustomer" component={RateCustomerScreen} />
       <ActivityStackNav.Screen name="Dispute" component={DisputeScreen} />
-      <ActivityStackNav.Screen name="Receipt" component={ReceiptScreen} />
     </ActivityStackNav.Navigator>
   );
 }
@@ -90,8 +86,6 @@ function ProfileStack() {
       <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
       <ProfileStackNav.Screen name="Verification" component={VerificationScreen} />
       <ProfileStackNav.Screen name="Portfolio" component={PortfolioScreen} />
-      <ProfileStackNav.Screen name="Earnings" component={EarningsScreen} />
-      <ProfileStackNav.Screen name="PayoutDetails" component={PayoutDetailsScreen} />
       <ProfileStackNav.Screen name="Subscription" component={SubscriptionScreen} />
       <ProfileStackNav.Screen name="ServiceAreas" component={ServiceAreasScreen} />
       <ProfileStackNav.Screen name="Availability" component={AvailabilityScreen} />

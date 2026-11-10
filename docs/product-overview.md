@@ -53,7 +53,7 @@ workers, experienced professionals.
 
 | Stream | Concept |
 |---|---|
-| Transaction commission | Percentage of completed service transactions or contracts |
+| Transaction commission | _Not used: job payments are made directly between customer and provider (decision of 2026-11-10)._ Originally: percentage of completed service transactions or contracts |
 | Business subscriptions | Paid plans for organizations requiring advanced project/workforce features |
 | Provider premium services | Optional visibility, promotion, analytics, premium tools |
 | Verification services | Selected paid verification services where commercially/legally appropriate |

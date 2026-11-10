@@ -5,7 +5,7 @@ import { getNotifications } from '../lib/runtime';
 
 // Only the destinations the app actually lets someone share externally:
 // a provider's profile, a job post (job-posts/:id for its owner, job-board/:id
-// for providers), a job (and its receipt), the referral screen, and
+// for providers), a job, the referral screen, and
 // referral invite links (solidconnect://referral?code=XXXX, which open the
 // Referral screen; the code itself is captured by AuthFlowScreen's link
 // listener and claimed after sign-up).
@@ -76,7 +76,6 @@ export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
           ActivityTab: {
             screens: {
               JobDetail: 'jobs/:jobId',
-              Receipt: 'jobs/:jobId/receipt',
               Dispute: 'jobs/:jobId/dispute',
             },
           },

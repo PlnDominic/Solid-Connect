@@ -1,21 +1,18 @@
-import { useCallback, useState } from 'react';
-import { ChevronLeft, MapPin, MessageCircle, Phone, Receipt, ShieldAlert, Siren, Star } from 'lucide-react-native';
+import { useState } from 'react';
+import { ChevronLeft, MapPin, MessageCircle, Phone, ShieldAlert, Siren, Star } from 'lucide-react-native';
 import { Alert, Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
-import { useConfirmCompletion, useJob, usePayment } from '../../api/jobs';
-import { useHubtelCheckout, useRefreshHubtelPayment } from '../../api/payments';
+import { useConfirmCompletion, useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
 import { getOrCreateThread } from '../../api/chat';
 import { useJobDispute } from '../../api/disputes';
-import { paymentStep } from '../../lib/paymentStage';
 import { Avatar } from '../../components/Avatar';
 import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { JobManageSection } from '../../components/JobManageSection';
-import { JobPaymentCard } from '../../components/JobPaymentCard';
+import { DirectPaymentNote } from '../../components/DirectPaymentNote';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
@@ -37,44 +34,16 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const { data: providerPhone } = useContactPhone(job?.provider_id);
   const { data: review } = useJobReview(jobId);
   const confirmCompletion = useConfirmCompletion();
-  const { data: payment } = usePayment(jobId);
-  const checkout = useHubtelCheckout(jobId);
-  const refreshPayment = useRefreshHubtelPayment(jobId);
   const { data: dispute } = useJobDispute(jobId);
   useReportJobLocation(job);
 
-  const [showPayment, setShowPayment] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [showSafety, setShowSafety] = useState(false);
-  const [payError, setPayError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
-
-  useFocusEffect(
-    useCallback(() => {
-      // Back from a Hubtel checkout (deposit or balance): pick up the result.
-      const outstanding =
-        (payment?.status === 'pending' && (payment.deposit_reference || payment.client_reference)) ||
-        (payment?.status === 'deposit_held' && payment.client_reference);
-      if (outstanding) refreshPayment.mutate();
-    }, [payment?.status, payment?.client_reference, payment?.deposit_reference]),
-  );
 
   if (!job) return <Screen edges={['top']} />;
 
-  async function handlePay() {
-    setPayError(null);
-    try {
-      const res = await checkout.mutateAsync();
-      const url = res.data.checkoutUrl;
-      if (url) await Linking.openURL(url);
-    } catch (e: unknown) {
-      setPayError(e instanceof Error ? e.message : 'Could not start Hubtel checkout.');
-    }
-  }
-
-  // What's owed to Solid Connect next: the deposit that secures the booking,
-  // then the balance once the provider has finished.
-  const step = payment ? paymentStep(payment, job.status) : null;
-  // An open dispute holds the payment; confirming would be refused anyway.
+  // An open dispute has to be settled before the job can be confirmed.
   const disputeOpen = dispute?.status === 'open';
 
   async function handleConfirm() {
@@ -86,7 +55,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       setConfirmError(e instanceof Error ? e.message : 'Could not confirm completion. Please try again.');
       return;
     }
-    setShowPayment(false);
+    setShowConfirm(false);
     navigation.navigate('RateJob', { jobId: job.id });
   }
 
@@ -130,9 +99,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     { key: 'message', label: 'Message', icon: MessageCircle, onPress: handleMessage },
     ...(job.status !== 'completed' && job.status !== 'cancelled' && providerPhone
       ? [{ key: 'call', label: 'Call', icon: Phone, onPress: handleCall }]
-      : []),
-    ...(job.status === 'completed'
-      ? [{ key: 'receipt', label: 'Receipt', icon: Receipt, onPress: () => navigation.navigate('Receipt', { jobId: job.id }) }]
       : []),
     ...(job.status !== 'completed' && job.status !== 'cancelled'
       ? [{ key: 'safety', label: 'Safety', icon: Siren, onPress: () => setShowSafety(true), tone: 'danger' as const }]
@@ -204,7 +170,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
           </View>
         </View>
 
-        {payment ? <JobPaymentCard job={job} payment={payment} role="customer" /> : null}
+        {job.status !== 'cancelled' ? (
+          <DirectPaymentNote role="customer" price={job.status === 'completed' ? undefined : job.price} />
+        ) : null}
 
         {profile ? <JobManageSection job={job} role="customer" userId={profile.id} /> : null}
 
@@ -212,14 +180,6 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
       </ScrollView>
 
       <View style={styles.footer}>
-        {/* Say what the deposit commits them to before they pay it, not only
-            when they later try to cancel (see JobManageSection). */}
-        {step?.kind === 'deposit' && payment ? (
-          <Text style={styles.depositNote}>
-            The GHS {Math.max(Number(payment.amount) - step.amount, 0).toLocaleString()} balance is due after the work is done. If you
-            cancel after paying, the deposit is not refunded unless the provider doesn't show up.
-          </Text>
-        ) : null}
         {job.status === 'completed' ? (
           review === undefined ? null : review ? (
             <Button title="Job rated. Thank you" variant="outline" onPress={() => {}} disabled />
@@ -229,15 +189,9 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         ) : job.status === 'cancelled' ? (
           <Button title="Job cancelled" onPress={() => {}} disabled />
         ) : disputeOpen && job.status === 'awaiting_completion_confirmation' ? (
-          <Button title="Payment on hold while the dispute is open" variant="outline" disabled onPress={() => {}} />
-        ) : step?.kind === 'deposit' ? (
-          <Button title={`Pay deposit · GHS ${step.amount.toLocaleString()}`} onPress={handlePay} loading={checkout.isPending} />
-        ) : step?.kind === 'balance' ? (
-          <Button title={`Pay balance · GHS ${step.amount.toLocaleString()}`} onPress={handlePay} loading={checkout.isPending} />
-        ) : step?.kind === 'full' ? (
-          <Button title={`Pay GHS ${step.amount.toLocaleString()}`} onPress={handlePay} loading={checkout.isPending} />
-        ) : job.status === 'awaiting_completion_confirmation' && step?.kind === 'paid' ? (
-          <Button title="Confirm completion" onPress={() => setShowPayment(true)} />
+          <Button title="Confirm after the dispute is resolved" variant="outline" disabled onPress={() => {}} />
+        ) : job.status === 'awaiting_completion_confirmation' ? (
+          <Button title="Confirm completion" onPress={() => setShowConfirm(true)} />
         ) : (
           <Button
             title={job.status === 'in_progress' ? 'Work in progress' : 'Waiting for provider to start'}
@@ -247,23 +201,17 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         )}
       </View>
 
-      <BottomSheet visible={showPayment} onClose={() => setShowPayment(false)}>
+      <BottomSheet visible={showConfirm} onClose={() => setShowConfirm(false)}>
         <Text style={styles.sheetTitle}>Confirm job completion</Text>
         <Text style={styles.sheetBody}>
-          This releases the Hubtel payment to the provider, minus platform commission. You can still open a dispute for 48 hours.
+          Confirm only once the work is done and you have settled payment with your provider. You can still open a dispute afterwards.
         </Text>
         {confirmError ? <Text style={{ color: colors.danger, marginBottom: spacing.sm }}>{confirmError}</Text> : null}
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Button title="Not yet" variant="outline" onPress={() => setShowPayment(false)} style={{ flex: 1, height: 48 }} />
+          <Button title="Not yet" variant="outline" onPress={() => setShowConfirm(false)} style={{ flex: 1, height: 48 }} />
           <Button title="Confirm" onPress={handleConfirm} loading={confirmCompletion.isPending} style={{ flex: 1, height: 48 }} />
         </View>
       </BottomSheet>
-
-      {payError ? (
-        <Text style={{ color: colors.danger, textAlign: 'center', paddingHorizontal: spacing.lg, paddingBottom: spacing.sm }}>
-          {payError}
-        </Text>
-      ) : null}
 
       <SafetySheet visible={showSafety} onClose={() => setShowSafety(false)} job={job} peerName={provider?.full_name} />
     </Screen>
@@ -310,7 +258,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     progressLabel: { flex: 1, fontSize: fontSizes.sm, fontFamily: fonts.extrabold, letterSpacing: -0.1 },
     progressStep: { fontSize: fontSizes.sm, fontFamily: fonts.mono, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
     progressNote: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
-    depositNote: { fontSize: fontSizes.xs, lineHeight: 17, fontFamily: fonts.medium, color: colors.inkMuted, marginBottom: spacing.sm },
 
     detailsCard: {
       borderRadius: radii.lg,

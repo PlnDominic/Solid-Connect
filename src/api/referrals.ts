@@ -11,7 +11,7 @@ export interface ReferralSummary {
   invitedCount: number;
   joinedCount: number;
   earnedCount: number;
-  /** GHS credit earned (paid out with real payouts - Phase G). */
+  /** GHS credit earned (recorded only; Solid Connect makes no payouts). */
   earnedAmount: number;
   /** Referrals tracked with a status but not yet earned (invitee's first job still pending). */
   pendingCount: number;

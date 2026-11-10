@@ -1,24 +1,23 @@
-# Solid Connect — Refund & Dispute Policy
+# Solid Connect — Dispute Policy
 
 **DRAFT — not reviewed by counsel. See `README.md` in this folder before
-using this document for anything.** This document describes mechanics that
-exist today in the admin panel (`admin/app/(protected)/disputes`,
-`payments`, `payouts`) applied to a payment flow that is not yet live (see
-Section 1) — read it as the intended policy, not a description of money
-that has actually moved.
+using this document for anything.** The file keeps its original name
+(`refund-dispute-policy.md`) so existing links keep working, but Solid
+Connect no longer handles refunds, because it no longer handles payment.
 
-_Last drafted: 2026-09-13._
+_Last drafted: 2026-11-10._
 
-## 1. How payment escrow works (once live)
+## 1. Solid Connect does not collect or hold payment
 
-When a customer accepts a provider's quote, the agreed price is **held by
-Solid Connect**, not paid to the provider yet. It stays held while the job
-is in progress. When the customer confirms the job complete, Solid Connect
-releases the held amount to the provider, minus commission.
+Customers and providers agree the price and settle payment **directly with
+each other**, in cash or Mobile Money, when the work is done. Solid Connect
+does not take a deposit, hold a balance, charge a commission on jobs or pay
+providers out. The only money Solid Connect charges is the provider's own
+subscription for using the platform (see `provider-agreement.md`).
 
-**As of this draft, this is not yet connected to a real payment
-gateway** — no real money is charged or held today. This policy describes
-what happens once it is.
+Because of that, Solid Connect **cannot refund, reverse or recover** money
+that one person paid another. Pay only when you are satisfied with the work,
+and avoid paying in advance for work that has not started.
 
 ## 2. Opening a dispute
 
@@ -29,7 +28,7 @@ customer can open a dispute from that job in the App, choosing a reason:
   finish, the agreed work.
 - **Poor quality** — the work was completed but doesn't meet a reasonable
   standard for what was agreed.
-- **Overcharged** — the amount doesn't match what was agreed.
+- **Overcharged** — the amount asked doesn't match what was agreed.
 - **No-show** — the provider never arrived.
 - **Other** — anything not covered above, described in your own words.
 
@@ -42,31 +41,22 @@ in-progress problem.
 
 ## 3. What happens after you open one
 
-- The payment tied to that job stays held (not released to the provider)
-  while the dispute is open.
+- The job cannot be confirmed complete while the dispute is open.
 - Solid Connect's admin team reviews the evidence available on the job:
   the full status timeline, the chat transcript between you and the
-  provider, and any photos attached to the original request.
+  provider, and any photos attached to the original request or the dispute.
 - The admin team resolves the dispute with a written explanation of the
-  outcome, and — where warranted — refunds the held payment back to you
-  instead of releasing it to the provider.
-- If the payment had already been released and paid out to the provider
-  before the dispute was raised, a refund at that point is a direct
-  conversation between Solid Connect and the provider, not an automatic
-  reversal — see `provider-agreement.md` Section 6.
+  outcome.
 
 ## 4. What a resolution looks like
 
 Every dispute resolution includes a plain-language note explaining the
 outcome — not just "approved" or "denied". You can see this note in the
-App once your dispute is resolved. Possible outcomes:
-
-- **Refunded**: the held payment is returned to you.
-- **Released to provider**: the admin team found the work was
-  satisfactorily completed as agreed; the payment is released normally.
-- **Partial refund**: part of the held payment is returned to you, and
-  the provider is still paid the remainder - used when the work was
-  partly done, or partly met what was agreed.
+App once your dispute is resolved. A resolution is a finding and, where
+warranted, action on an account: a warning, a hidden review, or a
+suspension. It is **not** a payment instruction. If the finding is that
+money should be returned, the two people settle that between themselves;
+Solid Connect cannot move it for them.
 
 ## 5. If you disagree with a resolution
 
@@ -77,15 +67,14 @@ appeals process beyond direct support contact.
 
 ## 6. Cancelling before a job starts
 
-_[Placeholder — this policy currently covers disputes on an already-
-accepted job. A separate policy for cancelling a request before a provider
-is matched, or cancelling an accepted-but-not-yet-started job, needs to be
-written; check `docs/marketplace-mechanics.md` for whether that flow
-already has agreed rules that just need restating here.]_
+Either side can cancel an accepted job that has not started from the job
+screen. Because no money is held, nothing is refunded or forfeited; the
+other person is told, and repeated cancellations or no-shows count against
+a person's standing.
 
 ## 7. Provider no-shows and repeated issues
 
 A pattern of no-show or poor-quality disputes against the same provider is
 also a conduct matter under `provider-agreement.md` Section 8, separate
-from the refund itself — Solid Connect may suspend a provider's account
-independent of any individual dispute's resolution.
+from any individual dispute's resolution — Solid Connect may suspend a
+provider's account independent of any individual dispute's resolution.
