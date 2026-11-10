@@ -4,6 +4,8 @@ import { apiFetch, isApiConfigured } from '../lib/api';
 import { AREAS } from '../constants/areas';
 import { AREA_COORDS, coordsForLabel } from '../lib/areaCoords';
 import { haversineKm } from '../lib/geo';
+import { supabase } from '../lib/supabase';
+import { useSessionStore } from '../store/useSessionStore';
 import type { Profile } from '../types/database';
 
 export type ServiceAreaPayload = {
@@ -15,11 +17,10 @@ export type ServiceAreaPayload = {
 };
 
 type AreasResponse = { data: Array<{ id: string; type: string; city_name: string | null; radius_meters: number | null }> };
-type AvailabilityResponse = {
-  data: {
-    mode: 'AVAILABLE_NOW' | 'UNAVAILABLE' | 'SCHEDULE' | 'PAUSED';
-    weekly: Array<{ day_of_week: number; start_time: string; end_time: string }>;
-  };
+export type AvailabilityMode = 'AVAILABLE_NOW' | 'UNAVAILABLE' | 'SCHEDULE' | 'PAUSED';
+export type MyAvailability = {
+  mode: AvailabilityMode;
+  weekly: Array<{ day_of_week: number; start_time: string; end_time: string }>;
 };
 type SearchResponse = { data: Profile[] };
 
@@ -113,29 +114,55 @@ export async function saveProviderCoverage(input: {
   });
 }
 
+/** The signed-in provider's availability mode and weekly hours. Read straight
+ * from Supabase (profiles.availability_mode, provider_availability), so it
+ * works without the Nest API. */
 export function useMyAvailability() {
+  const profile = useSessionStore((st) => st.profile);
+  const isProvider = profile?.role === 'provider';
   return useQuery({
-    queryKey: ['providers', 'me', 'availability'],
-    enabled: isApiConfigured(),
-    queryFn: async () => {
-      const res = await apiFetch<AvailabilityResponse>('/api/v1/providers/me/availability');
-      return res.data;
+    queryKey: ['providers', 'me', 'availability', profile?.id],
+    enabled: isProvider,
+    queryFn: async (): Promise<MyAvailability> => {
+      const [{ data: weekly, error: weeklyError }, { data: row, error: modeError }] = await Promise.all([
+        supabase
+          .from('provider_availability')
+          .select('day_of_week, start_time, end_time')
+          .eq('provider_id', profile?.id as string)
+          .order('day_of_week'),
+        supabase.from('profiles').select('availability_mode').eq('id', profile?.id as string).maybeSingle(),
+      ]);
+      if (weeklyError) throw weeklyError;
+      if (modeError) throw modeError;
+      return {
+        mode: (row?.availability_mode as AvailabilityMode | undefined) ?? 'SCHEDULE',
+        weekly: (weekly ?? []) as MyAvailability['weekly'],
+      };
     },
   });
+}
+
+/** Turns a database error from the availability functions into plain words. */
+export function friendlyAvailabilityError(e: unknown): string {
+  const message = e instanceof Error ? e.message : typeof (e as { message?: unknown })?.message === 'string' ? (e as { message: string }).message : '';
+  if (/PGRST202|set_my_availability_mode|replace_my_weekly_availability|does not exist/i.test(message)) {
+    return 'Availability is not set up on the server yet. Please try again later.';
+  }
+  if (message.includes('NOT_A_PROVIDER')) return 'Only providers can set availability.';
+  return message || 'Could not save your availability. Please try again.';
 }
 
 export function useSetAvailabilityMode() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (mode: AvailabilityResponse['data']['mode']) => {
-      if (!isApiConfigured()) throw new Error('API not configured');
-      return apiFetch('/api/v1/providers/me/availability/mode', {
-        method: 'PUT',
-        body: JSON.stringify({ mode }),
-      });
+    mutationFn: async (mode: AvailabilityMode) => {
+      const { error } = await supabase.rpc('set_my_availability_mode', { p_mode: mode });
+      if (error) throw error;
+      return mode;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['providers', 'me', 'availability'] });
+      qc.invalidateQueries({ queryKey: ['feedRequests'] });
     },
   });
 }
@@ -144,14 +171,12 @@ export function useSaveWeeklyAvailability() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (slots: Array<{ dayOfWeek: number; startTime: string; endTime: string }>) => {
-      if (!isApiConfigured()) throw new Error('API not configured');
-      return apiFetch('/api/v1/providers/me/availability/weekly', {
-        method: 'PUT',
-        body: JSON.stringify({ slots }),
-      });
+      const { error } = await supabase.rpc('replace_my_weekly_availability', { p_slots: slots });
+      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['providers', 'me', 'availability'] });
+      qc.invalidateQueries({ queryKey: ['feedRequests'] });
     },
   });
 }

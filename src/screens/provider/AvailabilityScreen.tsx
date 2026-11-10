@@ -2,8 +2,12 @@ import { useMemo } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
-import { useMyAvailability, useSaveWeeklyAvailability, useSetAvailabilityMode } from '../../api/location';
-import { isApiConfigured } from '../../lib/api';
+import {
+  friendlyAvailabilityError,
+  useMyAvailability,
+  useSaveWeeklyAvailability,
+  useSetAvailabilityMode,
+} from '../../api/location';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
@@ -25,7 +29,7 @@ const DEFAULT_WEEK = [1, 2, 3, 4, 5].map((dayOfWeek) => ({
 export function AvailabilityScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const { data, isLoading } = useMyAvailability();
+  const { data, isLoading, isError, error: loadError } = useMyAvailability();
   const setMode = useSetAvailabilityMode();
   const saveWeekly = useSaveWeeklyAvailability();
 
@@ -35,17 +39,6 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
     return new Set(DEFAULT_WEEK.map((d) => d.dayOfWeek));
   }, [data?.weekly]);
 
-  if (!isApiConfigured()) {
-    return (
-      <Screen bg={colors.paperDim}>
-        <ScreenHeader title="Availability" onBack={() => navigation.goBack()} />
-        <View style={styles.body}>
-          <Text style={styles.note}>Set EXPO_PUBLIC_API_URL and apply migration 0012 to manage availability on the server.</Text>
-        </View>
-      </Screen>
-    );
-  }
-
   return (
     <Screen bg={colors.paperDim}>
       <ScreenHeader title="Availability" onBack={() => navigation.goBack()} />
@@ -53,6 +46,8 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
         <Text style={styles.note}>Control whether you appear in customer search and matching right now.</Text>
         {isLoading ? (
           <ActivityIndicator color={colors.ink} />
+        ) : isError ? (
+          <Text style={styles.error}>{friendlyAvailabilityError(loadError)}</Text>
         ) : (
           <>
             <View style={styles.chipsWrap}>
@@ -62,6 +57,8 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
                   <Pressable
                     key={m.id}
                     onPress={() => setMode.mutate(m.id)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
                     style={[styles.chip, active && styles.chipActive]}
                   >
                     <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{m.label}</Text>
@@ -93,6 +90,9 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
               })}
             </View>
             {(setMode.isPending || saveWeekly.isPending) && <ActivityIndicator color={colors.ink} />}
+            {setMode.isError || saveWeekly.isError ? (
+              <Text style={styles.error}>{friendlyAvailabilityError(setMode.error ?? saveWeekly.error)}</Text>
+            ) : null}
           </>
         )}
       </ScrollView>
@@ -103,6 +103,7 @@ export function AvailabilityScreen({ navigation }: { navigation: any }) {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     body: { padding: spacing.lg, gap: spacing.lg },
+    error: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.danger, lineHeight: 20 },
     note: { fontSize: fontSizes.md, fontFamily: fonts.regular, color: colors.inkMuted, lineHeight: 23 },
     section: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink, marginTop: spacing.sm },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
