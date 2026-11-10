@@ -19,7 +19,8 @@ import {
 } from 'lucide-react-native';
 import { fetchProviderCategories, type ProviderCategoryRow } from '../../api/identity';
 import { coordsForLabel, distanceBetweenLabelsKm } from '../../api/location';
-import { useDismissOpportunity, useFeedRequests, useProviderQuoteStats, useSendQuote } from '../../api/requests';
+import { useDismissOpportunity, useFeedRequests, useSendQuote } from '../../api/requests';
+import { useMyAvailabilityMode, type AvailabilityMode } from '../../hooks/useMyAvailabilityMode';
 import type { FeedItem } from '../../api/requests';
 import { useProviderJobs } from '../../api/jobs';
 import { formatJobPostBudget, formatJobPostStart, postedAgo, useJobBoard, useMyJobPostInterests } from '../../api/jobPosts';
@@ -56,11 +57,23 @@ function timeAgo(iso: string) {
   return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
 }
 
-function formatMinutes(mins: number): string {
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  const rem = Math.round(mins % 60);
-  return rem ? `${hrs}h ${rem}m` : `${hrs}h`;
+/** What the availability banner on the greeting card says for each mode. */
+function availabilityBanner(
+  mode: AvailabilityMode | null,
+  colors: ReturnType<typeof useTheme>['colors'],
+): { title: string; detail: string; dot: string } {
+  switch (mode) {
+    case 'AVAILABLE_NOW':
+      return { title: "You're available now", detail: 'Customers can send you jobs right away', dot: colors.confirmOnDark };
+    case 'UNAVAILABLE':
+      return { title: "You're unavailable", detail: 'New requests are on hold until you turn this back on', dot: colors.white };
+    case 'PAUSED':
+      return { title: 'Your profile is paused', detail: 'You are hidden from new customers', dot: colors.pendingOnDark };
+    case 'SCHEDULE':
+      return { title: 'On your schedule', detail: 'Available during the hours you set', dot: colors.confirmOnDark };
+    default:
+      return { title: 'Set your availability', detail: 'Tell customers when you can work', dot: colors.pendingOnDark };
+  }
 }
 
 // Same visual language as the customer Home screen: an orange hero card
@@ -82,7 +95,8 @@ export function FeedScreen({ navigation }: { navigation: any }) {
     profile?.id ?? null,
   );
   const { data: jobs = [], refetch: refetchJobs } = useProviderJobs(profile?.id ?? null);
-  const { data: quoteStats } = useProviderQuoteStats(profile?.id ?? null);
+  const availabilityMode = useMyAvailabilityMode();
+  const availability = availabilityBanner(availabilityMode, colors);
   const sendQuote = useSendQuote();
   const { data: boardPosts = [], isLoading: boardLoading, refetch: refetchBoard } = useJobBoard(profile?.id ?? null);
   const { data: myInterests, refetch: refetchInterests } = useMyJobPostInterests(profile?.id ?? null);
@@ -256,21 +270,22 @@ export function FeedScreen({ navigation }: { navigation: any }) {
             />
           </View>
 
-          {quoteStats && quoteStats.total > 0 ? (
-            <View style={styles.heroStatsRow}>
-              <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>{quoteStats.acceptanceRate}%</Text>
-                <Text style={styles.heroStatLabel}>ACCEPTANCE</Text>
-              </View>
-              <View style={styles.heroStatDivider} />
-              <View style={styles.heroStatItem}>
-                <Text style={styles.heroStatValue}>
-                  {quoteStats.avgResponseMins != null ? formatMinutes(quoteStats.avgResponseMins) : '-'}
-                </Text>
-                <Text style={styles.heroStatLabel}>AVG. RESPONSE</Text>
-              </View>
+          <Pressable
+            style={({ pressed }) => [styles.availBanner, pressed && styles.availBannerPressed]}
+            onPress={() => navigation.navigate('ProfileTab', { screen: 'Availability' })}
+            accessibilityRole="button"
+            accessibilityLabel={`${availability.title}. ${availability.detail}. Change availability`}
+          >
+            <View style={[styles.availDot, { backgroundColor: availability.dot }]} />
+            <View style={styles.availText}>
+              <Text style={styles.availTitle}>{availability.title}</Text>
+              <Text style={styles.availDetail}>{availability.detail}</Text>
             </View>
-          ) : null}
+            <View style={styles.availAction}>
+              <Text style={styles.availActionText}>Change</Text>
+              <ChevronRight color={colors.white} size={14} strokeWidth={2.5} />
+            </View>
+          </Pressable>
 
           {activeJob ? (
             <Pressable
@@ -634,22 +649,25 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     boardTagLabel: { color: isDark ? colors.active : colors.activeDeep, fontSize: fontSizes.xs, fontFamily: fonts.bold },
     boardDesc: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.regular, color: colors.inkMuted },
 
-    // Acceptance rate / avg. response scorecard - only shown once a
-    // provider has sent at least one quote, so a brand-new account never
-    // shows a misleading "0%".
-    heroStatsRow: {
+    // Availability banner: the provider's current mode, one tap to change it.
+    availBanner: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: spacing.md,
       borderRadius: radii.lg,
       backgroundColor: 'rgba(255,255,255,0.14)',
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.28)',
-      paddingVertical: spacing.sm,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
     },
-    heroStatItem: { flex: 1, alignItems: 'center', gap: 2 },
-    heroStatValue: { color: colors.white, fontSize: fontSizes.md, fontFamily: fonts.extrabold, fontVariant: ['tabular-nums'] },
-    heroStatLabel: { color: 'rgba(255,255,255,0.78)', fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.4 },
-    heroStatDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.25)' },
+    availBannerPressed: { backgroundColor: 'rgba(255,255,255,0.22)' },
+    availDot: { width: 10, height: 10, borderRadius: 5 },
+    availText: { flex: 1, gap: 2 },
+    availTitle: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.extrabold, letterSpacing: -0.1 },
+    availDetail: { color: 'rgba(255,255,255,0.82)', fontSize: fontSizes.xs, lineHeight: 16, fontFamily: fonts.medium },
+    availAction: { flexDirection: 'row', alignItems: 'center', gap: 1 },
+    availActionText: { color: colors.white, fontSize: fontSizes.xs, fontFamily: fonts.bold },
 
     heroActivity: {
       padding: spacing.md,
