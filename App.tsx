@@ -16,12 +16,27 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { linking } from './src/navigation/linking';
 import { BiometricLockGate } from './src/components/BiometricLockGate';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { installGlobalErrorReporting, setCurrentScreen } from './src/lib/errorReporting';
 import { JobReminderSync } from './src/components/JobReminderSync';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { LocaleProvider } from './src/i18n';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+installGlobalErrorReporting();
+
+/** Name of the deepest focused route, so a report says which screen it came from. */
+function activeRouteName(state: any): string | null {
+  let node = state;
+  let name: string | null = null;
+  while (node?.routes) {
+    const route = node.routes[node.index ?? 0];
+    name = route?.name ?? name;
+    node = route?.state;
+  }
+  return name;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1 } },
@@ -49,7 +64,7 @@ export default function App() {
           <ThemeProvider>
             <ErrorBoundary>
               <BiometricLockGate>
-                <NavigationContainer linking={linking}>
+                <NavigationContainer linking={linking} onStateChange={(state) => setCurrentScreen(activeRouteName(state))}>
                   <RootNavigator />
                 </NavigationContainer>
                 <OfflineBanner />

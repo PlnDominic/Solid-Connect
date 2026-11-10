@@ -24,7 +24,25 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) return response;
+  if (user) {
+    // Second factor. Off until ADMIN_REQUIRE_MFA=true so enabling it is a
+    // deliberate step taken after the admins have an authenticator app.
+    // Every protected page, server action and API route sits behind this
+    // check; /mfa itself is the only page reachable at the first level.
+    if (process.env.ADMIN_REQUIRE_MFA === 'true' && !request.nextUrl.pathname.startsWith('/mfa')) {
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal && aal.currentLevel !== 'aal2') {
+        if (request.nextUrl.pathname.startsWith('/api/')) {
+          return NextResponse.json({ error: 'Two-step verification required' }, { status: 401 });
+        }
+        const mfaUrl = request.nextUrl.clone();
+        mfaUrl.pathname = '/mfa';
+        mfaUrl.search = '';
+        return NextResponse.redirect(mfaUrl);
+      }
+    }
+    return response;
+  }
 
   if (request.nextUrl.pathname.startsWith('/api/')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -302,6 +302,40 @@ export function useCreateJobPost() {
   });
 }
 
+export function useUpdateJobPost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: JobPostDraft & { postId: string; customerId: string; keepPhotos: string[] }): Promise<void> => {
+      const photos = [...input.keepPhotos];
+      for (const uri of input.photoUris) {
+        photos.push(await uploadRequestPhoto(input.customerId, uri));
+      }
+      const { error } = await supabase
+        .from('job_posts')
+        .update({
+          category_id: input.categoryId,
+          category_label: input.categoryLabel,
+          title: input.title.trim(),
+          description: input.description.trim(),
+          budget_type: input.budgetType,
+          budget_min: input.budgetType === 'negotiable' ? null : input.budgetMin,
+          budget_max: input.budgetType === 'negotiable' ? null : input.budgetMax,
+          location_label: input.locationLabel,
+          start_preference: input.startPreference,
+          start_date: input.startPreference === 'date' ? input.startDate : null,
+          photos,
+        })
+        .eq('id', input.postId)
+        .eq('status', 'open');
+      if (error) throw error;
+    },
+    onSuccess: (_d, input) => {
+      qc.invalidateQueries({ queryKey: ['jobPosts'] });
+      qc.invalidateQueries({ queryKey: KEYS.one(input.postId) });
+    },
+  });
+}
+
 export function useSetJobPostStatus() {
   const qc = useQueryClient();
   return useMutation({
@@ -420,4 +454,12 @@ export function friendlyPostError(e: unknown): string {
     return 'You have reached the limit of 5 job posts a day. Try again tomorrow, or close an old post and reuse it.';
   }
   return message || 'Could not post that job. Please try again.';
+}
+
+/** Opens (or reuses) the chat thread for one interest on a post, so the
+ * customer and the provider can talk before anyone is hired. */
+export async function openJobPostThread(postId: string, providerId: string): Promise<string> {
+  const { data, error } = await supabase.rpc('open_job_post_thread', { p_post_id: postId, p_provider_id: providerId });
+  if (error) throw error;
+  return data as string;
 }

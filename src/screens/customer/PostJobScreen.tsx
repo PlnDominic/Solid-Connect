@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { CalendarDays, Clock, ImagePlus, Plus, Sparkles, X, Zap } from 'lucide-react-native';
@@ -9,6 +9,8 @@ import {
   formatJobPostStart,
   friendlyPostError,
   useCreateJobPost,
+  useJobPost,
+  useUpdateJobPost,
   type JobPostBudgetType,
   type JobPostStart,
 } from '../../api/jobPosts';
@@ -77,7 +79,12 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   const profile = useSessionStore((s) => s.profile);
   const { data: categories = [] } = useCategories();
   const createPost = useCreateJobPost();
+  const updatePost = useUpdateJobPost();
   const params = route?.params ?? {};
+  // Editing an existing open post: same steps, prefilled, saved in place.
+  const editId: string | null = params.editPostId ?? null;
+  const { data: editing } = useJobPost(editId);
+  const keepPhotos: string[] = editing?.photos ?? [];
 
   const [stepIndex, setStepIndex] = useState(0);
   const step = STEPS[stepIndex];
@@ -98,6 +105,22 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   });
   const [focused, setFocused] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [prefilled, setPrefilled] = useState(false);
+  useEffect(() => {
+    if (!editing || prefilled || categories.length === 0) return;
+    setPrefilled(true);
+    setCategory(categories.find((c) => c.id === editing.category_id) ?? null);
+    setTitle(editing.title);
+    setDescription(editing.description);
+    setBudgetType(editing.budget_type);
+    setMinText(editing.budget_min != null ? String(Math.round(editing.budget_min)) : '');
+    setMaxText(editing.budget_max != null ? String(Math.round(editing.budget_max)) : '');
+    setStartPreference(editing.start_preference);
+    setStartDate(editing.start_date);
+    setLocation(editing.location_label.replace(/,\s*Accra$/, ''));
+    setStepIndex(STEPS.length - 1);
+  }, [editing, prefilled, categories]);
 
   const days = useMemo(() => nextDays(14), []);
   const minAmount = parseAmount(minText);
@@ -155,7 +178,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   }
 
   async function pickPhoto() {
-    if (photoUris.length >= MAX_PHOTOS) return;
+    if (keepPhotos.length + photoUris.length >= MAX_PHOTOS) return;
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       Alert.alert('Photo access needed', 'Allow photo library access to add photos to your job post.');
@@ -167,13 +190,34 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
       quality: 0.7,
     });
     if (result.canceled) return;
-    setPhotoUris((prev) => [...prev, result.assets[0].uri].slice(0, MAX_PHOTOS));
+    setPhotoUris((prev) => [...prev, result.assets[0].uri].slice(0, MAX_PHOTOS - keepPhotos.length));
   }
 
   async function handlePost() {
     if (!profile || !category) return;
     setError(null);
     try {
+      if (editId) {
+        await updatePost.mutateAsync({
+          postId: editId,
+          keepPhotos,
+          customerId: profile.id,
+          categoryId: category.id,
+          categoryLabel: category.name,
+          title,
+          description,
+          budgetType,
+          budgetMin: budgetType === 'fixed' ? maxAmount : minAmount,
+          budgetMax: maxAmount,
+          locationLabel: location.includes('Accra') ? location : `${location}, Accra`,
+          startPreference,
+          startDate: startPreference === 'date' ? startDate : null,
+          photoUris,
+        });
+        haptics.success();
+        navigation.goBack();
+        return;
+      }
       const post = await createPost.mutateAsync({
         customerId: profile.id,
         categoryId: category.id,
@@ -205,7 +249,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
 
   return (
     <Screen bg={colors.paperDim}>
-      <ScreenHeader title="Post a Job" onBack={handleBack} />
+      <ScreenHeader title={editId ? 'Edit job post' : 'Post a Job'} onBack={handleBack} />
       <View style={styles.progressWrap}>
         <StepBars count={STEPS.length} step={stepIndex + 1} />
         <Text style={styles.progressText}>
@@ -466,10 +510,10 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
 
       <View style={styles.footer}>
         <Button
-          title={isLast ? 'Post job' : 'Continue'}
+          title={isLast ? (editId ? 'Save changes' : 'Post job') : 'Continue'}
           variant="active"
           disabled={!canContinue}
-          loading={isLast && createPost.isPending}
+          loading={isLast && (createPost.isPending || updatePost.isPending)}
           onPress={handleContinue}
         />
       </View>

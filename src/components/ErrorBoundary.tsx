@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 import { Button } from './Button';
+import { reportError } from '../lib/errorReporting';
 
 /** What a person sees instead of a blank screen when something unexpected
  * breaks. Their account and data are fine; trying again reloads the screen. */
@@ -41,8 +42,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Hook for crash reporting (none is installed yet); the console keeps it
-    // visible while developing.
+    // Reported to client_errors (see lib/errorReporting.ts); the console keeps
+    // it visible while developing.
+    void reportError(error, { fatal: true });
     this.props.onError?.(error, info);
     console.error('Unhandled screen error', error);
   }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { CheckCircle2 } from 'lucide-react-native';
-import { isPostExpired, isPostOpen, useExpressInterest, useJobPost, useMyJobPostInterests, useWithdrawInterest } from '../../api/jobPosts';
+import { isPostExpired, isPostOpen, openJobPostThread, useExpressInterest, useJobPost, useMyJobPostInterests, useWithdrawInterest } from '../../api/jobPosts';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { JobPostSummary } from '../../components/JobPostSummary';
@@ -39,6 +39,16 @@ export function JobPostScreen({ navigation, route }: { navigation: any; route: a
     setMessage(mine.message ?? '');
     setPriceText(mine.proposed_price ? String(Math.round(Number(mine.proposed_price))) : '');
   }, [mine?.id]);
+
+  async function openChat() {
+    if (!profile || !post) return;
+    try {
+      const threadId = await openJobPostThread(post.id, profile.id);
+      navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId: post.customer_id } });
+    } catch (e: any) {
+      Alert.alert('Could not open the chat', e?.message ?? 'Please try again.');
+    }
+  }
 
   async function submit() {
     if (!profile || !post) return;
@@ -133,6 +143,13 @@ export function JobPostScreen({ navigation, route }: { navigation: any; route: a
             <Text style={styles.sentMessage}>{mine.message}</Text>
             {mine.proposed_price ? (
               <Text style={styles.sentPrice}>Your price: GHS {Number(mine.proposed_price).toLocaleString()}</Text>
+            ) : null}
+            {mine.status !== 'declined' ? (
+              <View style={styles.sentActions}>
+                <Pressable style={styles.ghostBtn} onPress={openChat} accessibilityRole="button">
+                  <Text style={styles.ghostLabel}>Message customer</Text>
+                </Pressable>
+              </View>
             ) : null}
             {open ? (
               <View style={styles.sentActions}>

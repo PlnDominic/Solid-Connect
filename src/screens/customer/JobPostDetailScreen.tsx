@@ -5,6 +5,7 @@ import {
   expiryLabel,
   isPostExpired,
   isPostOpen,
+  openJobPostThread,
   useDeleteJobPost,
   useJobPost,
   useJobPostInterests,
@@ -108,6 +109,15 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
     );
   }
 
+  async function message(i: JobPostInterestWithProvider) {
+    try {
+      const threadId = await openJobPostThread(currentPost.id, i.provider_id);
+      navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId: i.provider_id } });
+    } catch (e: any) {
+      Alert.alert('Could not open the chat', e?.message ?? 'Please try again.');
+    }
+  }
+
   function confirmDelete() {
     Alert.alert('Delete this post?', 'It will be removed from every provider feed. This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
@@ -171,6 +181,7 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
               canAct={open}
               onViewProfile={() => navigation.navigate('ProviderDetail', { providerId: i.provider_id })}
               onHire={() => hire(i)}
+              onMessage={() => message(i)}
               onShortlist={() => toggleShortlist(i)}
               onDecline={() => decline(i)}
             />
@@ -180,6 +191,13 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
         {declined.length ? <Text style={styles.declinedNote}>{declined.length} declined</Text> : null}
 
         <View style={styles.actions}>
+          {open ? (
+            <Button
+              title="Edit post"
+              variant="outline"
+              onPress={() => navigation.navigate('PostJob', { editPostId: post.id })}
+            />
+          ) : null}
           <Button
             title={open ? 'Close post' : expired ? 'Repost for 14 days' : 'Reopen post'}
             variant="outline"
@@ -200,6 +218,7 @@ function InterestCard({
   canAct,
   onViewProfile,
   onHire,
+  onMessage,
   onShortlist,
   onDecline,
 }: {
@@ -207,6 +226,7 @@ function InterestCard({
   canAct: boolean;
   onViewProfile: () => void;
   onHire: () => void;
+  onMessage: () => void;
   onShortlist: () => void;
   onDecline: () => void;
 }) {
@@ -248,6 +268,9 @@ function InterestCard({
 
       {canAct ? (
         <View style={styles.interestActions}>
+          <Pressable style={styles.ghostBtn} onPress={onMessage} accessibilityRole="button">
+            <Text style={styles.ghostLabel}>Message</Text>
+          </Pressable>
           <Pressable style={styles.hireBtn} onPress={onHire} accessibilityRole="button">
             <Text style={styles.hireLabel}>Hire</Text>
           </Pressable>
