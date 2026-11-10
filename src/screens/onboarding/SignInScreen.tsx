@@ -12,6 +12,7 @@ import {
   Text,
   TextInput,
   View,
+  type TextInputInstance,
 } from 'react-native';
 import { Apple, ArrowRight, Eye, EyeOff, Lock, Mail, Phone } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -65,7 +66,7 @@ export function SignInScreen({
   const [focused, setFocused] = useState<'id' | 'pw' | null>(null);
   const [segWidth, setSegWidth] = useState(0);
   const [appleAvailable, setAppleAvailable] = useState(false);
-  const passwordRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
   const busy = !!loading;
   const canSubmit = identifier.trim().length > 0 && password.length > 0 && !busy;
 

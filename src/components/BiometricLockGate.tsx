@@ -19,7 +19,7 @@ export function BiometricLockGate({ children }: { children: ReactNode }) {
   const { enabled, loaded } = useBiometricLockPreference();
   const [locked, setLocked] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
-  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const appState = useRef<AppStateStatus>((AppState.currentState ?? 'active') as AppStateStatus);
 
   // Once the preference finishes loading, a cold launch starts locked if
   // the person has this turned on.

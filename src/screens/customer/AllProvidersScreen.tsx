@@ -264,14 +264,14 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
                 ))}
               </ScrollView>
             </View>
-          ) : null
+          ) : undefined
         }
         ListEmptyComponent={
           providersLoading ? (
             <View style={styles.loadingWrap}>
               <ActivityIndicator color={colors.ink} />
             </View>
-          ) : filtered.length ? null : providers.length ? (
+          ) : filtered.length ? undefined : providers.length ? (
             <EmptyState
               title="No matches"
               subtitle="Try a different search or trade, or loosen your filters."
@@ -291,7 +291,7 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
             >
               <Text style={styles.moreText}>Load more providers</Text>
             </Pressable>
-          ) : null
+          ) : undefined
         }
         onEndReached={() => hasMore && setVisibleCount((n) => n + PAGE_SIZE)}
         onEndReachedThreshold={0.5}

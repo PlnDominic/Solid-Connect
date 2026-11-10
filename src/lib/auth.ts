@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
-import * as QueryParams from 'expo-auth-session/build/QueryParams';
+import { getQueryParams } from './queryParams';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
 
@@ -276,7 +276,7 @@ export async function isAppleSignInAvailable(): Promise<boolean> {
  * falls back to implicit tokens in the query/hash for older Supabase projects.
  */
 async function createSessionFromUrl(url: string) {
-  const { params, errorCode } = QueryParams.getQueryParams(url);
+  const { params, errorCode } = getQueryParams(url);
   if (errorCode) throw new Error(errorCode);
 
   const oauthError = params.error_description || params.error;

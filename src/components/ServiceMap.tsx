@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import type { WebViewMessageEvent } from 'react-native-webview';
+import { WebView, type WebViewHandle } from './webview';
 import { LEAFLET_CSS, LEAFLET_JS } from '../lib/leafletAssets.generated';
 import type { MapBounds } from '../lib/mapPins';
 
@@ -224,7 +225,7 @@ export const ServiceMap = forwardRef<
     onBoundsChange: (bounds: MapBounds) => void;
   }
 >(function ServiceMap({ pins, me, selectedId, onSelect, onBoundsChange }, ref) {
-  const webRef = useRef<WebView>(null);
+  const webRef = useRef<WebViewHandle>(null);
   const [ready, setReady] = useState(false);
   const pinsPayload = useMemo(() => JSON.stringify(pins), [pins]);
   const mePayload = useMemo(() => JSON.stringify(me), [me]);

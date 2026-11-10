@@ -37,7 +37,9 @@ export function EarningsScreen({ navigation }: { navigation: any }) {
       <ScreenHeader title="Earnings" onBack={() => navigation.goBack()} />
       <ScrollView
         contentContainerStyle={styles.body}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={colors.ink} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => {
+          void refetch();
+        }} tintColor={colors.ink} />}
       >
         {isLoading ? <ActivityIndicator color={colors.ink} /> : null}
 

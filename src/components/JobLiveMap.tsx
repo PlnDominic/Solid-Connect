@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, View, StyleSheet } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, type WebViewHandle } from './webview';
 import { LocateFixed } from 'lucide-react-native';
 import { LEAFLET_CSS, LEAFLET_JS } from '../lib/leafletAssets.generated';
 import { radii } from '../theme';
@@ -116,7 +116,7 @@ export function JobLiveMap({
   fallbackCenter: LatLng | null;
   height?: number;
 }) {
-  const webRef = useRef<WebView>(null);
+  const webRef = useRef<WebViewHandle>(null);
   const [loaded, setLoaded] = useState(false);
 
   const updateCall = useMemo(() => {
