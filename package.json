@@ -60,7 +60,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "sync-leaflet": "node scripts/sync-leaflet.mjs",
-    "test:rls": "node supabase/tests/lockdown.test.mjs",
+    "test:rls": "node supabase/tests/lockdown.test.mjs && node supabase/tests/job-posts.test.mjs",
     "test": "jest"
   },
   "private": true,

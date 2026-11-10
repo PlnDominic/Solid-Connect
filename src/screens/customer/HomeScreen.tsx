@@ -1,7 +1,21 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
-import { ArrowUpRight, ChevronRight, ListFilter, MapPin, Search, ShieldCheck, Star } from 'lucide-react-native';
+import { ActivityIndicator, Image, Keyboard, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import {
+  ArrowUpRight,
+  Briefcase,
+  ChevronRight,
+  ClipboardList,
+  CornerDownLeft,
+  ListFilter,
+  MapPin,
+  Search,
+  ShieldCheck,
+  Star,
+  X,
+} from 'lucide-react-native';
 import { useAllProviders, useCategories } from '../../api/marketplace';
+import { useMyJobPosts } from '../../api/jobPosts';
+import { PromoBanner } from '../../components/PromoBanner';
 import { usePortfolioPhotos } from '../../api/portfolio';
 import { useMyActiveRequest } from '../../api/requests';
 import { useCustomerActiveJob } from '../../api/jobs';
@@ -15,7 +29,7 @@ import { useLocale } from '../../i18n';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
-import type { Profile } from '../../types/database';
+import type { Category, Profile } from '../../types/database';
 
 const PROVIDER_FILTERS: FilterOption[] = [
   { id: 'all', label: 'All', icon: ListFilter },
@@ -26,6 +40,45 @@ const PROVIDER_FILTERS: FilterOption[] = [
 
 // Preview count shown on Home; "View all" leads to the full, unlimited list.
 const PROVIDER_PREVIEW_COUNT = 6;
+const SEARCH_PROVIDER_LIMIT = 6;
+const SEARCH_CATEGORY_LIMIT = 3;
+
+function norm(v: string | null | undefined) {
+  return (v ?? '').trim().toLowerCase();
+}
+
+/** Categories whose name, label or id matches what the person typed, best first. */
+function matchCategories(categories: Category[], text: string): Category[] {
+  const needle = norm(text);
+  if (!needle) return [];
+  return categories
+    .map((c) => {
+      const name = norm(c.name);
+      const label = norm(c.default_label);
+      const id = c.id.replace(/_/g, ' ').toLowerCase();
+      let score = 0;
+      if (name === needle || id === needle) score = 100;
+      else if (name.startsWith(needle)) score = 80;
+      else if (name.includes(needle) || id.includes(needle)) score = 60;
+      else if (needle.includes(name) || needle.includes(id)) score = 50;
+      else if (label.includes(needle)) score = 40;
+      else if (needle.split(/\s+/).some((w) => w.length >= 3 && (name.includes(w) || label.includes(w)))) score = 20;
+      return { c, score };
+    })
+    .filter((x) => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((x) => x.c);
+}
+
+/** Providers whose name, trade, area or tagline contains every typed word. */
+function matchProviders(providers: Profile[], text: string): Profile[] {
+  const words = norm(text).split(/\s+/).filter(Boolean);
+  if (!words.length) return providers;
+  return providers.filter((p) => {
+    const hay = `${norm(p.full_name)} ${norm(p.provider_category)} ${norm(p.area)} ${norm(p.tagline)}`;
+    return words.every((w) => hay.includes(w));
+  });
+}
 
 /** One "Top rated" card: the provider's single most recent portfolio
  * photo - their actual finished work, standing in for "top rated jobs"
@@ -72,7 +125,6 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   const styles = makeStyles(colors, scheme);
   const activityEyebrowColor = scheme === 'dark' ? colors.pendingOnDark : colors.pending;
   const activityFillColor = scheme === 'dark' ? colors.confirmOnDark : colors.confirm;
-  const ctaFgColor = scheme === 'dark' ? colors.white : colors.active;
   const profile = useSessionStore((s) => s.profile);
   const { data: categories = [], refetch: refetchCategories } = useCategories();
   // The full, unfiltered set - useTopProviders() caps at 3, which made the
@@ -82,6 +134,9 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   const { data: activeJob, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
   const [providerFilter, setProviderFilter] = useState('all');
   const [searchText, setSearchText] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const { data: myPosts = [] } = useMyJobPosts(profile?.id ?? null);
+  const openPostCount = myPosts.filter((p) => p.status === 'open').length;
   const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
     await Promise.all([refetchCategories(), refetchProviders(), refetchRequest(), refetchJob()]);
@@ -103,8 +158,49 @@ export function HomeScreen({ navigation }: { navigation: any }) {
     return filtered.slice(0, PROVIDER_PREVIEW_COUNT);
   }, [providers, providerFilter]);
 
+  const categoryMatches = useMemo(
+    () => matchCategories(categories, searchText).slice(0, SEARCH_CATEGORY_LIMIT),
+    [categories, searchText],
+  );
+  const providerMatches = useMemo(
+    () => matchProviders(providers, searchText).slice(0, SEARCH_PROVIDER_LIMIT),
+    [providers, searchText],
+  );
+
+  function closeSearch() {
+    Keyboard.dismiss();
+    setSearchFocused(false);
+  }
+
+  /** The category a search most likely means: a direct category match, or
+   * else the trade of the best-matching provider. */
+  function bestCategoryFor(text: string): Category | null {
+    const direct = matchCategories(categories, text)[0];
+    if (direct) return direct;
+    const trade = matchProviders(providers, text)[0]?.provider_category;
+    if (!trade) return null;
+    const firstTrade = trade.split('·')[0]?.trim() ?? trade;
+    return matchCategories(categories, firstTrade)[0] ?? null;
+  }
+
+  function openRequestFor(category: Category | null, text: string) {
+    const trimmed = text.trim();
+    const isJustTheName = !!category && norm(trimmed) === norm(category.name);
+    closeSearch();
+    setSearchText('');
+    navigation.navigate('NewRequest', {
+      ...(category ? { initialCategoryId: category.id, initialCategoryName: category.name } : {}),
+      ...(trimmed && !isJustTheName ? { initialDescription: trimmed } : {}),
+    });
+  }
+
   function handleSearchSubmit() {
-    navigation.navigate('NewRequest', searchText.trim() ? { initialDescription: searchText.trim() } : undefined);
+    openRequestFor(bestCategoryFor(searchText), searchText);
+  }
+
+  function openProvider(provider: Profile) {
+    closeSearch();
+    navigation.navigate('ProviderDetail', { providerId: provider.id });
   }
   const activeJobIsLive =
     !!activeJob &&
@@ -148,6 +244,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
         style={styles.scroll}
         contentContainerStyle={styles.body}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />
         }
@@ -165,26 +262,110 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             )}
           </View>
 
-          <View style={styles.heroSearch}>
+          <View style={[styles.heroSearch, searchFocused && styles.heroSearchFocused]}>
             <Search color={colors.white} size={18} strokeWidth={2} />
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
+              onFocus={() => setSearchFocused(true)}
               onSubmitEditing={handleSearchSubmit}
               placeholder="What do you need help with?"
               placeholderTextColor={'rgba(255,255,255,0.72)'}
-              returnKeyType="search"
+              returnKeyType="send"
+              enterKeyHint="send"
+              submitBehavior="blurAndSubmit"
               style={styles.heroSearchInput}
+              accessibilityLabel="Search providers and services"
             />
+            {searchFocused ? (
+              <Pressable
+                onPress={() => {
+                  setSearchText('');
+                  closeSearch();
+                }}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel="Close search"
+              >
+                <X color={colors.white} size={18} strokeWidth={2.2} />
+              </Pressable>
+            ) : null}
           </View>
 
-          <Pressable
-            style={({ pressed }) => [styles.heroCta, pressed && styles.heroCtaPressed]}
-            onPress={() => navigation.navigate('NewRequest')}
-          >
-            <Text style={styles.heroCtaLabel}>{t('home.startRequest')}</Text>
-            <ArrowUpRight color={ctaFgColor} size={18} strokeWidth={2.4} />
-          </Pressable>
+          {searchFocused ? (
+            <View style={styles.dropdown}>
+              {categoryMatches.length ? (
+                <>
+                  <Text style={styles.dropdownHeading}>SERVICES</Text>
+                  {categoryMatches.map((c) => (
+                    <Pressable
+                      key={c.id}
+                      onPress={() => openRequestFor(c, searchText)}
+                      style={({ pressed }) => [styles.dropdownRow, pressed && styles.dropdownRowPressed]}
+                    >
+                      <View style={styles.dropdownIcon}>
+                        <Briefcase size={15} strokeWidth={2.2} color={colors.active} />
+                      </View>
+                      <View style={styles.dropdownText}>
+                        <Text style={styles.dropdownTitle} numberOfLines={1}>{c.name}</Text>
+                        <Text style={styles.dropdownMeta} numberOfLines={1}>Start a request</Text>
+                      </View>
+                      <ChevronRight size={15} strokeWidth={2.4} color={colors.inkFaint} />
+                    </Pressable>
+                  ))}
+                </>
+              ) : null}
+
+              <Text style={styles.dropdownHeading}>{searchText.trim() ? 'PROVIDERS' : 'TOP PROVIDERS'}</Text>
+              {providersLoading ? (
+                <ActivityIndicator color={colors.ink} style={styles.dropdownLoading} />
+              ) : providerMatches.length === 0 ? (
+                <Text style={styles.dropdownEmpty}>No providers match "{searchText.trim()}".</Text>
+              ) : (
+                providerMatches.map((p) => (
+                  <Pressable
+                    key={p.id}
+                    onPress={() => openProvider(p)}
+                    style={({ pressed }) => [styles.dropdownRow, pressed && styles.dropdownRowPressed]}
+                  >
+                    {p.photo_url ? (
+                      <Image source={{ uri: p.photo_url }} style={styles.dropdownAvatar} />
+                    ) : (
+                      <Avatar initials={p.initials} size={32} />
+                    )}
+                    <View style={styles.dropdownText}>
+                      <View style={styles.dropdownNameRow}>
+                        <Text style={styles.dropdownTitle} numberOfLines={1}>{p.full_name}</Text>
+                        {p.provider_verified ? <ShieldCheck size={12} strokeWidth={2.6} color={colors.confirm} /> : null}
+                      </View>
+                      <Text style={styles.dropdownMeta} numberOfLines={1}>
+                        {p.provider_category ?? 'Provider'}
+                        {p.provider_distance_km != null ? ` · ${p.provider_distance_km} km` : ''}
+                      </Text>
+                    </View>
+                    <View style={styles.dropdownRating}>
+                      <Star color={colors.active} fill={colors.active} size={11} strokeWidth={2} />
+                      <Text style={styles.dropdownMeta}>{p.provider_rating.toFixed(1)}</Text>
+                    </View>
+                  </Pressable>
+                ))
+              )}
+
+              {searchText.trim() ? (
+                <Pressable
+                  onPress={handleSearchSubmit}
+                  style={({ pressed }) => [styles.dropdownSubmit, pressed && styles.dropdownRowPressed]}
+                >
+                  <CornerDownLeft size={15} strokeWidth={2.4} color={colors.active} />
+                  <Text style={styles.dropdownSubmitText} numberOfLines={1}>
+                    Request "{searchText.trim()}"
+                  </Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : (
+            <PromoBanner onPress={() => navigation.navigate('AllProviders')} />
+          )}
 
           {activeJobIsLive ? (
             <Pressable
@@ -233,6 +414,39 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               <Text style={styles.heroActivityDetail}>{requestStatus.detail}</Text>
             </Pressable>
           ) : null}
+        </View>
+
+        <View style={styles.postJobCard}>
+          <View style={styles.postJobTop}>
+            <View style={styles.postJobIcon}>
+              <ClipboardList size={20} strokeWidth={2.2} color={colors.active} />
+            </View>
+            <View style={styles.postJobText}>
+              <Text style={styles.postJobTitle}>Post a Job</Text>
+              <Text style={styles.postJobBody}>
+                Describe the work once. Providers across Accra see it on their feed and tell you they are interested.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.postJobActions}>
+            <Pressable
+              style={({ pressed }) => [styles.postJobPrimary, pressed && styles.pressedScale]}
+              onPress={() => navigation.navigate('PostJob')}
+              accessibilityRole="button"
+            >
+              <Text style={styles.postJobPrimaryLabel}>Post a Job</Text>
+              <ArrowUpRight color={colors.white} size={16} strokeWidth={2.4} />
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.postJobSecondary, pressed && styles.dropdownRowPressed]}
+              onPress={() => navigation.navigate('MyJobPosts')}
+              accessibilityRole="button"
+            >
+              <Text style={styles.postJobSecondaryLabel}>
+                My posts{openPostCount ? ` (${openPostCount})` : ''}
+              </Text>
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.sectionHeading}>
@@ -343,17 +557,110 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     },
     heroSearchInput: { flex: 1, color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
 
-    heroCta: {
+    heroSearchFocused: { backgroundColor: 'rgba(255,255,255,0.26)', borderColor: colors.white },
+    pressedScale: { opacity: 0.9, transform: [{ scale: 0.99 }] },
+
+    dropdown: {
+      backgroundColor: colors.card,
+      borderRadius: radii.lg,
+      paddingVertical: spacing.sm,
+      marginTop: -spacing.sm,
+      ...shadow.card,
+    },
+    dropdownHeading: {
+      color: colors.inkFaint,
+      fontSize: fontSizes.xs,
+      letterSpacing: 0.8,
+      fontFamily: fonts.extrabold,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: 4,
+    },
+    dropdownRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 9,
+    },
+    dropdownRowPressed: { backgroundColor: colors.paperDim },
+    dropdownIcon: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? colors.paperDim : colors.activeBg,
+    },
+    dropdownAvatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.paperDim },
+    dropdownText: { flex: 1, gap: 1 },
+    dropdownNameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+    dropdownTitle: { flexShrink: 1, color: colors.ink, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    dropdownMeta: { color: colors.inkMuted, fontSize: fontSizes.xs, fontFamily: fonts.medium },
+    dropdownRating: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+    dropdownLoading: { paddingVertical: spacing.md },
+    dropdownEmpty: {
+      color: colors.inkMuted,
+      fontSize: fontSizes.sm,
+      fontFamily: fonts.medium,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    dropdownSubmit: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: 4,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.hairline,
+    },
+    dropdownSubmitText: { flex: 1, color: colors.active, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+
+    postJobCard: {
+      backgroundColor: colors.card,
+      borderRadius: radii.xxxl,
+      padding: spacing.lg,
+      gap: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      ...shadow.card,
+    },
+    postJobTop: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
+    postJobIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: radii.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: isDark ? colors.paperDim : colors.activeBg,
+    },
+    postJobText: { flex: 1, gap: 3 },
+    postJobTitle: { color: colors.ink, fontSize: fontSizes.lg, letterSpacing: -0.3, fontFamily: fonts.extrabold },
+    postJobBody: { color: colors.inkMuted, fontSize: fontSizes.xs, lineHeight: 17, fontFamily: fonts.medium },
+    postJobActions: { flexDirection: 'row', gap: spacing.sm },
+    postJobPrimary: {
+      flex: 1,
+      height: 44,
+      borderRadius: radii.lg,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
-      backgroundColor: isDark ? colors.black : colors.white,
-      borderRadius: radii.lg,
-      height: 50,
+      gap: 6,
+      backgroundColor: colors.active,
     },
-    heroCtaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-    heroCtaLabel: { color: isDark ? colors.white : colors.active, fontSize: fontSizes.md, fontFamily: fonts.bold },
+    postJobPrimaryLabel: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    postJobSecondary: {
+      height: 44,
+      paddingHorizontal: spacing.lg,
+      borderRadius: radii.lg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.hairlineStrong,
+    },
+    postJobSecondaryLabel: { color: colors.ink, fontSize: fontSizes.sm, fontFamily: fonts.bold },
 
     heroActivity: {
       padding: spacing.md,

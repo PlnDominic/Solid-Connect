@@ -372,12 +372,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
 
             <View style={styles.summary}>
               <Text style={styles.summaryTitle}>Your request</Text>
-              <SummaryRow label="Service" value={category?.default_label ?? '—'} styles={styles} />
+              <SummaryRow label="Service" value={category?.default_label ?? '-'} styles={styles} />
               {preferredProviderName ? (
                 <SummaryRow label="Provider" value={preferredProviderName} styles={styles} />
               ) : null}
               {!isDirect ? <SummaryRow label="When" value="Today" styles={styles} /> : null}
-              <SummaryRow label="Budget" value={`GHS ${budget || '—'}`} mono styles={styles} />
+              <SummaryRow label="Budget" value={`GHS ${budget || '-'}`} mono styles={styles} />
               <SummaryRow
                 label="Photos"
                 value={photoUris.length ? `${photoUris.length} attached` : 'None'}

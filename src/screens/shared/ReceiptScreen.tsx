@@ -43,8 +43,8 @@ export function ReceiptScreen({ navigation, route }: { navigation: any; route: a
       `Receipt #${receiptNumber}`,
       '',
       job.title,
-      `Provider: ${provider?.full_name ?? '—'}`,
-      `Customer: ${customer?.full_name ?? '—'}`,
+      `Provider: ${provider?.full_name ?? '-'}`,
+      `Customer: ${customer?.full_name ?? '-'}`,
       `Location: ${job.location_label}`,
       '',
       `Amount: GHS ${job.price}`,
@@ -75,8 +75,8 @@ export function ReceiptScreen({ navigation, route }: { navigation: any; route: a
           <Text style={styles.jobLocation}>{job.location_label}</Text>
 
           <View style={styles.rows}>
-            <Row label="Provider" value={provider?.full_name ?? '—'} />
-            <Row label="Customer" value={customer?.full_name ?? '—'} />
+            <Row label="Provider" value={provider?.full_name ?? '-'} />
+            <Row label="Customer" value={customer?.full_name ?? '-'} />
             {job.completed_at ? <Row label="Completed" value={formatDate(job.completed_at)} /> : null}
             {payment?.released_at ? <Row label="Paid on" value={formatDate(payment.released_at)} /> : null}
           </View>

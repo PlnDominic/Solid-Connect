@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FeedScreen } from '../screens/provider/FeedScreen';
 import { RequestDetailScreen } from '../screens/provider/RequestDetailScreen';
+import { JobPostScreen } from '../screens/provider/JobPostScreen';
 import { WorkScreen } from '../screens/provider/WorkScreen';
 import { JobDetailScreen } from '../screens/provider/JobDetailScreen';
 import { RateCustomerScreen } from '../screens/provider/RateCustomerScreen';
@@ -37,6 +38,7 @@ function FeedStack() {
     <FeedStackNav.Navigator screenOptions={{ headerShown: false }}>
       <FeedStackNav.Screen name="Feed" component={FeedScreen} />
       <FeedStackNav.Screen name="RequestDetail" component={RequestDetailScreen} />
+      <FeedStackNav.Screen name="JobPost" component={JobPostScreen} />
     </FeedStackNav.Navigator>
   );
 }

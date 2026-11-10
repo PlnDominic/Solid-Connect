@@ -2,6 +2,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { HomeScreen } from '../screens/customer/HomeScreen';
 import { NewRequestScreen } from '../screens/customer/NewRequestScreen';
+import { PostJobScreen } from '../screens/customer/PostJobScreen';
+import { MyJobPostsScreen } from '../screens/customer/MyJobPostsScreen';
+import { JobPostDetailScreen } from '../screens/customer/JobPostDetailScreen';
 import { EditRequestScreen } from '../screens/customer/EditRequestScreen';
 import { MatchingScreen } from '../screens/customer/MatchingScreen';
 import { AllProvidersScreen } from '../screens/customer/AllProvidersScreen';
@@ -40,6 +43,9 @@ function HomeStack() {
       <HomeStackNav.Screen name="Matching" component={MatchingScreen} />
       <HomeStackNav.Screen name="AllProviders" component={AllProvidersScreen} />
       <HomeStackNav.Screen name="ProviderDetail" component={ProviderDetailScreen} />
+      <HomeStackNav.Screen name="PostJob" component={PostJobScreen} />
+      <HomeStackNav.Screen name="MyJobPosts" component={MyJobPostsScreen} />
+      <HomeStackNav.Screen name="JobPostDetail" component={JobPostDetailScreen} />
     </HomeStackNav.Navigator>
   );
 }

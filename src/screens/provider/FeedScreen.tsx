@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
-  ArrowUpRight,
   Ban,
+  ClipboardList,
+  Users,
   Check,
   ChevronRight,
   Clock,
@@ -21,6 +22,7 @@ import { coordsForLabel, distanceBetweenLabelsKm } from '../../api/location';
 import { useDismissOpportunity, useFeedRequests, useProviderQuoteStats, useSendQuote } from '../../api/requests';
 import type { FeedItem } from '../../api/requests';
 import { useProviderJobs } from '../../api/jobs';
+import { formatJobPostBudget, formatJobPostStart, postedAgo, useJobBoard, useMyJobPostInterests } from '../../api/jobPosts';
 import { isApiConfigured } from '../../lib/api';
 import { formatDistanceKm, openInMaps } from '../../lib/geo';
 import { haptics } from '../../lib/haptics';
@@ -81,8 +83,11 @@ export function FeedScreen({ navigation }: { navigation: any }) {
   const { data: jobs = [], refetch: refetchJobs } = useProviderJobs(profile?.id ?? null);
   const { data: quoteStats } = useProviderQuoteStats(profile?.id ?? null);
   const sendQuote = useSendQuote();
+  const { data: boardPosts = [], isLoading: boardLoading, refetch: refetchBoard } = useJobBoard(profile?.id ?? null);
+  const { data: myInterests, refetch: refetchInterests } = useMyJobPostInterests(profile?.id ?? null);
+  const [feedView, setFeedView] = useState<'requests' | 'board'>('requests');
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
-    await Promise.all([refetch(), refetchJobs()]);
+    await Promise.all([refetch(), refetchJobs(), refetchBoard(), refetchInterests()]);
   });
   const dismissOpportunity = useDismissOpportunity();
   const [dismissTargetId, setDismissTargetId] = useState<string | null>(null);
@@ -142,6 +147,25 @@ export function FeedScreen({ navigation }: { navigation: any }) {
       return r.category_label.toLowerCase().includes(needle) || r.location_label.toLowerCase().includes(needle);
     });
   }, [requests, search, tradeFilter]);
+
+  const filteredPosts = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return boardPosts.filter((p) => {
+      if (tradeFilter !== 'all' && !p.category_label.toLowerCase().includes(tradeFilter.toLowerCase())) return false;
+      if (!needle) return true;
+      return (
+        p.title.toLowerCase().includes(needle) ||
+        p.category_label.toLowerCase().includes(needle) ||
+        p.location_label.toLowerCase().includes(needle) ||
+        p.description.toLowerCase().includes(needle)
+      );
+    });
+  }, [boardPosts, search, tradeFilter]);
+
+  const viewOptions: FilterOption[] = [
+    { id: 'requests', label: `Nearby requests (${filteredRequests.length})`, icon: MapPin },
+    { id: 'board', label: `Job board (${filteredPosts.length})`, icon: ClipboardList },
+  ];
 
   function distanceForRequest(r: FeedItem): number | null {
     if (r.distanceMeters != null) return r.distanceMeters / 1000;
@@ -224,20 +248,12 @@ export function FeedScreen({ navigation }: { navigation: any }) {
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Search nearby requests"
+              placeholder={feedView === 'board' ? 'Search the job board' : 'Search nearby requests'}
               placeholderTextColor={'rgba(255,255,255,0.72)'}
               returnKeyType="search"
               style={styles.heroSearchInput}
             />
           </View>
-
-          <Pressable
-            style={({ pressed }) => [styles.heroCta, pressed && styles.heroCtaPressed]}
-            onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome' })}
-          >
-            <Text style={styles.heroCtaLabel}>View my jobs</Text>
-            <ArrowUpRight color={isDark ? colors.white : colors.active} size={18} strokeWidth={2.4} />
-          </Pressable>
 
           {quoteStats && quoteStats.total > 0 ? (
             <View style={styles.heroStatsRow}>
@@ -248,7 +264,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
               <View style={styles.heroStatDivider} />
               <View style={styles.heroStatItem}>
                 <Text style={styles.heroStatValue}>
-                  {quoteStats.avgResponseMins != null ? formatMinutes(quoteStats.avgResponseMins) : '—'}
+                  {quoteStats.avgResponseMins != null ? formatMinutes(quoteStats.avgResponseMins) : '-'}
                 </Text>
                 <Text style={styles.heroStatLabel}>AVG. RESPONSE</Text>
               </View>
@@ -287,16 +303,84 @@ export function FeedScreen({ navigation }: { navigation: any }) {
           ) : null}
         </View>
 
+        <FilterChips
+          options={viewOptions}
+          value={feedView}
+          onChange={(id) => setFeedView(id === 'board' ? 'board' : 'requests')}
+        />
+
         <View style={styles.sectionHeading}>
-          <Text style={styles.sectionTitle}>Nearby requests</Text>
-          <Text style={styles.sectionCount}>{filteredRequests.length} available</Text>
+          <Text style={styles.sectionTitle}>{feedView === 'board' ? 'Job board' : 'Nearby requests'}</Text>
+          <Text style={styles.sectionCount}>
+            {feedView === 'board' ? filteredPosts.length : filteredRequests.length} available
+          </Text>
         </View>
 
         {tradeNames.length > 1 ? (
           <FilterChips options={tradeFilterOptions} value={tradeFilter} onChange={setTradeFilter} />
         ) : null}
 
-        {isLoading ? (
+        {feedView === 'board' ? (
+          boardLoading ? (
+            <View style={styles.loading}>
+              <ActivityIndicator color={colors.ink} />
+              <Text style={styles.loadingText}>Loading the job board…</Text>
+            </View>
+          ) : filteredPosts.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title={boardPosts.length ? 'No matches' : 'No jobs posted yet'}
+              subtitle={
+                boardPosts.length
+                  ? 'Try a different search or trade.'
+                  : 'Jobs that customers post to the board show up here, wherever they are in Accra.'
+              }
+            />
+          ) : (
+            filteredPosts.map((p) => {
+              const mine = myInterests?.get(p.id);
+              return (
+                <Pressable
+                  key={p.id}
+                  style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+                  onPress={() => navigation.navigate('JobPost', { postId: p.id })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Job post: ${p.title}`}
+                >
+                  <View style={styles.cardTop}>
+                    <View style={{ gap: 3, flex: 1 }}>
+                      <Text style={styles.cardTitle} numberOfLines={2}>{p.title}</Text>
+                      <Text style={styles.cardMeta}>
+                        {p.location_label} · {postedAgo(p.created_at)}
+                      </Text>
+                    </View>
+                    <Text style={styles.cardBudget}>{formatJobPostBudget(p)}</Text>
+                  </View>
+                  <Text style={styles.boardDesc} numberOfLines={2}>{p.description}</Text>
+                  <View style={styles.cardActions}>
+                    {mine ? (
+                      <Badge
+                        label="Interest sent"
+                        bg={colors.confirmBg}
+                        fg={colors.confirm}
+                        icon={<Check size={11} strokeWidth={3} color={colors.confirm} />}
+                      />
+                    ) : (
+                      <View style={styles.boardTag}>
+                        <ClipboardList size={11} strokeWidth={2.4} color={isDark ? colors.active : colors.activeDeep} />
+                        <Text style={styles.boardTagLabel}>{p.category_label}</Text>
+                      </View>
+                    )}
+                    <Badge label={formatJobPostStart(p)} bg={colors.paperDim} fg={colors.inkMuted} />
+                    <View style={{ flex: 1 }} />
+                    <Users size={13} strokeWidth={2.2} color={colors.inkFaint} />
+                    <Text style={styles.cardMeta}>{p.interest_count}</Text>
+                  </View>
+                </Pressable>
+              );
+            })
+          )
+        ) : isLoading ? (
           <View style={styles.loading}>
             <ActivityIndicator color={colors.ink} />
             <Text style={styles.loadingText}>Loading opportunities…</Text>
@@ -309,7 +393,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
             subtitle={
               requests.length
                 ? 'Try a different search or trade.'
-                : "When customers nearby post a matching job — or send you a direct request — they'll show up here."
+                : "When customers nearby post a matching job or send you a direct request, they'll show up here."
             }
             action={
               requests.length
@@ -537,17 +621,17 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     },
     heroSearchInput: { flex: 1, color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
 
-    heroCta: {
+    boardTag: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      backgroundColor: isDark ? colors.black : colors.white,
-      borderRadius: radii.lg,
-      height: 50,
+      gap: 4,
+      paddingVertical: 3,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radii.pill,
+      backgroundColor: isDark ? colors.paperDim : colors.activeBg,
     },
-    heroCtaPressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-    heroCtaLabel: { color: isDark ? colors.white : colors.active, fontSize: fontSizes.md, fontFamily: fonts.bold },
+    boardTagLabel: { color: isDark ? colors.active : colors.activeDeep, fontSize: fontSizes.xs, fontFamily: fonts.bold },
+    boardDesc: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.regular, color: colors.inkMuted },
 
     // Acceptance rate / avg. response scorecard - only shown once a
     // provider has sent at least one quote, so a brand-new account never

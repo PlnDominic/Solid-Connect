@@ -112,11 +112,11 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
               {row('Jobs done', (q, i) => <Text style={styles.value}>{providers[i]?.provider_jobs_count ?? '…'}</Text>)}
               {row('Distance', (q, i) => (
                 <Text style={styles.value}>
-                  {providers[i]?.provider_distance_km != null ? `${providers[i]!.provider_distance_km} km` : '—'}
+                  {providers[i]?.provider_distance_km != null ? `${providers[i]!.provider_distance_km} km` : '-'}
                 </Text>
               ))}
               {row('Verification', (q) => <Text style={styles.value}>{q.badge_kind === 'certified' ? 'Certified' : q.badge_kind === 'verified' ? 'Verified' : 'Not yet verified'}</Text>)}
-              {row('Note', (q) => (q.note ? <Text style={styles.small}>“{q.note}”</Text> : <Text style={styles.dim}>—</Text>))}
+              {row('Note', (q) => (q.note ? <Text style={styles.small}>“{q.note}”</Text> : <Text style={styles.dim}>-</Text>))}
               {row('', (q) => (
                 <Button title="Accept" onPress={() => handleAccept(q)} loading={acceptQuote.isPending} style={styles.acceptBtn} />
               ))}

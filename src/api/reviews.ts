@@ -7,7 +7,7 @@ export interface ProviderReview extends Review {
   customer: Pick<Profile, 'full_name' | 'initials'> | null;
 }
 
-/** The review left for a specific job, if any — tells us whether a completed job still needs rating. */
+/** The review left for a specific job, if any - tells us whether a completed job still needs rating. */
 export function useJobReview(jobId: string | null | undefined) {
   return useQuery({
     queryKey: ['review', 'job', jobId],
@@ -88,11 +88,11 @@ export function useSubmitReview() {
 }
 
 // ── two-sided reviews: provider rates the customer ─────────────────────
-// Mirrors the hooks above but against customer_reviews (0062) — one row
+// Mirrors the hooks above but against customer_reviews (0062) - one row
 // per job, written by the provider, feeding profiles.customer_rating via
 // the apply_customer_review() trigger.
 
-/** The customer review a provider left on a specific job, if any — gates the
+/** The customer review a provider left on a specific job, if any - gates the
  * "Rate customer" CTA the same way useJobReview gates the customer's. */
 export function useJobCustomerReview(jobId: string | null | undefined) {
   return useQuery({

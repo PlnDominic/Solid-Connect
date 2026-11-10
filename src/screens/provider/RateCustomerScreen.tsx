@@ -74,7 +74,7 @@ export function RateCustomerScreen({ navigation, route }: { navigation: any; rou
             ))}
           </View>
           <Text style={styles.ratingHint}>
-            {rating === 0 ? 'Tap a star to rate' : rating >= 4 ? 'Great — this builds their record' : rating === 3 ? 'Acceptable' : 'We take low ratings seriously'}
+            {rating === 0 ? 'Tap a star to rate' : rating >= 4 ? 'Great, this builds their record' : rating === 3 ? 'Acceptable' : 'We take low ratings seriously'}
           </Text>
         </View>
 

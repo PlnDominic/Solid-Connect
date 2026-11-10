@@ -30,7 +30,7 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
 
   const budgetLabel =
     request?.budget_min == null
-      ? '—'
+      ? '-'
       : request.budget_max != null && request.budget_max !== request.budget_min
         ? `GHS ${request.budget_min}–${request.budget_max}`
         : `GHS ${request.budget_min}`;
@@ -85,9 +85,9 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Your request</Text>
-          <Row label="Service" value={request?.category_label ?? '—'} styles={styles} />
+          <Row label="Service" value={request?.category_label ?? '-'} styles={styles} />
           {isDirect && providerLabel ? <Row label="Provider" value={providerLabel} styles={styles} /> : null}
-          <Row label="Area" value={request?.location_label ?? '—'} styles={styles} />
+          <Row label="Area" value={request?.location_label ?? '-'} styles={styles} />
           <Row label="Budget" value={budgetLabel} mono styles={styles} />
           {!isDirect && isApiConfigured() ? (
             <Row

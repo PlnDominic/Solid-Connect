@@ -222,7 +222,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
         ) : null}
         {job.status === 'completed' ? (
           review === undefined ? null : review ? (
-            <Button title="Job rated — thank you" variant="outline" onPress={() => {}} disabled />
+            <Button title="Job rated. Thank you" variant="outline" onPress={() => {}} disabled />
           ) : (
             <Button title="Rate this job" onPress={() => navigation.navigate('RateJob', { jobId: job.id })} />
           )

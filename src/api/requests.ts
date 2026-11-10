@@ -72,7 +72,7 @@ export function useMyActiveRequest(customerId: string | null) {
   return query;
 }
 
-async function uploadRequestPhoto(customerId: string, imageUri: string): Promise<string> {
+export async function uploadRequestPhoto(customerId: string, imageUri: string): Promise<string> {
   const compressedUri = await compressImage(imageUri);
   const response = await fetch(compressedUri);
   const arrayBuffer = await response.arrayBuffer();
