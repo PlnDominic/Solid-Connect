@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import { Heart, Search, Star } from 'lucide-react-native';
 import {
   ActivityIndicator,
@@ -81,7 +82,7 @@ function ProviderRow({
           <Text style={styles.meta}>{provider.provider_category} ·</Text>
           <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
           <Text style={styles.meta}>
-            {provider.provider_rating.toFixed(1)}
+            {ratingLabel(provider)}
             {distanceKm != null ? ` · ${formatDistanceKm(distanceKm)}` : ''}
           </Text>
         </View>

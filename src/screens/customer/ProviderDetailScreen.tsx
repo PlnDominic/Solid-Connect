@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import { ArrowLeft, Flag, Heart, MapPin, MessageCircle, Play, Share2, Star } from 'lucide-react-native';
 import { ActivityIndicator, Image, Pressable, Alert, Share, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
@@ -274,7 +275,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           <Text style={styles.categoryLabel} numberOfLines={1}>{servicesLabel}</Text>
           <View style={styles.ratingPill}>
             <Star color={colors.active} fill={colors.active} size={13} strokeWidth={2} />
-            <Text style={styles.ratingText}>{provider.provider_rating.toFixed(1)}</Text>
+            <Text style={styles.ratingText}>{ratingLabel(provider)}</Text>
           </View>
         </View>
 
@@ -379,7 +380,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           <Text style={styles.footerLabel}>Rating</Text>
           <View style={styles.footerRatingRow}>
             <Star color={colors.active} fill={colors.active} size={13} strokeWidth={2} />
-            <Text style={styles.footerValue}>{provider.provider_rating.toFixed(1)} · {provider.provider_jobs_count} jobs</Text>
+            <Text style={styles.footerValue}>{ratingLabel(provider)} · {provider.provider_jobs_count} jobs</Text>
           </View>
         </View>
         <Button

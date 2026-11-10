@@ -5,7 +5,12 @@ import {
   ClipboardList,
   Users,
   Check,
+  CalendarClock,
   ChevronRight,
+  Pause,
+  Power,
+  PowerOff,
+  SlidersHorizontal,
   Clock,
   MapPinOff,
   MapPin,
@@ -34,6 +39,7 @@ import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
 import { FilterChips, type FilterOption } from '../../components/FilterChips';
+import { PromoBanner } from '../../components/PromoBanner';
 import { Screen } from '../../components/Screen';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
 import { useGreeting, useLocale } from '../../i18n';
@@ -57,22 +63,22 @@ function timeAgo(iso: string) {
   return `${hrs} hr${hrs > 1 ? 's' : ''} ago`;
 }
 
-/** What the availability banner on the greeting card says for each mode. */
+/** What the availability banner (under the greeting card) says for each mode. */
 function availabilityBanner(
   mode: AvailabilityMode | null,
   colors: ReturnType<typeof useTheme>['colors'],
-): { title: string; detail: string; dot: string } {
+): { title: string; detail: string; accent: string; icon: LucideIcon; live: boolean } {
   switch (mode) {
     case 'AVAILABLE_NOW':
-      return { title: "You're available now", detail: 'Customers can send you jobs right away', dot: colors.confirmOnDark };
+      return { title: "You're available now", detail: 'Customers can send you jobs right away.', accent: colors.confirm, icon: Power, live: true };
     case 'UNAVAILABLE':
-      return { title: "You're unavailable", detail: 'New requests are on hold until you turn this back on', dot: colors.white };
+      return { title: "You're unavailable", detail: 'New requests are on hold until you turn this back on.', accent: colors.danger, icon: PowerOff, live: false };
     case 'PAUSED':
-      return { title: 'Your profile is paused', detail: 'You are hidden from new customers', dot: colors.pendingOnDark };
+      return { title: 'Your profile is paused', detail: 'You are hidden from new customers.', accent: colors.pending, icon: Pause, live: false };
     case 'SCHEDULE':
-      return { title: 'On your schedule', detail: 'Available during the hours you set', dot: colors.confirmOnDark };
+      return { title: 'On your schedule', detail: 'Available during the hours you set.', accent: colors.active, icon: CalendarClock, live: false };
     default:
-      return { title: 'Set your availability', detail: 'Tell customers when you can work', dot: colors.pendingOnDark };
+      return { title: 'Set your availability', detail: 'Tell customers when you can work.', accent: colors.active, icon: SlidersHorizontal, live: false };
   }
 }
 
@@ -270,23 +276,6 @@ export function FeedScreen({ navigation }: { navigation: any }) {
             />
           </View>
 
-          <Pressable
-            style={({ pressed }) => [styles.availBanner, pressed && styles.availBannerPressed]}
-            onPress={() => navigation.navigate('ProfileTab', { screen: 'Availability' })}
-            accessibilityRole="button"
-            accessibilityLabel={`${availability.title}. ${availability.detail}. Change availability`}
-          >
-            <View style={[styles.availDot, { backgroundColor: availability.dot }]} />
-            <View style={styles.availText}>
-              <Text style={styles.availTitle}>{availability.title}</Text>
-              <Text style={styles.availDetail}>{availability.detail}</Text>
-            </View>
-            <View style={styles.availAction}>
-              <Text style={styles.availActionText}>Change</Text>
-              <ChevronRight color={colors.white} size={14} strokeWidth={2.5} />
-            </View>
-          </Pressable>
-
           {activeJob ? (
             <Pressable
               style={({ pressed }) => [styles.heroActivity, pressed && styles.heroActivityPressed]}
@@ -318,6 +307,17 @@ export function FeedScreen({ navigation }: { navigation: any }) {
             </Pressable>
           ) : null}
         </View>
+
+        <PromoBanner
+          eyebrow="AVAILABILITY"
+          title={availability.title}
+          subtitle={availability.detail}
+          icon={availability.icon}
+          accent={availability.accent}
+          pin={false}
+          pulse={availability.live}
+          onPress={() => navigation.navigate('ProfileTab', { screen: 'Availability' })}
+        />
 
         <FilterChips
           options={viewOptions}
@@ -648,26 +648,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     },
     boardTagLabel: { color: isDark ? colors.active : colors.activeDeep, fontSize: fontSizes.xs, fontFamily: fonts.bold },
     boardDesc: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.regular, color: colors.inkMuted },
-
-    // Availability banner: the provider's current mode, one tap to change it.
-    availBanner: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      borderRadius: radii.lg,
-      backgroundColor: 'rgba(255,255,255,0.14)',
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.28)',
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.md,
-    },
-    availBannerPressed: { backgroundColor: 'rgba(255,255,255,0.22)' },
-    availDot: { width: 10, height: 10, borderRadius: 5 },
-    availText: { flex: 1, gap: 2 },
-    availTitle: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.extrabold, letterSpacing: -0.1 },
-    availDetail: { color: 'rgba(255,255,255,0.82)', fontSize: fontSizes.xs, lineHeight: 16, fontFamily: fonts.medium },
-    availAction: { flexDirection: 'row', alignItems: 'center', gap: 1 },
-    availActionText: { color: colors.white, fontSize: fontSizes.xs, fontFamily: fonts.bold },
 
     heroActivity: {
       padding: spacing.md,

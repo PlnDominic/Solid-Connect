@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronRight, Eye, EyeOff, LocateFixed, MapPin, ShieldCheck, Star, X } from 'lucide-react-native';
 import { useCustomerActiveJob, useProviderJobs } from '../../api/jobs';
@@ -238,7 +239,7 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
                   <View style={styles.nameRow}>
                     <Star size={12} strokeWidth={2.4} color={colors.active} fill={colors.active} />
                     <Text style={styles.sheetMeta}>
-                      {selectedProvider.provider_rating.toFixed(1)} · {selectedProvider.provider_jobs_count} jobs
+                      {ratingLabel(selectedProvider)} · {selectedProvider.provider_jobs_count} jobs
                       {selectedProvider.is_live && selectedProvider.updated_at
                         ? ` · available now, seen ${formatRelativeTime(selectedProvider.updated_at)}`
                         : [selectedProvider.area_label, AVAILABILITY_LABEL[selectedProvider.availability_mode ?? 'SCHEDULE']]

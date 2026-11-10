@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import {
   Ban,
   Bell,
@@ -225,7 +226,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             <View style={styles.statementRow}>
               <Text style={styles.statementLabel}>Rating</Text>
               <View style={styles.statementRatingValue}>
-                <Text style={styles.statementValueLg}>{profile.provider_rating.toFixed(1)}</Text>
+                <Text style={styles.statementValueLg}>{ratingLabel(profile)}</Text>
                 <Star color={colors.active} fill={colors.active} size={14} strokeWidth={2} />
               </View>
             </View>

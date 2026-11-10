@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import { Check, Clock, MapPin, Search, ShieldCheck, Star, X } from 'lucide-react-native';
 import { Alert, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import { friendlyQuoteError, useCounterQuote, useDeclineQuote } from '../../api/quotes';
@@ -150,7 +151,7 @@ function QuoteCard({
             </View>
             <View style={styles.quoteMetaRow}>
               <Star color={colors.active} fill={colors.active} size={11} strokeWidth={2} />
-              <Text style={styles.quoteMeta}>{provider.provider_rating.toFixed(1)}</Text>
+              <Text style={styles.quoteMeta}>{ratingLabel(provider)}</Text>
               <Text style={styles.quoteMetaDim}>· {provider.provider_jobs_count} jobs ·</Text>
               <MapPin color={colors.inkFaint} size={11} strokeWidth={2} />
               <Text style={styles.quoteMeta}>{provider.provider_distance_km} km</Text>

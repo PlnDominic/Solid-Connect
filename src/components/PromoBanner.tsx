@@ -1,26 +1,41 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
-import { ChevronRight, MapPin, ShieldCheck } from 'lucide-react-native';
+import { ChevronRight, MapPin, ShieldCheck, type LucideIcon } from 'lucide-react-native';
 import { fonts, fontSizes, radii, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 /**
- * Home promotion banner: "Find Trusted Providers Near You". Slides in on
- * mount, then loops a soft light sweep across the card, a bobbing map pin
- * and a pulsing ring behind the shield. Motion stops entirely when the
- * person has Reduce Motion turned on.
+ * The app's dark banner card. On the customer Home it is "Find Trusted
+ * Providers Near You"; on the provider Feed it shows availability. Slides in
+ * on mount, then loops a soft light sweep across the card, a bobbing map pin
+ * (when `pin` is on) and a pulsing ring behind the emblem (when `pulse` is
+ * on). Motion stops entirely when the person has Reduce Motion turned on.
  */
 export function PromoBanner({
   title = 'Find Trusted Providers Near You',
   subtitle = 'Verified pros, real ratings, right in your neighborhood.',
+  eyebrow = 'VERIFIED NEAR YOU',
+  icon: Icon = ShieldCheck,
+  accent,
+  pin = true,
+  pulse: pulseOn = true,
   onPress,
 }: {
   title?: string;
   subtitle?: string;
+  eyebrow?: string;
+  icon?: LucideIcon;
+  /** Colour of the emblem, its pulse and the eyebrow. Defaults to brand orange. */
+  accent?: string;
+  /** The bobbing map pin on the emblem. */
+  pin?: boolean;
+  /** The pulsing ring behind the emblem. */
+  pulse?: boolean;
   onPress: () => void;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
+  const tint = accent ?? colors.active;
   const [width, setWidth] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -61,22 +76,30 @@ export function PromoBanner({
           Animated.timing(sweep, { toValue: 0, duration: 0, useNativeDriver: true }),
         ]),
       ),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(bob, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-          Animated.timing(bob, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        ]),
-      ),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulse, { toValue: 1, duration: 1600, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-          Animated.timing(pulse, { toValue: 0, duration: 0, useNativeDriver: true }),
-        ]),
-      ),
+      ...(pin
+        ? [
+            Animated.loop(
+              Animated.sequence([
+                Animated.timing(bob, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+                Animated.timing(bob, { toValue: 0, duration: 900, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+              ]),
+            ),
+          ]
+        : []),
+      ...(pulseOn
+        ? [
+            Animated.loop(
+              Animated.sequence([
+                Animated.timing(pulse, { toValue: 1, duration: 1600, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+                Animated.timing(pulse, { toValue: 0, duration: 0, useNativeDriver: true }),
+              ]),
+            ),
+          ]
+        : []),
     ];
     loops.forEach((l) => l.start());
     return () => loops.forEach((l) => l.stop());
-  }, [reduceMotion, enter, sweep, bob, pulse]);
+  }, [reduceMotion, pin, pulseOn, enter, sweep, bob, pulse]);
 
   function onLayout(e: LayoutChangeEvent) {
     setWidth(e.nativeEvent.layout.width);
@@ -99,27 +122,31 @@ export function PromoBanner({
         onPress={onPress}
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
         accessibilityRole="button"
-        accessibilityLabel={`${title}. ${subtitle}`}
+        accessibilityLabel={`${eyebrow}. ${title}. ${subtitle}`}
       >
         {!reduceMotion ? (
           <Animated.View pointerEvents="none" style={[styles.sweep, { transform: [{ translateX: sweepX }, { rotate: '18deg' }] }]} />
         ) : null}
 
         <View style={styles.emblem}>
-          <Animated.View
-            pointerEvents="none"
-            style={[styles.pulseRing, { opacity: pulseOpacity, transform: [{ scale: pulseScale }] }]}
-          />
-          <View style={styles.emblemInner}>
-            <ShieldCheck size={22} strokeWidth={2.2} color={colors.white} />
+          {pulseOn && !reduceMotion ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[styles.pulseRing, { backgroundColor: tint, opacity: pulseOpacity, transform: [{ scale: pulseScale }] }]}
+            />
+          ) : null}
+          <View style={[styles.emblemInner, { backgroundColor: tint }]}>
+            <Icon size={22} strokeWidth={2.2} color={colors.white} />
           </View>
-          <Animated.View style={[styles.pin, { transform: [{ translateY: bobY }] }]}>
-            <MapPin size={13} strokeWidth={2.6} color={colors.active} fill={colors.white} />
-          </Animated.View>
+          {pin ? (
+            <Animated.View style={[styles.pin, { transform: [{ translateY: bobY }] }]}>
+              <MapPin size={13} strokeWidth={2.6} color={tint} fill={colors.white} />
+            </Animated.View>
+          ) : null}
         </View>
 
         <View style={styles.textWrap}>
-          <Text style={styles.eyebrow}>VERIFIED NEAR YOU</Text>
+          <Text style={[styles.eyebrow, { color: tint }]}>{eyebrow}</Text>
           <Text style={styles.title} numberOfLines={2}>
             {title}
           </Text>

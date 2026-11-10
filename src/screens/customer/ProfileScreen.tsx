@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import {
   Ban,
   Bell,
@@ -204,7 +205,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                     <View style={styles.savedMetaRow}>
                       <Text style={styles.savedMeta}>{p.provider_category} ·</Text>
                       <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
-                      <Text style={styles.savedMeta}>{p.provider_rating.toFixed(1)} · {p.provider_distance_km} km</Text>
+                      <Text style={styles.savedMeta}>{ratingLabel(p)} · {p.provider_distance_km} km</Text>
                     </View>
                   </View>
                   <Pressable

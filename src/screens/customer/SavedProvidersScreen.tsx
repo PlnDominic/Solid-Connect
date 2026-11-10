@@ -1,4 +1,5 @@
 import { Heart, Star } from 'lucide-react-native';
+import { ratingLabel } from '../../lib/rating';
 import { Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useSavedProviders, useToggleSavedProvider } from '../../api/saved';
 import { Avatar } from '../../components/Avatar';
@@ -32,7 +33,7 @@ function SavedProviderRow({
         <View style={styles.metaRow}>
           <Text style={styles.meta}>{provider.provider_category} ·</Text>
           <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
-          <Text style={styles.meta}>{provider.provider_rating.toFixed(1)} · {provider.provider_distance_km} km</Text>
+          <Text style={styles.meta}>{ratingLabel(provider)} · {provider.provider_distance_km} km</Text>
         </View>
       </View>
       <Pressable

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import { ActivityIndicator, Image, Keyboard, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
   ArrowUpRight,
@@ -109,7 +110,7 @@ function TopProviderCard({ provider, onPress }: { provider: Profile; onPress: ()
         </View>
         <View style={styles.cardMetaRow}>
           <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
-          <Text style={styles.cardMeta}>{provider.provider_rating.toFixed(1)}</Text>
+          <Text style={styles.cardMeta}>{ratingLabel(provider)}</Text>
           <View style={styles.metaDot} />
           <MapPin color={colors.inkFaint} size={10} strokeWidth={2} />
           <Text style={styles.cardMeta}>{provider.provider_distance_km} km</Text>
@@ -346,7 +347,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
                     </View>
                     <View style={styles.dropdownRating}>
                       <Star color={colors.active} fill={colors.active} size={11} strokeWidth={2} />
-                      <Text style={styles.dropdownMeta}>{p.provider_rating.toFixed(1)}</Text>
+                      <Text style={styles.dropdownMeta}>{ratingLabel(p)}</Text>
                     </View>
                   </Pressable>
                 ))

@@ -1,4 +1,5 @@
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ratingLabel } from '../../lib/rating';
 import { CheckCircle2, ShieldCheck, Star, Users } from 'lucide-react-native';
 import {
   expiryLabel,
@@ -228,7 +229,7 @@ function InterestCard({
           <View style={styles.nameRow}>
             <Star size={11} strokeWidth={2} color={colors.active} fill={colors.active} />
             <Text style={styles.meta}>
-              {(p?.provider_rating ?? 0).toFixed(1)} · {p?.provider_jobs_count ?? 0} jobs · {p?.provider_category ?? ''}
+              {p ? ratingLabel(p) : 'New'} · {p?.provider_jobs_count ?? 0} jobs · {p?.provider_category ?? ''}
             </Text>
           </View>
         </View>

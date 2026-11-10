@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ratingLabel } from '../../lib/rating';
 import { ChevronLeft, MapPin, MessageCircle, Phone, ShieldAlert, Siren, Star } from 'lucide-react-native';
 import { Alert, Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useConfirmCompletion, useJob } from '../../api/jobs';
@@ -133,7 +134,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             <Text style={styles.peerName}>{provider?.full_name}</Text>
             <View style={styles.peerMetaRow}>
               <Star color={colors.white} fill={colors.white} size={11} strokeWidth={2} />
-              <Text style={styles.peerMeta}>{provider?.provider_rating.toFixed(1)}</Text>
+              <Text style={styles.peerMeta}>{provider ? ratingLabel(provider) : ''}</Text>
               <Text style={styles.peerMetaDim}>· {provider?.provider_jobs_count} jobs</Text>
             </View>
           </View>

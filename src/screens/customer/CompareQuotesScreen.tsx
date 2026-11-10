@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ratingLabel } from '../../lib/rating';
 import { useAcceptQuote } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useMyActiveRequest } from '../../api/requests';
@@ -106,7 +107,7 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
               {row('Can start', (q) => <Text style={styles.value}>{q.eta_label}</Text>)}
               {row('Rating', (q, i) => (
                 <Text style={styles.value}>
-                  {providers[i] ? `${providers[i]!.provider_rating.toFixed(1)} ★` : '…'}
+                  {providers[i] ? `${ratingLabel(providers[i]!)} ★` : '…'}
                 </Text>
               ))}
               {row('Jobs done', (q, i) => <Text style={styles.value}>{providers[i]?.provider_jobs_count ?? '…'}</Text>)}
