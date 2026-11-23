@@ -7,7 +7,7 @@ import { createServerClient } from '@supabase/ssr';
 // a valid Supabase session before any page or server action code runs.
 // Whether that user is an active admin (and holds the right scope) is
 // still enforced in the protected layout and in each action's guard.
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
