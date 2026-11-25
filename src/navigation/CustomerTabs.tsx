@@ -1,4 +1,9 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ClipboardList, MessageCircle, UserRound } from 'lucide-react-native';
+import { ScrollView } from 'react-native';
+import { EmptyState } from '../components/EmptyState';
+import { Screen } from '../components/Screen';
+import { ScreenHeader } from '../components/ScreenHeader';
 import { HomeScreen } from '../screens/customer/HomeScreen';
 import { NewRequestScreen } from '../screens/customer/NewRequestScreen';
 import { PostJobScreen } from '../screens/customer/PostJobScreen';
@@ -30,19 +35,64 @@ import { OrganizationsScreen } from '../screens/shared/OrganizationsScreen';
 import { OrganizationDetailScreen } from '../screens/shared/OrganizationDetailScreen';
 import { MapScreen } from '../screens/shared/MapScreen';
 import { AppTabs, type TabSpec } from './AppTabs';
+import { useSessionStore } from '../store/useSessionStore';
+import { useTabBarClearance } from './TabBar';
+import type { AccountTab } from './customerAccess';
+
+const guestAccountCopy = {
+  ActivityTab: {
+    title: 'Activity', heading: 'Keep track of your jobs',
+    subtitle: 'See your requests, job posts, quotes and bookings here.', icon: ClipboardList,
+  },
+  ChatTab: {
+    title: 'Chats', heading: 'Your conversations',
+    subtitle: 'Sign in to message providers and read your conversations.', icon: MessageCircle,
+  },
+  ProfileTab: {
+    title: 'Profile', heading: 'Your account',
+    subtitle: 'Sign in to manage your account and saved providers.', icon: UserRound,
+  },
+};
+
+function GuestAccountScreen({ navigation, tab }: {
+  navigation: { navigate: (screen: string, params: { returnTab: AccountTab }) => void };
+  tab: AccountTab;
+}) {
+  const tabClearance = useTabBarClearance();
+  const copy = guestAccountCopy[tab];
+  return (
+    <Screen>
+      <ScreenHeader title={copy.title} large />
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingBottom: tabClearance }}>
+        <EmptyState
+          icon={copy.icon}
+          title={copy.heading}
+          subtitle={copy.subtitle}
+          action={{ label: 'Sign in', onPress: () => navigation.navigate('Auth', { returnTab: tab }) }}
+        />
+      </ScrollView>
+    </Screen>
+  );
+}
 
 const HomeStackNav = createNativeStackNavigator();
 function HomeStack() {
+  const profile = useSessionStore((state) => state.profile);
   return (
     <HomeStackNav.Navigator screenOptions={{ headerShown: false }}>
       <HomeStackNav.Screen name="Home" component={HomeScreen} />
-      <HomeStackNav.Screen name="NewRequest" component={NewRequestScreen} />
-      <HomeStackNav.Screen name="Matching" component={MatchingScreen} />
       <HomeStackNav.Screen name="AllProviders" component={AllProvidersScreen} />
       <HomeStackNav.Screen name="ProviderDetail" component={ProviderDetailScreen} />
-      <HomeStackNav.Screen name="PostJob" component={PostJobScreen} />
-      <HomeStackNav.Screen name="MyJobPosts" component={MyJobPostsScreen} />
-      <HomeStackNav.Screen name="JobPostDetail" component={JobPostDetailScreen} />
+      {profile ? (
+        <>
+          <HomeStackNav.Screen name="NewRequest" component={NewRequestScreen} />
+          <HomeStackNav.Screen name="Matching" component={MatchingScreen} />
+          <HomeStackNav.Screen name="PostJob" component={PostJobScreen} />
+          <HomeStackNav.Screen name="MyJobPosts" component={MyJobPostsScreen} />
+          <HomeStackNav.Screen name="JobPostDetail" component={JobPostDetailScreen} />
+          <HomeStackNav.Screen name="Notifications" component={NotificationsScreen} />
+        </>
+      ) : null}
     </HomeStackNav.Navigator>
   );
 }
@@ -60,48 +110,76 @@ function MapStack() {
 // accepted, so both live in the same stack.
 const ActivityStackNav = createNativeStackNavigator();
 function ActivityStack() {
+  const signedIn = useSessionStore((state) => !!state.profile);
   return (
     <ActivityStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <ActivityStackNav.Screen name="ActivityHome" component={ActivityScreen} />
-      <ActivityStackNav.Screen name="EditRequest" component={EditRequestScreen} />
-      <ActivityStackNav.Screen name="CompareQuotes" component={CompareQuotesScreen} />
-      <ActivityStackNav.Screen name="JobDetail" component={JobDetailScreen} />
-      <ActivityStackNav.Screen name="RateJob" component={RateJobScreen} />
-      <ActivityStackNav.Screen name="Dispute" component={DisputeScreen} />
+      {signedIn ? (
+        <ActivityStackNav.Group navigationKey="account">
+          <ActivityStackNav.Screen name="ActivityHome" component={ActivityScreen} />
+          <ActivityStackNav.Screen name="EditRequest" component={EditRequestScreen} />
+          <ActivityStackNav.Screen name="CompareQuotes" component={CompareQuotesScreen} />
+          <ActivityStackNav.Screen name="JobDetail" component={JobDetailScreen} />
+          <ActivityStackNav.Screen name="RateJob" component={RateJobScreen} />
+          <ActivityStackNav.Screen name="Dispute" component={DisputeScreen} />
+          <ActivityStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
+        </ActivityStackNav.Group>
+      ) : (
+        <ActivityStackNav.Screen name="ActivityHome" navigationKey="guest">
+          {({ navigation }) => <GuestAccountScreen navigation={navigation} tab="ActivityTab" />}
+        </ActivityStackNav.Screen>
+      )}
     </ActivityStackNav.Navigator>
   );
 }
 
 const ChatStackNav = createNativeStackNavigator();
 function ChatStack() {
+  const signedIn = useSessionStore((state) => !!state.profile);
   return (
     <ChatStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <ChatStackNav.Screen name="ChatList">
-        {(props) => <ChatListScreen {...props} role="customer" />}
-      </ChatStackNav.Screen>
-      <ChatStackNav.Screen name="ChatThread" component={ChatThreadScreen} />
+      {signedIn ? (
+        <ChatStackNav.Group navigationKey="account">
+          <ChatStackNav.Screen name="ChatList">
+            {(props) => <ChatListScreen {...props} role="customer" />}
+          </ChatStackNav.Screen>
+          <ChatStackNav.Screen name="ChatThread" component={ChatThreadScreen} />
+        </ChatStackNav.Group>
+      ) : (
+        <ChatStackNav.Screen name="ChatList" navigationKey="guest">
+          {({ navigation }) => <GuestAccountScreen navigation={navigation} tab="ChatTab" />}
+        </ChatStackNav.Screen>
+      )}
     </ChatStackNav.Navigator>
   );
 }
 
 const ProfileStackNav = createNativeStackNavigator();
 function ProfileStack() {
+  const signedIn = useSessionStore((state) => !!state.profile);
   return (
     <ProfileStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
-      <ProfileStackNav.Screen name="SavedProviders" component={SavedProvidersScreen} />
-      <ProfileStackNav.Screen name="SavedLocations" component={SavedLocationsScreen} />
-      <ProfileStackNav.Screen name="ProviderDetail" component={ProviderDetailScreen} />
-      <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
-      <ProfileStackNav.Screen name="Organizations" component={OrganizationsScreen} />
-      <ProfileStackNav.Screen name="OrganizationDetail" component={OrganizationDetailScreen} />
-      <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
-      <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
-      <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />
-      <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />
-      <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
-      <ProfileStackNav.Screen name="BlockedUsers" component={BlockedUsersScreen} />
-      <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
+      {signedIn ? (
+        <ProfileStackNav.Group navigationKey="account">
+          <ProfileStackNav.Screen name="ProfileHome" component={ProfileScreen} />
+          <ProfileStackNav.Screen name="SavedProviders" component={SavedProvidersScreen} />
+          <ProfileStackNav.Screen name="SavedLocations" component={SavedLocationsScreen} />
+          <ProfileStackNav.Screen name="ProviderDetail" component={ProviderDetailScreen} />
+          <ProfileStackNav.Screen name="EditProfile" component={EditProfileScreen} />
+          <ProfileStackNav.Screen name="Organizations" component={OrganizationsScreen} />
+          <ProfileStackNav.Screen name="OrganizationDetail" component={OrganizationDetailScreen} />
+          <ProfileStackNav.Screen name="AccountSecurity" component={AccountSecurityScreen} />
+          <ProfileStackNav.Screen name="Notifications" component={NotificationsScreen} />
+          <ProfileStackNav.Screen name="Appearance" component={AppearanceScreen} />
+          <ProfileStackNav.Screen name="Referral" component={ReferralScreen} />
+          <ProfileStackNav.Screen name="Legal" component={LegalScreen} />
+          <ProfileStackNav.Screen name="BlockedUsers" component={BlockedUsersScreen} />
+          <ProfileStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
+        </ProfileStackNav.Group>
+      ) : (
+        <ProfileStackNav.Screen name="ProfileHome" navigationKey="guest">
+          {({ navigation }) => <GuestAccountScreen navigation={navigation} tab="ProfileTab" />}
+        </ProfileStackNav.Screen>
+      )}
     </ProfileStackNav.Navigator>
   );
 }

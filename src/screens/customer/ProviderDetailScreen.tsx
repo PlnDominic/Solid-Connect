@@ -15,6 +15,7 @@ import { Avatar } from '../../components/Avatar';
 import { Badge } from '../../components/Badge';
 import { Button } from '../../components/Button';
 import { EmptyState } from '../../components/EmptyState';
+import { openCustomerAction } from '../../navigation/customerAccess';
 import { ImageViewer, useImageViewer } from '../../components/ImageViewer';
 import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
@@ -37,9 +38,9 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: provider, isLoading } = useProvider(providerId);
+  const { data: provider, isLoading, isError, refetch } = useProvider(providerId, { directoryOnly: true });
   const { data: portfolio = [] } = usePortfolioPhotos(providerId);
-  const { data: reviews = [] } = useProviderReviews(providerId);
+  const { data: reviews = [], isLoading: reviewsLoading, isError: reviewsError, refetch: refetchReviews } = useProviderReviews(providerId);
   const { data: saved = false } = useIsProviderSaved(profile?.id ?? null, providerId);
   const toggleSaved = useToggleSavedProvider();
   const [reporting, setReporting] = useState(false);
@@ -89,9 +90,14 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           <Text style={styles.headerTitle}>Provider Details</Text>
           <View style={styles.iconBtn} />
         </View>
-        <View style={styles.loading}>
-          <ActivityIndicator color={colors.ink} />
-        </View>
+        {isLoading ? (
+          <View style={styles.loading}><ActivityIndicator color={colors.ink} /></View>
+        ) : (
+          <EmptyState
+            title={isError ? 'Could not load provider' : 'Provider unavailable'}
+            action={{ label: 'Retry', onPress: () => void refetch() }}
+          />
+        )}
       </Screen>
     );
   }
@@ -274,7 +280,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         <View style={styles.metaRow}>
           <Text style={styles.categoryLabel} numberOfLines={1}>{servicesLabel}</Text>
           <View style={styles.ratingPill}>
-            <Star color={colors.active} fill={colors.active} size={13} strokeWidth={2} />
+            <Star color={colors.activeText} fill={colors.active} size={13} strokeWidth={2} />
             <Text style={styles.ratingText}>{ratingLabel(provider)}</Text>
           </View>
         </View>
@@ -284,11 +290,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         <View style={styles.locationRow}>
           <MapPin size={12} strokeWidth={2} color={colors.inkFaint} />
           <Text style={styles.locationText}>{provider.area}</Text>
-          {provider.provider_distance_km != null ? (
-            <Text style={styles.locationText}>· {provider.provider_distance_km} km · {provider.provider_jobs_count} jobs</Text>
-          ) : (
-            <Text style={styles.locationText}>· {provider.provider_jobs_count} jobs</Text>
-          )}
+          <Text style={styles.locationText}>· {provider.provider_jobs_count} jobs</Text>
         </View>
 
         {badgeKind === 'certified' ? (
@@ -310,7 +312,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
             <Text style={styles.providerName} numberOfLines={1}>{provider.full_name}</Text>
             <Text style={styles.providerRole} numberOfLines={1}>{servicesLabel}</Text>
           </View>
-          <Pressable
+          {profile ? <Pressable
             style={[styles.actionIconBtn, styles.actionIconBtnPrimary]}
             onPress={handleMessage}
             disabled={messaging || !profile}
@@ -318,7 +320,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
             accessibilityLabel={`Message ${provider.full_name}`}
           >
             <MessageCircle size={17} strokeWidth={2.2} color={colors.white} />
-          </Pressable>
+          </Pressable> : null}
           <Pressable
             style={styles.actionIconBtn}
             onPress={handleShare}
@@ -371,7 +373,11 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         {reviews.length ? (
           reviews.slice(0, 8).map((r) => <ReviewCard key={r.id} review={r} />)
         ) : (
-          <EmptyState title="No reviews yet" subtitle="Completed jobs will show ratings here." />
+          reviewsLoading ? <ActivityIndicator color={colors.ink} /> : reviewsError ? (
+            <EmptyState title="Could not load reviews" action={{ label: 'Retry', onPress: () => void refetchReviews() }} />
+          ) : (
+            <EmptyState title="No reviews yet" subtitle="Completed jobs will show ratings here." />
+          )
         )}
       </ScrollView>
 
@@ -379,7 +385,7 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
         <View style={styles.footerInfo}>
           <Text style={styles.footerLabel}>Rating</Text>
           <View style={styles.footerRatingRow}>
-            <Star color={colors.active} fill={colors.active} size={13} strokeWidth={2} />
+            <Star color={colors.activeText} fill={colors.active} size={13} strokeWidth={2} />
             <Text style={styles.footerValue}>{ratingLabel(provider)} · {provider.provider_jobs_count} jobs</Text>
           </View>
         </View>
@@ -388,13 +394,13 @@ export function ProviderDetailScreen({ navigation, route }: { navigation: any; r
           variant="active"
           style={styles.footerCta}
           onPress={() =>
-            navigation.navigate('NewRequest', {
-              initialCategoryName: requestTrade ?? undefined,
-              preferredProviderId: provider.id,
-              preferredProviderName: provider.full_name,
-              initialDescription: `Looking for help from ${provider.full_name}${
-                requestTrade ? ` (${requestTrade})` : ''
-              }.`,
+            openCustomerAction(navigation, !!profile, {
+              screen: 'NewRequest',
+              params: {
+                initialCategoryName: requestTrade ?? undefined,
+                preferredProviderId: provider.id,
+                preferredProviderName: provider.full_name,
+              },
             })
           }
         />
@@ -513,7 +519,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     actionIconBtnPrimary: { backgroundColor: colors.ink, borderColor: colors.ink },
 
     bioText: { fontSize: fontSizes.md, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
-    readMore: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    readMore: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.activeText, textDecorationLine: 'underline' },
 
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {

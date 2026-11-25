@@ -101,7 +101,15 @@ export async function getCurrentUserId(): Promise<string | null> {
  * than assume an active session.
  */
 /** What the sign-up screens collected before the account existed. */
-export type SignUpMetadata = { full_name?: string; phone?: string; area?: string };
+export type SignUpMetadata = {
+  full_name?: string;
+  phone?: string;
+  area?: string;
+  signup_role?: 'customer' | 'provider';
+  signup_trades?: string[];
+  signup_terms_version?: string;
+  signup_terms_at?: string;
+};
 
 /**
  * Creates the auth account. The sign-up details ride along as user
@@ -132,19 +140,19 @@ export async function getSignUpMetadata(): Promise<SignUpMetadata & { email?: st
     full_name: str(meta.full_name),
     phone: str(meta.phone),
     area: str(meta.area),
+    signup_role: meta.signup_role === 'customer' || meta.signup_role === 'provider' ? meta.signup_role : undefined,
+    signup_trades: Array.isArray(meta.signup_trades)
+      ? meta.signup_trades.filter((value): value is string => typeof value === 'string')
+      : undefined,
+    signup_terms_version: str(meta.signup_terms_version),
+    signup_terms_at: str(meta.signup_terms_at),
     email: str(user?.email),
   };
 }
 
-/** Sign in with an existing account by email or phone, plus password. */
-export async function signInWithPassword(
-  identifier: string,
-  password: string,
-  method: 'email' | 'phone'
-) {
-  const { data, error } = await supabase.auth.signInWithPassword(
-    method === 'email' ? { email: identifier, password } : { phone: identifier, password }
-  );
+/** Sign in with an existing email and password. */
+export async function signInWithPassword(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
   return data;
 }
@@ -196,6 +204,19 @@ export async function completePasswordResetFromUrl(url: string) {
   const data = await createSessionFromUrl(url);
   if (!data.user) throw new Error('This reset link has expired. Request a new one.');
   return data.user;
+}
+
+export function isEmailConfirmationUrl(url: string | null | undefined): boolean {
+  return !!url && url.split(/[?#]/, 1)[0] === getOAuthRedirectUrl();
+}
+
+export async function completeEmailConfirmationFromUrl(url: string) {
+  if (!getQueryParams(url).params.code) {
+    throw new Error('This confirmation link could not sign you in. If your email is confirmed, sign in with your password.');
+  }
+  const { user } = await createSessionFromUrl(url);
+  if (!user) throw new Error('This confirmation link has expired. Sign in or request a new email.');
+  return user;
 }
 
 /** Sets a new password for the signed-in account (used after a reset). */

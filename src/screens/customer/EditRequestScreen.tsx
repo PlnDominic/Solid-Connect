@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { parseWholeCedis } from '../../lib/cedis';
 import { SecureImage } from '../../components/SecureImage';
 import { Camera, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -51,8 +52,8 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
   }, [request]);
 
   const totalPhotos = existingPhotos.length + newPhotoUris.length;
-  const budget = Number(budgetText);
-  const isValid = description.trim().length > 0 && Number.isFinite(budget) && budget > 0 && isValidArea(location);
+  const budget = parseWholeCedis(budgetText);
+  const isValid = description.trim().length > 0 && budget != null && isValidArea(location);
 
   async function pickPhoto() {
     if (totalPhotos >= MAX_PHOTOS) return;
@@ -67,14 +68,14 @@ export function EditRequestScreen({ navigation, route }: { navigation: any; rout
   }
 
   async function handleSave() {
-    if (!profile || !request || !isValid) return;
+    if (!profile || !request || !isValid || budget == null) return;
     setError(null);
     try {
       await updateRequest.mutateAsync({
         requestId: request.id,
         customerId: profile.id,
         description: description.trim(),
-        budget: Math.round(budget),
+        budget,
         locationLabel: location.includes('Accra') ? location : `${location}, Accra`,
         existingPhotoUrls: existingPhotos,
         newPhotoUris,

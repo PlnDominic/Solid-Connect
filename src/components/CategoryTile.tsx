@@ -202,7 +202,7 @@ export function CategoryGridTile({
     >
       {selected ? (
         <View style={[styles.gridCheck, elevated && styles.gridCheckElevated]}>
-          <Check size={11} strokeWidth={3} color={colors.paper} />
+          <Check size={11} strokeWidth={3} color={elevated ? colors.onActive : colors.paper} />
         </View>
       ) : null}
       {useIllustration ? (
@@ -399,7 +399,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       ...shadow.card,
     },
     gridTileElevatedSelected: { borderColor: colors.active },
-    gridCheckElevated: { top: 6, right: 6, backgroundColor: colors.active },
+    gridCheckElevated: { top: 6, right: 6, backgroundColor: colors.activeFill },
     gridIllustrationElevated: { width: 54, height: 54 },
     gridNameElevated: { fontSize: fontSizes.sm, lineHeight: 18 },
     gridBadgeSelected: { backgroundColor: colors.ink, borderColor: colors.ink },

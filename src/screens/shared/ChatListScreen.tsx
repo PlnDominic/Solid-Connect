@@ -114,7 +114,8 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: threads = [], isLoading: threadsLoading, refetch } = useThreadsForRole(profile?.id ?? null, role);
+  const { data, isLoading: threadsLoading, isError: threadsError, refetch } = useThreadsForRole(profile?.id ?? null, role);
+  const threads = data ?? [];
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
   const hideThread = useHideThread();
   const [search, setSearch] = useState('');
@@ -201,6 +202,8 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
           <View style={{ padding: spacing.xl, alignItems: 'center' }}>
             <ActivityIndicator color={colors.ink} />
           </View>
+        ) : threadsError && !data ? (
+          <EmptyState title="Could not load conversations" action={{ label: 'Retry', onPress: () => void refetch() }} />
         ) : visible.length ? (
           visible.map((p) => (
             <ThreadRow
@@ -274,6 +277,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     previewUnread: { fontFamily: fonts.semibold, color: colors.ink },
     trailing: { alignItems: 'flex-end', gap: 6 },
     time: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint, fontVariant: ['tabular-nums'] },
-    unreadDot: { width: 9, height: 9, borderRadius: radii.pill, backgroundColor: colors.active },
+    unreadDot: { width: 9, height: 9, borderRadius: radii.pill, backgroundColor: colors.activeFill },
   });
 }

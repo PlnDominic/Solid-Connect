@@ -93,7 +93,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
     useSessionStore.getState().setUserId(null);
     let root = navigation;
     while (root.getParent()) root = root.getParent();
-    root.reset({ index: 0, routes: [{ name: 'Auth' }] });
+    root.reset({ index: 0, routes: [{ name: 'Main' }] });
   }
 
   function confirmSignOut() {
@@ -131,7 +131,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           ) : (
             <View style={[StyleSheet.absoluteFill, styles.heroPlaceholder]} />
           )}
-          <View style={[StyleSheet.absoluteFill, styles.heroScrim]} />
+          {profile.photo_url ? <View style={[StyleSheet.absoluteFill, styles.heroScrim]} /> : null}
 
           <Pressable
             style={styles.heroAvatarBadgeWrap}
@@ -144,7 +144,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               {profile.photo_url ? (
                 <Image source={{ uri: profile.photo_url }} style={styles.heroAvatarImage} />
               ) : (
-                <Avatar initials={profile.initials} size={72} fg={colors.white} dim />
+                <Avatar initials={profile.initials} size={72} fg={colors.onActive} dim />
               )}
             </View>
             <View style={styles.heroCameraBadge}>
@@ -158,16 +158,16 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
             </View>
           </Pressable>
 
-          <Text style={styles.heroName} numberOfLines={1}>{profile.full_name}</Text>
-          {profile.tagline ? <Text style={styles.heroTagline}>{profile.tagline}</Text> : null}
-          <Text style={styles.heroMeta}>{profile.area} · Customer since {memberSince(profile.created_at)}</Text>
+          <Text style={[styles.heroName, !profile.photo_url && styles.onOrange]} numberOfLines={1}>{profile.full_name}</Text>
+          {profile.tagline ? <Text style={[styles.heroTagline, !profile.photo_url && styles.onOrange]}>{profile.tagline}</Text> : null}
+          <Text style={[styles.heroMeta, !profile.photo_url && styles.onOrange]}>{profile.area} · Customer since {memberSince(profile.created_at)}</Text>
 
           <View style={styles.roleSwitch}>
             <View style={[styles.rolePill, styles.rolePillActive]}>
               <Text style={styles.rolePillTextActive}>Customer</Text>
             </View>
             <Pressable style={styles.rolePill} onPress={() => confirmRoleSwitch('provider', () => switchRole.mutate({ userId: profile.id, role: 'provider' }))}>
-              <Text style={styles.rolePillText}>Provider</Text>
+              <Text style={[styles.rolePillText, !profile.photo_url && styles.onOrange]}>Provider</Text>
             </Pressable>
           </View>
         </View>
@@ -207,8 +207,8 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                     <Text style={styles.savedName} numberOfLines={1}>{p.full_name}</Text>
                     <View style={styles.savedMetaRow}>
                       <Text style={styles.savedMeta}>{p.provider_category} ·</Text>
-                      <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
-                      <Text style={styles.savedMeta}>{ratingLabel(p)} · {p.provider_distance_km} km</Text>
+                      <Star color={colors.activeText} fill={colors.active} size={10} strokeWidth={2} />
+                      <Text style={styles.savedMeta}>{ratingLabel(p)}</Text>
                     </View>
                   </View>
                   <Pressable
@@ -260,7 +260,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 6,
       overflow: 'hidden',
     },
-    heroPlaceholder: { backgroundColor: colors.activeDeep },
+    heroPlaceholder: { backgroundColor: colors.activeFill },
+    onOrange: { color: colors.onActive },
     heroScrim: { backgroundColor: 'rgba(11,11,10,0.38)' },
 
     heroAvatarBadgeWrap: {
@@ -302,7 +303,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     rolePill: { paddingVertical: 9, paddingHorizontal: spacing.lg, borderRadius: radii.md, alignItems: 'center' },
     rolePillActive: { backgroundColor: colors.white },
     rolePillText: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: 'rgba(255,255,255,0.8)' },
-    rolePillTextActive: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.activeDeep },
+    rolePillTextActive: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.onActive },
 
     body: { padding: spacing.lg, gap: spacing.xl },
     photoErrorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
@@ -317,7 +318,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
 
     sectionHeading: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     sectionTitle: { fontSize: fontSizes.lg, fontFamily: fonts.bold, color: colors.ink },
-    seeAll: { color: colors.active, fontSize: fontSizes.md, fontFamily: fonts.bold, textDecorationLine: 'underline' },
+    seeAll: { color: colors.activeText, fontSize: fontSizes.md, fontFamily: fonts.bold, textDecorationLine: 'underline' },
     savedRow: {
       flexDirection: 'row',
       gap: spacing.md,

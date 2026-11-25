@@ -54,7 +54,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     title: { fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.2 },
     count: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: colors.inkFaint },
     bar: { height: 6, borderRadius: 3, backgroundColor: colors.paperDim, overflow: 'hidden' },
-    barFill: { height: 6, borderRadius: 3, backgroundColor: colors.active },
+    barFill: { height: 6, borderRadius: 3, backgroundColor: colors.activeFill },
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xs },
     rowPressed: { opacity: 0.7 },
     tick: {

@@ -39,10 +39,12 @@ export function FilterChips({
           <Pressable
             key={option.id}
             onPress={() => onChange(option.id)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
             style={[styles.chip, active && styles.chipActive]}
           >
             {Icon ? (
-              <Icon size={14} strokeWidth={2.2} color={active ? colors.white : colors.inkMuted} />
+              <Icon size={14} strokeWidth={2.2} color={active ? colors.onActive : colors.inkMuted} />
             ) : null}
             <Text style={[styles.label, active && styles.labelActive]}>{option.label}</Text>
           </Pressable>
@@ -60,15 +62,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
-      height: 36,
+      minHeight: 48,
       paddingHorizontal: 14,
       borderRadius: radii.pill,
       backgroundColor: colors.card,
       borderWidth: 1,
       borderColor: colors.hairline,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipActive: { backgroundColor: colors.activeFill, borderColor: colors.activeFill },
     label: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkMuted, letterSpacing: -0.1 },
-    labelActive: { color: colors.white },
+    labelActive: { color: colors.onActive },
   });
 }

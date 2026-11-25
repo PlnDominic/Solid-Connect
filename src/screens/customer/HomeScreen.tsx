@@ -4,6 +4,7 @@ import { ratingLabel } from '../../lib/rating';
 import { ActivityIndicator, Image, Keyboard, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
   ArrowUpRight,
+  Bell,
   Briefcase,
   ChevronRight,
   ClipboardList,
@@ -19,7 +20,11 @@ import { useAllProviders, useCategories } from '../../api/marketplace';
 import { useMyJobPosts } from '../../api/jobPosts';
 import { PromoBanner } from '../../components/PromoBanner';
 import { usePortfolioPhotos } from '../../api/portfolio';
-import { useMyActiveRequest } from '../../api/requests';
+import { useMyActiveRequests } from '../../api/requests';
+import { useUnreadNotificationCount } from '../../api/badges';
+import { openCustomerAction } from '../../navigation/customerAccess';
+import { useDistancesFrom } from '../../api/providerSearch';
+import { coordsForLabel } from '../../lib/areaCoords';
 import { useCustomerActiveJob } from '../../api/jobs';
 import { Avatar } from '../../components/Avatar';
 import { CategoryGridTile } from '../../components/CategoryTile';
@@ -110,11 +115,15 @@ function TopProviderCard({ provider, onPress }: { provider: Profile; onPress: ()
           </View>
         </View>
         <View style={styles.cardMetaRow}>
-          <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
+          <Star color={colors.activeText} fill={colors.active} size={10} strokeWidth={2} />
           <Text style={styles.cardMeta}>{ratingLabel(provider)}</Text>
-          <View style={styles.metaDot} />
-          <MapPin color={colors.inkFaint} size={10} strokeWidth={2} />
-          <Text style={styles.cardMeta}>{provider.provider_distance_km} km</Text>
+          {provider.provider_distance_km != null ? (
+            <>
+              <View style={styles.metaDot} />
+              <MapPin color={colors.inkFaint} size={10} strokeWidth={2} />
+              <Text style={styles.cardMeta}>{provider.provider_distance_km.toFixed(1)} km</Text>
+            </>
+          ) : null}
         </View>
       </View>
     </Pressable>
@@ -130,25 +139,44 @@ export function HomeScreen({ navigation }: { navigation: any }) {
   const activityEyebrowColor = scheme === 'dark' ? colors.pendingOnDark : colors.pending;
   const activityFillColor = scheme === 'dark' ? colors.confirmOnDark : colors.confirm;
   const profile = useSessionStore((s) => s.profile);
-  const { data: categories = [], refetch: refetchCategories } = useCategories();
+  const { data: categories = [], isError: categoriesError, refetch: refetchCategories } = useCategories();
+  const { data: unreadNotifications = 0 } = useUnreadNotificationCount(profile?.id ?? null);
   // The full, unfiltered set - useTopProviders() caps at 3, which made the
   // filter chips look broken (filtering 3 items rarely leaves anything).
-  const { data: providers = [], isLoading: providersLoading, refetch: refetchProviders } = useAllProviders(null, profile?.area ?? null);
-  const { data: activeRequest, refetch: refetchRequest } = useMyActiveRequest(profile?.id ?? null);
+  const { data: providerProfiles, isLoading: providersLoading, isError: providersError, refetch: refetchProviders } = useAllProviders(null, profile?.area ?? null);
+  const areaCentre = profile?.area ? coordsForLabel(profile.area) : null;
+  const { data: distances, refetch: refetchDistances } = useDistancesFrom(areaCentre ? { ...areaCentre, source: 'area' } : null, null);
+  const providers = useMemo(
+    () => (providerProfiles ?? []).map((provider) => ({
+      ...provider,
+      provider_distance_km: distances?.get(provider.id) ?? null,
+    })),
+    [providerProfiles, distances],
+  );
+  const { data: requests, refetch: refetchRequest } = useMyActiveRequests(profile?.id ?? null);
+  const activeRequest = requests?.[0];
   const { data: activeJob, refetch: refetchJob } = useCustomerActiveJob(profile?.id ?? null);
   const [providerFilter, setProviderFilter] = useState('all');
+  const hasNearbyDistances = providers.some((provider) => provider.provider_distance_km != null);
+  const visibleProviderFilter = providerFilter === 'nearby' && !hasNearbyDistances ? 'all' : providerFilter;
   const [searchText, setSearchText] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const { data: myPosts = [] } = useMyJobPosts(profile?.id ?? null);
   const openPostCount = myPosts.filter((p) => p.status === 'open').length;
   const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
-    await Promise.all([refetchCategories(), refetchProviders(), refetchRequest(), refetchJob()]);
+    await Promise.all([
+      refetchCategories(),
+      refetchProviders(),
+      profile && refetchRequest(),
+      profile && refetchJob(),
+      areaCentre && refetchDistances(),
+    ]);
   });
 
   const filteredProviders = useMemo(() => {
     const filtered = (() => {
-      switch (providerFilter) {
+      switch (visibleProviderFilter) {
         case 'verified':
           return providers.filter((p) => p.provider_verified);
         case 'top_rated':
@@ -160,7 +188,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
       }
     })();
     return filtered.slice(0, PROVIDER_PREVIEW_COUNT);
-  }, [providers, providerFilter]);
+  }, [providers, visibleProviderFilter]);
 
   const categoryMatches = useMemo(
     () => matchCategories(categories, searchText).slice(0, SEARCH_CATEGORY_LIMIT),
@@ -176,30 +204,9 @@ export function HomeScreen({ navigation }: { navigation: any }) {
     setSearchFocused(false);
   }
 
-  /** The category a search most likely means: a direct category match, or
-   * else the trade of the best-matching provider. */
-  function bestCategoryFor(text: string): Category | null {
-    const direct = matchCategories(categories, text)[0];
-    if (direct) return direct;
-    const trade = matchProviders(providers, text)[0]?.provider_category;
-    if (!trade) return null;
-    const firstTrade = trade.split('·')[0]?.trim() ?? trade;
-    return matchCategories(categories, firstTrade)[0] ?? null;
-  }
-
-  function openRequestFor(category: Category | null, text: string) {
-    const trimmed = text.trim();
-    const isJustTheName = !!category && norm(trimmed) === norm(category.name);
-    closeSearch();
-    setSearchText('');
-    navigation.navigate('NewRequest', {
-      ...(category ? { initialCategoryId: category.id, initialCategoryName: category.name } : {}),
-      ...(trimmed && !isJustTheName ? { initialDescription: trimmed } : {}),
-    });
-  }
-
   function handleSearchSubmit() {
-    openRequestFor(bestCategoryFor(searchText), searchText);
+    closeSearch();
+    navigation.navigate('AllProviders', { initialSearch: searchText.trim() });
   }
 
   function openProvider(provider: Profile) {
@@ -256,26 +263,41 @@ export function HomeScreen({ navigation }: { navigation: any }) {
         <View style={styles.heroCard}>
           <View style={styles.heroGreetRow}>
             <View style={styles.heroGreetText}>
-              <Text style={styles.heroGreeting}>{greeting}, {firstName}</Text>
+              <Text style={styles.heroGreeting}>{profile ? `${greeting}, ${firstName}` : 'Find a local pro'}</Text>
               <Text style={styles.heroLocation}>{profile?.area ?? 'Accra'}</Text>
             </View>
+            {profile ? (
+              <Pressable
+                onPress={() => navigation.navigate('Notifications')}
+                accessibilityRole="button"
+                accessibilityLabel={unreadNotifications ? `Notifications, ${unreadNotifications} unread` : 'Notifications'}
+                style={styles.notificationButton}
+              >
+                <Bell color={colors.onActive} size={21} strokeWidth={2} />
+                {unreadNotifications > 0 ? (
+                  <Text style={styles.notificationBadge}>
+                    {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                  </Text>
+                ) : null}
+              </Pressable>
+            ) : null}
             {profile?.photo_url ? (
               <Image source={{ uri: profile.photo_url }} style={styles.headerAvatarImage} />
-            ) : (
+            ) : profile ? (
               <Avatar initials={firstName.charAt(0).toUpperCase()} size={38} />
-            )}
+            ) : null}
           </View>
 
           <View style={[styles.heroSearch, searchFocused && styles.heroSearchFocused]}>
-            <Search color={colors.white} size={18} strokeWidth={2} />
+            <Search color={colors.onActive} size={18} strokeWidth={2} />
             <TextInput
               value={searchText}
               onChangeText={setSearchText}
               onFocus={() => setSearchFocused(true)}
               onSubmitEditing={handleSearchSubmit}
               placeholder="What do you need help with?"
-              placeholderTextColor={'rgba(255,255,255,0.72)'}
-              returnKeyType="send"
+              placeholderTextColor={colors.onActive}
+              returnKeyType="search"
               enterKeyHint="send"
               submitBehavior="blurAndSubmit"
               style={styles.heroSearchInput}
@@ -291,7 +313,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
                 accessibilityRole="button"
                 accessibilityLabel="Close search"
               >
-                <X color={colors.white} size={18} strokeWidth={2.2} />
+                <X color={colors.onActive} size={18} strokeWidth={2.2} />
               </Pressable>
             ) : null}
           </View>
@@ -304,7 +326,10 @@ export function HomeScreen({ navigation }: { navigation: any }) {
                   {categoryMatches.map((c) => (
                     <Pressable
                       key={c.id}
-                      onPress={() => openRequestFor(c, searchText)}
+                      onPress={() => {
+                        closeSearch();
+                        navigation.navigate('AllProviders', { initialCategoryId: c.id });
+                      }}
                       style={({ pressed }) => [styles.dropdownRow, pressed && styles.dropdownRowPressed]}
                     >
                       <View style={styles.dropdownIcon}>
@@ -323,6 +348,10 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               <Text style={styles.dropdownHeading}>{searchText.trim() ? 'PROVIDERS' : 'TOP PROVIDERS'}</Text>
               {providersLoading ? (
                 <ActivityIndicator color={colors.ink} style={styles.dropdownLoading} />
+              ) : providersError && !providerProfiles ? (
+                <Pressable onPress={() => void refetchProviders()} accessibilityRole="button">
+                  <Text style={styles.dropdownEmpty}>Could not load providers. Tap to retry.</Text>
+                </Pressable>
               ) : providerMatches.length === 0 ? (
                 <Text style={styles.dropdownEmpty}>No providers match "{searchText.trim()}".</Text>
               ) : (
@@ -344,11 +373,11 @@ export function HomeScreen({ navigation }: { navigation: any }) {
                       </View>
                       <Text style={styles.dropdownMeta} numberOfLines={1}>
                         {p.provider_category ?? 'Provider'}
-                        {p.provider_distance_km != null ? ` · ${p.provider_distance_km} km` : ''}
+                        {p.provider_distance_km != null ? ` · ${p.provider_distance_km.toFixed(1)} km` : ''}
                       </Text>
                     </View>
                     <View style={styles.dropdownRating}>
-                      <Star color={colors.active} fill={colors.active} size={11} strokeWidth={2} />
+                      <Star color={colors.activeText} fill={colors.active} size={11} strokeWidth={2} />
                       <Text style={styles.dropdownMeta}>{ratingLabel(p)}</Text>
                     </View>
                   </Pressable>
@@ -362,7 +391,7 @@ export function HomeScreen({ navigation }: { navigation: any }) {
                 >
                   <CornerDownLeft size={15} strokeWidth={2.4} color={colors.active} />
                   <Text style={styles.dropdownSubmitText} numberOfLines={1}>
-                    Request "{searchText.trim()}"
+                    Search for "{searchText.trim()}"
                   </Text>
                 </Pressable>
               ) : null}
@@ -418,7 +447,14 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           ) : null}
         </View>
 
-        {!searchFocused ? <PromoBanner onPress={() => navigation.navigate('AllProviders')} /> : null}
+        {!searchFocused ? (
+          <PromoBanner
+            title="Browse local providers"
+            subtitle="See services, reviews and verification badges."
+            eyebrow="PROVIDER DIRECTORY"
+            onPress={() => navigation.navigate('AllProviders')}
+          />
+        ) : null}
 
         <View style={styles.postJobCard}>
           <View style={styles.postJobTop}>
@@ -428,28 +464,28 @@ export function HomeScreen({ navigation }: { navigation: any }) {
             <View style={styles.postJobText}>
               <Text style={styles.postJobTitle}>Post a Job</Text>
               <Text style={styles.postJobBody}>
-                Describe the work once. Providers across Accra see it on their feed and tell you they are interested.
+                Describe the work once. Local providers can see your post and express interest.
               </Text>
             </View>
           </View>
           <View style={styles.postJobActions}>
             <Pressable
               style={({ pressed }) => [styles.postJobPrimary, pressed && styles.pressedScale]}
-              onPress={() => navigation.navigate('PostJob')}
+              onPress={() => openCustomerAction(navigation, !!profile, { screen: 'PostJob' })}
               accessibilityRole="button"
             >
               <Text style={styles.postJobPrimaryLabel}>Post a Job</Text>
-              <ArrowUpRight color={colors.white} size={16} strokeWidth={2.4} />
+              <ArrowUpRight color={colors.onActive} size={16} strokeWidth={2.4} />
             </Pressable>
-            <Pressable
+            {profile ? <Pressable
               style={({ pressed }) => [styles.postJobSecondary, pressed && styles.dropdownRowPressed]}
-              onPress={() => navigation.navigate('MyJobPosts')}
+              onPress={() => navigation.navigate('ActivityTab', { screen: 'ActivityHome', params: { section: 'posts' } })}
               accessibilityRole="button"
             >
               <Text style={styles.postJobSecondaryLabel}>
                 My posts{openPostCount ? ` (${openPostCount})` : ''}
               </Text>
-            </Pressable>
+            </Pressable> : null}
           </View>
         </View>
 
@@ -457,6 +493,11 @@ export function HomeScreen({ navigation }: { navigation: any }) {
           <Text style={styles.sectionTitle}>{t('home.chooseCategory')}</Text>
           <Text style={styles.sectionCount}>{categories.length} available</Text>
         </View>
+        {categoriesError && categories.length === 0 ? (
+          <Pressable onPress={() => void refetchCategories()} accessibilityRole="button" style={styles.filterEmpty}>
+            <Text style={styles.filterEmptyText}>Could not load services. Tap to retry.</Text>
+          </Pressable>
+        ) : null}
 
         <ScrollView
           horizontal
@@ -471,35 +512,41 @@ export function HomeScreen({ navigation }: { navigation: any }) {
               name={category.name}
               selected={false}
               illustrated
-              onPress={() =>
-                navigation.navigate('NewRequest', {
-                  initialCategoryId: category.id,
-                  initialCategoryName: category.name,
-                })
-              }
+              onPress={() => navigation.navigate('AllProviders', { initialCategoryId: category.id })}
             />
           ))}
         </ScrollView>
 
         <View style={[styles.sectionHeading, styles.providerHeading]}>
-          <Text style={styles.sectionTitle}>Top rated nearby</Text>
+          <Text style={styles.sectionTitle}>Explore providers</Text>
           <Pressable onPress={() => navigation.navigate('AllProviders')} hitSlop={10}>
             <Text style={styles.seeAll}>View all</Text>
           </Pressable>
         </View>
 
-        <FilterChips options={PROVIDER_FILTERS} value={providerFilter} onChange={setProviderFilter} />
+        <FilterChips
+          options={PROVIDER_FILTERS.filter((option) => option.id !== 'nearby' || hasNearbyDistances)}
+          value={visibleProviderFilter}
+          onChange={setProviderFilter}
+        />
 
         {providersLoading ? (
           <View style={styles.filterEmpty}>
             <ActivityIndicator color={colors.ink} />
+          </View>
+        ) : providersError && !providerProfiles ? (
+          <View style={styles.filterEmpty}>
+            <Text style={styles.filterEmptyText}>Could not load providers.</Text>
+            <Pressable onPress={() => void refetchProviders()} accessibilityRole="button">
+              <Text style={styles.seeAll}>Retry</Text>
+            </Pressable>
           </View>
         ) : filteredProviders.length === 0 ? (
           <View style={styles.filterEmpty}>
             <Text style={styles.filterEmptyText}>
               {providers.length ? 'No providers match this filter right now.' : 'No providers have joined near you yet.'}
             </Text>
-            <Pressable onPress={() => navigation.navigate('PostJob')} hitSlop={8} accessibilityRole="button">
+            <Pressable onPress={() => openCustomerAction(navigation, !!profile, { screen: 'PostJob' })} hitSlop={8} accessibilityRole="button">
               <Text style={styles.seeAll}>Post a job and let providers come to you</Text>
             </Pressable>
           </View>
@@ -530,7 +577,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     // alone (no hairline - depth does the separating). Follows the theme:
     // white on light, dark charcoal on dark - same as every other card.
     heroCard: {
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
       borderRadius: radii.xxxl,
       padding: spacing.lg,
       gap: spacing.lg,
@@ -541,6 +588,18 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       elevation: 6,
     },
     heroGreetRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    notificationButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    notificationBadge: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      color: colors.white,
+      fontFamily: fonts.bold,
+      fontSize: fontSizes.xs,
+      paddingHorizontal: 4,
+      borderRadius: radii.pill,
+      backgroundColor: colors.confirm,
+    },
     headerAvatarImage: {
       width: 38,
       height: 38,
@@ -550,8 +609,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderColor: 'rgba(255,255,255,0.35)',
     },
     heroGreetText: { flex: 1, gap: 3 },
-    heroGreeting: { color: colors.white, fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
-    heroLocation: { color: 'rgba(255,255,255,0.82)', fontSize: fontSizes.xs, fontFamily: fonts.medium },
+    heroGreeting: { color: colors.onActive, fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
+    heroLocation: { color: colors.onActive, fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     heroSearch: {
       height: 48,
@@ -564,9 +623,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.34)',
     },
-    heroSearchInput: { flex: 1, color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
+    heroSearchInput: { flex: 1, color: colors.onActive, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
 
-    heroSearchFocused: { backgroundColor: 'rgba(255,255,255,0.26)', borderColor: colors.white },
+    heroSearchFocused: { backgroundColor: 'rgba(255,255,255,0.26)', borderColor: colors.onActive },
     pressedScale: { opacity: 0.9, transform: [{ scale: 0.99 }] },
 
     dropdown: {
@@ -625,7 +684,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.hairline,
     },
-    dropdownSubmitText: { flex: 1, color: colors.active, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    dropdownSubmitText: { flex: 1, color: colors.activeText, fontSize: fontSizes.sm, fontFamily: fonts.bold },
 
     postJobCard: {
       backgroundColor: colors.card,
@@ -657,9 +716,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       alignItems: 'center',
       justifyContent: 'center',
       gap: 6,
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
     },
-    postJobPrimaryLabel: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    postJobPrimaryLabel: { color: colors.onActive, fontSize: fontSizes.sm, fontFamily: fonts.bold },
     postJobSecondary: {
       height: 44,
       paddingHorizontal: spacing.lg,
@@ -691,7 +750,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     sectionTitle: { color: colors.ink, fontSize: fontSizes.md, letterSpacing: -0.3, fontFamily: fonts.bold },
     sectionCount: { color: colors.inkFaint, fontSize: fontSizes.xs, fontFamily: fonts.medium },
     providerHeading: { marginTop: 4 },
-    seeAll: { color: colors.active, fontSize: fontSizes.sm, fontFamily: fonts.bold, textDecorationLine: 'underline' },
+    seeAll: { color: colors.activeText, fontSize: fontSizes.sm, fontFamily: fonts.bold, textDecorationLine: 'underline' },
 
     categoryRow: { gap: spacing.lg },
 

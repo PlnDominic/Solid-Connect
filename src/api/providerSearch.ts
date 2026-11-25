@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDevicePosition } from '../lib/devicePosition';
+import { haversineKm } from '../lib/geo';
 import { supabase } from '../lib/supabase';
 import { MAX_RADIUS_KM, type SearchProvider } from '../lib/providerRanking';
 import type { Profile } from '../types/database';
@@ -12,9 +13,10 @@ export type SearchOrigin = { lat: number; lng: number; source: 'device' | 'area'
 /** Where distances are measured from: the phone's position when it can be
  * read, otherwise the centre of the customer's profile area, otherwise
  * nowhere (distance features stay off rather than guessing). */
-export function useSearchOrigin(profileArea: string | null | undefined) {
+export function useSearchOrigin(profileArea: string | null | undefined, enabled = true) {
   return useQuery({
     queryKey: ['searchOrigin', profileArea ?? null],
+    enabled,
     queryFn: async (): Promise<SearchOrigin | null> => {
       const pos = await getDevicePosition();
       if (pos.ok) return { lat: pos.lat, lng: pos.lng, source: 'device' };
@@ -29,7 +31,7 @@ export function useSearchOrigin(profileArea: string | null | undefined) {
 /** Real distances (km, by provider id) from the origin, from the database's
  * PostGIS search. Only providers with usable coverage data appear, and at
  * most the 50 nearest - everyone else simply has no known distance. */
-function useDistancesFrom(origin: SearchOrigin | null | undefined, categoryName: string | null) {
+export function useDistancesFrom(origin: SearchOrigin | null | undefined, categoryName: string | null) {
   return useQuery({
     queryKey: ['providerDistances', origin?.lat ?? null, origin?.lng ?? null, categoryName],
     enabled: !!origin,
@@ -81,23 +83,36 @@ export function useProviderSearch(input: {
   categoryName: string | null;
   profileArea: string | null | undefined;
   limit: number;
+  useDeviceLocation?: boolean;
+  searchArea?: string | null;
 }) {
-  const { data: origin } = useSearchOrigin(input.profileArea);
+  const { data: searchOrigin } = useSearchOrigin(input.profileArea, input.useDeviceLocation !== false && !input.searchArea);
+  const areaCentre = useMemo(() => coordsForLabel(input.searchArea), [input.searchArea]);
+  const origin: SearchOrigin | null | undefined = areaCentre
+    ? { ...areaCentre, source: 'area' }
+    : input.useDeviceLocation === false ? null : searchOrigin;
   const all = useAllProviders(input.categoryName, input.profileArea ?? null, { limit: input.limit });
   const distances = useDistancesFrom(origin, input.categoryName);
 
   const providers = useMemo(
-    () => (all.data ?? []).map((p) => toSearchProvider(p, distances.data?.get(p.id) ?? null)),
-    [all.data, distances.data],
+    () => (all.data ?? []).map((provider) => {
+      const providerCentre = areaCentre ? coordsForLabel(provider.area) : null;
+      return toSearchProvider(
+        provider,
+        distances.data?.get(provider.id) ?? (areaCentre && providerCentre ? haversineKm(areaCentre, providerCentre) : null),
+      );
+    }),
+    [all.data, areaCentre, distances.data],
   );
 
   return {
     providers,
     origin: origin ?? null,
-    hasDistances: !!distances.data && distances.data.size > 0,
+    hasDistances: providers.some((provider) => provider.distance_km != null),
     isLoading: all.isLoading,
+    isError: all.isError && !all.data,
     refetch: async () => {
-      await Promise.all([all.refetch(), distances.refetch()]);
+      await Promise.all([all.refetch(), origin && distances.refetch()]);
     },
   };
 }

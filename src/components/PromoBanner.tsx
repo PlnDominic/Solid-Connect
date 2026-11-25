@@ -35,7 +35,7 @@ export function PromoBanner({
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const tint = accent ?? colors.active;
+  const tint = accent ?? colors.activeFill;
   const [width, setWidth] = useState(0);
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -136,7 +136,7 @@ export function PromoBanner({
             />
           ) : null}
           <View style={[styles.emblemInner, { backgroundColor: tint }]}>
-            <Icon size={22} strokeWidth={2.2} color={colors.white} />
+            <Icon size={22} strokeWidth={2.2} color={tint === colors.activeFill ? colors.onActive : colors.white} />
           </View>
           {pin ? (
             <Animated.View style={[styles.pin, { transform: [{ translateY: bobY }] }]}>
@@ -188,7 +188,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
     },
     emblemInner: {
       width: 44,
@@ -196,7 +196,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: 22,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
     },
     pin: { position: 'absolute', top: -2, right: -2 },
     textWrap: { flex: 1, gap: 2 },

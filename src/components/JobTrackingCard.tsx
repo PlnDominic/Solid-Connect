@@ -162,7 +162,7 @@ export function JobTrackingCard({
           onPress={() => openInMaps(otherPoint.lat!, otherPoint.lng!, `${otherLabel} - ${job.title}`)}
         >
           <Text style={styles.ctaPillText}>Open in Maps</Text>
-          <ArrowUpRight size={16} strokeWidth={2.4} color={colors.white} />
+          <ArrowUpRight size={16} strokeWidth={2.4} color={colors.onActive} />
         </Pressable>
       ) : null}
     </View>
@@ -242,9 +242,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 6,
       height: 46,
       borderRadius: radii.pill,
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
     },
     ctaPillPressed: { opacity: 0.9 },
-    ctaPillText: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    ctaPillText: { color: colors.onActive, fontSize: fontSizes.sm, fontFamily: fonts.bold },
   });
 }

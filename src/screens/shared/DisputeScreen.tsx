@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { ImagePlus, X } from 'lucide-react-native';
 import {
@@ -13,6 +13,7 @@ import {
 } from '../../api/disputes';
 import { useJob } from '../../api/jobs';
 import { Button } from '../../components/Button';
+import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { disputeAccess, disputeTimeline, MAX_EVIDENCE_PER_PARTY } from '../../lib/disputeCase';
@@ -58,8 +59,10 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: job } = useJob(jobId);
-  const { data: existing } = useJobDispute(jobId);
+  const jobQuery = useJob(jobId);
+  const caseQuery = useJobDispute(jobId);
+  const { data: job } = jobQuery;
+  const { data: existing } = caseQuery;
   const { data: evidence = [] } = useDisputeEvidence(existing?.id);
   const openDispute = useOpenDispute();
   const addEvidence = useAddDisputeEvidence();
@@ -268,10 +271,19 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
 
   return (
     <Screen>
-      <ScreenHeader title={existing ? 'Dispute' : 'Open dispute'} onBack={() => navigation.goBack()} />
+      <ScreenHeader title="Dispute" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        {existing ? (
+        {caseQuery.isLoading || (!existing && jobQuery.isLoading) ? (
+          <ActivityIndicator color={colors.ink} />
+        ) : (caseQuery.isError && !existing) || (jobQuery.isError && !job && !existing) ? (
+          <EmptyState title="Could not check this dispute" action={{
+            label: 'Retry',
+            onPress: () => { void caseQuery.refetch(); void jobQuery.refetch(); },
+          }} />
+        ) : existing ? (
           renderCase(existing)
+        ) : !job ? (
+          <EmptyState title="This job is unavailable" />
         ) : !isCustomer ? (
           <Text style={styles.lead}>No dispute has been filed on this job yet.</Text>
         ) : windowExpired ? (

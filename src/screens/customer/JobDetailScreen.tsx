@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { friendlyActionError } from '../../api/quotes';
 import { ratingLabel } from '../../lib/rating';
-import { ChevronLeft, MapPin, MessageCircle, Phone, ShieldAlert, Siren, Star } from 'lucide-react-native';
-import { Alert, Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ChevronLeft, LifeBuoy, MapPin, MessageCircle, Phone, Siren, Star } from 'lucide-react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useConfirmCompletion, useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useJobReview } from '../../api/reviews';
@@ -11,6 +11,7 @@ import { useJobDispute } from '../../api/disputes';
 import { Avatar } from '../../components/Avatar';
 import { BottomSheet } from '../../components/BottomSheet';
 import { Button } from '../../components/Button';
+import { EmptyState } from '../../components/EmptyState';
 import { JobPhaseTracker } from '../../components/JobPhaseTracker';
 import { JobQuickActions, type JobQuickAction } from '../../components/JobQuickActions';
 import { JobManageSection } from '../../components/JobManageSection';
@@ -18,6 +19,7 @@ import { DirectPaymentNote } from '../../components/DirectPaymentNote';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
+import { ScreenHeader } from '../../components/ScreenHeader';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -30,7 +32,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const styles = makeStyles(colors);
   const jobId: string = route.params.jobId;
   const profile = useSessionStore((s) => s.profile);
-  const { data: job } = useJob(jobId);
+  const { data: job, isLoading, isError, refetch } = useJob(jobId);
   const { data: provider } = useProvider(job?.provider_id);
   // Only returned while this job is active (contact_phone, 0073).
   const { data: providerPhone } = useContactPhone(job?.provider_id);
@@ -43,7 +45,19 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const [showSafety, setShowSafety] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
-  if (!job) return <Screen edges={['top']} />;
+  if (!job) {
+    return (
+      <Screen>
+        <ScreenHeader title="Job details" onBack={() => navigation.goBack()} />
+        {isLoading ? <ActivityIndicator color={colors.ink} /> : (
+          <EmptyState
+            title={isError ? 'Could not load the job' : 'Job unavailable'}
+            action={{ label: 'Retry', onPress: () => void refetch() }}
+          />
+        )}
+      </Screen>
+    );
+  }
 
   // An open dispute has to be settled before the job can be confirmed.
   const disputeOpen = dispute?.status === 'open';
@@ -105,7 +119,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     ...(job.status !== 'completed' && job.status !== 'cancelled'
       ? [{ key: 'safety', label: 'Safety', icon: Siren, onPress: () => setShowSafety(true), tone: 'danger' as const }]
       : []),
-    { key: 'dispute', label: 'Dispute', icon: ShieldAlert, onPress: () => navigation.navigate('Dispute', { jobId: job.id }), tone: 'danger' },
+    { key: 'help', label: 'Get help', icon: LifeBuoy, onPress: () => navigation.navigate('HelpSupport', { jobId: job.id }) },
   ];
 
   const statusTone = JOB_STATUS_META[job.status].tone;
@@ -123,18 +137,18 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <ChevronLeft size={20} strokeWidth={2.4} color={colors.white} />
+            <ChevronLeft size={20} strokeWidth={2.4} color={colors.onActive} />
           </Pressable>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {job.title}
           </Text>
         </View>
         <View style={styles.peerRow}>
-          <Avatar initials={provider?.initials ?? ''} photoUrl={provider?.photo_url} size={44} dim fg={colors.white} />
+          <Avatar initials={provider?.initials ?? ''} photoUrl={provider?.photo_url} size={44} dim fg={colors.onActive} />
           <View style={{ gap: 3 }}>
             <Text style={styles.peerName}>{provider?.full_name}</Text>
             <View style={styles.peerMetaRow}>
-              <Star color={colors.white} fill={colors.white} size={11} strokeWidth={2} />
+              <Star color={colors.onActive} fill={colors.onActive} size={11} strokeWidth={2} />
               <Text style={styles.peerMeta}>{provider ? ratingLabel(provider) : ''}</Text>
               <Text style={styles.peerMetaDim}>· {provider?.provider_jobs_count} jobs</Text>
             </View>
@@ -226,7 +240,7 @@ function formatTime(iso: string) {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    header: { backgroundColor: colors.active, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xl, gap: spacing.lg },
+    header: { backgroundColor: colors.activeFill, paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xl, gap: spacing.lg },
     headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     back: {
       width: 32,
@@ -238,12 +252,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.14)',
     },
-    headerTitle: { flex: 1, color: colors.white, fontSize: fontSizes.lg, fontFamily: fonts.bold, letterSpacing: -0.3 },
+    headerTitle: { flex: 1, color: colors.onActive, fontSize: fontSizes.lg, fontFamily: fonts.bold, letterSpacing: -0.3 },
     peerRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-    peerName: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    peerName: { color: colors.onActive, fontSize: fontSizes.sm, fontFamily: fonts.bold },
     peerMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    peerMeta: { color: colors.white, opacity: 0.85, fontSize: fontSizes.xs, fontFamily: fonts.medium, fontVariant: ['tabular-nums'] },
-    peerMetaDim: { color: colors.white, opacity: 0.6, fontSize: fontSizes.xs, fontFamily: fonts.medium },
+    peerMeta: { color: colors.onActive, fontSize: fontSizes.xs, fontFamily: fonts.medium, fontVariant: ['tabular-nums'] },
+    peerMetaDim: { color: colors.onActive, fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     body: { flex: 1 },
     bodyContent: { padding: spacing.lg, gap: spacing.md },

@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTabBarClearance } from '../../navigation/TabBar';
 import { ChevronRight, Star } from 'lucide-react-native';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { useCustomerJobs } from '../../api/jobs';
+import { useMyJobPosts } from '../../api/jobPosts';
 import { useProvider } from '../../api/marketplace';
-import { useMyActiveRequest, useNotifications } from '../../api/requests';
+import { useMyActiveRequests, useNotifications } from '../../api/requests';
 import { useCustomerReviewedJobIds } from '../../api/reviews';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
+import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
 import { FilterChips, type FilterOption } from '../../components/FilterChips';
 import { JobStatusBadge } from '../../components/JobStatusBadge';
+import { JobPostSummary } from '../../components/JobPostSummary';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { usePullToRefresh } from '../../hooks/usePullToRefresh';
@@ -18,9 +21,10 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Job } from '../../types/database';
-import { ActiveRequestPanel, activeRequestHasContent } from './ActiveRequestPanel';
+import { ActiveRequestPanel } from './ActiveRequestPanel';
+import { statusBadge } from './MyJobPostsScreen';
 
-type Section = 'active' | 'upcoming' | 'past';
+type Section = 'active' | 'upcoming' | 'past' | 'posts';
 
 /** A booked job nobody has started on yet, set for later - it goes under
  * Upcoming until the provider sets off (en route) or the time arrives. */
@@ -33,14 +37,18 @@ function isPastJob(job: Job) {
   return job.status === 'completed' || job.status === 'cancelled';
 }
 
-function JobRow({ job, needsRating, onPress }: { job: Job; needsRating: boolean; onPress: () => void }) {
+function JobRow({ job, onPress, onRate }: { job: Job; onPress: () => void; onRate?: () => void }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { data: provider } = useProvider(job.provider_id);
   const scheduled = isUpcomingJob(job) && job.scheduled_for ? new Date(job.scheduled_for) : null;
   return (
-    <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]} onPress={onPress}>
-      <View style={styles.cardTop}>
+    <View style={styles.card}>
+      <Pressable
+        style={({ pressed }) => [styles.cardTop, pressed && styles.cardPressed]}
+        onPress={onPress}
+        accessibilityRole="button"
+      >
         <Avatar initials={provider?.initials ?? ''} photoUrl={provider?.photo_url} />
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={styles.cardTitle} numberOfLines={1}>
@@ -57,19 +65,18 @@ function JobRow({ job, needsRating, onPress }: { job: Job; needsRating: boolean;
           ) : null}
         </View>
         <Text style={styles.cardBudget}>GHS {job.price.toLocaleString()}</Text>
-      </View>
+      </Pressable>
       <View style={styles.cardBottom}>
         <JobStatusBadge status={job.status} role="customer" />
-        {needsRating ? (
-          <View style={styles.ratePill}>
+        {onRate ? (
+          <Pressable style={styles.ratePill} onPress={onRate} accessibilityRole="button" accessibilityLabel={`Rate ${job.title}`}>
             <Star size={10} strokeWidth={2.4} color={colors.white} fill={colors.white} />
             <Text style={styles.ratePillText}>Rate</Text>
-          </View>
-        ) : (
-          <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
-        )}
+          </Pressable>
+        ) : null}
+        <ChevronRight size={16} strokeWidth={2} color={colors.inkFaint} />
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -81,7 +88,7 @@ function JobRow({ job, needsRating, onPress }: { job: Job; needsRating: boolean;
  * - Upcoming: booked jobs scheduled for later
  * - Past: completed and cancelled jobs, with "Rate" where still owed
  */
-export function ActivityScreen({ navigation }: { navigation: any }) {
+export function ActivityScreen({ navigation, route }: { navigation: any; route?: any }) {
   const tabClearance = useTabBarClearance();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -89,56 +96,82 @@ export function ActivityScreen({ navigation }: { navigation: any }) {
   const userId = profile?.id ?? null;
   const [section, setSection] = useState<Section>('active');
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const focusedRequestId: string | undefined = route?.params?.requestId;
+  const requestedSection = route?.params?.section;
+  const notificationId = route?.params?.notificationId;
+  useEffect(() => {
+    if (requestedSection === 'posts') {
+      setSection('posts');
+      navigation.setParams({ section: undefined, requestId: undefined, notificationId: undefined });
+    } else if (focusedRequestId) {
+      setSection('active');
+    }
+  }, [focusedRequestId, navigation, notificationId, requestedSection]);
 
-  const { data: request, isLoading: requestLoading, refetch: refetchRequest } = useMyActiveRequest(userId);
+  const { data: requests = [], isLoading: requestLoading, isError: requestsError, refetch: refetchRequest } = useMyActiveRequests(userId);
   const { data: notifications = [], refetch: refetchNotifs } = useNotifications(userId);
-  const { data: jobs = [], isLoading: jobsLoading, refetch: refetchJobs } = useCustomerJobs(userId);
+  const { data: jobs = [], isLoading: jobsLoading, isError: jobsError, refetch: refetchJobs } = useCustomerJobs(userId);
+  const { data: posts = [], isLoading: postsLoading, isError: postsError, refetch: refetchPosts } = useMyJobPosts(userId);
   const { data: reviewedJobIds } = useCustomerReviewedJobIds(userId);
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
-    await Promise.all([refetchRequest(), refetchNotifs(), refetchJobs()]);
+    await Promise.all([refetchRequest(), refetchNotifs(), refetchJobs(), refetchPosts()]);
   });
 
-  const hasRequest = activeRequestHasContent(request ?? null, notifications);
+  const unreadRejects = notifications.filter((notice) => notice.type === 'DIRECT_REJECTED' && !notice.read_at);
+  const hasRequest = requests.length > 0 || unreadRejects.length > 0;
   const upcomingJobs = jobs.filter((j) => isUpcomingJob(j));
   const pastJobs = jobs.filter(isPastJob);
   const activeJobs = jobs.filter((j) => !isPastJob(j) && !isUpcomingJob(j));
-  const activeCount = activeJobs.length + (hasRequest ? 1 : 0);
+  const activeCount = activeJobs.length + requests.length;
+  const focusedRequest = requests.find((request) => request.id === focusedRequestId);
+  const visibleRequests = focusedRequest ? [focusedRequest, ...requests.filter((request) => request.id !== focusedRequestId)] : requests;
+  const linkedJob = focusedRequestId ? jobs.find((job) => job.request_id === focusedRequestId) : undefined;
 
   // A quote that was declined, revised away or accepted can't stay selected.
-  const liveCompareIds = compareIds.filter((id) => request?.quotes.some((q) => q.id === id));
+  const compareRequest = requests.find((request) => request.quotes.some((quote) => compareIds.includes(quote.id)));
+  const liveCompareIds = compareIds.filter((id) => compareRequest?.quotes.some((quote) => quote.id === id));
 
-  function toggleCompare(id: string) {
-    setCompareIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 3) {
-        Alert.alert('Compare up to 3', 'Deselect a quote first to add another.');
-        return prev;
-      }
-      return [...prev, id];
-    });
+  function toggleCompare(requestId: string, quoteId: string) {
+    if (liveCompareIds.includes(quoteId)) {
+      setCompareIds(liveCompareIds.filter((id) => id !== quoteId));
+      return;
+    }
+    if (compareRequest && compareRequest.id !== requestId) {
+      setCompareIds([quoteId]);
+      return;
+    }
+    if (liveCompareIds.length >= 3) {
+      Alert.alert('Compare up to 3', 'Deselect a quote first to add another.');
+      return;
+    }
+    setCompareIds([...liveCompareIds, quoteId]);
   }
 
   const sections: FilterOption[] = [
     { id: 'active', label: activeCount ? `Active · ${activeCount}` : 'Active' },
     { id: 'upcoming', label: upcomingJobs.length ? `Upcoming · ${upcomingJobs.length}` : 'Upcoming' },
     { id: 'past', label: 'Past' },
+    { id: 'posts', label: 'Public posts' },
   ];
 
-  const loading = requestLoading || jobsLoading;
+  const loading = section === 'posts' ? postsLoading : jobsLoading || (section === 'active' && requestLoading);
   const isEmpty =
-    section === 'active' ? activeCount === 0 : section === 'upcoming' ? upcomingJobs.length === 0 : pastJobs.length === 0;
+    section === 'posts' ? posts.length === 0 : section === 'active'
+      ? !focusedRequestId && !hasRequest && activeCount === 0
+      : section === 'upcoming' ? upcomingJobs.length === 0 : pastJobs.length === 0;
+  const hasLoadError = section === 'posts' ? postsError : jobsError || (section === 'active' && requestsError);
 
   function renderJobs(list: Job[], rateable: boolean) {
     return (
       <View style={styles.cardList}>
         {list.map((job) => {
-          const needsRating = rateable && reviewedJobIds ? !reviewedJobIds.has(job.id) : false;
+          const needsRating = rateable && job.status === 'completed' && reviewedJobIds && !reviewedJobIds.has(job.id);
           return (
             <JobRow
               key={job.id}
               job={job}
-              needsRating={needsRating}
-              onPress={() => navigation.navigate(needsRating ? 'RateJob' : 'JobDetail', { jobId: job.id })}
+              onRate={needsRating ? () => navigation.navigate('RateJob', { jobId: job.id }) : undefined}
+              onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
             />
           );
         })}
@@ -150,32 +183,59 @@ export function ActivityScreen({ navigation }: { navigation: any }) {
     <Screen>
       <ScreenHeader title="Activity" large />
       <View style={styles.filtersWrap}>
-        <FilterChips options={sections} value={section} onChange={(id) => setSection(id as Section)} />
+        <FilterChips options={sections} value={section} onChange={(id) => {
+          if (focusedRequestId) navigation.setParams({ requestId: undefined, notificationId: undefined });
+          setSection(id as Section);
+        }} />
       </View>
       <ScrollView
         contentContainerStyle={[styles.body, !loading && isEmpty && styles.bodyEmpty, { paddingBottom: tabClearance }]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.ink} />}
       >
+        {hasLoadError ? (
+          <EmptyState title="Could not load all activity" action={{ label: 'Retry', onPress: onRefresh }} />
+        ) : null}
         {loading ? (
           <View style={styles.loading}>
             <ActivityIndicator color={colors.ink} />
           </View>
-        ) : isEmpty ? (
+        ) : isEmpty && hasLoadError ? null : isEmpty ? (
           section === 'active' ? (
             <EmptyState
               title="Nothing in progress"
-              subtitle="Post a request from Home, or find a pro on the Map and send them a direct request."
-              action={{ label: 'Post a request', onPress: () => navigation.navigate('HomeTab', { screen: 'Home' }) }}
+              subtitle="Post a job or find a provider on Home."
+              action={{ label: 'Post a job', onPress: () => navigation.navigate('HomeTab', { screen: 'PostJob' }) }}
             />
           ) : section === 'upcoming' ? (
             <EmptyState title="Nothing scheduled" subtitle="Jobs booked for a later date show up here." />
+          ) : section === 'posts' ? (
+            <EmptyState title="No public posts yet" action={{
+              label: 'Post a job', onPress: () => navigation.navigate('HomeTab', { screen: 'PostJob' }),
+            }} />
           ) : (
             <EmptyState title="No past jobs yet" subtitle="Completed and cancelled jobs show up here." />
           )
         ) : section === 'active' ? (
           <>
-            <ActiveRequestPanel navigation={navigation} compareIds={liveCompareIds} onToggleCompare={toggleCompare} />
+            {focusedRequestId && !focusedRequest && !hasLoadError ? (
+              <EmptyState
+                title={linkedJob ? 'This request became a job' : 'This request is no longer active'}
+                action={linkedJob ? { label: 'View job', onPress: () => navigation.navigate('JobDetail', { jobId: linkedJob.id }) } : undefined}
+              />
+            ) : null}
+            {unreadRejects.length > 0 ? (
+              <ActiveRequestPanel navigation={navigation} request={null} unreadRejects={unreadRejects} compareIds={[]} />
+            ) : null}
+            {visibleRequests.map((request) => (
+              <ActiveRequestPanel
+                key={request.id}
+                navigation={navigation}
+                request={request}
+                compareIds={liveCompareIds}
+                onToggleCompare={(quoteId) => toggleCompare(request.id, quoteId)}
+              />
+            ))}
             {activeJobs.length > 0 ? (
               <View style={styles.section}>
                 {hasRequest ? <Text style={styles.sectionTitle}>Jobs under way</Text> : null}
@@ -183,17 +243,30 @@ export function ActivityScreen({ navigation }: { navigation: any }) {
               </View>
             ) : null}
           </>
+        ) : section === 'posts' ? (
+          posts.map((post) => {
+            const badge = statusBadge(post, colors);
+            return (
+              <Pressable
+                key={post.id}
+                accessibilityRole="button"
+                onPress={() => navigation.navigate('HomeTab', { screen: 'JobPostDetail', params: { postId: post.id } })}
+              >
+                <JobPostSummary compact post={post} aside={<Badge label={badge.label} bg={badge.bg} fg={badge.fg} />} />
+              </Pressable>
+            );
+          })
         ) : section === 'upcoming' ? (
           renderJobs(upcomingJobs, false)
         ) : (
           renderJobs(pastJobs, true)
         )}
       </ScrollView>
-      {section === 'active' && liveCompareIds.length >= 2 ? (
+      {section === 'active' && compareRequest && liveCompareIds.length >= 2 ? (
         <View style={styles.compareBar}>
           <Button
             title={`Compare ${liveCompareIds.length} quotes`}
-            onPress={() => navigation.navigate('CompareQuotes', { quoteIds: liveCompareIds })}
+            onPress={() => navigation.navigate('CompareQuotes', { requestId: compareRequest.id, quoteIds: liveCompareIds })}
           />
         </View>
       ) : null}
@@ -227,6 +300,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     cardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 
     ratePill: {
+      minHeight: 48,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,

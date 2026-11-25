@@ -3,6 +3,7 @@ import { ratingLabel } from '../../lib/rating';
 import { CheckCircle2, ShieldCheck, Star, Users } from 'lucide-react-native';
 import {
   expiryLabel,
+  formatJobPostStart,
   isPostExpired,
   isPostOpen,
   openJobPostThread,
@@ -29,8 +30,8 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
   const styles = makeStyles(colors);
   const postId: string = route?.params?.postId;
   const justPosted: boolean = !!route?.params?.justPosted;
-  const { data: post, isLoading } = useJobPost(postId);
-  const { data: interests = [], isLoading: interestsLoading } = useJobPostInterests(postId);
+  const { data: post, isLoading, isError: postError, refetch: refetchPost } = useJobPost(postId);
+  const { data: interests = [], isLoading: interestsLoading, isError: interestsError, refetch: refetchInterests } = useJobPostInterests(postId);
   const setPostStatus = useSetJobPostStatus();
   const setInterestStatus = useSetInterestStatus();
   const deletePost = useDeleteJobPost();
@@ -49,7 +50,11 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
       <Screen bg={colors.paperDim}>
         <ScreenHeader title="Job post" onBack={() => navigation.goBack()} />
         <View style={styles.body}>
-          <EmptyState title="Post not found" subtitle="It may have been deleted." />
+          <EmptyState
+            title={postError ? 'Could not load this post' : 'Post not found'}
+            subtitle={postError ? 'Check your connection and try again.' : 'It may have been deleted.'}
+            action={postError ? { label: 'Retry', onPress: () => void refetchPost() } : undefined}
+          />
         </View>
       </Screen>
     );
@@ -66,8 +71,8 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
   function hire(interest: JobPostInterestWithProvider) {
     const name = interest.provider?.full_name ?? 'this provider';
     Alert.alert(
-      `Hire ${name}?`,
-      `We'll open a direct request to ${name} with your job details. Your post is marked hired once you send it.`,
+      `Request ${name}?`,
+      'Review the job details and price first. Sending the request closes the public listing while the provider decides.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -79,6 +84,9 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
               initialCategoryId: currentPost.category_id ?? undefined,
               initialCategoryName: currentPost.category_label,
               initialDescription: `${currentPost.title}. ${currentPost.description}`.slice(0, 1000),
+              initialLocation: currentPost.location_label,
+              initialTimingLabel: formatJobPostStart(currentPost),
+              initialBudget: interest.proposed_price,
               jobPostId: currentPost.id,
               jobPostInterestId: interest.id,
             }),
@@ -163,6 +171,8 @@ export function JobPostDetailScreen({ navigation, route }: { navigation: any; ro
 
         {interestsLoading ? (
           <ActivityIndicator color={colors.ink} />
+        ) : interestsError && interests.length === 0 ? (
+          <EmptyState title="Could not load interested providers" action={{ label: 'Retry', onPress: () => void refetchInterests() }} />
         ) : active.length === 0 ? (
           <EmptyState
             icon={Users}
@@ -247,7 +257,7 @@ function InterestCard({
             {p?.provider_verified ? <ShieldCheck size={13} strokeWidth={2.6} color={colors.confirm} /> : null}
           </View>
           <View style={styles.nameRow}>
-            <Star size={11} strokeWidth={2} color={colors.active} fill={colors.active} />
+            <Star size={11} strokeWidth={2} color={colors.activeText} fill={colors.active} />
             <Text style={styles.meta}>
               {p ? ratingLabel(p) : 'New'} · {p?.provider_jobs_count ?? 0} jobs · {p?.provider_category ?? ''}
             </Text>
@@ -316,9 +326,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.lg,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
     },
-    hireLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.white },
+    hireLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.onActive },
     ghostBtn: {
       height: 40,
       paddingHorizontal: spacing.md,

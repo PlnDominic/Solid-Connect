@@ -1,10 +1,11 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ratingLabel } from '../../lib/rating';
 import { useAcceptQuote } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
-import { useMyActiveRequest } from '../../api/requests';
+import { useMyActiveRequests } from '../../api/requests';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
+import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { haptics } from '../../lib/haptics';
@@ -13,20 +14,21 @@ import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Quote } from '../../types/database';
+import { confirmQuoteAcceptance } from './confirmQuoteAcceptance';
 
 const COLUMN_WIDTH = 190;
 
 /**
  * 2-3 quotes side by side. Each fact is a row so the eye compares down a
- * row, not across cards. "Best" markers are facts (lowest price, top
- * rating, closest) - no blended score that would hide a trade-off.
+ * row, not across cards. Highlights identify the lowest price and top rating.
  */
 export function CompareQuotesScreen({ navigation, route }: { navigation: any; route: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const ids: string[] = route.params?.quoteIds ?? [];
-  const { data: request } = useMyActiveRequest(profile?.id ?? null);
+  const { data: requests, isLoading, isError, refetch } = useMyActiveRequests(profile?.id ?? null);
+  const request = requests?.find((item) => item.id === route.params?.requestId);
   const acceptQuote = useAcceptQuote();
 
   const quotes = ids.map((id) => request?.quotes.find((q) => q.id === id)).filter((q): q is Quote => !!q);
@@ -41,20 +43,17 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
       id: q.id,
       price: q.price,
       rating: providers[i]?.provider_rating ?? null,
-      distanceKm: providers[i]?.provider_distance_km ?? null,
+      distanceKm: null,
     })),
   );
 
-  async function handleAccept(quote: Quote) {
-    if (!profile || !request) return;
-    try {
-      const job = await acceptQuote.mutateAsync({ requestId: request.id, quoteId: quote.id, customerId: profile.id });
+  function handleAccept(quote: Quote, providerName: string) {
+    if (!profile || !request || acceptQuote.isPending) return;
+    confirmQuoteAcceptance(providerName, quote.price, async () => {
+      const job = await acceptQuote.mutateAsync({ quoteId: quote.id, price: quote.price, revision: quote.revision ?? 1 });
       haptics.success();
-      navigation.navigate('ActivityTab', { screen: 'JobDetail', params: { jobId: job.id } });
-    } catch {
-      // The quote may have just been withdrawn or changed; go back to the live list.
-      navigation.goBack();
-    }
+      navigation.replace('JobDetail', { jobId: job.id });
+    });
   }
 
   const row = (label: string, render: (q: Quote, i: number) => React.ReactNode) => (
@@ -73,7 +72,11 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
   return (
     <Screen>
       <ScreenHeader title="Compare quotes" onBack={() => navigation.goBack()} />
-      {quotes.length < 2 ? (
+      {isLoading ? (
+        <ActivityIndicator color={colors.ink} />
+      ) : isError && !requests ? (
+        <EmptyState title="Could not load quotes" action={{ label: 'Retry', onPress: () => void refetch() }} />
+      ) : quotes.length < 2 ? (
         <Text style={styles.empty}>These quotes are no longer available. Go back to see the current ones.</Text>
       ) : (
         <ScrollView contentContainerStyle={styles.body}>
@@ -111,15 +114,16 @@ export function CompareQuotesScreen({ navigation, route }: { navigation: any; ro
                 </Text>
               ))}
               {row('Jobs done', (q, i) => <Text style={styles.value}>{providers[i]?.provider_jobs_count ?? '…'}</Text>)}
-              {row('Distance', (q, i) => (
-                <Text style={styles.value}>
-                  {providers[i]?.provider_distance_km != null ? `${providers[i]!.provider_distance_km} km` : '-'}
-                </Text>
-              ))}
               {row('Verification', (q) => <Text style={styles.value}>{q.badge_kind === 'certified' ? 'Certified' : q.badge_kind === 'verified' ? 'Verified' : 'Not yet verified'}</Text>)}
               {row('Note', (q) => (q.note ? <Text style={styles.small}>“{q.note}”</Text> : <Text style={styles.dim}>-</Text>))}
-              {row('', (q) => (
-                <Button title="Accept" onPress={() => handleAccept(q)} loading={acceptQuote.isPending} style={styles.acceptBtn} />
+              {row('', (quote, index) => (
+                <Button
+                  title="Accept"
+                  onPress={() => handleAccept(quote, providers[index]?.full_name ?? 'this provider')}
+                  disabled={!providers[index]}
+                  loading={acceptQuote.isPending}
+                  style={styles.acceptBtn}
+                />
               ))}
             </View>
           </ScrollView>

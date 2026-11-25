@@ -5,6 +5,7 @@ import type { Quote } from '../types/database';
 
 const ERROR_COPY: Record<string, string> = {
   QUOTE_NOT_OPEN: 'This quote is no longer open.',
+  QUOTE_CHANGED: 'The provider revised this quote. Review the updated price and details before accepting.',
   REQUEST_NOT_ACCEPTABLE: 'This request is no longer taking changes.',
   ITEMS_MISMATCH: 'The line items must add up to the price.',
   ITEMS_INVALID: 'Check the line items: each needs a name and a whole amount, up to 8.',

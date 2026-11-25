@@ -125,8 +125,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipActive: { backgroundColor: colors.activeFill, borderColor: colors.active },
     chipLabel: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.white },
+    chipLabelActive: { color: colors.onActive },
   });
 }

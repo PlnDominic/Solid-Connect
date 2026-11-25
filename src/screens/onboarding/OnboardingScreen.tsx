@@ -167,7 +167,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     fill: { flex: 1, backgroundColor: colors.paper },
     skipRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.xl, paddingTop: spacing.sm },
     skip: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkFaint, letterSpacing: 0.1 },
-    signIn: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.active, letterSpacing: 0.1 },
+    signIn: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.activeText, letterSpacing: 0.1 },
 
     body: { flex: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.md, gap: spacing.xxl },
 

@@ -137,7 +137,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.paperDim,
     },
     slotText: { color: colors.ink, fontSize: fontSizes.sm, fontFamily: fonts.semibold },
-    chipSelected: { backgroundColor: colors.active, borderColor: colors.active },
-    chipTextSelected: { color: colors.white },
+    chipSelected: { backgroundColor: colors.activeFill, borderColor: colors.activeFill },
+    chipTextSelected: { color: colors.onActive },
   });
 }

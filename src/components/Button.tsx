@@ -5,7 +5,7 @@ import { useTheme } from '../theme/ThemeProvider';
 type Variant = 'primary' | 'active' | 'outline' | 'ghost';
 
 /**
- * Filled CTAs (`primary` and `active`) are brand orange with a white label
+ * Filled CTAs (`primary` and `active`) are brand orange with a dark label
  * in both light and dark themes - the same "active" accent as a picked
  * filter, category or chip. `primary` is kept as an alias so existing call
  * sites need no change. Secondary actions use `outline` or `ghost` and
@@ -32,9 +32,13 @@ export function Button({
   const isActive = variant === 'active';
   const isOutline = variant === 'outline';
   const isFilled = isPrimary || isActive;
+  const foreground = isFilled ? colors.onActive : colors.ink;
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: Boolean(disabled || loading), busy: Boolean(loading) }}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.base,
@@ -47,10 +51,10 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={isFilled ? colors.white : colors.ink} />
+        <ActivityIndicator color={foreground} />
       ) : (
         <Text
-          style={[styles.label, { color: isFilled ? colors.white : colors.ink }]}
+          style={[styles.label, { color: foreground }]}
           numberOfLines={1}
         >
           {title}
@@ -70,8 +74,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: 20,
     },
     active: {
-      backgroundColor: colors.active,
-      shadowColor: colors.activeDeep,
+      backgroundColor: colors.activeFill,
+      shadowColor: colors.activeFill,
       shadowOpacity: 0.22,
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 4 },

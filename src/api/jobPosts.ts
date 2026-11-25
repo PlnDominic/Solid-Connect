@@ -430,23 +430,6 @@ export function useSetInterestStatus() {
   });
 }
 
-/** Called once the direct request to the chosen provider has actually been
- * sent: only then is the post marked hired and its other interest closed
- * out. Backing out of the request screen leaves the post untouched. The
- * request id is kept so the post reopens if that request is declined. */
-export async function completeJobPostHire(input: { postId: string; interestId: string; providerId: string; requestId: string }) {
-  const { error: interestError } = await supabase
-    .from('job_post_interests')
-    .update({ status: 'hired' })
-    .eq('id', input.interestId);
-  if (interestError) throw interestError;
-  const { error } = await supabase
-    .from('job_posts')
-    .update({ status: 'hired', hired_provider_id: input.providerId, hire_request_id: input.requestId })
-    .eq('id', input.postId);
-  if (error) throw error;
-}
-
 /** Turns a database error from posting into something a person can act on. */
 export function friendlyPostError(e: unknown): string {
   const message = e instanceof Error ? e.message : typeof (e as { message?: unknown })?.message === 'string' ? (e as { message: string }).message : '';

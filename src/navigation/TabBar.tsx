@@ -252,7 +252,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               const focused = state.index === index;
               const lit = litIndex === index;
               const Icon = routeIcons[route.name] ?? House;
-              const tint = lit ? colors.white : isDark ? 'rgba(255,255,255,0.72)' : colors.inkMuted;
+              const tint = lit ? colors.onActive : isDark ? 'rgba(255,255,255,0.72)' : colors.inkMuted;
 
               return (
                 <Pressable
@@ -268,7 +268,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                     <Icon size={ICON_SIZE} strokeWidth={lit ? 2.4 : 1.9} color={tint} />
                     {(badgeCounts[route.name] ?? 0) > 0 ? (
                       <View
-                        style={[styles.badge, { backgroundColor: lit ? colors.white : colors.active }]}
+                        style={[styles.badge, { backgroundColor: lit ? colors.onActive : colors.activeFill }]}
                         accessibilityLabel={`${badgeCounts[route.name]} unread`}
                       />
                     ) : null}
@@ -332,12 +332,11 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], isDark: boole
       left: 0,
       height: TAB_BAR_HEIGHT - LENS_INSET * 2,
       borderRadius: (TAB_BAR_HEIGHT - LENS_INSET * 2) / 2,
-      backgroundColor: colors.active,
-      opacity: 0.94,
+      backgroundColor: colors.activeFill,
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.45)',
       overflow: 'hidden',
-      shadowColor: colors.active,
+      shadowColor: colors.activeFill,
       shadowOpacity: 0.45,
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 3 },

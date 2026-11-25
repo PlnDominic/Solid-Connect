@@ -5,8 +5,8 @@ import { ratingLabel } from '../../lib/rating';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronRight, Eye, EyeOff, LocateFixed, MapPin, ShieldCheck, Star, X } from 'lucide-react-native';
 import { useCustomerActiveJob, useProviderJobs } from '../../api/jobs';
-import { useMapProviders, type MapProviderRow } from '../../api/map';
-import { useCategories, useProvider } from '../../api/marketplace';
+import { guestProviderPins, useMapProviders, type MapProviderRow } from '../../api/map';
+import { useAllProviders, useCategories, useProvider } from '../../api/marketplace';
 import { coordsForLabel } from '../../api/location';
 import { useFeedRequests, type FeedItem } from '../../api/requests';
 import { Avatar } from '../../components/Avatar';
@@ -64,15 +64,19 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
   const userId = profile?.id ?? null;
+  const isGuest = !userId && role === 'customer';
   const mapRef = useRef<ServiceMapHandle>(null);
-  const { data: me } = useMyPosition();
+  const { data: position } = useMyPosition(!!userId);
+  const me = userId ? position : null;
   const [bounds, setBounds] = useState<MapBounds | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [category, setCategory] = useState('all');
 
   // Customer layers.
   const { data: categories = [] } = useCategories();
-  const providersQuery = useMapProviders(bounds, category === 'all' ? null : category, role === 'customer');
+  const categoryName = category === 'all' ? null : category;
+  const providersQuery = useMapProviders(bounds, categoryName, role === 'customer' && !!userId);
+  const guestProvidersQuery = useAllProviders(categoryName, null, { enabled: isGuest });
   const { data: customerJob } = useCustomerActiveJob(role === 'customer' ? userId : null);
 
   // Provider layers.
@@ -90,7 +94,12 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
     activeJob ? (role === 'customer' ? activeJob.provider_id : activeJob.customer_id) : null,
   );
 
-  const providers = role === 'customer' ? providersQuery.data ?? [] : [];
+  const guestProviders = useMemo(
+    () => isGuest ? guestProviderPins(guestProvidersQuery.data ?? [], bounds) : [],
+    [bounds, guestProvidersQuery.data, isGuest],
+  );
+  const providers = isGuest ? guestProviders : role === 'customer' ? providersQuery.data ?? [] : [];
+  const mapQuery = isGuest ? guestProvidersQuery : providersQuery;
   // Request photos are private, so the thumbnails on the map need signed links.
   const firstPhotos = useMemo(
     () => (role === 'provider' ? [...new Set(feed.map((r) => r.photos?.[0]).filter((u): u is string => !!u))] : []),
@@ -172,7 +181,7 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
 
   const count = role === 'customer' ? providers.length : requestPins.length;
   const liveCount = role === 'customer' ? providers.filter((p) => p.is_live).length : 0;
-  const loading = role === 'customer' ? providersQuery.isLoading && !!bounds : feedLoading;
+  const loading = isGuest ? guestProvidersQuery.isLoading : role === 'customer' ? providersQuery.isLoading && !!bounds : feedLoading;
   const summary =
     role === 'customer'
       ? `${count} ${count === 1 ? 'pro' : 'pros'} in view${liveCount > 0 ? ` · ${liveCount} available now` : ''}`
@@ -199,8 +208,8 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
           <View style={styles.headerCard}>
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={styles.title}>Map</Text>
-              <Text style={styles.subtitle} numberOfLines={1}>
-                {summary}
+              <Text style={styles.subtitle} numberOfLines={isGuest ? 2 : 1}>
+                {isGuest ? `${summary} · Neighbourhood locations` : summary}
               </Text>
             </View>
             {loading ? <ActivityIndicator color={colors.ink} /> : null}
@@ -251,12 +260,12 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
                     {shortCategory(selectedProvider.provider_category ?? 'Provider')}
                   </Text>
                   <View style={styles.nameRow}>
-                    <Star size={12} strokeWidth={2.4} color={colors.active} fill={colors.active} />
+                    <Star size={12} strokeWidth={2.4} color={colors.activeText} fill={colors.active} />
                     <Text style={styles.sheetMeta}>
                       {ratingLabel(selectedProvider)} · {selectedProvider.provider_jobs_count} jobs
                       {selectedProvider.is_live && selectedProvider.updated_at
                         ? ` · available now, seen ${formatRelativeTime(selectedProvider.updated_at)}`
-                        : [selectedProvider.area_label, AVAILABILITY_LABEL[selectedProvider.availability_mode ?? 'SCHEDULE']]
+                        : [selectedProvider.area_label, isGuest ? null : AVAILABILITY_LABEL[selectedProvider.availability_mode ?? 'SCHEDULE']]
                             .filter(Boolean)
                             .map((s) => ` · ${s}`)
                             .join('')}
@@ -330,6 +339,11 @@ export function MapScreen({ navigation, role }: { navigation: any; role: 'custom
                 )}
               </View>
             </Pressable>
+          ) : role === 'customer' && mapQuery.isError && count === 0 ? (
+            <View style={styles.sheet}>
+              <Text style={styles.sheetTitle}>Could not load providers</Text>
+              <Button title="Retry" variant="outline" onPress={() => void mapQuery.refetch()} />
+            </View>
           ) : !loading && count === 0 ? (
             <View style={styles.emptyHint}>
               <Text style={styles.emptyText}>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, Switch, Text, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, Switch, Text, View, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -12,6 +12,7 @@ import {
 } from '../../api/profile';
 import { useMarkAllNotificationsRead, useMarkNotificationRead, useNotifications } from '../../api/requests';
 import { useSessionStore } from '../../store/useSessionStore';
+import { notificationDestination } from '../../navigation/notificationDestination';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { AppNotification } from '../../types/database';
@@ -47,7 +48,7 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: notifications, isLoading } = useNotifications(profile?.id ?? null);
+  const { data: notifications, isLoading, isError, refetch } = useNotifications(profile?.id ?? null);
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
   const { data: serverPrefs } = useNotificationPrefs(profile?.id ?? null);
@@ -97,6 +98,8 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
 
         {isLoading ? (
           <ActivityIndicator color={colors.ink} style={{ marginVertical: spacing.xl }} />
+        ) : isError && !notifications ? (
+          <EmptyState title="Could not load notifications" action={{ label: 'Retry', onPress: () => void refetch() }} />
         ) : rows.length === 0 ? (
           <View style={styles.cardShadow}>
             <View style={styles.card}>
@@ -111,13 +114,15 @@ export function NotificationsScreen({ navigation }: { navigation: any }) {
                 return (
                   <Pressable
                     key={n.id}
-                    onPress={() => {
-                      if (unread) markRead.mutate(n.id);
-                      // Notifications that carry a deep link (job posts do)
-                      // open their screen through the app's linking config.
-                      const url = n.data?.url;
-                      if (typeof url === 'string' && url.startsWith('solidconnect://')) {
-                        Linking.openURL(url).catch(() => {});
+                    accessibilityRole="button"
+                    onPress={async () => {
+                      const target = notificationDestination(n, profile?.role ?? 'customer');
+                      try {
+                        if (target?.url) await Linking.openURL(target.url);
+                        else if (target?.tab) navigation.navigate(target.tab, { screen: target.screen, params: target.params });
+                        if (unread) markRead.mutate(n.id);
+                      } catch {
+                        Alert.alert('Could not open notification', 'Please try again.');
                       }
                     }}
                     style={[styles.row, i < rows.length - 1 && styles.rowBorder]}
@@ -164,7 +169,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     body: { padding: spacing.lg, gap: spacing.sm },
     sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2, marginBottom: 4 },
     sectionLabel: { fontSize: fontSizes.sm, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
-    clearAll: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.active },
+    clearAll: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.activeText },
     cardShadow: { borderRadius: radii.xxxl, backgroundColor: colors.card, ...shadow.card, marginBottom: spacing.md },
     card: { borderRadius: radii.xxxl, overflow: 'hidden' },
     row: { flexDirection: 'row', alignItems: 'flex-start', padding: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.sm },

@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { createOrUpdateOwnProfile, fetchProfile, savePushSubscription } from '../../api/profile';
 import { useCategories } from '../../api/marketplace';
 import { claimReferral, popPendingReferralCode, stashPendingReferralCode } from '../../api/referrals';
 import {
+  completeEmailConfirmationFromUrl,
   completePasswordResetFromUrl,
   friendlyAuthError,
   getCurrentUserId,
+  isEmailConfirmationUrl,
   isPasswordResetUrl,
   signOut,
   updatePassword,
@@ -17,7 +19,8 @@ import {
   getSignUpMetadata,
   signUpWithPassword,
 } from '../../lib/auth';
-import { hasSeenLanding, markLandingSeen } from '../../lib/landing';
+import { Button } from '../../components/Button';
+import { saveCustomerAction, type CustomerAction } from '../../navigation/customerAccess';
 import { LEGAL_VERSION } from '../../lib/legal';
 import { registerForPushNotificationsAsync } from '../../lib/pushNotifications';
 import { firstMissingSignUpStep, profileSignUpDetails, type SignUpStep } from '../../lib/signUpSteps';
@@ -27,7 +30,6 @@ import { fonts, fontSizes } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 import type { Profile, Role } from '../../types/database';
 import { ForgotPasswordScreen } from './ForgotPasswordScreen';
-import { OnboardingScreen } from './OnboardingScreen';
 import { SignInScreen } from './SignInScreen';
 import { SignUpCategoryScreen } from './SignUpCategoryScreen';
 import { SignUpConfirmEmailScreen } from './SignUpConfirmEmailScreen';
@@ -38,12 +40,9 @@ import { SignUpNotificationsScreen } from './SignUpNotificationsScreen';
 import { SignUpPasswordScreen } from './SignUpPasswordScreen';
 import { SignUpPhoneScreen } from './SignUpPhoneScreen';
 import { SignUpScreen } from './SignUpScreen';
-import { SplashScreen } from './SplashScreen';
 
 type Phase =
   | 'bootstrapping'
-  | 'splash'
-  | 'onboarding'
   | 'signup-name'
   | 'signup-phone'
   | 'signup-location'
@@ -58,9 +57,7 @@ type Phase =
   | 'reset-password'
   | 'error';
 
-// 3 onboarding info slides + name + phone + location + email + role +
-// category (providers only) + password.
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 7;
 
 type SignInHints = { fullName?: string; email?: string };
 
@@ -73,23 +70,23 @@ const PHASE_FOR_STEP: Record<SignUpStep, Phase> = {
   category: 'signup-category',
 };
 
-/**
- * Orchestrates the cold-start flow. Real accounts only - no anonymous
- * session.
- *
- * - Signed-in with a profile → Main (never the marketing landing).
- * - Returning / signed-out device → splash is skipped; login/signup only.
- * - First install → splash → landing (location + Get started / Sign in).
- *
- * "Create an account" then runs name → phone → area → email → role →
- * password (providers pick a trade before password).
- */
-export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
+export function AuthFlowScreen({
+  onDone,
+  onBrowse,
+  action,
+  incomingUrl,
+}: {
+  onDone: () => void;
+  onBrowse: () => void;
+  action?: CustomerAction;
+  incomingUrl?: string;
+}) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const { data: categories = [] } = useCategories();
+  const { data: categories = [], refetch: refetchCategories } = useCategories();
   const [phase, setPhase] = useState<Phase>('bootstrapping');
   const [error, setError] = useState<string | null>(null);
+  const [bootAttempt, setBootAttempt] = useState(0);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [signInLoading, setSignInLoading] = useState<'password' | 'google' | 'apple' | null>(null);
@@ -114,6 +111,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const setProfile = useSessionStore((s) => s.setProfile);
   const setBootstrapping = useSessionStore((s) => s.setBootstrapping);
+  const confirmationHandler = useRef<(url: string) => void>(null);
+  confirmationHandler.current = phase === 'signup-confirm-email' ? handleEmailConfirmation : null;
 
   // Grab an invite code off the opening URL (cold start) and any link
   // tapped while the flow is already on screen (warm start), and stash it
@@ -122,7 +121,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     function rememberCode(url: string | null) {
       // A reset-password link carries an auth `code`, not an invite code.
-      if (isPasswordResetUrl(url)) return;
+      if (isPasswordResetUrl(url) || isEmailConfirmationUrl(url)) return;
       const code = url?.match(/[?&]code=([A-Za-z0-9]+)/)?.[1];
       if (!code) return;
       const upper = code.toUpperCase();
@@ -134,6 +133,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       .catch(() => {});
     const sub = Linking.addEventListener('url', ({ url }) => {
       if (isPasswordResetUrl(url)) void openPasswordResetLink(url);
+      else if (isEmailConfirmationUrl(url)) confirmationHandler.current?.(url);
       else rememberCode(url);
     });
     return () => sub.remove();
@@ -174,9 +174,10 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   }
 
   useEffect(() => {
+    setPhase('bootstrapping');
     if (!isSupabaseConfigured) {
       setError(
-        "Supabase isn't configured yet. Add EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY to a .env file at the project root, then fully stop and restart with `npx expo start -c` (a reload alone won't pick up a new .env)."
+        'Sign-in is unavailable right now. Please try again later.'
       );
       setPhase('error');
       return;
@@ -186,39 +187,37 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         // Opened from the reset-password email: finish that before anything
         // else, or the session it creates would skip straight into the app
         // without the new password ever being set.
-        const initialUrl = await Linking.getInitialURL().catch(() => null);
+        const initialUrl = incomingUrl;
         if (initialUrl && isPasswordResetUrl(initialUrl)) {
           setBootstrapping(false);
           await openPasswordResetLink(initialUrl);
           return;
         }
+        if (initialUrl && isEmailConfirmationUrl(initialUrl)) {
+          setBootstrapping(false);
+          await handleEmailConfirmation(initialUrl);
+          return;
+        }
         const userId = await getCurrentUserId();
         if (userId) {
-          // Signed-in users never see the marketing landing.
-          await markLandingSeen();
           setAuthUserId(userId);
           const profile = await fetchProfile(userId);
           setBootstrapping(false);
           // Finished accounts go to Main; anything unfinished continues
           // sign-up rather than going through splash/landing again.
-          await finishOrResume(profile);
+          await finishOrResume(userId, profile);
           return;
         }
         setBootstrapping(false);
-        const seenLanding = await hasSeenLanding();
-        setPhase(seenLanding ? 'signin' : 'splash');
+        setPhase('signin');
       } catch (e: any) {
+        setBootstrapping(false);
         setError(friendlyAuthError(e, 'Something went wrong connecting to Solid Connect.'));
         setPhase('error');
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function finishLanding(next: 'signin' | 'signup-name') {
-    await markLandingSeen();
-    setPhase(next);
-  }
+  }, [bootAttempt, incomingUrl]);
 
   async function handleChooseRole(role: Role) {
     setSelectedRole(role);
@@ -288,14 +287,20 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     setPasswordLoading(true);
     setPasswordError(null);
     try {
+      const consent = termsMeta();
       const result = await signUpWithPassword(email, password, {
         full_name: fullName.trim(),
         phone: phone.trim(),
         area: area.trim(),
+        signup_role: selectedRole,
+        signup_trades: selectedRole === 'provider' ? providerCategoryIds : undefined,
+        signup_terms_at: consent.termsAcceptedAt,
+        signup_terms_version: consent.termsVersion,
       });
       if (!result.session || !result.user) {
         // "Confirm email" is on in this Supabase project - the account
         // exists but has no session yet.
+        if (action && selectedRole === 'customer') await saveCustomerAction(email, action).catch(() => {});
         setPhase('signup-confirm-email');
         return;
       }
@@ -305,7 +310,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
         email,
         area,
         ...(selectedRole === 'provider' ? providerDetails() : {}),
-        ...termsMeta(),
+        ...consent,
       });
       setProfile(profile);
       await claimReferralAfterAuth();
@@ -351,7 +356,20 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   async function afterSignIn(userId: string, hints: SignInHints = {}) {
     setAuthUserId(userId);
     const profile = await fetchProfile(userId);
-    await finishOrResume(profile, hints);
+    await finishOrResume(userId, profile, hints);
+  }
+
+  async function handleEmailConfirmation(url: string) {
+    confirmationHandler.current = null;
+    setPhase('bootstrapping');
+    setSignInErr(null);
+    try {
+      const user = await completeEmailConfirmationFromUrl(url);
+      await afterSignIn(user.id);
+    } catch (error) {
+      setSignInErr(friendlyAuthError(error, 'Could not finish email confirmation. You can try signing in.'));
+      setPhase('signin');
+    }
   }
 
   /**
@@ -361,14 +379,14 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
    * (prefilled) - a Google/Apple sign-in hands us a name and email, but
    * never a phone, area, role, terms acceptance or trade.
    */
-  async function finishOrResume(profile: Profile | null, hints: SignInHints = {}) {
+  async function finishOrResume(userId: string, profile: Profile | null, hints: SignInHints = {}) {
     if (profile && firstMissingSignUpStep(profileSignUpDetails(profile)) === null) {
       setProfile(profile);
       await claimReferralAfterAuth();
       onDone();
       return;
     }
-    await resumeUnfinishedSignUp(profile, hints);
+    await resumeUnfinishedSignUp(userId, profile, hints);
   }
 
   /**
@@ -379,19 +397,21 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
    * profile row, and start at the first required step still missing.
    * Later steps still follow in order, prefilled, so nothing is skipped.
    */
-  async function resumeUnfinishedSignUp(profile: Profile | null = null, hints: SignInHints = {}) {
+  async function resumeUnfinishedSignUp(userId: string, profile: Profile | null, hints: SignInHints) {
     const known = {
       fullName: fullName.trim() || hints.fullName?.trim() || '',
       phone: phone.trim(),
       area: area.trim(),
       email: email.trim() || hints.email?.trim() || '',
     };
+    let metadata: Awaited<ReturnType<typeof getSignUpMetadata>> | undefined;
     try {
       const meta = await getSignUpMetadata();
+      metadata = meta;
       known.fullName ||= meta.full_name ?? '';
       known.phone ||= meta.phone ?? '';
       known.area ||= meta.area ?? '';
-      known.email ||= meta.email ?? '';
+      known.email = meta.email ?? known.email;
     } catch {
       // Fall through to asking for the details.
     }
@@ -401,6 +421,35 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       known.area ||= profile.area ?? '';
       known.email ||= profile.email ?? '';
       if (profile.terms_accepted_at) setTermsAccepted(true);
+    }
+    const role = metadata?.signup_role;
+    const acceptedAt = metadata?.signup_terms_at;
+    const acceptedTime = acceptedAt ? Date.parse(acceptedAt) : NaN;
+    if (role && acceptedAt && metadata?.signup_terms_version === LEGAL_VERSION &&
+        Number.isFinite(acceptedTime) && acceptedTime <= Date.now() &&
+        (!profile?.terms_accepted_at || profile.role === role)) {
+      const selectedTrades = new Set(metadata.signup_trades ?? []);
+      const availableTrades = role === 'provider' && !categories.length
+        ? (await refetchCategories({ throwOnError: true })).data ?? []
+        : categories;
+      const trades = availableTrades.filter((trade) => selectedTrades.has(trade.id));
+      if (firstMissingSignUpStep({
+        ...known, role, termsAccepted: true, hasProviderCategory: trades.length > 0,
+      }) === null) {
+        const completed = await createOrUpdateOwnProfile(userId, role, {
+          ...known,
+          termsAcceptedAt: acceptedAt,
+          termsVersion: LEGAL_VERSION,
+          ...(role === 'provider' ? {
+            providerCategory: trades.map((trade) => trade.name).join(' · '),
+            providerCategoryIds: trades.map((trade) => trade.id),
+          } : {}),
+        });
+        setProfile(completed);
+        await claimReferralAfterAuth();
+        setPhase('signup-notifications');
+        return;
+      }
     }
     setFullName(known.fullName);
     setPhone(known.phone);
@@ -412,11 +461,11 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     setPhase(PHASE_FOR_STEP[step]);
   }
 
-  async function handleSignInPassword(identifier: string, password: string, method: 'email' | 'phone') {
+  async function handleSignInPassword(email: string, password: string) {
     setSignInLoading('password');
     setSignInErr(null);
     try {
-      const result = await signInWithPassword(identifier, password, method);
+      const result = await signInWithPassword(email, password);
       if (!result.user) throw new Error('Sign-in did not return an account.');
       await afterSignIn(result.user.id);
     } catch (e: any) {
@@ -499,26 +548,17 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     }
   }
 
-  if (phase === 'bootstrapping') return <View style={styles.blank} />;
+  if (phase === 'bootstrapping') {
+    return <View style={styles.errorWrap}><ActivityIndicator color={colors.ink} accessibilityLabel="Connecting to Solid Connect" /></View>;
+  }
 
   if (phase === 'error') {
     return (
       <View style={styles.errorWrap}>
         <Text style={styles.errorText}>{error}</Text>
+        <Button title="Retry" onPress={() => setBootAttempt((attempt) => attempt + 1)} />
+        <Button title="Continue browsing" variant="ghost" onPress={onBrowse} />
       </View>
-    );
-  }
-
-  if (phase === 'splash') {
-    return <SplashScreen onFinish={() => setPhase('onboarding')} />;
-  }
-
-  if (phase === 'onboarding') {
-    return (
-      <OnboardingScreen
-        onGetStarted={() => void finishLanding('signup-name')}
-        onSignIn={() => void finishLanding('signin')}
-      />
     );
   }
 
@@ -526,7 +566,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return (
       <SignUpNameScreen
         totalSteps={TOTAL_STEPS}
-        activeIndex={3}
+        activeIndex={0}
         value={fullName}
         onChangeValue={setFullName}
         onBack={() => setPhase('signin')}
@@ -540,7 +580,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return (
       <SignUpPhoneScreen
         totalSteps={TOTAL_STEPS}
-        activeIndex={4}
+        activeIndex={1}
         value={phone}
         onChangeValue={setPhone}
         excludeUserId={authUserId}
@@ -554,7 +594,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return (
       <SignUpLocationScreen
         totalSteps={TOTAL_STEPS}
-        activeIndex={5}
+        activeIndex={2}
         value={area}
         onChangeValue={setArea}
         onBack={() => setPhase('signup-phone')}
@@ -567,7 +607,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return (
       <SignUpEmailScreen
         totalSteps={TOTAL_STEPS}
-        activeIndex={6}
+        activeIndex={3}
         value={email}
         onChangeValue={setEmail}
         excludeUserId={authUserId}
@@ -582,7 +622,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
       <SignUpScreen
         firstName={fullName.trim().split(/\s+/)[0] || 'there'}
         totalSteps={TOTAL_STEPS}
-        activeIndex={7}
+        activeIndex={4}
         onBack={() => setPhase('signup-email')}
         onSelectRole={handleChooseRole}
         loading={roleChoiceLoading}
@@ -597,7 +637,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
     return (
       <SignUpCategoryScreen
         totalSteps={TOTAL_STEPS}
-        activeIndex={8}
+        activeIndex={5}
         values={providerCategoryIds}
         onChangeValues={setProviderCategoryIds}
         onBack={() => setPhase('signup-role')}
@@ -611,8 +651,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
   if (phase === 'signup-password') {
     return (
       <SignUpPasswordScreen
-        totalSteps={TOTAL_STEPS}
-        activeIndex={9}
+        totalSteps={selectedRole === 'provider' ? TOTAL_STEPS : TOTAL_STEPS - 1}
+        activeIndex={selectedRole === 'provider' ? 6 : 5}
         onBack={() => setPhase(selectedRole === 'provider' ? 'signup-category' : 'signup-role')}
         onSubmit={handlePasswordSubmit}
         loading={passwordLoading}
@@ -662,6 +702,8 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
 
   return (
     <SignInScreen
+      onBrowse={onBrowse}
+      actionMessage={action ? 'Continue with your job.' : undefined}
       onSubmit={handleSignInPassword}
       onGoToSignUp={() => setPhase('signup-name')}
       onForgotPassword={(typedEmail) => {
@@ -679,8 +721,7 @@ export function AuthFlowScreen({ onDone }: { onDone: () => void }) {
 
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
-    blank: { flex: 1, backgroundColor: colors.paper },
-    errorWrap: { flex: 1, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center', padding: 32 },
+    errorWrap: { flex: 1, backgroundColor: colors.paper, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 16 },
     errorText: { fontFamily: fonts.medium, fontSize: fontSizes.md, color: colors.ink, textAlign: 'center' },
   });
 }

@@ -8,9 +8,9 @@ import { fonts, fontSizes, radii, shadow, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
 /** The body of a job post, shared by the customer's and the provider's view. */
-export function JobPostSummary({ post, aside }: { post: JobPost; aside?: ReactNode }) {
+export function JobPostSummary({ post, aside, compact = false }: { post: JobPost; aside?: ReactNode; compact?: boolean }) {
   const { colors } = useTheme();
-  const photoUrls = useSignedUrls(post.photos);
+  const photoUrls = useSignedUrls(compact ? [] : post.photos);
   const styles = makeStyles(colors);
   return (
     <View style={styles.card}>
@@ -34,7 +34,7 @@ export function JobPostSummary({ post, aside }: { post: JobPost; aside?: ReactNo
         />
       </View>
 
-      <Text style={styles.description}>{post.description}</Text>
+      {compact ? null : <Text style={styles.description}>{post.description}</Text>}
 
       {photoUrls.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.photos}>
@@ -75,7 +75,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     card: { borderRadius: radii.xxxl, backgroundColor: colors.card, padding: spacing.lg, gap: spacing.sm, ...shadow.card },
     headRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
-    category: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.8, color: colors.active },
+    category: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, letterSpacing: 0.8, color: colors.activeText },
     title: { fontSize: fontSizes.xl, lineHeight: 26, fontFamily: fonts.extrabold, color: colors.ink, letterSpacing: -0.3 },
     posted: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     facts: {

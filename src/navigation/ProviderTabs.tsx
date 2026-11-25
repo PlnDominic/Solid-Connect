@@ -58,6 +58,7 @@ function ActivityStack() {
       <ActivityStackNav.Screen name="JobDetail" component={JobDetailScreen} />
       <ActivityStackNav.Screen name="RateCustomer" component={RateCustomerScreen} />
       <ActivityStackNav.Screen name="Dispute" component={DisputeScreen} />
+      <ActivityStackNav.Screen name="HelpSupport" component={HelpSupportScreen} />
     </ActivityStackNav.Navigator>
   );
 }

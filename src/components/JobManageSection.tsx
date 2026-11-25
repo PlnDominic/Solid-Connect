@@ -306,7 +306,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     label: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.inkFaint, letterSpacing: 0.6 },
     value: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
     sub: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted },
-    calendarLink: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.active },
+    calendarLink: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.activeText },
     banner: { borderRadius: radii.md, backgroundColor: colors.pendingBg, padding: spacing.md, gap: spacing.sm },
     bannerText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.ink },
     row: { flexDirection: 'row', gap: 10 },

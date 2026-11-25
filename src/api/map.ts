@@ -1,6 +1,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import type { MapBounds } from '../lib/mapPins';
+import type { Profile } from '../types/database';
+import { coordsForLabel } from '../lib/areaCoords';
 
 /** A provider on the map, as returned by map_providers (0068). Live
  * providers ("Available now", app open) sit on their ~450 m grid point;
@@ -24,6 +26,38 @@ export type MapProviderRow = {
   area_label: string | null;
   availability_mode: 'AVAILABLE_NOW' | 'SCHEDULE' | 'UNAVAILABLE' | 'PAUSED' | null;
 };
+
+type GuestMapProfile = Pick<Profile,
+  'id' | 'full_name' | 'initials' | 'area' | 'photo_url' | 'provider_category' |
+  'provider_rating' | 'provider_jobs_count' | 'provider_verified' | 'verification_level'
+>;
+
+export function guestProviderPins(profiles: GuestMapProfile[], bounds: MapBounds | null): MapProviderRow[] {
+  return profiles.flatMap((profile) => {
+    const centre = coordsForLabel(profile.area);
+    if (!centre || (bounds && (
+      centre.lat < bounds.minLat || centre.lat > bounds.maxLat ||
+      centre.lng < bounds.minLng || centre.lng > bounds.maxLng
+    ))) return [];
+
+    return [{
+      ...centre,
+      id: profile.id,
+      full_name: profile.full_name,
+      initials: profile.initials,
+      photo_url: profile.photo_url ?? null,
+      provider_category: profile.provider_category,
+      provider_rating: Number(profile.provider_rating ?? 0),
+      provider_jobs_count: profile.provider_jobs_count,
+      provider_verified: profile.provider_verified,
+      verification_level: profile.verification_level ?? null,
+      area_label: profile.area,
+      availability_mode: null,
+      updated_at: null,
+      is_live: false,
+    }];
+  });
+}
 
 /** Every (non-suspended) provider inside the map's visible box - live
  * ones flagged -

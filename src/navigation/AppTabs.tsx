@@ -58,7 +58,7 @@ export function AppTabs({ tabs }: { tabs: TabSpec[] }) {
         screenOptions={{
           headerShown: false,
           // Brand orange tints the selected icon and label; the glass itself stays clear.
-          tabBarActiveTintColor: colors.active,
+          tabBarActiveTintColor: colors.activeFill,
           // The bar collapses to a small glass pill while the user scrolls down.
           tabBarMinimizeBehavior: 'onScrollDown',
           // Root screens already pad their scroll content for the bar (useTabBarClearance).
@@ -79,7 +79,7 @@ export function AppTabs({ tabs }: { tabs: TabSpec[] }) {
                   ? ({ focused }) => ({ type: 'sfSymbol', name: focused ? symbols.selected : symbols.idle })
                   : undefined,
                 tabBarBadge: badge > 0 ? (badge > 99 ? '99+' : badge) : undefined,
-                tabBarBadgeStyle: { backgroundColor: colors.active },
+                tabBarBadgeStyle: { backgroundColor: colors.activeFill, color: colors.onActive },
               }}
             />
           );

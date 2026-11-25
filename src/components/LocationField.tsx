@@ -106,10 +106,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairlineStrong,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipActive: { backgroundColor: colors.activeFill, borderColor: colors.activeFill },
     chipLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.white },
-    saveLink: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    chipLabelActive: { color: colors.onActive },
+    saveLink: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.activeText, textDecorationLine: 'underline' },
     saveRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     saveInput: {
       flex: 1,
@@ -122,7 +122,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       fontFamily: fonts.regular,
       color: colors.ink,
     },
-    saveAction: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active },
+    saveAction: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.activeText },
     saveActionDisabled: { color: colors.inkFainter },
     saveCancel: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
   });

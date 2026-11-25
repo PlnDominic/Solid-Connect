@@ -52,6 +52,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     title: { fontSize: fontSizes.lg, letterSpacing: -0.2, fontFamily: fonts.bold, color: colors.ink },
     subtitle: { fontSize: fontSizes.md, color: colors.inkMuted, lineHeight: 24, textAlign: 'center', maxWidth: 290, fontFamily: fonts.regular },
     action: { marginTop: spacing.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
-    actionLabel: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    actionLabel: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.activeText, textDecorationLine: 'underline' },
   });
 }

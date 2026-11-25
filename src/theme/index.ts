@@ -41,6 +41,8 @@ import { Platform } from 'react-native';
  * the finish review, the verdict, and DESIGN.md.
  */
 
+export const logoOrange = '#EE7830';
+
 export const colors = {
   // White ground - the page background is plain white, not warm/beige paper.
   paper: '#FFFFFF',
@@ -51,8 +53,8 @@ export const colors = {
   // Ink - warm near-black, not a cold gray-black.
   ink: '#15181A',
   inkMuted: 'rgba(21,24,26,0.62)',
-  inkFaint: 'rgba(21,24,26,0.42)',
-  inkFainter: 'rgba(21,24,26,0.26)',
+  inkFaint: 'rgba(21,24,26,0.62)',
+  inkFainter: 'rgba(21,24,26,0.61)',
 
   // Hairline rules separate rows and sections inside a card; between a
   // card and the page, `shadow.card` may do the separating instead.
@@ -83,8 +85,11 @@ export const colors = {
   // selection state: the picked filter, the picked category, the active
   // tab. A second reserved accent alongside confirm-green, not a
   // decorative color; still never used for plain body chrome.
-  active: '#F27511',
-  activeDeep: '#C85A08',
+  active: logoOrange,
+  activeFill: logoOrange,
+  activeText: '#A84500',
+  onActive: '#15181A',
+  activeDeep: '#923A00',
   activeBg: '#FCE9DA',
 
 
@@ -94,8 +99,8 @@ export const colors = {
   // Legacy aliases kept only so screens outside this redesign's scope
   // (provider/chat/jobs, etc.) keep compiling until they're carried
   // through in a follow-up pass. Do not reach for these in new work.
-  orange: '#F27511',
-  orangeDeep: '#C85A08',
+  orange: logoOrange,
+  orangeDeep: '#923A00',
   bg: '#FFFFFF',
   surface: '#FFFFFF',
   tile: '#FBFBFA',
@@ -106,7 +111,7 @@ export const colors = {
   textHeading: '#15181A',
   textBody: 'rgba(21,24,26,0.62)',
   textMuted: 'rgba(21,24,26,0.62)',
-  textFaint: 'rgba(21,24,26,0.42)',
+  textFaint: 'rgba(21,24,26,0.62)',
   textDim: 'rgba(21,24,26,0.26)',
   successBg: '#E6F1EA',
   successFg: '#0A4F34',

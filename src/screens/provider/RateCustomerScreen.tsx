@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Star } from 'lucide-react-native';
-import { Pressable, ScrollView, Text, View, TextInput, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View, TextInput, StyleSheet } from 'react-native';
 import { useJob } from '../../api/jobs';
+import { friendlyActionError } from '../../api/quotes';
 import { useProvider } from '../../api/marketplace';
 import { useSubmitCustomerReview } from '../../api/reviews';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { EmptyState } from '../../components/EmptyState';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
@@ -26,24 +28,41 @@ export function RateCustomerScreen({ navigation, route }: { navigation: any; rou
   const styles = makeStyles(colors);
   const jobId: string = route.params.jobId;
   const profile = useSessionStore((s) => s.profile);
-  const { data: job } = useJob(jobId);
+  const { data: job, isLoading, isError, refetch } = useJob(jobId);
   const { data: customer } = useProvider(job?.customer_id);
   const submitReview = useSubmitCustomerReview();
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
 
-  if (!job) return <Screen edges={['top']} />;
+  if (!job) {
+    return (
+      <Screen>
+        <ScreenHeader title="Rate customer" onBack={() => navigation.goBack()} />
+        {isLoading ? <ActivityIndicator color={colors.ink} /> : (
+          <EmptyState
+            title={isError ? 'Could not load the job' : 'Job unavailable'}
+            action={{ label: 'Retry', onPress: () => void refetch() }}
+          />
+        )}
+      </Screen>
+    );
+  }
 
   async function handleSubmit() {
     if (!job || !profile || rating === 0) return;
-    await submitReview.mutateAsync({
-      jobId: job.id,
-      providerId: profile.id,
-      customerId: job.customer_id,
-      rating,
-      comment,
-    });
+    try {
+      await submitReview.mutateAsync({
+        jobId: job.id,
+        providerId: profile.id,
+        customerId: job.customer_id,
+        rating,
+        comment,
+      });
+    } catch (e: unknown) {
+      Alert.alert('Could not send your rating', friendlyActionError(e, 'Please try again.'));
+      return;
+    }
     navigation.navigate('ActivityHome');
   }
 
@@ -67,7 +86,7 @@ export function RateCustomerScreen({ navigation, route }: { navigation: any; rou
                 <Star
                   size={34}
                   strokeWidth={1.8}
-                  color={n <= rating ? colors.active : colors.hairlineStrong}
+                  color={n <= rating ? colors.activeText : colors.hairlineStrong}
                   fill={n <= rating ? colors.active : 'transparent'}
                 />
               </Pressable>

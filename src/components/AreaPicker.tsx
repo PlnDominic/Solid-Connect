@@ -118,7 +118,7 @@ export function isValidArea(value: string): boolean {
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     locateRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, alignSelf: 'flex-start' },
-    locateLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active, textDecorationLine: 'underline' },
+    locateLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.activeText, textDecorationLine: 'underline' },
     chipsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     chip: {
       paddingVertical: 10,
@@ -128,9 +128,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipActive: { backgroundColor: colors.activeFill, borderColor: colors.activeFill },
     chipLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.white },
+    chipLabelActive: { color: colors.onActive },
 
     input: {
       fontSize: fontSizes.lg,

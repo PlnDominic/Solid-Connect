@@ -26,7 +26,7 @@
 
 /* Submit = the app's primary Button: brand orange, white label, orange lift. */
 .reference-submit { height:54px; border:0; border-radius:var(--r-card); background:var(--active); color:var(--on-active); font-size:var(--fs-lg); font-weight:700; letter-spacing:-.1px; box-shadow:var(--shadow-active); transition:transform .1s, opacity .15s, background .15s; }
-.reference-submit:hover { background:var(--active-deep); }
+.reference-submit:hover { background:var(--active-hover); }
 .reference-submit:active { opacity:.88; transform:scale(.985); }
 .reference-submit:disabled { opacity:.55; cursor:wait; }
 

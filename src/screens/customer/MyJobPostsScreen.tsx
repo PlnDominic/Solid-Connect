@@ -18,7 +18,7 @@ export function statusBadge(post: Pick<JobPost, 'status' | 'expires_at'>, colors
     case 'open':
       return { label: 'Open', bg: colors.confirmBg, fg: colors.confirm };
     case 'hired':
-      return { label: 'Hired', bg: colors.activeBg, fg: colors.activeDeep };
+      return { label: 'Provider selected', bg: colors.activeBg, fg: colors.activeDeep };
     default:
       return { label: 'Closed', bg: colors.paperDim, fg: colors.inkMuted };
   }
@@ -60,11 +60,11 @@ export function MyJobPostsScreen({ navigation }: { navigation: any }) {
           accessibilityRole="button"
         >
           <View style={styles.newIcon}>
-            <Plus size={18} strokeWidth={2.6} color={colors.white} />
+            <Plus size={18} strokeWidth={2.6} color={colors.onActive} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.newTitle}>Post a new job</Text>
-            <Text style={styles.newMeta}>Every provider sees it on their feed</Text>
+            <Text style={styles.newMeta}>Local providers can see it in their feed</Text>
           </View>
           <ChevronRight size={18} strokeWidth={2.4} color={colors.inkFaint} />
         </Pressable>
@@ -147,7 +147,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
     },
     newTitle: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.ink },
     newMeta: { fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkMuted, marginTop: 2 },
@@ -159,6 +159,6 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     cardBudget: { fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.ink, fontVariant: ['tabular-nums'] },
     interest: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     interestText: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.inkFaint },
-    interestTextActive: { color: colors.active },
+    interestTextActive: { color: colors.activeText },
   });
 }

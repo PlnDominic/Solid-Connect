@@ -253,7 +253,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     section: { fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink },
     sectionCount: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkFaint },
-    link: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active },
+    link: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.activeText },
     hint: { fontSize: fontSizes.sm, fontFamily: fonts.regular, color: colors.inkFaint },
     error: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
     searchBox: {
@@ -277,10 +277,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderColor: colors.hairline,
       backgroundColor: colors.card,
     },
-    chipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    chipActive: { backgroundColor: colors.activeFill, borderColor: colors.active },
     chipPrimary: { borderWidth: 2, borderColor: colors.activeDeep },
     chipLabel: { fontSize: fontSizes.sm, fontFamily: fonts.semibold, color: colors.ink },
-    chipLabelActive: { color: colors.white },
+    chipLabelActive: { color: colors.onActive },
     radiusRow: {
       flexDirection: 'row',
       alignItems: 'center',

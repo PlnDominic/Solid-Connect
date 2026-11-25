@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -46,13 +47,16 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   const { threadId, peerId } = route.params;
   const profile = useSessionStore((s) => s.profile);
   const { data: peer } = useProvider(peerId);
-  const { data: messages = [], isLoading: messagesLoading } = useMessages(threadId);
+  const { data: messages = [], isLoading: messagesLoading, isError: messagesError, refetch: refetchMessages } = useMessages(threadId);
   const sendMessage = useSendMessage();
   const markRead = useMarkThreadRead();
   const { data: hasActiveJob = false } = useHasActiveJobWith(profile?.id, peerId, profile?.role);
   const { data: peerPhone } = useContactPhone(peerId, hasActiveJob);
   const { peerTyping, notifyTyping } = useTypingIndicator(threadId, profile?.id);
   const [text, setText] = useState('');
+  const [failedMessages, setFailedMessages] = useState<{ id: number; text: string; blocked: boolean }[]>([]);
+  const nextFailedId = useRef(0);
+  const sendingText = useRef(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [reporting, setReporting] = useState(false);
   const { data: blocks = [] } = useMyBlocks(profile?.id);
@@ -70,24 +74,38 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threadId, profile?.id, messages.length]);
 
-  async function handleSend() {
-    if (!text.trim() || !profile) return;
-    const value = text.trim();
-    setText('');
+  async function sendText(value: string, id?: number) {
+    if (!profile || sendMessage.isPending || sendingText.current) return;
+    sendingText.current = true;
     try {
       await sendMessage.mutateAsync({ threadId, senderId: profile.id, senderRole: profile.role, text: value });
+      if (id !== undefined) setFailedMessages((messages) => messages.filter((message) => message.id !== id));
       haptics.light();
       requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
     } catch (err) {
-      // Keep what they typed so they can take the number out and resend.
-      setText(value);
+      const blocked = err instanceof ContactDetailsBlockedError;
+      if (id === undefined) {
+        const failedId = nextFailedId.current++;
+        setFailedMessages((messages) => [...messages, { id: failedId, text: value, blocked }]);
+      } else if (blocked) {
+        setFailedMessages((messages) => messages.map((message) => message.id === id ? { ...message, blocked } : message));
+      }
       if (err instanceof ContactDetailsBlockedError) {
         haptics.warning();
         Alert.alert(CONTACT_DETAILS_TITLE[err.kind], err.message);
         return;
       }
       Alert.alert('Message not sent', friendlySafetyError(err));
+    } finally {
+      sendingText.current = false;
     }
+  }
+
+  function handleSend() {
+    if (!text.trim() || !profile || sendMessage.isPending || sendingText.current) return;
+    const value = text.trim();
+    setText('');
+    void sendText(value);
   }
 
   function openMenu() {
@@ -227,6 +245,16 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <ActivityIndicator color={colors.ink} />
               </View>
+            ) : messagesError ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => void refetchMessages()}
+                style={{ alignSelf: 'center', padding: spacing.md }}
+              >
+                <Text style={{ color: colors.ink, fontFamily: fonts.medium }}>
+                  Could not load messages. Tap to retry.
+                </Text>
+              </Pressable>
             ) : (
               <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ color: colors.inkFaint, fontFamily: fonts.medium, fontSize: fontSizes.sm }}>
@@ -274,6 +302,38 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             );
           }}
         />
+        {!iBlockedThem && failedMessages.length > 0 ? (
+          <ScrollView style={{ maxHeight: 160, flexGrow: 0 }} keyboardShouldPersistTaps="handled">
+            {failedMessages.map((message) => (
+              <View key={message.id} style={{ padding: spacing.sm, gap: spacing.xs }}>
+                <Text style={{ color: colors.danger, fontFamily: fonts.semibold }}>Not sent</Text>
+                <Text style={{ color: colors.ink }} numberOfLines={2}>{message.text}</Text>
+                <View style={{ flexDirection: 'row', gap: spacing.lg }}>
+                  {!message.blocked ? (
+                    <Pressable onPress={() => void sendText(message.text, message.id)} disabled={sendMessage.isPending} accessibilityRole="button">
+                      <Text style={{ color: colors.ink }}>Retry</Text>
+                    </Pressable>
+                  ) : null}
+                  <Pressable
+                    onPress={() => {
+                      setText((draft) => draft ? `${draft}\n${message.text}` : message.text);
+                      setFailedMessages((messages) => messages.filter((item) => item.id !== message.id));
+                    }}
+                    accessibilityRole="button"
+                  >
+                    <Text style={{ color: colors.ink }}>Edit in composer</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setFailedMessages((messages) => messages.filter((item) => item.id !== message.id))}
+                    accessibilityRole="button"
+                  >
+                    <Text style={{ color: colors.inkMuted }}>Dismiss</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
         {iBlockedThem ? (
           <View style={styles.inputRow}>
             <Text style={[styles.typingLabel, { flex: 1, color: colors.inkMuted }]}>You blocked this person.</Text>
@@ -312,6 +372,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             <Pressable
               style={styles.sendBtn}
               onPress={handleSend}
+              disabled={sendMessage.isPending}
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel="Send message"

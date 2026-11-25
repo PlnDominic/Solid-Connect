@@ -43,14 +43,14 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
     navigation.navigate('ActivityTab', { screen: 'ActivityHome' });
   }
 
-  const title = isDirect ? 'Request sent' : matchedCount > 0 ? 'Providers notified' : 'Finding providers';
+  const title = isDirect ? 'Request sent' : matchedCount > 0 ? 'Request shared' : 'Request posted';
   const subtitle = isDirect
     ? providerLabel
       ? `Sent only to ${providerLabel}. They can accept and start at your budget, or decline with a reason.`
       : 'Sent to your selected provider. They can accept or decline.'
     : matchedCount > 0
       ? `${matchedCount} provider${matchedCount === 1 ? '' : 's'} nearby can now see your request and send quotes.`
-      : 'Providers nearby are reviewing your request. Most reply within 30 minutes.';
+      : 'Check Activity for quotes as they arrive.';
 
   const nextSteps = isDirect
     ? [
@@ -59,14 +59,14 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
         'Once accepted, chat and track the job from Activity.',
       ]
     : [
-        'Providers nearby review your request.',
+        'Matched providers can review your request.',
         'Quotes show up in Activity as they arrive.',
         'Compare quotes and hire the one you like.',
       ];
 
   return (
     <Screen bg={colors.paperDim}>
-      <ScreenHeader title={isDirect ? 'Request sent' : 'Finding providers'} onBack={goHome} />
+      <ScreenHeader title={title} onBack={goHome} />
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
@@ -92,7 +92,7 @@ export function MatchingScreen({ navigation, route }: { navigation: any; route: 
           {!isDirect && isApiConfigured() ? (
             <Row
               label="Status"
-              value={matchedCount > 0 ? `${matchedCount} notified` : 'Matching…'}
+              value={matchedCount > 0 ? `${matchedCount} matched` : 'No matches yet'}
               accent
               styles={styles}
             />
@@ -202,7 +202,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     rowLabel: { fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkMuted },
     rowValue: { flexShrink: 1, fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
     rowValueMono: { fontFamily: fonts.mono },
-    rowValueAccent: { color: colors.active },
+    rowValueAccent: { color: colors.activeText },
 
     step: {
       flexDirection: 'row',

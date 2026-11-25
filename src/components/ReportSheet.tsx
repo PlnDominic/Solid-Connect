@@ -145,7 +145,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
     radioOn: { borderColor: colors.active },
-    radioDot: { width: 12, height: 12, borderRadius: radii.pill, backgroundColor: colors.active },
+    radioDot: { width: 12, height: 12, borderRadius: radii.pill, backgroundColor: colors.activeFill },
 
     input: {
       minHeight: 88,
@@ -162,7 +162,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       textAlignVertical: 'top',
       ...shadow.card,
     },
-    inputFocused: { borderColor: colors.active },
+    inputFocused: { borderColor: colors.activeText },
     row: { flexDirection: 'row', gap: spacing.md },
     half: { flex: 1 },
   });

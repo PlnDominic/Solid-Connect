@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ChevronLeft, MapPin, MessageCircle, Phone, ShieldAlert, Siren } from 'lucide-react-native';
-import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ChevronLeft, LifeBuoy, MapPin, MessageCircle, Phone, Siren } from 'lucide-react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 import * as Linking from 'expo-linking';
 import { useFinishJob, useJob, useJobCheckIn, useStartJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
@@ -14,6 +14,8 @@ import { DirectPaymentNote } from '../../components/DirectPaymentNote';
 import { JobTrackingCard } from '../../components/JobTrackingCard';
 import { SafetySheet } from '../../components/SafetySheet';
 import { Screen } from '../../components/Screen';
+import { ScreenHeader } from '../../components/ScreenHeader';
+import { EmptyState } from '../../components/EmptyState';
 import { useReportJobLocation } from '../../hooks/useReportJobLocation';
 import { JOB_STATUS_META, jobStatusHint, jobStatusLabel, jobStatusToneColors, jobStatusToneIcon } from '../../lib/jobStatus';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -26,7 +28,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   const styles = makeStyles(colors);
   const jobId: string = route.params.jobId;
   const profile = useSessionStore((s) => s.profile);
-  const { data: job } = useJob(jobId);
+  const { data: job, isLoading, isError, refetch } = useJob(jobId);
   const { data: customer } = useProvider(job?.customer_id);
   // Only returned while this job is active (contact_phone, 0073).
   const { data: customerPhone } = useContactPhone(job?.customer_id);
@@ -37,7 +39,19 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
   useReportJobLocation(job);
   const [showSafety, setShowSafety] = useState(false);
 
-  if (!job) return <Screen edges={['top']} />;
+  if (!job) {
+    return (
+      <Screen>
+        <ScreenHeader title="Job details" onBack={() => navigation.goBack()} />
+        {isLoading ? <ActivityIndicator color={colors.ink} /> : (
+          <EmptyState
+            title={isError ? 'Could not load the job' : 'Job unavailable'}
+            action={{ label: 'Retry', onPress: () => void refetch() }}
+          />
+        )}
+      </Screen>
+    );
+  }
 
   async function handleMessage() {
     if (!profile || !job) return;
@@ -156,7 +170,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
     ...(job.status !== 'completed' && job.status !== 'cancelled'
       ? [{ key: 'safety', label: 'Safety', icon: Siren, onPress: () => setShowSafety(true), tone: 'danger' as const }]
       : []),
-    { key: 'dispute', label: 'Dispute', icon: ShieldAlert, onPress: () => navigation.navigate('Dispute', { jobId: job.id }), tone: 'danger' },
+    { key: 'help', label: 'Get help', icon: LifeBuoy, onPress: () => navigation.navigate('HelpSupport', { jobId: job.id }) },
   ];
 
   const statusTone = JOB_STATUS_META[job.status].tone;
@@ -174,14 +188,14 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <ChevronLeft size={20} strokeWidth={2.4} color={colors.white} />
+            <ChevronLeft size={20} strokeWidth={2.4} color={colors.onActive} />
           </Pressable>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {job.title}
           </Text>
         </View>
         <View style={styles.peerRow}>
-          <Avatar initials={customer?.initials ?? ''} photoUrl={customer?.photo_url} size={44} dim fg={colors.white} />
+          <Avatar initials={customer?.initials ?? ''} photoUrl={customer?.photo_url} size={44} dim fg={colors.onActive} />
           <View style={{ gap: 2 }}>
             <Text style={styles.peerName}>{customer?.full_name}</Text>
             <Text style={styles.peerMeta}>{customer?.area}</Text>
@@ -251,7 +265,7 @@ export function JobDetailScreen({ navigation, route }: { navigation: any; route:
 function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
   return StyleSheet.create({
     header: {
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
       paddingBottom: spacing.xl,
@@ -268,10 +282,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.14)',
     },
-    headerTitle: { flex: 1, color: colors.white, fontSize: fontSizes.lg, fontFamily: fonts.bold, letterSpacing: -0.3 },
+    headerTitle: { flex: 1, color: colors.onActive, fontSize: fontSizes.lg, fontFamily: fonts.bold, letterSpacing: -0.3 },
     peerRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-    peerName: { color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.bold },
-    peerMeta: { color: colors.white, opacity: 0.7, fontSize: fontSizes.xs, fontFamily: fonts.medium },
+    peerName: { color: colors.onActive, fontSize: fontSizes.sm, fontFamily: fonts.bold },
+    peerMeta: { color: colors.onActive, fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     body: { flex: 1 },
     bodyContent: { padding: spacing.lg, gap: spacing.md },

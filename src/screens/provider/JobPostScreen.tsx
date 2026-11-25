@@ -241,7 +241,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     sentCard: { borderRadius: radii.xxl, backgroundColor: colors.card, padding: spacing.lg, gap: spacing.sm, ...shadow.card },
     sentHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     sentTitle: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.extrabold, color: colors.confirm },
-    shortlisted: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: colors.active },
+    shortlisted: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: colors.activeText },
     declined: { fontSize: fontSizes.xs, fontFamily: fonts.bold, color: colors.inkFaint },
     sentMessage: { fontSize: fontSizes.sm, lineHeight: 20, fontFamily: fonts.regular, color: colors.ink },
     sentPrice: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
@@ -271,7 +271,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       color: colors.ink,
       textAlignVertical: 'top',
     },
-    inputFocused: { borderColor: colors.active, borderWidth: 1.5 },
+    inputFocused: { borderColor: colors.activeText, borderWidth: 1.5 },
     counter: { alignSelf: 'flex-end', fontSize: fontSizes.xs, fontFamily: fonts.medium, color: colors.inkFaint },
     priceField: {
       height: 52,

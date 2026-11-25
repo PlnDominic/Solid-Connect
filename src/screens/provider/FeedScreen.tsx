@@ -87,9 +87,9 @@ function availabilityBanner(
       if (weeklyDays === 0) {
         return { title: 'Add your working hours', detail: 'You are on schedule mode with no hours, so customers cannot book you.', accent: colors.pending, icon: CalendarClock, live: false };
       }
-      return { title: 'On your schedule', detail: 'Available during the hours you set.', accent: colors.active, icon: CalendarClock, live: false };
+      return { title: 'On your schedule', detail: 'Available during the hours you set.', accent: colors.activeFill, icon: CalendarClock, live: false };
     default:
-      return { title: 'Set your availability', detail: 'Tell customers when you can work.', accent: colors.active, icon: SlidersHorizontal, live: false };
+      return { title: 'Set your availability', detail: 'Tell customers when you can work.', accent: colors.activeFill, icon: SlidersHorizontal, live: false };
   }
 }
 
@@ -291,12 +291,12 @@ export function FeedScreen({ navigation }: { navigation: any }) {
           </View>
 
           <View style={styles.heroSearch}>
-            <Search color={colors.white} size={18} strokeWidth={2} />
+            <Search color={colors.onActive} size={18} strokeWidth={2} />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder={feedView === 'board' ? 'Search the job board' : 'Search nearby requests'}
-              placeholderTextColor={'rgba(255,255,255,0.72)'}
+              placeholderTextColor={colors.onActive}
               returnKeyType="search"
               style={styles.heroSearchInput}
             />
@@ -523,7 +523,7 @@ export function FeedScreen({ navigation }: { navigation: any }) {
                       accessibilityRole="button"
                       accessibilityLabel="Send a quick quote"
                     >
-                      <Send size={12} strokeWidth={2.4} color={colors.white} />
+                      <Send size={12} strokeWidth={2.4} color={colors.onActive} />
                       <Text style={styles.quoteBtnLabel}>Quote</Text>
                     </Pressable>
                   ) : null}
@@ -629,7 +629,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
     // orange surface, same "greeting + search + one action + activity"
     // rhythm, just filled with a provider's own content.
     heroCard: {
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
       borderRadius: radii.xxxl,
       padding: spacing.lg,
       gap: spacing.lg,
@@ -649,8 +649,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderColor: 'rgba(255,255,255,0.35)',
     },
     heroGreetText: { flex: 1, gap: 3 },
-    heroGreeting: { color: colors.white, fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
-    heroLocation: { color: 'rgba(255,255,255,0.82)', fontSize: fontSizes.xs, fontFamily: fonts.medium },
+    heroGreeting: { color: colors.onActive, fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
+    heroLocation: { color: colors.onActive, fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     heroSearch: {
       height: 48,
@@ -663,7 +663,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderWidth: 1,
       borderColor: 'rgba(255,255,255,0.34)',
     },
-    heroSearchInput: { flex: 1, color: colors.white, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
+    heroSearchInput: { flex: 1, color: colors.onActive, fontSize: fontSizes.sm, fontFamily: fonts.medium, padding: 0 },
 
     boardTag: {
       flexDirection: 'row',
@@ -747,9 +747,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       paddingVertical: 6,
       paddingHorizontal: spacing.md,
       borderRadius: radii.pill,
-      backgroundColor: colors.active,
+      backgroundColor: colors.activeFill,
     },
-    quoteBtnLabel: { color: colors.white, fontSize: fontSizes.xs, fontFamily: fonts.bold },
+    quoteBtnLabel: { color: colors.onActive, fontSize: fontSizes.xs, fontFamily: fonts.bold },
 
     sheetTitle: { fontSize: fontSizes.lg, fontFamily: fonts.extrabold, color: colors.ink },
     sheetSubtitle: { fontSize: fontSizes.sm, fontFamily: fonts.regular, color: colors.inkMuted, marginTop: 2, marginBottom: spacing.sm },

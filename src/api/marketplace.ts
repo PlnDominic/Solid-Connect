@@ -45,11 +45,12 @@ export function useTopProviders() {
 export function useAllProviders(
   categoryName?: string | null,
   areaNeedle?: string | null,
-  options?: { limit?: number },
+  options?: { limit?: number; enabled?: boolean },
 ) {
   const limit = options?.limit;
   return useQuery({
     queryKey: ['providers', 'all', categoryName ?? null, areaNeedle ?? null, isApiConfigured(), limit ?? null],
+    enabled: options?.enabled ?? true,
     queryFn: async (): Promise<Profile[]> => {
       const areaName = areaNeedle?.trim() ? matchAreaName(areaNeedle) : null;
       const coords = areaName ? coordsForArea(areaName) : null;
@@ -67,6 +68,7 @@ export function useAllProviders(
         .from('profiles')
         .select(PROFILE_COLUMNS)
         .eq('role', 'provider')
+        .is('suspended_at', null)
         .order('provider_rating', { ascending: false })
         .limit(limit ?? 1000);
 
@@ -125,11 +127,15 @@ export function useProvidersByIds(providerIds: string[]) {
   });
 }
 
-export function useProvider(providerId: string | null | undefined) {
+export function useProvider(providerId: string | null | undefined, options?: { directoryOnly?: boolean }) {
   return useQuery({
-    queryKey: ['provider', providerId],
+    queryKey: options?.directoryOnly ? ['provider', providerId, 'directory'] : ['provider', providerId],
     queryFn: async (): Promise<Profile | null> => {
-      const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', providerId as string).maybeSingle();
+      let query = supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', providerId as string);
+      if (options?.directoryOnly) {
+        query = query.eq('role', 'provider').is('suspended_at', null);
+      }
+      const { data, error } = await query.maybeSingle();
       if (error) throw error;
       return data ? asProfile(data) : null;
     },

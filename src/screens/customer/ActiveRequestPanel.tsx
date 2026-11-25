@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { ratingLabel } from '../../lib/rating';
-import { Check, Clock, MapPin, Search, ShieldCheck, Star, X } from 'lucide-react-native';
+import { Check, Clock, Search, ShieldCheck, Star, X } from 'lucide-react-native';
 import { Alert, Pressable, Text, TextInput, View, StyleSheet } from 'react-native';
 import { friendlyQuoteError, useCounterQuote, useDeclineQuote } from '../../api/quotes';
-import { useCancelRequest, useMyActiveRequest, useNotifications } from '../../api/requests';
+import { useCancelRequest, type RequestWithQuotes } from '../../api/requests';
 import { BottomSheet } from '../../components/BottomSheet';
 import { validateCounter } from '../../lib/quoteLogic';
+import { parseWholeCedis } from '../../lib/cedis';
 import { useAcceptQuote } from '../../api/jobs';
 import { getOrCreateThread } from '../../api/chat';
 import { useProvider } from '../../api/marketplace';
@@ -17,7 +18,8 @@ import { haptics } from '../../lib/haptics';
 import { useSessionStore } from '../../store/useSessionStore';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
-import type { Quote, ServiceRequest } from '../../types/database';
+import type { AppNotification, Quote, ServiceRequest } from '../../types/database';
+import { confirmQuoteAcceptance } from './confirmQuoteAcceptance';
 
 // The customer-side equivalent of the provider Work tab's own local
 // StatusBadge - same Badge component, same bg/fg palette per outcome, so
@@ -61,7 +63,7 @@ function QuoteCard({
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const { data: provider } = useProvider(quote.provider_id);
+  const { data: provider, isLoading: providerLoading, refetch: refetchProvider } = useProvider(quote.provider_id);
   const acceptQuote = useAcceptQuote();
   const counterQuote = useCounterQuote();
   const declineQuote = useDeclineQuote();
@@ -72,7 +74,15 @@ function QuoteCard({
   const [declineReason, setDeclineReason] = useState('');
   const [sheetError, setSheetError] = useState<string | null>(null);
 
-  if (!provider) return null;
+  if (!provider) {
+    return (
+      <View style={styles.quoteCard}>
+        <Text style={styles.quotePrice}>GHS {quote.price.toLocaleString()}</Text>
+        <Text style={styles.quoteMeta}>{providerLoading ? 'Loading provider…' : 'Could not load provider details.'}</Text>
+        {!providerLoading ? <Button title="Retry" variant="outline" onPress={() => void refetchProvider()} /> : null}
+      </View>
+    );
+  }
 
   const items = quote.items ?? [];
   const counterPending = quote.counter_price != null;
@@ -84,7 +94,11 @@ function QuoteCard({
   }
 
   async function submitCounter() {
-    const amount = parseInt(counterText.replace(/[^\d]/g, ''), 10);
+    const amount = parseWholeCedis(counterText);
+    if (amount == null) {
+      setSheetError('Enter a whole amount in Ghana cedis, without decimals.');
+      return;
+    }
     const problem = validateCounter(quote.price, amount);
     if (problem) {
       setSheetError(problem);
@@ -111,11 +125,13 @@ function QuoteCard({
     }
   }
 
-  async function handleAccept() {
-    if (!profile) return;
-    const job = await acceptQuote.mutateAsync({ requestId: request.id, quoteId: quote.id, customerId: profile.id });
-    haptics.success();
-    onAccepted(job.id);
+  function handleAccept() {
+    if (!profile || !provider || acceptQuote.isPending) return;
+    confirmQuoteAcceptance(provider.full_name, quote.price, async () => {
+      const job = await acceptQuote.mutateAsync({ quoteId: quote.id, price: quote.price, revision: quote.revision ?? 1 });
+      haptics.success();
+      onAccepted(job.id);
+    });
   }
 
   async function handleChat() {
@@ -139,7 +155,7 @@ function QuoteCard({
               <Text style={styles.quoteName}>{provider.full_name}</Text>
               {quote.badge_kind === 'certified' ? (
                 <View style={[styles.badge, styles.badgeCertified]}>
-                  <ShieldCheck size={10} strokeWidth={2.8} color={colors.white} />
+                  <ShieldCheck size={10} strokeWidth={2.8} color={colors.onActive} />
                   <Text style={styles.badgeTextOnDark}>CERTIFIED</Text>
                 </View>
               ) : quote.badge_kind === 'verified' ? (
@@ -150,11 +166,9 @@ function QuoteCard({
               ) : null}
             </View>
             <View style={styles.quoteMetaRow}>
-              <Star color={colors.active} fill={colors.active} size={11} strokeWidth={2} />
+              <Star color={colors.activeText} fill={colors.active} size={11} strokeWidth={2} />
               <Text style={styles.quoteMeta}>{ratingLabel(provider)}</Text>
-              <Text style={styles.quoteMetaDim}>· {provider.provider_jobs_count} jobs ·</Text>
-              <MapPin color={colors.inkFaint} size={11} strokeWidth={2} />
-              <Text style={styles.quoteMeta}>{provider.provider_distance_km} km</Text>
+              <Text style={styles.quoteMetaDim}>· {provider.provider_jobs_count} jobs</Text>
             </View>
           </View>
         </View>
@@ -253,44 +267,22 @@ function QuoteCard({
   );
 }
 
-/** Whether ActiveRequestPanel has anything to show: a live request, or a
- * provider's unread "declined your direct request" notice. */
-export function activeRequestHasContent(
-  request: { status: string; quotes: unknown[] } | null,
-  notifications: Array<{ type: string; read_at: string | null }>,
-): boolean {
-  if (notifications.some((n) => n.type === 'DIRECT_REJECTED' && !n.read_at)) return true;
-  if (!request) return false;
-  return (
-    request.status === 'rejected' ||
-    request.status === 'awaiting_provider' ||
-    request.status === 'matching' ||
-    request.status === 'open' ||
-    request.quotes.length > 0
-  );
-}
-
-/**
- * The customer's one live request (summary, status, edit/cancel) and the
- * quotes on it. Rendered inside the Activity tab's "Active" section rather
- * than as its own screen; renders nothing once there's no live request.
- * Quote selection for Compare is owned by the caller, which also shows the
- * Compare bar.
- */
 export function ActiveRequestPanel({
   navigation,
+  request,
+  unreadRejects = [],
   compareIds,
   onToggleCompare,
 }: {
   navigation: any;
+  request: RequestWithQuotes | null;
+  unreadRejects?: AppNotification[];
   compareIds: string[];
-  onToggleCompare: (id: string) => void;
+  onToggleCompare?: (id: string) => void;
 }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: request } = useMyActiveRequest(profile?.id ?? null);
-  const { data: notifications = [] } = useNotifications(profile?.id ?? null);
   const cancelRequest = useCancelRequest();
 
   // Quotes show whenever there are any. Not gated on status === 'quoted':
@@ -314,7 +306,6 @@ export function ActiveRequestPanel({
   const isAwaiting = request?.status === 'awaiting_provider';
   const isRejected = request?.status === 'rejected';
   const isMatching = request?.status === 'matching' || request?.status === 'open';
-  const unreadReject = notifications.filter((n) => n.type === 'DIRECT_REJECTED' && !n.read_at);
   const budget = request?.customer_budget ?? request?.budget_min;
   // Editable up through 'matching' (a provider may have already priced
   // the job once it's quoted or awaiting a direct response); cancellable
@@ -334,19 +325,21 @@ export function ActiveRequestPanel({
         {
           text: 'Cancel request',
           style: 'destructive',
-          onPress: () => cancelRequest.mutate({ requestId: request.id, customerId: profile.id }),
+          onPress: () => cancelRequest.mutate(
+            { requestId: request.id, customerId: profile.id },
+            { onError: () => Alert.alert('Could not cancel request', 'The request may still be active.', [
+              { text: 'Close', style: 'cancel' },
+              { text: 'Retry', onPress: handleCancel },
+            ]) },
+          ),
         },
       ],
     );
   }
 
-  const showFeed = activeRequestHasContent(request ?? null, notifications);
-
-  if (!showFeed) return null;
-
   return (
     <View style={styles.body}>
-      {unreadReject.slice(0, 3).map((n) => (
+      {unreadRejects.slice(0, 3).map((n) => (
         <View key={n.id} style={styles.rejectBanner}>
           <Text style={styles.rejectTitle}>{n.title}</Text>
           <Text style={styles.rejectBody}>{n.body}</Text>
@@ -363,6 +356,7 @@ export function ActiveRequestPanel({
               <Text style={styles.summaryMeta}>
                 {request.location_label} · {formatRelativeTime(request.created_at)}
               </Text>
+              <Text style={styles.summaryMeta} numberOfLines={2}>{request.description}</Text>
             </View>
             {budget != null ? <Text style={styles.summaryBudget}>GHS {budget.toLocaleString()}</Text> : null}
           </View>
@@ -416,7 +410,7 @@ export function ActiveRequestPanel({
                 navigation.navigate('ChatTab', { screen: 'ChatThread', params: { threadId, peerId } })
               }
               compareSelected={compareIds.includes(q.id)}
-              onToggleCompare={() => onToggleCompare(q.id)}
+              onToggleCompare={() => onToggleCompare?.(q.id)}
             />
           ))
         : null}
@@ -473,9 +467,9 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       paddingHorizontal: 6,
     },
     badgeVerified: { backgroundColor: colors.confirmBg },
-    badgeCertified: { backgroundColor: colors.activeDeep },
+    badgeCertified: { backgroundColor: colors.activeFill },
     badgeTextVerified: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.confirm, letterSpacing: 0.3 },
-    badgeTextOnDark: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.white, letterSpacing: 0.3 },
+    badgeTextOnDark: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.onActive, letterSpacing: 0.3 },
 
     quoteMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     quoteMeta: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted, fontVariant: ['tabular-nums'] },

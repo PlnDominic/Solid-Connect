@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { budgetAllowed, budgetStatus } from '../../lib/budget';
+import { parseWholeCedis } from '../../lib/cedis';
 import { ImagePlus, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { randomUUID } from 'expo-crypto';
 import { Alert, Image, Pressable, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
-import { completeJobPostHire } from '../../api/jobPosts';
 import { useCreateRequest } from '../../api/requests';
-import { useAllProviders, useCategories } from '../../api/marketplace';
+import { useCategories } from '../../api/marketplace';
 import { isValidArea } from '../../components/AreaPicker';
 import { Button } from '../../components/Button';
 import { CategoryGridTile } from '../../components/CategoryTile';
+import { EmptyState } from '../../components/EmptyState';
 import { LocationField } from '../../components/LocationField';
 import { Screen } from '../../components/Screen';
 import { SlotPicker } from '../../components/SlotPicker';
@@ -39,8 +40,7 @@ function matchCategory(
   opts: { id?: string; name?: string },
 ): Category | null {
   if (opts.id) {
-    const byId = categories.find((c) => c.id === opts.id);
-    if (byId) return byId;
+    return categories.find((c) => c.id === opts.id) ?? null;
   }
   const needle = opts.name?.trim().toLowerCase();
   if (!needle) return null;
@@ -59,14 +59,10 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const { data: categories = [] } = useCategories();
-  const { data: allProviders = [] } = useAllProviders(null, profile?.area ?? null);
-  const verifiedCount = allProviders.filter((p) => p.provider_verified).length;
+  const { data: categories = [], isLoading: categoriesLoading, isError: categoriesError, refetch: refetchCategories } = useCategories();
   const createRequest = useCreateRequest();
-  const queryClient = useQueryClient();
 
   const params = route?.params ?? {};
-  const tradeLocked = Boolean(params.initialCategoryId || params.initialCategoryName);
   const preferredProviderId: string | undefined = params.preferredProviderId;
   const preferredProviderName: string | undefined = params.preferredProviderName;
   // Set when this direct request comes from hiring an interested provider
@@ -75,18 +71,19 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const jobPostInterestId: string | undefined = params.jobPostInterestId;
   const isDirect = Boolean(preferredProviderId);
 
-  const steps: StepKey[] =
-    tradeLocked || isDirect ? ['problem', 'budget', 'where'] : ['service', 'problem', 'budget', 'where'];
+  const steps: StepKey[] = ['service', 'problem', 'budget', 'where'];
   const [stepIndex, setStepIndex] = useState(0);
+  const [attemptId] = useState(randomUUID);
   const step = steps[stepIndex];
   const isLast = stepIndex === steps.length - 1;
 
   const [category, setCategory] = useState<Category | null>(null);
   const [description, setDescription] = useState(params.initialDescription ?? '');
-  const [budgetText, setBudgetText] = useState('');
+  const [budgetText, setBudgetText] = useState(() => params.initialBudget != null ? String(params.initialBudget) : '');
   const [location, setLocation] = useState(() => {
+    if (typeof params.initialLocation === 'string') return params.initialLocation.replace(/,\s*Accra$/i, '');
     const fromProfile = profile?.area?.split(',')[0]?.trim();
-    return fromProfile && isValidArea(fromProfile) ? fromProfile : 'Achimota';
+    return fromProfile && isValidArea(fromProfile) ? fromProfile : '';
   });
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [preferredTime, setPreferredTime] = useState<string | null>(null);
@@ -95,8 +92,8 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   const [budgetFocused, setBudgetFocused] = useState(false);
 
   const band = bandFor(category);
-  const budget = parseInt(budgetText.replace(/[^\d]/g, ''), 10);
-  const budgetState = budgetStatus(budget, band, budgetText.length > 0);
+  const budget = parseWholeCedis(budgetText);
+  const budgetState = budgetStatus(budget ?? NaN, jobPostId ? { ...band, min: 1 } : band, budgetText.trim().length > 0);
   const budgetValid = budgetAllowed(budgetState);
   // Dynamic validation per entering-data.md: surface the problem the
   // moment it's true, rather than only after Continue is tapped.
@@ -113,18 +110,14 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
       id: params.initialCategoryId,
       name: params.initialCategoryName,
     });
-    if (matched) setCategory(matched);
+    if (matched) {
+      setCategory(matched);
+      setStepIndex(1);
+    }
   }, [categories, category, params.initialCategoryId, params.initialCategoryName]);
-
-  useEffect(() => {
-    if (!category) return;
-    const { mid } = bandFor(category);
-    setBudgetText((prev) => (prev ? prev : String(mid)));
-  }, [category?.id]);
 
   function selectCategory(c: Category) {
     setCategory(c);
-    setBudgetText(String(bandFor(c).mid));
   }
 
   function goTo(index: number) {
@@ -159,12 +152,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
   }
 
   async function handlePost() {
-    if (!profile || !category) return;
+    if (!profile || !category || createRequest.isPending) return;
     if (!isValidArea(location)) {
       setError('Enter a valid location for this request.');
       return;
     }
-    if (!budgetValid || !descriptionValid) {
+    if (budget == null || !budgetValid || !descriptionValid) {
       setError('Go back and check your description and budget.');
       return;
     }
@@ -174,21 +167,16 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         customerId: profile.id,
         categoryId: category.id,
         categoryLabel: category.default_label,
-        description: description.trim(),
+        description: params.initialTimingLabel
+          ? `${description.trim()}\n\nOriginal post timing: ${params.initialTimingLabel}`
+          : description.trim(),
         budget,
         locationLabel: location.includes('Accra') ? location : `${location}, Accra`,
         photoUris,
         preferredProviderId,
         preferredTime: preferredTime ? new Date(preferredTime) : undefined,
+        jobPostHire: jobPostId && jobPostInterestId ? { postId: jobPostId, interestId: jobPostInterestId, attemptId } : undefined,
       });
-      if (jobPostId && jobPostInterestId && preferredProviderId) {
-        try {
-          await completeJobPostHire({ postId: jobPostId, interestId: jobPostInterestId, providerId: preferredProviderId, requestId: request.id });
-          queryClient.invalidateQueries({ queryKey: ['jobPosts'] });
-        } catch {
-          // The request itself went through; the post can be closed by hand.
-        }
-      }
       navigation.replace('Matching', {
         requestId: request.id,
         matchedCount: (request as { matchedCount?: number }).matchedCount ?? 0,
@@ -197,7 +185,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
         direct: Boolean(preferredProviderId),
       });
     } catch (e: any) {
-      setError(e?.message ?? 'Could not post that request. Please try again.');
+      const message = typeof e?.message === 'string' ? e.message : '';
+      setError(message.includes('POST_HIRE_UNAVAILABLE')
+        ? 'This post or provider is no longer available. Go back to see your current options.'
+        : message.includes('SLOT_EXPIRED')
+        ? 'That appointment time has passed. Choose another time or send without a time.'
+        : 'Could not send the request. Your details are still here. Please try again.');
     }
   }
 
@@ -247,6 +240,11 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
               subtitle="Pick the service that fits your job best."
               styles={styles}
             />
+            {categoriesError && categories.length === 0 ? (
+              <EmptyState title="Could not load services" action={{ label: 'Retry', onPress: () => void refetchCategories() }} />
+            ) : categoriesLoading ? <Text style={styles.hint}>Loading services…</Text> : categories.length === 0 ? (
+              <EmptyState title="No services are available right now" />
+            ) : null}
             <View style={styles.categoryGrid}>
               {categories.map((c) => (
                 <CategoryGridTile
@@ -280,6 +278,7 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
                 placeholder={placeholderDescription}
                 placeholderTextColor={colors.inkFainter}
                 multiline
+                maxLength={1000}
                 style={[styles.textarea, descriptionFocused && styles.inputFocused]}
                 accessibilityLabel="Describe the work"
               />
@@ -334,7 +333,9 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           <>
             <Question
               title="What's your budget?"
-              subtitle={`Most ${tradeName ? tradeName + ' ' : ''}jobs cost between GHS ${band.min} and GHS ${band.max}. A bigger job is fine too.`}
+              subtitle={params.initialBudget != null
+                ? 'This is the provider’s proposed price. Review it before sending.'
+                : `Suggested budget: GHS ${band.min} to GHS ${band.max}.`}
               styles={styles}
             />
             <View style={styles.section}>
@@ -360,12 +361,12 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
               </View>
               <Text style={[styles.hint, budgetOutOfRange && styles.hintError]}>
                 {budgetState === 'below'
-                  ? `Providers rarely take ${tradeName ? tradeName + ' ' : ''}jobs under GHS ${band.min}. Enter GHS ${band.min} or more.`
+                  ? `The minimum request budget for this service is GHS ${band.min}.`
                   : budgetState === 'invalid'
                     ? 'Enter a whole amount in Ghana cedis.'
                     : budgetAboveUsual
-                      ? `That is above the usual GHS ${band.min} to ${band.max}, which is fine for a bigger job. Providers will quote what it needs.`
-                      : 'Providers can quote above or below this. You choose who to hire.'}
+                      ? 'This is above the suggested budget. Check the amount before continuing.'
+                      : isDirect ? 'The provider can accept or decline this amount.' : 'Providers can quote above or below this amount.'}
               </Text>
             </View>
           </>
@@ -398,8 +399,13 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
               {preferredProviderName ? (
                 <SummaryRow label="Provider" value={preferredProviderName} styles={styles} />
               ) : null}
-              {!isDirect ? <SummaryRow label="When" value="Today" styles={styles} /> : null}
               <SummaryRow label="Budget" value={`GHS ${budget || '-'}`} mono styles={styles} />
+              {params.initialTimingLabel ? (
+                <SummaryRow label="Posted timing" value={params.initialTimingLabel} styles={styles} />
+              ) : null}
+              {preferredTime ? (
+                <SummaryRow label="Requested appointment" value={new Date(preferredTime).toLocaleString()} styles={styles} />
+              ) : null}
               <SummaryRow
                 label="Photos"
                 value={photoUris.length ? `${photoUris.length} attached` : 'None'}
@@ -423,9 +429,6 @@ export function NewRequestScreen({ navigation, route }: { navigation: any; route
           loading={isLast && createRequest.isPending}
           onPress={handleContinue}
         />
-        {isLast && !isDirect && verifiedCount > 0 ? (
-          <Text style={styles.footerNote}>{verifiedCount} verified providers ready to help</Text>
-        ) : null}
       </View>
     </Screen>
   );
@@ -506,7 +509,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       color: colors.ink,
       textAlignVertical: 'top',
     },
-    inputFocused: { borderColor: colors.active },
+    inputFocused: { borderColor: colors.activeText },
 
     photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs },
     photoWrap: { width: 88, height: 88 },
@@ -548,7 +551,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       backgroundColor: colors.card,
       ...shadow.card,
     },
-    budgetFieldFocused: { borderColor: colors.active },
+    budgetFieldFocused: { borderColor: colors.activeText },
     budgetFieldError: { borderColor: colors.danger },
     budgetCurrency: { fontSize: fontSizes.xxl, fontFamily: fonts.semibold, color: colors.inkFaint },
     budgetInput: { flex: 1, fontSize: fontSizes.display, fontFamily: fonts.mono, color: colors.ink, padding: 0 },
@@ -593,6 +596,5 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderTopColor: colors.hairline,
       gap: spacing.sm,
     },
-    footerNote: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.inkMuted, textAlign: 'center' },
   });
 }

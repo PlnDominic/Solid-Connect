@@ -9,7 +9,7 @@ export function StarRating({ value, size = 12, gap = 2 }: { value: number; size?
   return (
     <View style={[styles.row, { gap }]}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <Star key={n} size={size} strokeWidth={2} color={n <= Math.round(value) ? colors.active : colors.hairlineStrong} fill={n <= Math.round(value) ? colors.active : 'transparent'} />
+        <Star key={n} size={size} strokeWidth={2} color={n <= Math.round(value) ? colors.activeText : colors.hairlineStrong} fill={n <= Math.round(value) ? colors.active : 'transparent'} />
       ))}
     </View>
   );

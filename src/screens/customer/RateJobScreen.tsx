@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { friendlyActionError } from '../../api/quotes';
 import { Star } from 'lucide-react-native';
-import { Alert, Pressable, ScrollView, Text, View, TextInput, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View, TextInput, StyleSheet } from 'react-native';
 import { useJob } from '../../api/jobs';
 import { useProvider } from '../../api/marketplace';
 import { useSubmitReview } from '../../api/reviews';
 import { Avatar } from '../../components/Avatar';
 import { Button } from '../../components/Button';
+import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -20,14 +21,26 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
   const styles = makeStyles(colors);
   const jobId: string = route.params.jobId;
   const profile = useSessionStore((s) => s.profile);
-  const { data: job } = useJob(jobId);
+  const { data: job, isLoading, isError, refetch } = useJob(jobId);
   const { data: provider } = useProvider(job?.provider_id);
   const submitReview = useSubmitReview();
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
 
-  if (!job) return <Screen edges={['top']} />;
+  if (!job) {
+    return (
+      <Screen>
+        <ScreenHeader title="Rate job" onBack={() => navigation.goBack()} />
+        {isLoading ? <ActivityIndicator color={colors.ink} /> : (
+          <EmptyState
+            title={isError ? 'Could not load the job' : 'Job unavailable'}
+            action={{ label: 'Retry', onPress: () => void refetch() }}
+          />
+        )}
+      </Screen>
+    );
+  }
 
   async function handleSubmit() {
     if (!job || !profile || rating === 0) return;
@@ -56,11 +69,18 @@ export function RateJobScreen({ navigation, route }: { navigation: any; route: a
           <Text style={styles.question}>How was the work?</Text>
           <View style={styles.starsRow}>
             {[1, 2, 3, 4, 5].map((n) => (
-              <Pressable key={n} onPress={() => setRating(n)} hitSlop={6}>
+              <Pressable
+                key={n}
+                onPress={() => setRating(n)}
+                style={{ minWidth: 48, minHeight: 48, justifyContent: 'center', alignItems: 'center' }}
+                accessibilityRole="radio"
+                accessibilityLabel={`${n} out of 5 stars`}
+                accessibilityState={{ checked: n === rating }}
+              >
                 <Star
                   size={34}
                   strokeWidth={1.8}
-                  color={n <= rating ? colors.active : colors.hairlineStrong}
+                  color={n <= rating ? colors.activeText : colors.hairlineStrong}
                   fill={n <= rating ? colors.active : 'transparent'}
                 />
               </Pressable>

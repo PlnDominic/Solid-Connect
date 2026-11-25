@@ -24,29 +24,20 @@ const ACTIVE_REQUEST_STATUSES = [
   'rejected',
 ] as const;
 
-/** The customer's current open request (excludes accepted/completed jobs). */
-export function useMyActiveRequest(customerId: string | null) {
+export function useMyActiveRequests(customerId: string | null) {
   const query = useQuery({
     queryKey: ['myActiveRequest', customerId],
-    queryFn: async (): Promise<RequestWithQuotes | null> => {
-      const { data: request, error } = await supabase
+    queryFn: async (): Promise<RequestWithQuotes[]> => {
+      const { data, error } = await supabase
         .from('service_requests')
-        .select('*')
+        .select('*, quotes(*)')
         .eq('customer_id', customerId as string)
         .in('status', [...ACTIVE_REQUEST_STATUSES])
+        .eq('quotes.status', 'sent')
         .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .order('price', { referencedTable: 'quotes', ascending: true });
       if (error) throw error;
-      if (!request) return null;
-      const { data: quotes, error: qErr } = await supabase
-        .from('quotes')
-        .select('*')
-        .eq('request_id', request.id)
-        .eq('status', 'sent')
-        .order('price', { ascending: true });
-      if (qErr) throw qErr;
-      return { ...request, quotes: quotes ?? [] };
+      return data ?? [];
     },
     enabled: !!customerId,
   });
@@ -59,14 +50,11 @@ export function useMyActiveRequest(customerId: string | null) {
     queryKeys: [['myActiveRequest', customerId]],
     enabled: !!customerId,
   });
-  // New/changed quotes on the active request also need to show up live.
-  const activeRequestId = query.data?.id ?? null;
   useRealtimeInvalidate({
-    channel: `my_active_request_quotes:${activeRequestId}`,
+    channel: `my_active_request_quotes:${customerId}`,
     table: 'quotes',
-    filter: activeRequestId ? `request_id=eq.${activeRequestId}` : undefined,
     queryKeys: [['myActiveRequest', customerId]],
-    enabled: !!activeRequestId,
+    enabled: !!customerId && Boolean(query.data?.length),
   });
 
   return query;
@@ -99,10 +87,27 @@ export function useCreateRequest() {
       preferredProviderId?: string;
       /** The appointment the customer picked from the provider's open slots. */
       preferredTime?: Date;
+      jobPostHire?: { postId: string; interestId: string; attemptId: string };
     }) => {
       const photos: string[] = [];
       for (const uri of input.photoUris ?? []) {
         photos.push(await uploadRequestPhoto(input.customerId, uri));
+      }
+
+      if (input.jobPostHire) {
+        const { data, error } = await supabase.rpc('send_job_post_request', {
+          p_attempt_id: input.jobPostHire.attemptId,
+          p_post_id: input.jobPostHire.postId,
+          p_interest_id: input.jobPostHire.interestId,
+          p_category_id: input.categoryId,
+          p_description: input.description,
+          p_budget: input.budget,
+          p_location_label: input.locationLabel,
+          p_photos: photos,
+          p_preferred_time: input.preferredTime?.toISOString() ?? null,
+        });
+        if (error) throw error;
+        return { ...(data as ServiceRequest), matchedCount: 1 };
       }
 
       if (isApiConfigured()) {
@@ -170,6 +175,7 @@ export function useCreateRequest() {
     onSuccess: (request) => {
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest', request.customer_id] });
       queryClient.invalidateQueries({ queryKey: ['feedRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['jobPosts'] });
     },
   });
 }

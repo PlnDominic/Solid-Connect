@@ -118,12 +118,12 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     lead: { fontSize: fontSizes.md, lineHeight: 24, fontFamily: fonts.regular, color: colors.inkMuted },
     codeCard: {
       borderRadius: radii.xl,
-      backgroundColor: colors.activeDeep,
+      backgroundColor: colors.activeFill,
       padding: spacing.xl,
       gap: spacing.sm,
     },
-    codeLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: 'rgba(255,255,255,0.55)', letterSpacing: 0.8 },
-    codeValue: { fontSize: fontSizes.display, fontFamily: fonts.mono, color: colors.white, letterSpacing: 2 },
+    codeLabel: { fontSize: fontSizes.xs, fontFamily: fonts.extrabold, color: colors.onActive, letterSpacing: 0.8 },
+    codeValue: { fontSize: fontSizes.display, fontFamily: fonts.mono, color: colors.onActive, letterSpacing: 2 },
     shareBtn: {
       height: 52,
       borderRadius: radii.lg,

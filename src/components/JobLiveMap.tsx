@@ -3,7 +3,7 @@ import { Pressable, View, StyleSheet } from 'react-native';
 import { WebView, type WebViewHandle } from './webview';
 import { LocateFixed } from 'lucide-react-native';
 import { LEAFLET_CSS, LEAFLET_JS } from '../lib/leafletAssets.generated';
-import { radii } from '../theme';
+import { logoOrange, radii } from '../theme';
 
 type LatLng = { lat: number; lng: number };
 
@@ -29,12 +29,12 @@ const MAP_HTML = `<!DOCTYPE html>
   .other-marker { position: relative; width: 40px; height: 40px; }
   .other-marker .pulse {
     position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
-    border-radius: 50%; background: rgba(242,117,17,0.55);
+    border-radius: 50%; background: ${logoOrange}8C;
     animation: pulseRing 1.8s cubic-bezier(0.4,0,0.6,1) infinite;
   }
   .other-marker .dot {
     position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
-    border-radius: 50%; background: #F27511; border: 2px solid #fff;
+    border-radius: 50%; background: ${logoOrange}; border: 2px solid #fff;
   }
   @keyframes pulseRing {
     0% { transform: scale(1); opacity: 0.65; }
@@ -80,7 +80,7 @@ const MAP_HTML = `<!DOCTYPE html>
       points.push(mp);
     }
     if (points.length === 2) {
-      if (!line) line = L.polyline(points, { color: '#F27511', weight: 2, dashArray: '4,7' }).addTo(map);
+      if (!line) line = L.polyline(points, { color: '${logoOrange}', weight: 2, dashArray: '4,7' }).addTo(map);
       else line.setLatLngs(points);
     }
     if (!centered) {

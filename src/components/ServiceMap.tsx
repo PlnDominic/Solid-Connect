@@ -4,6 +4,7 @@ import type { WebViewMessageEvent } from 'react-native-webview';
 import { WebView, type WebViewHandle } from './webview';
 import { LEAFLET_CSS, LEAFLET_JS } from '../lib/leafletAssets.generated';
 import type { MapBounds } from '../lib/mapPins';
+import { colors, logoOrange } from '../theme';
 
 /** One marker on the map.
  * - provider: a preview card - round photo (or initials), name, and
@@ -64,12 +65,12 @@ const MAP_HTML = `<!DOCTYPE html>
          transform: translate(-50%, -100%); position: absolute; }
   .pin:after { content: ''; position: absolute; left: 50%; bottom: -5px; margin-left: -5px; border: 5px solid transparent;
                border-top-color: #fff; border-bottom: 0; }
-  .pin .star { color: #F27511; }
+  .pin .star { color: ${colors.active}; }
   .pin .tick { color: #0E6B45; font-size: 11px; }
-  .pin.now { box-shadow: 0 0 0 2px #F27511, 0 2px 8px rgba(0,0,0,.18); }
+  .pin.now { box-shadow: 0 0 0 2px ${logoOrange}, 0 2px 8px rgba(0,0,0,.18); }
   .pin.pro { gap: 8px; padding: 4px 12px 4px 4px; }
   .pro .av { position: relative; flex: none; width: 34px; height: 34px; border-radius: 50%; background: #FCE9DA;
-             color: #C85A08; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+             color: ${colors.activeText}; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
   .pro .av img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; display: block; }
   .pro .nowdot { position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px; border-radius: 50%;
                  background: #0E6B45; border: 2px solid #fff; }
@@ -77,23 +78,22 @@ const MAP_HTML = `<!DOCTYPE html>
   .pro .nm { font-size: 13px; font-weight: 700; max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
   .pro .sk { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: #5d6063; max-width: 150px; }
   .pro .sk .skill { overflow: hidden; text-overflow: ellipsis; }
-  .pin.sel .sk { color: rgba(255,255,255,.92); }
   .pin.sel .av { background: #fff; }
   .pin.req .sk { color: rgba(255,255,255,.75); }
   .req .av, .req .av img { border-radius: 9px; }
-  .req .av { background: #F27511; color: #fff; }
-  .pin.req.sel .av { background: #fff; color: #C85A08; }
+  .req .av { background: ${logoOrange}; color: ${colors.onActive}; }
+  .pin.req.sel .av { background: #fff; color: ${colors.activeText}; }
   .pin.req { background: #15181A; color: #fff; }
   .pin.req:after { border-top-color: #15181A; }
-  .pin.sel { background: #F27511; color: #fff; z-index: 1000; }
-  .pin.sel:after { border-top-color: #F27511; }
-  .pin.sel .star, .pin.sel .tick { color: #fff; }
+  .pin.sel { background: ${logoOrange}; color: ${colors.onActive}; z-index: 1000; }
+  .pin.sel:after { border-top-color: ${logoOrange}; }
+  .pin.sel .sk, .pin.sel .star, .pin.sel .tick { color: ${colors.onActive}; }
   .live { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; }
   .live .ring { position: relative; width: 40px; height: 40px; }
   .live .pulse { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
-                 border-radius: 50%; background: rgba(242,117,17,0.55); animation: pulseRing 1.8s cubic-bezier(0.4,0,0.6,1) infinite; }
+                 border-radius: 50%; background: ${logoOrange}8C; animation: pulseRing 1.8s cubic-bezier(0.4,0,0.6,1) infinite; }
   .live .dot { position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
-               border-radius: 50%; background: #F27511; border: 2px solid #fff; }
+               border-radius: 50%; background: ${logoOrange}; border: 2px solid #fff; }
   .live .cap { margin-top: -6px; padding: 2px 7px; border-radius: 999px; background: #15181A; color: #fff;
                font-size: 11px; font-weight: 700; white-space: nowrap; }
   @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.65; } 100% { transform: scale(2.6); opacity: 0; } }

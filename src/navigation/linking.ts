@@ -17,8 +17,8 @@ import { getNotifications } from '../lib/runtime';
 // CustomerTabs and ProviderTabs are two different Tab.Navigators mounted
 // one-at-a-time behind the same "Main" stack screen (see RootNavigator),
 // so a path is only reachable while the matching role's tree is actually
-// mounted - e.g. a providers/:id link opens straight to the right screen
-// for a signed-in customer, and simply doesn't resolve for a provider,
+// mounted - e.g. a providers/:id link opens the right screen for a guest
+// or signed-in customer, and simply doesn't resolve for a provider,
 // who has no such screen to send it to.
 function urlFromPush(response: NotificationResponse | null | undefined): string | null {
   const url = response?.notification.request.content.data?.url;
@@ -63,6 +63,7 @@ export const linking: LinkingOptions<ReactNavigation.RootParamList> = {
       Main: {
         screens: {
           HomeTab: {
+            initialRouteName: 'Home',
             screens: {
               ProviderDetail: 'providers/:providerId',
               JobPostDetail: 'job-posts/:postId',

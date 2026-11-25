@@ -29,7 +29,13 @@ Things that need an account, a secret or a dashboard click, so they cannot be do
 - If you later want alerts and source maps, add Sentry on top; the reporter in `src/lib/errorReporting.ts` is the one place to change.
 
 ## 6. SMS sign-in (phone OTP)
-Phone sign-up already exists in the app. For real SMS delivery: Supabase > Authentication > Providers > Phone, choose a provider (Twilio or MessageBird), paste its credentials, and set the sender. This costs money per SMS, so set a spend limit with the provider.
+Solid Connect collects a contact phone number in the profile. Password sign-in uses email. Phone sign-in would require verifying and linking the number to the Supabase Auth identity before offering it on the sign-in screen.
+
+## Customer support
+Verify that `support@solidconnect.co` is owned and monitored before release. To offer WhatsApp support, set `EXPO_PUBLIC_SUPPORT_WHATSAPP` in the mobile build environment to the staffed number in international format, with no spaces or dashes.
+
+## Customer booking integrity
+Apply migration `0091_customer_booking_integrity.sql` before releasing the mobile build that checks quote revisions and sends requests from public posts in one transaction.
 
 ## 7. NestJS API
 The app works without it (everything goes through Supabase). Deploy it only if you want it. When you do: host on Railway/Render/Fly, set the variables from `api/.env.example`, then set `EXPO_PUBLIC_API_URL` in the EAS profile. Until then leave `EXPO_PUBLIC_API_URL` unset.

@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePreventRemove } from '@react-navigation/native';
+import { parseWholeCedis } from '../../lib/cedis';
+import { SecureImage } from '../../components/SecureImage';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { CalendarDays, Clock, ImagePlus, Plus, Sparkles, X, Zap } from 'lucide-react-native';
@@ -68,11 +71,6 @@ function nextDays(count: number) {
   return out;
 }
 
-function parseAmount(text: string): number | null {
-  const n = parseInt(text.replace(/[^\d]/g, ''), 10);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
 export function PostJobScreen({ navigation, route }: { navigation: any; route?: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -84,7 +82,8 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   // Editing an existing open post: same steps, prefilled, saved in place.
   const editId: string | null = params.editPostId ?? null;
   const { data: editing } = useJobPost(editId);
-  const keepPhotos: string[] = editing?.photos ?? [];
+  const [keepPhotos, setKeepPhotos] = useState<string[]>([]);
+  const allowExit = useRef(false);
 
   const [stepIndex, setStepIndex] = useState(0);
   const step = STEPS[stepIndex];
@@ -94,7 +93,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState(params.initialDescription ?? '');
   const [photoUris, setPhotoUris] = useState<string[]>([]);
-  const [budgetType, setBudgetType] = useState<JobPostBudgetType>('range');
+  const [budgetType, setBudgetType] = useState<JobPostBudgetType>('negotiable');
   const [minText, setMinText] = useState('');
   const [maxText, setMaxText] = useState('');
   const [startPreference, setStartPreference] = useState<JobPostStart>('flexible');
@@ -107,6 +106,12 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   const [error, setError] = useState<string | null>(null);
 
   const [prefilled, setPrefilled] = useState(false);
+  const initialCategoryId: string | undefined = params.initialCategoryId;
+  useEffect(() => {
+    if (editId || prefilled || !initialCategoryId || categories.length === 0) return;
+    setPrefilled(true);
+    setCategory(categories.find((item) => item.id === initialCategoryId) ?? null);
+  }, [categories, editId, initialCategoryId, prefilled]);
   useEffect(() => {
     if (!editing || prefilled || categories.length === 0) return;
     setPrefilled(true);
@@ -114,24 +119,27 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
     setTitle(editing.title);
     setDescription(editing.description);
     setBudgetType(editing.budget_type);
-    setMinText(editing.budget_min != null ? String(Math.round(editing.budget_min)) : '');
-    setMaxText(editing.budget_max != null ? String(Math.round(editing.budget_max)) : '');
+    setMinText(editing.budget_min != null ? String(editing.budget_min) : '');
+    setMaxText(editing.budget_max != null ? String(editing.budget_max) : '');
     setStartPreference(editing.start_preference);
     setStartDate(editing.start_date);
     setLocation(editing.location_label.replace(/,\s*Accra$/, ''));
+    setKeepPhotos(editing.photos ?? []);
     setStepIndex(STEPS.length - 1);
   }, [editing, prefilled, categories]);
 
   const days = useMemo(() => nextDays(14), []);
-  const minAmount = parseAmount(minText);
-  const maxAmount = parseAmount(maxText);
+  const minAmount = parseWholeCedis(minText);
+  const maxAmount = parseWholeCedis(maxText);
 
   const budgetValid =
     budgetType === 'negotiable' ||
     (budgetType === 'fixed' && maxAmount != null) ||
     (budgetType === 'range' && minAmount != null && maxAmount != null && minAmount <= maxAmount);
-  const budgetError =
-    budgetType === 'range' && minAmount != null && maxAmount != null && minAmount > maxAmount
+  const badAmount = (budgetType !== 'negotiable' && !!maxText && maxAmount == null) ||
+    (budgetType === 'range' && !!minText && minAmount == null);
+  const budgetError = badAmount ? 'Enter a whole amount in Ghana cedis, without decimals.'
+    : budgetType === 'range' && minAmount != null && maxAmount != null && minAmount > maxAmount
       ? 'The low figure must be less than the high figure.'
       : null;
 
@@ -139,6 +147,28 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   const descriptionValid = description.trim().length >= MIN_DESCRIPTION;
   const whenValid = startPreference !== 'date' || !!startDate;
   const whereValid = isValidArea(location);
+  const photoCount = keepPhotos.length + photoUris.length;
+  const hasDraft = editId
+    ? !!editing && prefilled && (
+      title !== editing.title || description !== editing.description ||
+      category?.id !== editing.category_id ||
+      location !== editing.location_label.replace(/,\s*Accra$/, '') ||
+      startPreference !== editing.start_preference || startDate !== editing.start_date ||
+      budgetType !== editing.budget_type || minText !== String(editing.budget_min ?? '') ||
+      maxText !== String(editing.budget_max ?? '') || photoUris.length > 0 ||
+      keepPhotos.length !== (editing.photos?.length ?? 0)
+    )
+    : !!(category || title || description || photoUris.length || stepIndex > 0);
+  usePreventRemove(hasDraft, ({ data }) => {
+    if (allowExit.current) {
+      navigation.dispatch(data.action);
+      return;
+    }
+    Alert.alert('Discard changes?', 'Your unsaved changes will be lost.', [
+      { text: 'Keep editing', style: 'cancel' },
+      { text: 'Discard', style: 'destructive', onPress: () => navigation.dispatch(data.action) },
+    ]);
+  });
 
   const draftBudget = {
     budget_type: budgetType,
@@ -194,7 +224,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
   }
 
   async function handlePost() {
-    if (!profile || !category) return;
+    if (!profile || !category || createPost.isPending || updatePost.isPending) return;
     setError(null);
     try {
       if (editId) {
@@ -215,6 +245,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
           photoUris,
         });
         haptics.success();
+        allowExit.current = true;
         navigation.goBack();
         return;
       }
@@ -233,6 +264,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
         photoUris,
       });
       haptics.success();
+      allowExit.current = true;
       navigation.replace('JobPostDetail', { postId: post.id, justPosted: true });
     } catch (e: any) {
       setError(friendlyPostError(e));
@@ -322,16 +354,16 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
 
             <View style={[styles.card, styles.section]}>
               <Text style={styles.label}>
-                Photos <Text style={styles.labelAside}>optional · {photoUris.length}/{MAX_PHOTOS}</Text>
+                Photos <Text style={styles.labelAside}>optional · {photoCount}/{MAX_PHOTOS}</Text>
               </Text>
               <View style={styles.photoRow}>
-                {photoUris.map((uri) => (
-                  <View key={uri} style={styles.photoWrap}>
-                    <Image source={{ uri }} style={styles.photo} />
+                {[...keepPhotos.map((uri) => ({ uri, retained: true })), ...photoUris.map((uri) => ({ uri, retained: false }))].map(({ uri, retained }, index) => (
+                  <View key={`${uri}-${index}`} style={styles.photoWrap}>
+                    {retained ? <SecureImage uri={uri} style={styles.photo} /> : <Image source={{ uri }} style={styles.photo} />}
                     <Pressable
                       hitSlop={10}
                       style={styles.photoRemove}
-                      onPress={() => setPhotoUris((prev) => prev.filter((u) => u !== uri))}
+                      onPress={() => (retained ? setKeepPhotos : setPhotoUris)((prev) => prev.filter((item) => item !== uri))}
                       accessibilityRole="button"
                       accessibilityLabel="Remove this photo"
                     >
@@ -339,9 +371,9 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
                     </Pressable>
                   </View>
                 ))}
-                {photoUris.length < MAX_PHOTOS ? (
+                {photoCount < MAX_PHOTOS ? (
                   <Pressable style={styles.photoAdd} onPress={pickPhoto} accessibilityRole="button" accessibilityLabel="Add a photo">
-                    {photoUris.length ? (
+                    {photoCount ? (
                       <Plus size={24} strokeWidth={1.8} color={colors.inkMuted} />
                     ) : (
                       <ImagePlus size={24} strokeWidth={1.8} color={colors.inkMuted} />
@@ -360,7 +392,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
               title="What's your budget?"
               subtitle={
                 category?.budget_min && category?.budget_max
-                  ? `Most ${category.name.toLowerCase()} jobs cost GHS ${category.budget_min} to ${category.budget_max}.`
+                  ? `Suggested budget for ${category.name.toLowerCase()}: GHS ${category.budget_min} to ${category.budget_max}. You can also leave it open to offers.`
                   : 'Set a budget or let providers make an offer.'
               }
               styles={styles}
@@ -421,7 +453,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
                 placeholderColor={colors.inkFainter}
               />
             ) : (
-              <Text style={styles.hint}>Providers will include their price when they show interest.</Text>
+              <Text style={styles.hint}>Providers can suggest a price when they show interest.</Text>
             )}
             {budgetError ? <Text style={[styles.hint, styles.hintError]}>{budgetError}</Text> : null}
           </>
@@ -496,7 +528,7 @@ export function PostJobScreen({ navigation, route }: { navigation: any; route?: 
               <SummaryRow label="Area" value={location || '-'} styles={styles} onEdit={() => goTo(3)} />
               <SummaryRow
                 label="Photos"
-                value={photoUris.length ? `${photoUris.length} attached` : 'None'}
+                value={photoCount ? `${photoCount} attached` : 'None'}
                 styles={styles}
                 onEdit={() => goTo(1)}
               />
@@ -560,7 +592,7 @@ function AmountField({
         <Text style={styles.amountCurrency}>GHS</Text>
         <TextInput
           value={value}
-          onChangeText={(v) => onChange(v.replace(/[^\d]/g, ''))}
+          onChangeText={onChange}
           onFocus={onFocus}
           onBlur={onBlur}
           keyboardType="number-pad"
@@ -641,7 +673,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       color: colors.ink,
       textAlignVertical: 'top',
     },
-    inputFocused: { borderColor: colors.active },
+    inputFocused: { borderColor: colors.activeText },
 
     photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs },
     photoWrap: { width: 88, height: 88 },
@@ -696,7 +728,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       justifyContent: 'center',
     },
     radioActive: { borderColor: colors.active },
-    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.active },
+    radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.activeFill },
 
     amountRow: { flexDirection: 'row', gap: spacing.md },
     amountWrap: { flex: 1, gap: spacing.sm },
@@ -727,7 +759,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       ...shadow.card,
     },
     startLabel: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.ink },
-    startLabelActive: { color: colors.active },
+    startLabelActive: { color: colors.activeText },
 
     dayRow: { gap: spacing.sm, paddingVertical: 2 },
     dayChip: {
@@ -740,10 +772,10 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 1,
       borderColor: colors.hairline,
     },
-    dayChipActive: { backgroundColor: colors.active, borderColor: colors.active },
+    dayChipActive: { backgroundColor: colors.activeFill, borderColor: colors.active },
     dayWeek: { fontSize: fontSizes.xs, fontFamily: fonts.semibold, color: colors.inkMuted },
     dayNum: { fontSize: fontSizes.lg, fontFamily: fonts.extrabold, color: colors.ink },
-    dayTextActive: { color: colors.white },
+    dayTextActive: { color: colors.onActive },
 
     summary: {
       borderRadius: radii.xxxl,
@@ -763,7 +795,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     summaryLabel: { width: 70, fontSize: fontSizes.md, fontFamily: fonts.medium, color: colors.inkMuted },
     summaryValue: { flex: 1, fontSize: fontSizes.md, fontFamily: fonts.semibold, color: colors.ink, textAlign: 'right' },
-    summaryEdit: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.active },
+    summaryEdit: { fontSize: fontSizes.sm, fontFamily: fonts.bold, color: colors.activeText },
     summaryDescription: {
       fontSize: fontSizes.md,
       lineHeight: 23,

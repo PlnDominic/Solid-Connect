@@ -7,28 +7,19 @@ import type { Job } from '../types/database';
 export function useAcceptQuote() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { requestId: string; quoteId: string; customerId: string }) => {
-      if (isApiConfigured()) {
-        const res = await apiFetch<{ data: { job: Job; quote: unknown } }>('/api/v1/quotes/accept', {
-          method: 'POST',
-          body: JSON.stringify({ quoteId: input.quoteId }),
-        });
-        return res.data.job as Job;
-      }
-
-      // One transaction in the database: accept this quote, decline the
-      // others, create the job and its chat thread.
-      // Doing these as separate client writes could strand a request as
-      // "accepted" with no job if a later step failed (e.g. a double booking).
-      const { data, error } = await supabase.rpc('accept_quote', {
+    mutationFn: async (input: { quoteId: string; price: number; revision: number }) => {
+      const { data, error } = await supabase.rpc('accept_quote_checked', {
         p_quote_id: input.quoteId,
-        p_customer_id: input.customerId,
+        p_expected_price: input.price,
+        p_expected_revision: input.revision,
       });
       if (error) throw error;
       return (data as { job: Job }).job;
     },
+    onError: () => queryClient.invalidateQueries({ queryKey: ['myActiveRequest'] }),
     onSuccess: (job) => {
       queryClient.invalidateQueries({ queryKey: ['myActiveRequest', job.customer_id] });
+      queryClient.invalidateQueries({ queryKey: ['jobs', 'customer', job.customer_id] });
       queryClient.invalidateQueries({ queryKey: ['activeJob', 'customer', job.customer_id] });
     },
   });

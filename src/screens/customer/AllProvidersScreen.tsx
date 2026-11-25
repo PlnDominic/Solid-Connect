@@ -17,6 +17,10 @@ import { useProviderSearch } from '../../api/providerSearch';
 import { useIsProviderSaved, useToggleSavedProvider } from '../../api/saved';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
+import { BottomSheet } from '../../components/BottomSheet';
+import { AREAS } from '../../constants/areas';
+import { coordsForArea } from '../../lib/areaCoords';
+import { openCustomerAction } from '../../navigation/customerAccess';
 import { FilterChips, type FilterOption } from '../../components/FilterChips';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
@@ -55,6 +59,7 @@ const SORT_OPTIONS: { id: SortKey; label: string }[] = [
 const PAGE_SIZE = 20;
 /** Hard cap on rows fetched from Supabase/Nest for the browse list. */
 const MAX_FETCH = 400;
+const SEARCH_AREAS = AREAS.filter((area) => coordsForArea(area) != null);
 
 function ProviderRow({
   provider,
@@ -62,7 +67,7 @@ function ProviderRow({
   onOpen,
 }: {
   provider: SearchProvider;
-  customerId: string;
+  customerId: string | null;
   onOpen: () => void;
 }) {
   const { colors } = useTheme();
@@ -70,17 +75,16 @@ function ProviderRow({
   const { data: saved = false } = useIsProviderSaved(customerId, provider.id);
   const toggleSaved = useToggleSavedProvider();
   const reasons = matchReasons(provider);
-  // Real distance when we have it; otherwise the profile's stored figure.
-  const distanceKm = provider.distance_km ?? provider.stored_distance_km;
+  const distanceKm = provider.distance_km;
 
   return (
     <Pressable style={styles.card} onPress={onOpen}>
-      <Avatar initials={provider.initials} />
+      <Avatar initials={provider.initials} photoUrl={provider.photo_url} />
       <View style={{ flex: 1, gap: 3 }}>
         <Text style={styles.name} numberOfLines={1}>{provider.full_name}</Text>
         <View style={styles.metaRow}>
           <Text style={styles.meta}>{provider.provider_category} ·</Text>
-          <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
+          <Star color={colors.activeText} fill={colors.active} size={10} strokeWidth={2} />
           <Text style={styles.meta}>
             {ratingLabel(provider)}
             {distanceKm != null ? ` · ${formatDistanceKm(distanceKm)}` : ''}
@@ -96,7 +100,7 @@ function ProviderRow({
           </View>
         ) : null}
       </View>
-      <Pressable
+      {customerId ? <Pressable
         hitSlop={10}
         onPress={() => toggleSaved.mutate({ customerId, providerId: provider.id, saved })}
         accessibilityRole="button"
@@ -109,23 +113,25 @@ function ProviderRow({
           color={saved ? colors.favorite : colors.inkFaint}
           fill={saved ? colors.favorite : 'transparent'}
         />
-      </Pressable>
+      </Pressable> : null}
     </Pressable>
   );
 }
 
-export function AllProvidersScreen({ navigation }: { navigation: any }) {
+export function AllProvidersScreen({ navigation, route }: { navigation: any; route: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const profile = useSessionStore((s) => s.profile);
-  const [search, setSearch] = useState('');
-  const [categoryId, setCategoryId] = useState('all');
+  const [search, setSearch] = useState<string>(route.params?.initialSearch ?? '');
+  const [categoryId, setCategoryId] = useState<string>(route.params?.initialCategoryId ?? 'all');
   const [minRating, setMinRating] = useState('any');
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [availableNow, setAvailableNow] = useState(false);
   const [maxDistance, setMaxDistance] = useState('any');
   const [sort, setSort] = useState<SortKey>('best');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [searchArea, setSearchArea] = useState<string | null>(null);
+  const [areaSheetOpen, setAreaSheetOpen] = useState(false);
 
   const { data: categories = [] } = useCategories();
   const selectedCategory = categories.find((c) => c.id === categoryId);
@@ -134,11 +140,14 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
     origin,
     hasDistances,
     isLoading: providersLoading,
+    isError: providersError,
     refetch,
   } = useProviderSearch({
     categoryName: selectedCategory?.name ?? null,
     profileArea: profile?.area ?? null,
     limit: MAX_FETCH,
+    useDeviceLocation: !!profile,
+    searchArea,
   });
   const { refreshing, onRefresh } = usePullToRefresh(refetch);
   // Distance controls only mean something when real distances exist.
@@ -160,7 +169,8 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
     const matched = needle
       ? providers.filter(
           (p) =>
-            p.full_name.toLowerCase().includes(needle) || (p.provider_category ?? '').toLowerCase().includes(needle),
+            p.full_name.toLowerCase().includes(needle) || (p.provider_category ?? '').toLowerCase().includes(needle) ||
+              (p.area ?? '').toLowerCase().includes(needle),
         )
       : providers;
     const narrowed = applyProviderFilters(matched, {
@@ -194,35 +204,64 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
   const originNote =
     origin?.source === 'device'
       ? 'Distances are from your location.'
-      : origin?.source === 'area' && profile?.area
-        ? `Distances are from ${profile.area.split(',')[0]}.`
+      : origin?.source === 'area' && (searchArea || profile?.area)
+        ? `Distances are estimated from ${searchArea ?? profile?.area?.split(',')[0]}.`
         : null;
 
-  const renderProvider = ({ item }: { item: SearchProvider }) =>
-    profile ? (
+  const renderProvider = ({ item }: { item: SearchProvider }) => (
       <ProviderRow
         provider={item}
-        customerId={profile.id}
+        customerId={profile?.id ?? null}
         onOpen={() => navigation.navigate('ProviderDetail', { providerId: item.id })}
       />
-    ) : null;
+    );
+
+  function chooseArea(area: string | null) {
+    setSearchArea(area);
+    setMaxDistance('any');
+    setSort(area ? 'nearest' : 'best');
+    setAreaSheetOpen(false);
+  }
 
   return (
     <Screen>
       <ScreenHeader title="All providers" onBack={() => navigation.goBack()} />
+      <BottomSheet visible={areaSheetOpen} onClose={() => setAreaSheetOpen(false)}>
+        <Text style={styles.name} accessibilityRole="header">Job neighbourhood</Text>
+        <ScrollView style={{ maxHeight: 360 }}>
+          {[null, ...SEARCH_AREAS].map((area) => (
+            <Pressable
+              key={area ?? 'any'}
+              onPress={() => chooseArea(area)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: searchArea === area }}
+              style={{ minHeight: 48, justifyContent: 'center' }}
+            >
+              <Text style={styles.name}>{area ?? 'No specific neighbourhood'}{searchArea === area ? ' ✓' : ''}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </BottomSheet>
       <View style={styles.filters}>
         <View style={styles.searchRow}>
           <Search size={16} strokeWidth={2} color={colors.inkFaint} />
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Search by name or trade"
+            placeholder="Search by name, trade or area"
             placeholderTextColor={colors.inkFainter}
             style={styles.searchInput}
             autoCapitalize="none"
             autoCorrect={false}
           />
         </View>
+        <Pressable
+          onPress={() => setAreaSheetOpen(true)}
+          accessibilityRole="button"
+          style={{ minHeight: 48, justifyContent: 'center' }}
+        >
+          <Text style={styles.meta}>{searchArea ? `Job area: ${searchArea} · Change` : 'Choose a job neighbourhood'}</Text>
+        </Pressable>
         <FilterChips options={categoryOptions} value={categoryId} onChange={setCategoryId} />
         <FilterChips options={RATING_OPTIONS} value={minRating} onChange={setMinRating} />
         <ToggleChips
@@ -272,6 +311,8 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
             <View style={styles.loadingWrap}>
               <ActivityIndicator color={colors.ink} />
             </View>
+          ) : providersError ? (
+            <EmptyState title="Could not load providers" action={{ label: 'Retry', onPress: onRefresh }} />
           ) : filtered.length ? undefined : providers.length ? (
             <EmptyState
               title="No matches"
@@ -282,7 +323,13 @@ export function AllProvidersScreen({ navigation }: { navigation: any }) {
             <EmptyState
               title="No providers yet"
               subtitle="New providers are joining Solid Connect. Post a job and the right ones will come to you."
-              action={{ label: 'Post a job', onPress: () => navigation.navigate('PostJob') }}
+              action={{
+                label: 'Post a job',
+                onPress: () => openCustomerAction(navigation, !!profile, {
+                  screen: 'PostJob',
+                  params: { initialCategoryId: selectedCategory?.id },
+                }),
+              }}
             />
           )
         }

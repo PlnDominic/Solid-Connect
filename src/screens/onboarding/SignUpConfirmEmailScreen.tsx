@@ -65,15 +65,15 @@ export function SignUpConfirmEmailScreen({ email, onGoToSignIn }: { email: strin
         <View style={styles.textWrap}>
           <Text style={styles.title}>Check your email</Text>
           <Text style={styles.copy}>
-            We sent a confirmation link to <Text style={styles.email}>{email}</Text>. Open it, then come
-            back and sign in. Can't find it? Check your spam folder, or send it again below.
+            We sent a link to <Text style={styles.email}>{email}</Text>. Open it on this device to continue.
+            If you confirmed on another device, sign in here. Can't find the email? Check spam or send it again.
           </Text>
           {note ? <Text style={[styles.copy, { color: note.error ? colors.danger : colors.confirm }]}>{note.text}</Text> : null}
         </View>
       </View>
 
       <View style={styles.footer}>
-        <Button title="I've confirmed, sign in" onPress={onGoToSignIn} />
+        <Button title="Sign in after confirming" onPress={onGoToSignIn} />
         <Button
           title={cooldown > 0 ? `Send it again in ${cooldown}s` : 'Send the email again'}
           variant="outline"

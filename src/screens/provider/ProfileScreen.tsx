@@ -105,7 +105,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
     useSessionStore.getState().setUserId(null);
     let root = navigation;
     while (root.getParent()) root = root.getParent();
-    root.reset({ index: 0, routes: [{ name: 'Auth' }] });
+    root.reset({ index: 0, routes: [{ name: 'Main' }] });
   }
 
   function confirmSignOut() {
@@ -149,7 +149,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           ) : (
             <View style={[StyleSheet.absoluteFill, styles.heroPlaceholder]} />
           )}
-          <View style={[StyleSheet.absoluteFill, styles.heroScrim]} />
+          {profile.photo_url ? <View style={[StyleSheet.absoluteFill, styles.heroScrim]} /> : null}
 
           <Pressable
             style={styles.heroAvatarBadgeWrap}
@@ -162,7 +162,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               {profile.photo_url ? (
                 <Image source={{ uri: profile.photo_url }} style={styles.heroAvatarImage} />
               ) : (
-                <Avatar initials={profile.initials} size={72} fg={colors.white} dim />
+                <Avatar initials={profile.initials} size={72} fg={colors.onActive} dim />
               )}
             </View>
             <View style={styles.heroCameraBadge}>
@@ -177,19 +177,19 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
           </Pressable>
 
           <View style={styles.heroNameRow}>
-            <Text style={styles.heroName} numberOfLines={1}>{profile.full_name}</Text>
+            <Text style={[styles.heroName, !profile.photo_url && styles.onOrange]} numberOfLines={1}>{profile.full_name}</Text>
             {isIdentityVerified(profile) ? (
               <View style={styles.heroVerifiedDot}>
                 <ShieldCheck size={11} strokeWidth={2.8} color={colors.white} />
               </View>
             ) : null}
           </View>
-          {profile.tagline ? <Text style={styles.heroTagline}>{profile.tagline}</Text> : null}
-          <Text style={styles.heroMeta}>{profile.provider_category} · {profile.area} · Since {memberSince(profile.created_at)}</Text>
+          {profile.tagline ? <Text style={[styles.heroTagline, !profile.photo_url && styles.onOrange]}>{profile.tagline}</Text> : null}
+          <Text style={[styles.heroMeta, !profile.photo_url && styles.onOrange]}>{profile.provider_category} · {profile.area} · Since {memberSince(profile.created_at)}</Text>
 
           <View style={styles.roleSwitch}>
             <Pressable style={styles.rolePill} onPress={() => confirmRoleSwitch('customer', () => switchRole.mutate({ userId: profile.id, role: 'customer' }))}>
-              <Text style={styles.rolePillText}>Customer</Text>
+              <Text style={[styles.rolePillText, !profile.photo_url && styles.onOrange]}>Customer</Text>
             </Pressable>
             <View style={[styles.rolePill, styles.rolePillActive]}>
               <Text style={styles.rolePillTextActive}>Provider</Text>
@@ -213,9 +213,9 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               {profile.provider_certified || profile.verification_level === 'SOLID_CONNECT_VERIFIED' ? (
                 <Badge
                   label="Solid Connect certified"
-                  bg={colors.activeDeep}
-                  fg={colors.white}
-                  icon={<ShieldCheck size={11} strokeWidth={2.8} color={colors.white} />}
+                  bg={colors.activeFill}
+                  fg={colors.onActive}
+                  icon={<ShieldCheck size={11} strokeWidth={2.8} color={colors.onActive} />}
                 />
               ) : null}
             </View>
@@ -230,7 +230,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
               <Text style={styles.statementLabel}>Rating</Text>
               <View style={styles.statementRatingValue}>
                 <Text style={styles.statementValueLg}>{ratingLabel(profile)}</Text>
-                <Star color={colors.active} fill={colors.active} size={14} strokeWidth={2} />
+                <Star color={colors.activeText} fill={colors.active} size={14} strokeWidth={2} />
               </View>
             </View>
             <View style={[styles.statementRow, styles.statementRowBorder]}>
@@ -259,7 +259,7 @@ export function ProfileScreen({ navigation }: { navigation: any }) {
                   {dist.map((d) => (
                     <View key={d.stars} style={styles.distRow}>
                       <Text style={styles.distLabel}>{d.stars}</Text>
-                      <Star color={colors.active} fill={colors.active} size={10} strokeWidth={2} />
+                      <Star color={colors.activeText} fill={colors.active} size={10} strokeWidth={2} />
                       <View style={styles.distTrack}>
                         <View style={[styles.distFill, { width: `${(d.count / maxCount) * 100}%` }]} />
                       </View>
@@ -314,7 +314,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       gap: 6,
       overflow: 'hidden',
     },
-    heroPlaceholder: { backgroundColor: colors.activeDeep },
+    heroPlaceholder: { backgroundColor: colors.activeFill },
+    onOrange: { color: colors.onActive },
     // Solid scrim (not a true gradient - no gradient dependency in this
     // project) over the lower two-thirds of the hero, enough contrast for
     // white text over any photo without needing a new library.
@@ -361,7 +362,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     rolePill: { paddingVertical: 9, paddingHorizontal: spacing.lg, borderRadius: radii.md, alignItems: 'center' },
     rolePillActive: { backgroundColor: colors.white },
     rolePillText: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: 'rgba(255,255,255,0.8)' },
-    rolePillTextActive: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.activeDeep },
+    rolePillTextActive: { fontSize: fontSizes.md, fontFamily: fonts.bold, color: colors.onActive },
 
     body: { padding: spacing.lg, gap: spacing.xl },
     photoErrorText: { fontSize: fontSizes.sm, fontFamily: fonts.medium, color: colors.danger },
