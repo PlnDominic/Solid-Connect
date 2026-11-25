@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient, requirePermission } from '../../../lib/admin';
 import { logAdminAction } from '../../../lib/audit';
+import { assertOk } from '../../../lib/assert';
 
 /**
  * Actually carries out a deletion request: removes the real auth.users
@@ -26,11 +27,12 @@ export async function completeAccountDeletion(id: string, formData: FormData): P
 
   const note = String(formData.get('note') ?? '').trim();
 
-  // Best-effort: the auth user may already be gone (e.g. a previous
-  // attempt partially succeeded) - don't let that block anonymizing the
-  // profile, which is the part that actually removes visible PII.
-  await adminClient.auth.admin.deleteUser(request.user_id).catch(() => null);
-  await adminClient.rpc('anonymize_profile', { p_user_id: request.user_id });
+  // The auth user may already be gone (a previous attempt partly succeeded).
+  // Any other failure leaves the request pending so it is not shown as done.
+  const { error: authError } = await adminClient.auth.admin.deleteUser(request.user_id);
+  if (authError?.status !== 404) assertOk(authError, 'Removing the sign-in');
+  const { error: anonymizeError } = await adminClient.rpc('anonymize_profile', { p_user_id: request.user_id });
+  assertOk(anonymizeError, 'Removing profile details');
 
   await adminClient
     .from('account_deletion_requests')

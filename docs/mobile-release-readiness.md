@@ -37,8 +37,12 @@ working production build:
 `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are already
 configured in EAS production.
 
-Configure Android FCM credentials and the `google-services.json` file, and
-configure the iOS APNs key in EAS. The repository does not contain these
+For Android push, download `google-services.json` from Firebase (package
+`com.solidconnect.app`). Either place it in the project root and commit it, or
+upload it to EAS as a file variable named `GOOGLE_SERVICES_JSON`;
+`app.config.js` picks up either. Then upload the FCM V1 service-account key with
+`eas credentials` (never commit that key), and configure the iOS APNs key in
+EAS. The repository does not contain these
 account credentials. Install the release on physical iOS and Android devices
 and verify notification registration, delivery, and notification deep links.
 
@@ -51,9 +55,10 @@ and verify notification registration, delivery, and notification deep links.
 - Prepare store descriptions, screenshots, keywords, support and privacy URLs,
   age ratings, Apple privacy disclosures, Play Data Safety answers, and
   permission justifications for location, camera, photos, and microphone.
-- Publish a web account-deletion page and put its URL in the Google Play
-  listing. The in-app deletion request does not supply this required public
-  URL by itself.
+- Deploy the admin site, then put `https://<admin domain>/account-deletion` in
+  the Google Play Data safety form. Confirm the page's wording, and that someone
+  acts on emailed requests. The admin Deletion requests list only holds in-app
+  requests, and stored photos and ID documents must be removed by hand.
 - Prepare customer and verified-provider review accounts with representative
   job states.
 - Select and configure the verified domain for Universal Links and Android App

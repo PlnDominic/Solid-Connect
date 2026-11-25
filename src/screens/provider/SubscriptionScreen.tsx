@@ -3,15 +3,17 @@ import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, View } from '
 import { useFocusEffect } from '@react-navigation/native';
 import { useRefreshSubscription, useSubscription, useSubscriptionCheckout } from '../../api/subscription';
 import { Button } from '../../components/Button';
+import { EmptyState } from '../../components/EmptyState';
 import { Screen } from '../../components/Screen';
 import { ScreenHeader } from '../../components/ScreenHeader';
+import { isApiConfigured } from '../../lib/api';
 import { fonts, fontSizes, radii, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
 export function SubscriptionScreen({ navigation }: { navigation: any }) {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const { data: sub, isLoading } = useSubscription();
+  const { data: sub, isError, refetch } = useSubscription();
   const checkout = useSubscriptionCheckout();
   const refresh = useRefreshSubscription();
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,18 @@ export function SubscriptionScreen({ navigation }: { navigation: any }) {
     <Screen bg={colors.paperDim}>
       <ScreenHeader title="Subscription" onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.body}>
-        {isLoading || !sub ? (
+        {!isApiConfigured() ? (
+          <EmptyState
+            title="Not available yet"
+            subtitle="Subscription payments aren't set up in this version of the app. If you can't send quotes, contact support."
+          />
+        ) : !sub && isError ? (
+          <EmptyState
+            title="Could not load your subscription"
+            subtitle="Check your connection and try again."
+            action={{ label: 'Retry', onPress: () => refetch() }}
+          />
+        ) : !sub ? (
           <ActivityIndicator color={colors.ink} />
         ) : (
           <>

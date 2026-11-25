@@ -3,7 +3,8 @@ import { createServerClient } from '@supabase/ssr';
 
 // Defence in depth: every admin route except the pages reached signed
 // out - login, reset-password, the /auth/* invite landing (which signs the
-// user in from the link itself) and the public /legal documents - requires
+// user in from the link itself), the public /legal documents and
+// /account-deletion - requires
 // a valid Supabase session before any page or server action code runs.
 // Whether that user is an active admin (and holds the right scope) is
 // still enforced in the protected layout and in each action's guard.
@@ -54,5 +55,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!login|reset-password|auth/|legal|_next/static|_next/image|favicon.ico|logo\.jpeg|.*\.(?:png|jpg|jpeg|svg|ico|webp)$).*)'],
+  matcher: ['/((?!login|reset-password|auth/|legal|account-deletion|_next/static|_next/image|favicon.ico|logo\.jpeg|.*\.(?:png|jpg|jpeg|svg|ico|webp)$).*)'],
 };
