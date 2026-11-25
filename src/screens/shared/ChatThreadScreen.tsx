@@ -17,6 +17,7 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   ContactDetailsBlockedError,
   useHasActiveJobWith,
@@ -173,7 +174,10 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   }
 
   return (
-    <Screen>
+    // This screen's own provider: its bottom inset includes the iOS tab bar,
+    // which the app-wide provider does not see, so the composer sits above it.
+    <SafeAreaProvider>
+    <Screen edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Pressable
           onPress={() => navigation.goBack()}
@@ -216,7 +220,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
         threadId={threadId}
       />
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={90}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <FlatList
           ref={listRef}
           data={messages}
@@ -404,6 +408,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
         )}
       </KeyboardAvoidingView>
     </Screen>
+    </SafeAreaProvider>
   );
 }
 

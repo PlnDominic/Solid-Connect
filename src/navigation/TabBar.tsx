@@ -13,6 +13,7 @@ import {
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import type { LucideIcon } from 'lucide-react-native';
 import { House, LayoutGrid, ClipboardList, Map as MapIcon, MessageCircle, User } from 'lucide-react-native';
 import { useLocale, type TranslationKey } from '../i18n';
@@ -120,7 +121,11 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   // Floats over the content only on a tab's first screen (see the comment above).
   const focusedRoute = state.routes[state.index];
-  const onRootScreen = ((focusedRoute.state as { index?: number } | undefined)?.index ?? 0) === 0;
+  // A chat opened straight from another tab is first in its stack, but it is
+  // not a main screen: the bar must not cover its message box.
+  const onRootScreen =
+    ((focusedRoute.state as { index?: number } | undefined)?.index ?? 0) === 0 &&
+    getFocusedRouteNameFromRoute(focusedRoute) !== 'ChatThread';
 
   // The lens position (px from the bar's left edge) and how "lifted" it is.
   const lensX = useRef(new Animated.Value(0)).current;

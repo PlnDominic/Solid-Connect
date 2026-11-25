@@ -649,8 +649,8 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors'], scheme: Retur
       borderColor: 'rgba(255,255,255,0.35)',
     },
     heroGreetText: { flex: 1, gap: 3 },
-    heroGreeting: { color: colors.onActive, fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
-    heroLocation: { color: colors.onActive, fontSize: fontSizes.xs, fontFamily: fonts.medium },
+    heroGreeting: { color: '#FFFFFF', fontSize: fontSizes.xl, letterSpacing: -0.4, fontFamily: fonts.extrabold },
+    heroLocation: { color: '#FFFFFF', fontSize: fontSizes.xs, fontFamily: fonts.medium },
 
     heroSearch: {
       height: 48,
