@@ -3,7 +3,7 @@ import { createServerSupabase } from '../../../lib/supabase';
 import { SettingsClient } from './SettingsClient';
 import { purgeStorageQueue, updatePlatformSettings, updateSubscriptionRequired } from './actions';
 
-const DEFAULT_SUPPORT_EMAIL = 'support@solidconnect.co';
+const DEFAULT_SUPPORT_EMAIL = 'cosolid93@gmail.com';
 
 export const dynamic = 'force-dynamic';
 

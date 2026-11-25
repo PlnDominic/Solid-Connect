@@ -6,7 +6,7 @@ import { ScreenHeader } from '../../components/ScreenHeader';
 import { fonts, fontSizes, radii, shadow, spacing } from '../../theme';
 import { useTheme } from '../../theme/ThemeProvider';
 
-const SUPPORT_EMAIL = 'support@solidconnect.co';
+const SUPPORT_EMAIL = 'cosolid93@gmail.com';
 const supportNumber = process.env.EXPO_PUBLIC_SUPPORT_WHATSAPP?.trim() ?? '';
 const whatsappNumber = /^\+?[1-9][0-9]{6,14}$/.test(supportNumber) ? supportNumber.replace(/^\+/, '') : null;
 

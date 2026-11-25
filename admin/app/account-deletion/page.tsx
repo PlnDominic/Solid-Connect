@@ -2,11 +2,11 @@ import '../legal/legal.css';
 
 export const metadata = { title: 'Delete your account · Solid Connect' };
 
-const SUPPORT_EMAIL = 'support@solidconnect.co';
+const SUPPORT_EMAIL = 'cosolid93@gmail.com';
 
 /** Public page for the Google Play account-deletion link. Readable signed out
  * (see the proxy matcher) and not tied to LEGAL_PAGES_PUBLISHED. Keep the lists
- * in step with anonymize_profile and the deletion-requests action. */
+ * in step with anonymize_profile and lib/accountDeletion.ts. */
 export default function AccountDeletionPage() {
   return (
     <main className="legal-page">
@@ -27,7 +27,8 @@ export default function AccountDeletionPage() {
         <h2>What is removed</h2>
         <p>
           Our team processes each request. We remove your sign-in, and remove from your profile your name, phone number,
-          email, area, profile photo link, tagline, service category and notification settings.
+          email, area, tagline, service category, notification settings and map location. We also delete your profile
+          photos, portfolio photos and videos, and ID or verification documents.
         </p>
 
         <h2>What is kept</h2>
@@ -36,8 +37,8 @@ export default function AccountDeletionPage() {
           stays accurate. They no longer show your profile name. Text or photos you put in them may still identify you.
         </p>
         <p>
-          Uploaded photos and ID documents are not removed automatically. To ask for them to be deleted, say so in your
-          email.
+          Photos and voice notes you sent in requests, job posts, chats and disputes are also kept, because the other
+          person or a dispute may need them.
         </p>
       </article>
     </main>

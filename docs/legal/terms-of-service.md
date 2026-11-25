@@ -159,7 +159,7 @@ media, and don't post pictures of people who haven't agreed to it.
 **Reporting content that infringes your copyright.** If something in the
 App uses your photo or work without permission, report it from the
 person's profile or chat (**Report → Stolen photos or work**), or email
-**support@solidconnect.co** with:
+**cosolid93@gmail.com** with:
 
 1. the work you own (or a link to it);
 2. where it appears in the App (the person's name and which photo or
@@ -181,7 +181,7 @@ upload content that isn't theirs.
 ## 12. Contact and account issues
 
 For account security concerns, disputes you can't resolve through the app,
-or anything else, contact **support@solidconnect.co**.
+or anything else, contact **cosolid93@gmail.com**.
 
 ## 13. Changes to these Terms
 

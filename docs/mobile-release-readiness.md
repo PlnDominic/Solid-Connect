@@ -72,7 +72,7 @@ and verify notification registration, delivery, and notification deep links.
   onboarding after the approved terms and required database version are ready.
 - Verify user phone numbers with an SMS provider before relying on them for
   provider reachability or MoMo payouts.
-- Confirm `support@solidconnect.co` is a staffed, monitored address. The app no
+- Confirm `cosolid93@gmail.com` is a staffed, monitored address. The app no
   longer shows the audit's placeholder phone number; no real support phone was
   supplied in the repository.
 - Remove users' stored photos and verification files during account deletion,

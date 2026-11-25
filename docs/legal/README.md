@@ -52,16 +52,23 @@ approved them.** That review should specifically cover:
 
 ## What's grounded vs. what's a placeholder
 
-Every concrete mechanic named in these drafts (verification levels, the
-payment (direct between customer and provider), dispute resolution windows, suspension) matches
-something real in the schema and admin tooling as of migration `0035` — I
-did not invent workflow steps to sound formal. One thing is explicitly
-**not** grounded and needs a business decision before these documents can be
-finalized:
+The mechanics named in these drafts were written from the schema and admin
+tooling. The privacy policy's collection, sharing and deletion text was
+checked again against the code on 2026-11-25. Solid Connect charges no
+commission; the only payment it takes is the provider subscription. The
+owner confirmed on 2026-11-25 that Solid Connect Limited is registered.
 
-1. **The commission rate.** The drafts say "the commission rate shown in the
-   app" rather than a fixed number, since it's admin-configurable
-   (`platform_config.commission_percent`, currently 15%) and could change.
+Still open before publishing. These need a lawyer or a business decision and
+are marked "Placeholder" in the documents:
+
+- Limitation of liability and governing law (Terms §14 and §15).
+- Whether keeping records after account deletion complies with Act 843, and
+  for how long (Privacy §6).
+- Where data is stored, cross-border transfer, and Data Protection
+  Commission registration (Privacy §7).
+- Whether a named Data Protection Officer is required (Privacy §10).
+- What happens to jobs in progress and unused subscription time when a
+  provider is terminated (Provider Agreement §10).
 
 The dispute filing window (48 hours after job completion) is no longer a
 placeholder — it's enforced directly on `disputes`' own insert policy

@@ -114,7 +114,7 @@ and record an outcome (it cannot move money, since Solid Connect does not
 hold any). See `refund-dispute-policy.md`
 for the customer-facing version of this process. You will be able to see
 the dispute's outcome; if you disagree with a resolution, contact
-**support@solidconnect.co**.
+**cosolid93@gmail.com**.
 
 ## 10. Ending this agreement
 

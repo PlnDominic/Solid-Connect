@@ -292,7 +292,7 @@ export function DisputeScreen({ navigation, route }: { navigation: any; route: a
             <Text style={styles.statusValue}>Too late to dispute this job</Text>
             <Text style={styles.bodyText}>
               Disputes need to be filed within 48 hours of a job being marked complete. If something's still wrong,
-              contact support@solidconnect.co directly.
+              contact cosolid93@gmail.com directly.
             </Text>
           </View>
         ) : (

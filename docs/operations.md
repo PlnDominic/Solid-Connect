@@ -32,7 +32,7 @@ Things that need an account, a secret or a dashboard click, so they cannot be do
 Solid Connect collects a contact phone number in the profile. Password sign-in uses email. Phone sign-in would require verifying and linking the number to the Supabase Auth identity before offering it on the sign-in screen.
 
 ## Customer support
-Verify that `support@solidconnect.co` is owned and monitored before release. To offer WhatsApp support, set `EXPO_PUBLIC_SUPPORT_WHATSAPP` in the mobile build environment to the staffed number in international format, with no spaces or dashes.
+Verify that `cosolid93@gmail.com` is owned and monitored before release. To offer WhatsApp support, set `EXPO_PUBLIC_SUPPORT_WHATSAPP` in the mobile build environment to the staffed number in international format, with no spaces or dashes.
 
 ## Customer booking integrity
 Apply migration `0091_customer_booking_integrity.sql` before releasing the mobile build that checks quote revisions and sends requests from public posts in one transaction.

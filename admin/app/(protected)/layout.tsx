@@ -20,7 +20,7 @@ export default async function ProtectedLayout({ children }: Readonly<{ children:
     supabase.from('safety_alerts').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     supabase.from('platform_config').select('support_email').eq('id', true).maybeSingle(),
   ]);
-  const supportEmail = config?.support_email || 'support@solidconnect.co';
+  const supportEmail = config?.support_email || 'cosolid93@gmail.com';
   const initials = (admin.email ?? 'A').slice(0, 2).toUpperCase();
   // Owners implicitly hold every scope - only a support admin's own
   // permissions array actually narrows the sidebar (see NavLinks, which

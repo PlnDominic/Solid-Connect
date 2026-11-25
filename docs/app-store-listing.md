@@ -43,13 +43,13 @@ Share your referral code with people who need a pro or want to join as one.
 
 Plumbing, electrical, carpentry, masonry, painting, welding, cleaning, AC and appliance repair, and many more categories. Available in English.
 
-Questions? Contact support@solidconnect.co.
+Questions? Contact cosolid93@gmail.com.
 
 ## Keywords [100]
 plumber,electrician,handyman,artisan,carpenter,painter,cleaner,AC repair,Accra,Ghana,repair,quotes
 
 ## Support URL
-Needs a real page. Suggested: https://admin.solidconnectltd.com (confirm the live domain) or a support page that shows support@solidconnect.co.
+Needs a real page. Suggested: https://admin.solidconnectltd.com (confirm the live domain) or a support page that shows cosolid93@gmail.com.
 
 ## Privacy Policy URL
 Required. Use the published privacy page, not the draft. Counsel approval is still listed as open in docs/mobile-release-readiness.md.
@@ -93,4 +93,4 @@ ACCOUNT DELETION
 Profile > Account security > Delete account.
 
 CONTACT
-support@solidconnect.co
+cosolid93@gmail.com

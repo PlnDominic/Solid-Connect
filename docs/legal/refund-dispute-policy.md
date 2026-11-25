@@ -60,7 +60,7 @@ Solid Connect cannot move it for them.
 
 ## 5. If you disagree with a resolution
 
-Contact **support@solidconnect.co** with your job reference and the reason
+Contact **cosolid93@gmail.com** with your job reference and the reason
 you believe the resolution was wrong. This is a manual escalation, not an
 automated re-dispute — Solid Connect does not currently have a formal
 appeals process beyond direct support contact.

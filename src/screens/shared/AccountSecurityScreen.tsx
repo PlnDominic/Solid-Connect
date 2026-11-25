@@ -59,7 +59,7 @@ export function AccountSecurityScreen({ navigation }: { navigation: any }) {
     if (!profile) return;
     Alert.alert(
       'Delete your account?',
-      "This sends a deletion request to Solid Connect's team. Your profile, verification documents, and contact details will be removed once it's processed; job and payment history tied to other people's accounts is kept in an anonymized form, same as removing a review only recalculates the total rather than erasing it. This can take a few days.",
+      "This sends a deletion request to Solid Connect's team. Once it's processed, your sign-in, contact details, profile and portfolio photos and ID documents are removed. Jobs, reviews, chats and disputes shared with other people are kept, including photos and voice notes in them. This can take a few days.",
       [
         { text: 'Cancel', style: 'cancel' },
         {
