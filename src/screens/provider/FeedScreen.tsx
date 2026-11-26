@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTabBarClearance } from '../../navigation/TabBar';
 import { friendlyActionError } from '../../api/quotes';
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import {
   Ban,
   ClipboardList,
@@ -130,7 +130,14 @@ export function FeedScreen({ navigation }: { navigation: any }) {
       screen: key === 'services' ? 'EditProfile' : key === 'hours' ? 'Availability' : key === 'verify' ? 'Verification' : 'Portfolio',
     });
   const sendQuote = useSendQuote();
-  const { data: boardPosts = [], isLoading: boardLoading, refetch: refetchBoard } = useJobBoard(profile?.id ?? null);
+  const {
+    data: boardPosts = [],
+    isLoading: boardLoading,
+    refetch: refetchBoard,
+    hasMore: boardHasMore,
+    loadMore: loadMoreBoard,
+    loadingMore: boardLoadingMore,
+  } = useJobBoard(profile?.id ?? null);
   const { data: myInterests, refetch: refetchInterests } = useMyJobPostInterests(profile?.id ?? null);
   const [feedView, setFeedView] = useState<'requests' | 'board'>('requests');
   const { refreshing, onRefresh } = usePullToRefresh(async () => {
@@ -536,6 +543,18 @@ export function FeedScreen({ navigation }: { navigation: any }) {
           <Pressable onPress={() => refetch()} style={styles.retry} disabled={isFetching}>
             <Text style={styles.retryLabel}>{isFetching ? 'Retrying…' : 'Try again'}</Text>
           </Pressable>
+        ) : null}
+        {feedView === 'board' && (boardHasMore || boardLoadingMore) ? (
+          <Button
+            title="Show older jobs"
+            variant="outline"
+            loading={boardLoadingMore}
+            onPress={() =>
+              void loadMoreBoard().then((ok) => {
+                if (!ok) Alert.alert('Could not load older jobs', 'Check your connection and try again.');
+              })
+            }
+          />
         ) : null}
       </ScrollView>
 

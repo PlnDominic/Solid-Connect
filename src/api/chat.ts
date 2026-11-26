@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, isApiConfigured } from '../lib/api';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
@@ -88,8 +88,12 @@ export function useThreadsForRole(userId: string | null, role: Role) {
   return query;
 }
 
+const MESSAGE_PAGE = 100;
+
 export function useMessages(threadId: string | null | undefined) {
   const queryClient = useQueryClient();
+  const limit = useRef(MESSAGE_PAGE);
+  const [loadingEarlier, setLoadingEarlier] = useState(false);
   const query = useQuery({
     queryKey: ['messages', threadId, isApiConfigured()],
     queryFn: async (): Promise<ChatMessage[]> => {
@@ -101,12 +105,28 @@ export function useMessages(threadId: string | null | undefined) {
         .from('chat_messages')
         .select('*')
         .eq('thread_id', threadId as string)
-        .order('created_at', { ascending: true });
+        // Newest first, so the row cap can never cut off the latest ones.
+        .order('created_at', { ascending: false })
+        // shortcut: the server returns at most 1000 rows by default, so older
+        // ones than that stay out of reach; page by created_at if chats get that long.
+        .limit(limit.current);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).reverse();
     },
     enabled: !!threadId,
   });
+
+  const hasEarlier = !isApiConfigured() && (query.data?.length ?? 0) >= limit.current;
+
+  /** Returns false if the older messages could not be loaded. */
+  async function loadEarlier(): Promise<boolean> {
+    limit.current += MESSAGE_PAGE;
+    setLoadingEarlier(true);
+    const result = await query.refetch();
+    if (result.isError) limit.current -= MESSAGE_PAGE;
+    setLoadingEarlier(false);
+    return !result.isError;
+  }
 
   // Suffixed with a per-instance id: supabase.channel() reuses an existing
   // channel object for the same topic string, and calling .on() on one
@@ -135,35 +155,34 @@ export function useMessages(threadId: string | null | undefined) {
     };
   }, [threadId, queryClient]);
 
-  return query;
+  return { ...query, hasEarlier, loadEarlier, loadingEarlier };
 }
 
-/** One thread's most recent message - used for the chat list's preview text
- * and timestamp, so realtime here is what makes a new message update that
- * preview live while its sender is still sitting on the list. */
-export function useLatestMessage(threadId: string | null | undefined) {
+/** The most recent message of each thread, for the chat list's previews and
+ * timestamps. One request however many chats there are, refreshed live. */
+export function useLatestMessages(threadIds: string[]) {
   const query = useQuery({
-    queryKey: ['latestMessage', threadId],
-    queryFn: async (): Promise<ChatMessage | null> => {
+    queryKey: ['latestMessages', threadIds],
+    queryFn: async (): Promise<Record<string, ChatMessage | null>> => {
       const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('thread_id', threadId as string)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .from('chat_threads')
+        .select('id, chat_messages(*)')
+        .in('id', threadIds)
+        // Both apply to the messages inside each thread: the newest one only.
+        .order('created_at', { referencedTable: 'chat_messages', ascending: false })
+        .limit(1, { referencedTable: 'chat_messages' });
       if (error) throw error;
-      return data;
+      const rows = (data ?? []) as { id: string; chat_messages: ChatMessage[] }[];
+      return Object.fromEntries(rows.map((row) => [row.id, row.chat_messages[0] ?? null]));
     },
-    enabled: !!threadId,
+    enabled: threadIds.length > 0,
   });
 
   useRealtimeInvalidate({
-    channel: `latest_message:${threadId}`,
+    channel: 'latest_messages',
     table: 'chat_messages',
-    filter: threadId ? `thread_id=eq.${threadId}` : undefined,
-    queryKeys: [['latestMessage', threadId]],
-    enabled: !!threadId,
+    queryKeys: [['latestMessages']],
+    enabled: threadIds.length > 0,
   });
 
   return query;
@@ -315,15 +334,16 @@ export function useMarkThreadRead() {
     // (its unread dot and bold preview come from this cached latest
     // message), not only once something happens to refetch it.
     onMutate: (input) => {
-      queryClient.setQueryData<ChatMessage | null>(['latestMessage', input.threadId], (latest) =>
-        latest && latest.sender_id !== input.readerId && !latest.read_at
-          ? { ...latest, read_at: new Date().toISOString() }
-          : latest,
-      );
+      queryClient.setQueriesData<Record<string, ChatMessage | null>>({ queryKey: ['latestMessages'] }, (previews) => {
+        const latest = previews?.[input.threadId];
+        return latest && latest.sender_id !== input.readerId && !latest.read_at
+          ? { ...previews, [input.threadId]: { ...latest, read_at: new Date().toISOString() } }
+          : previews;
+      });
     },
     onSettled: (_data, _error, input) => {
       queryClient.invalidateQueries({ queryKey: ['messages', input.threadId] });
-      queryClient.invalidateQueries({ queryKey: ['latestMessage', input.threadId] });
+      queryClient.invalidateQueries({ queryKey: ['latestMessages'] });
       queryClient.invalidateQueries({ queryKey: ['unreadChatCount'] });
     },
   });

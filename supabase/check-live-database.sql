@@ -13,6 +13,12 @@ union all
 select '0090 chat on job posts',
        to_regprocedure('public.open_job_post_thread(uuid,uuid)') is not null
 union all
+select '0092 notifications sent by the database',
+       to_regprocedure('public.drain_push_outbox()') is not null
+union all
+select '0093 minimum app version',
+       to_regprocedure('public.min_app_version()') is not null
+union all
 select '0091 accept quotes',
        to_regprocedure('public.accept_quote_checked(uuid,integer,integer)') is not null
 union all

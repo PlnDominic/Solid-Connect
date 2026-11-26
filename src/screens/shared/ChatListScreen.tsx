@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTabBarClearance } from '../../navigation/TabBar';
-import { useQueries } from '@tanstack/react-query';
 import { Check, CheckCheck, Search, ShieldCheck, Trash2 } from 'lucide-react-native';
 import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
-import { useHideThread, useThreadsForRole } from '../../api/chat';
+import { useHideThread, useLatestMessages, useThreadsForRole } from '../../api/chat';
 import { useProvidersByIds } from '../../api/marketplace';
-import { supabase } from '../../lib/supabase';
 import { Avatar } from '../../components/Avatar';
 import { EmptyState } from '../../components/EmptyState';
 import { FilterChips, type FilterOption } from '../../components/FilterChips';
@@ -18,18 +16,6 @@ import { useTheme } from '../../theme/ThemeProvider';
 import { isIdentityVerified } from '../../lib/verification';
 import type { ChatMessage, ChatThread, Profile } from '../../types/database';
 
-
-async function fetchLatestMessage(threadId: string): Promise<ChatMessage | null> {
-  const { data, error } = await supabase
-    .from('chat_messages')
-    .select('*')
-    .eq('thread_id', threadId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
 
 type ThreadPreview = {
   thread: ChatThread;
@@ -116,7 +102,6 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
   const profile = useSessionStore((s) => s.profile);
   const { data, isLoading: threadsLoading, isError: threadsError, refetch } = useThreadsForRole(profile?.id ?? null, role);
   const threads = data ?? [];
-  const { refreshing, onRefresh } = usePullToRefresh(refetch);
   const hideThread = useHideThread();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
@@ -128,24 +113,17 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
   const { data: peers = [] } = useProvidersByIds(peerIds);
   const peerById = useMemo(() => new Map(peers.map((p) => [p.id, p])), [peers]);
 
-  // One query per thread, sharing the exact key useLatestMessage uses
-  // elsewhere so both read the same cache entry instead of double-fetching
-  // the same row.
-  const latestResults = useQueries({
-    queries: threads.map((t) => ({
-      queryKey: ['latestMessage', t.id],
-      queryFn: () => fetchLatestMessage(t.id),
-      enabled: true,
-    })),
-  });
+  const { data: latestByThread, refetch: refetchLatest } = useLatestMessages(threads.map((t) => t.id));
+
+  const { refreshing, onRefresh } = usePullToRefresh(() => Promise.all([refetch(), refetchLatest()]));
 
   const previews: ThreadPreview[] = useMemo(() => {
     return threads
-      .map((thread, i) => {
+      .map((thread) => {
         const peerId = role === 'customer' ? thread.provider_id : thread.customer_id;
         const peer = peerById.get(peerId);
         if (!peer) return null;
-        const latest = latestResults[i]?.data ?? null;
+        const latest = latestByThread?.[thread.id] ?? null;
         const unread = !!latest && latest.sender_id !== profile?.id && !latest.read_at;
         return { thread, peer, latest, unread };
       })
@@ -155,7 +133,7 @@ export function ChatListScreen({ navigation, role }: { navigation: any; role: 'c
         const bt = b.latest?.created_at ?? b.thread.created_at;
         return bt.localeCompare(at);
       });
-  }, [threads, peerById, latestResults, role, profile?.id]);
+  }, [threads, peerById, latestByThread, role, profile?.id]);
 
   const unreadCount = previews.filter((p) => p.unread).length;
   const filters: FilterOption[] = [

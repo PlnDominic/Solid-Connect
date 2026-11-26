@@ -31,6 +31,7 @@ import { Badge } from '../../components/Badge';
 import { EmptyState } from '../../components/EmptyState';
 import { ReviewCard } from '../../components/ReviewCard';
 import { Screen } from '../../components/Screen';
+import { isApiConfigured } from '../../lib/api';
 import { signOut } from '../../lib/auth';
 import { markLandingSeen } from '../../lib/landing';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -54,7 +55,8 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
   {
     title: 'Business',
     rows: [
-      { label: 'Organizations', screen: 'Organizations', icon: Building2 },
+      // Organizations only works through the API server.
+      ...(isApiConfigured() ? [{ label: 'Organizations', screen: 'Organizations', icon: Building2 }] : []),
       { label: 'Verification', screen: 'Verification', icon: ShieldCheck },
       { label: 'Portfolio', screen: 'Portfolio', icon: Images },
       { label: 'Service areas', screen: 'ServiceAreas', icon: MapPin },

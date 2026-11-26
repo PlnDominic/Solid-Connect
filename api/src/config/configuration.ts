@@ -13,9 +13,6 @@ export default () => ({
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean),
-  expo: {
-    accessToken: process.env.EXPO_ACCESS_TOKEN ?? '',
-  },
   subscription: {
     priceGhs: Number(process.env.SUBSCRIPTION_PRICE_GHS) > 0 ? Number(process.env.SUBSCRIPTION_PRICE_GHS) : 50,
     periodDays: Number(process.env.SUBSCRIPTION_PERIOD_DAYS) > 0 ? Number(process.env.SUBSCRIPTION_PERIOD_DAYS) : 365,

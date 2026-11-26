@@ -11,6 +11,6 @@ Scope: In-app notifications, device push (FCM and APNs), preferences, background
 
 ## After
 
-- Each notification is queued in `push_outbox`. The API drains that queue in the background and sends it through Expo, which delivers on FCM (Android) and APNs (iOS).
+- Each notification is queued in `push_outbox`. The database sends that queue every 30 seconds (migration 0092) through Expo, which delivers on FCM (Android) and APNs (iOS).
 - Preferences still decide whether a push goes out. Receipts are checked later, and a token Expo reports as unregistered is removed.
 - A new review notifies the provider. The inbox updates live, and "Clear all" goes through the API.

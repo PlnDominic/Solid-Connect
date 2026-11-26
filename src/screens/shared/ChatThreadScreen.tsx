@@ -9,6 +9,8 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -48,7 +50,16 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   const { threadId, peerId } = route.params;
   const profile = useSessionStore((s) => s.profile);
   const { data: peer } = useProvider(peerId);
-  const { data: messages = [], isLoading: messagesLoading, isError: messagesError, refetch: refetchMessages } = useMessages(threadId);
+  const {
+    data: messages = [],
+    isLoading: messagesLoading,
+    isError: messagesError,
+    refetch: refetchMessages,
+    hasEarlier,
+    loadEarlier,
+    loadingEarlier,
+  } = useMessages(threadId);
+  const lastMessageId = messages[messages.length - 1]?.id;
   const sendMessage = useSendMessage();
   const markRead = useMarkThreadRead();
   const { data: hasActiveJob = false } = useHasActiveJobWith(profile?.id, peerId, profile?.role);
@@ -65,6 +76,8 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   const unblockUser = useUnblockUser(profile?.id);
   const iBlockedThem = blocks.some((b) => b.blocked_id === peerId);
   const listRef = useRef<FlatList>(null);
+  // Off while the person is reading older messages, so the list stays put.
+  const stickToEnd = useRef(true);
 
   // Mark as read once on opening the thread, and again whenever a new
   // message arrives while it's already open - both are cheap, idempotent
@@ -73,7 +86,16 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
   useEffect(() => {
     if (threadId && profile?.id) markRead.mutate({ threadId, readerId: profile.id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [threadId, profile?.id, messages.length]);
+  }, [threadId, profile?.id, lastMessageId]);
+
+  async function handleLoadEarlier() {
+    stickToEnd.current = false;
+    if (!(await loadEarlier())) Alert.alert('Could not load earlier messages', 'Check your connection and try again.');
+  }
+
+  function followIfAtEnd({ nativeEvent: e }: NativeSyntheticEvent<NativeScrollEvent>) {
+    stickToEnd.current = e.contentSize.height - e.contentOffset.y - e.layoutMeasurement.height < 80;
+  }
 
   async function sendText(value: string, id?: number) {
     if (!profile || sendMessage.isPending || sendingText.current) return;
@@ -82,6 +104,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
       await sendMessage.mutateAsync({ threadId, senderId: profile.id, senderRole: profile.role, text: value });
       if (id !== undefined) setFailedMessages((messages) => messages.filter((message) => message.id !== id));
       haptics.light();
+      stickToEnd.current = true;
       requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
     } catch (err) {
       const blocked = err instanceof ContactDetailsBlockedError;
@@ -165,6 +188,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
     try {
       const imageUrl = await uploadChatPhoto(profile.id, result.assets[0].uri);
       await sendMessage.mutateAsync({ threadId, senderId: profile.id, senderRole: profile.role, imageUrl });
+      stickToEnd.current = true;
       requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
     } catch {
       Alert.alert("Couldn't send photo", 'Please try again.');
@@ -226,9 +250,30 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
           data={messages}
           keyExtractor={(m) => m.id}
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm, flexGrow: 1 }}
-          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+          onContentSizeChange={() => {
+            if (stickToEnd.current) listRef.current?.scrollToEnd({ animated: false });
+          }}
+          onScrollEndDrag={followIfAtEnd}
+          onMomentumScrollEnd={followIfAtEnd}
           ListHeaderComponent={
-            // Solid Connect holds no money: the two sides settle directly.
+            <>
+            {hasEarlier || loadingEarlier ? (
+              <Pressable
+                onPress={() => void handleLoadEarlier()}
+                disabled={loadingEarlier}
+                accessibilityRole="button"
+                style={{ alignSelf: 'center', padding: spacing.md }}
+              >
+                {loadingEarlier ? (
+                  <ActivityIndicator color={colors.ink} accessibilityLabel="Loading earlier messages" />
+                ) : (
+                  <Text style={{ color: colors.ink, fontFamily: fonts.medium, fontSize: fontSizes.sm }}>
+                    Show earlier messages
+                  </Text>
+                )}
+              </Pressable>
+            ) : null}
+            {/* Solid Connect holds no money: the two sides settle directly. */}
             <Text
               style={{
                 alignSelf: 'center',
@@ -243,6 +288,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
             >
               Pay your provider directly once the work is done. Solid Connect does not take payment, so never pay in advance for work that has not started.
             </Text>
+            </>
           }
           ListEmptyComponent={
             messagesLoading ? (
@@ -396,6 +442,7 @@ export function ChatThreadScreen({ navigation, route }: { navigation: any; route
                     audioUrl,
                     audioDurationSeconds: durationSeconds,
                   });
+                  stickToEnd.current = true;
                   requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
                 } catch {
                   Alert.alert("Couldn't send voice note", 'Please try again.');

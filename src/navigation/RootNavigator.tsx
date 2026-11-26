@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Alert, View } from 'react-native';
 import * as Linking from 'expo-linking';
+import { useQueryClient } from '@tanstack/react-query';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fetchProfile } from '../api/profile';
 import { LocationGate } from '../components/LocationGate';
 import { usePushRegistration } from '../hooks/usePushRegistration';
 import { useSyncAuthEmail } from '../hooks/useSyncAuthEmail';
-import { getCurrentUserId, isEmailConfirmationUrl, isPasswordResetUrl } from '../lib/auth';
+import { getCurrentUserId, isEmailConfirmationUrl, isPasswordResetUrl, onSessionEnded } from '../lib/auth';
 import { stashPendingReferralCode } from '../api/referrals';
 import { firstMissingSignUpStep, profileSignUpDetails } from '../lib/signUpSteps';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -34,6 +35,20 @@ async function rememberReferral(url: string) {
 
 function MainTabs({ navigation }: { navigation: { isFocused: () => boolean; navigate: (screen: 'Auth', params: RootRoutes['Auth']) => void } }) {
   const role = useSessionStore((s) => s.profile?.role);
+  const queryClient = useQueryClient();
+  useEffect(
+    () =>
+      onSessionEnded(() => {
+        const { profile, setProfile, setUserId } = useSessionStore.getState();
+        if (!profile) return;
+        queryClient.clear();
+        setProfile(null);
+        setUserId(null);
+        navigation.navigate('Auth', undefined);
+        Alert.alert('You have been signed out', 'Sign in again to continue.');
+      }),
+    [navigation, queryClient],
+  );
   useEffect(() => {
     const subscription = Linking.addEventListener('url', ({ url }) => {
       if (!navigation.isFocused()) return;

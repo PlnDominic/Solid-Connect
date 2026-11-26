@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useRealtimeInvalidate } from '../hooks/useRealtimeInvalidate';
@@ -160,8 +161,12 @@ export function useMyJobPosts(customerId: string | null) {
   return query;
 }
 
-/** Open posts for the provider feed. Excludes the viewer's own posts. */
+const BOARD_PAGE = 50;
+
+/** Open posts for the provider feed, newest first. Excludes the viewer's own posts. */
 export function useJobBoard(viewerId: string | null) {
+  const limit = useRef(BOARD_PAGE);
+  const [loadingMore, setLoadingMore] = useState(false);
   const query = useQuery({
     queryKey: [...KEYS.board, viewerId],
     enabled: !!viewerId,
@@ -173,11 +178,23 @@ export function useJobBoard(viewerId: string | null) {
         .gt('expires_at', new Date().toISOString())
         .neq('customer_id', viewerId as string)
         .order('created_at', { ascending: false })
-        .limit(50);
+        .limit(limit.current);
       if (error) throw error;
       return (data ?? []) as JobPost[];
     },
   });
+
+  const hasMore = (query.data?.length ?? 0) >= limit.current;
+
+  /** Returns false if the older posts could not be loaded. */
+  async function loadMore(): Promise<boolean> {
+    limit.current += BOARD_PAGE;
+    setLoadingMore(true);
+    const result = await query.refetch();
+    if (result.isError) limit.current -= BOARD_PAGE;
+    setLoadingMore(false);
+    return !result.isError;
+  }
 
   useRealtimeInvalidate({
     channel: 'job_posts_board',
@@ -187,7 +204,7 @@ export function useJobBoard(viewerId: string | null) {
     enabled: !!viewerId,
   });
 
-  return query;
+  return { ...query, hasMore, loadMore, loadingMore };
 }
 
 export function useJobPost(postId: string | null | undefined) {

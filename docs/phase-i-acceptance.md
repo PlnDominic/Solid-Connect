@@ -7,8 +7,8 @@ Scope: Notifications
 
 | Deliverable | Location |
 |---|---|
-| Preference, token, and deep-link rules | `api/src/notifications/push.rules.ts` |
-| Background sender and receipt check | `api/src/notifications/push.service.ts`, `push.worker.ts` |
+| Preference, token, and deep-link rules | `supabase/migrations/0092_push_and_expiry_in_database.sql` |
+| Background sender and receipt check | `supabase/migrations/0092_push_and_expiry_in_database.sql` (test: `supabase/tests/push-in-database.test.mjs`) |
 | Queue instead of an inline Expo call | `supabase/migrations/0049_push_outbox.sql` |
 | Provider notified on a new review | `api/src/trust/trust.service.ts` |
 | Clear-all inbox | `POST /api/v1/requests/notifications/read-all` |

@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PushService } from './push.service';
-import { PushWorker } from './push.worker';
 import { JobPostWorker } from './job-post.worker';
 
+// Pushes are sent by the database itself (migration 0092).
 @Module({
-  providers: [PushService, PushWorker, JobPostWorker],
+  providers: [JobPostWorker],
 })
 export class NotificationsModule {}

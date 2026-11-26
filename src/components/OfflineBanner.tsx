@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { AppState, Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { onlineManager, useQueryClient } from '@tanstack/react-query';
+import { focusManager, onlineManager, useQueryClient } from '@tanstack/react-query';
 import { fonts, fontSizes, spacing } from '../theme';
 import { useTheme } from '../theme/ThemeProvider';
 
@@ -13,6 +13,8 @@ import { useTheme } from '../theme/ThemeProvider';
  *   otherwise burn through retries on every screen).
  * - On reconnect: resumes mutations that queued while offline, then
  *   invalidates everything so stale screens refetch fresh data.
+ * - Refetches what is on screen when the app comes back from the background:
+ *   live updates sent while it was away are not replayed.
  * - Renders a slim banner at the top of the screen while offline.
  */
 export function OfflineBanner() {
@@ -22,6 +24,13 @@ export function OfflineBanner() {
   const netInfo = useNetInfo();
   const isConnected = netInfo.isConnected ?? true;
   const wasOnline = useRef(true);
+
+  useEffect(() => {
+    // The web already tells React Query when the tab is focused.
+    if (Platform.OS === 'web') return;
+    const subscription = AppState.addEventListener('change', (state) => focusManager.setFocused(state === 'active'));
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     onlineManager.setOnline(isConnected);

@@ -16,6 +16,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { linking } from './src/navigation/linking';
 import { BiometricLockGate } from './src/components/BiometricLockGate';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { UpdateRequiredGate } from './src/components/UpdateRequiredGate';
 import { installGlobalErrorReporting, setCurrentScreen } from './src/lib/errorReporting';
 import { JobReminderSync } from './src/components/JobReminderSync';
 import { OfflineBanner } from './src/components/OfflineBanner';
@@ -43,7 +44,7 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -51,11 +52,14 @@ export default function App() {
     Inter_800ExtraBold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync().catch(() => {});
-  }, [fontsLoaded]);
+  // If a font fails to load, open with the phone's own font rather than never.
+  const canRender = fontsLoaded || !!fontError;
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    if (canRender) SplashScreen.hideAsync().catch(() => {});
+  }, [canRender]);
+
+  if (!canRender) return null;
 
   return (
     <SafeAreaProvider>
@@ -63,13 +67,16 @@ export default function App() {
         <LocaleProvider>
           <ThemeProvider>
             <ErrorBoundary>
-              <BiometricLockGate>
-                <NavigationContainer linking={linking} onStateChange={(state) => setCurrentScreen(activeRouteName(state))}>
-                  <RootNavigator />
-                </NavigationContainer>
-                <OfflineBanner />
-                <JobReminderSync />
-              </BiometricLockGate>
+              <UpdateRequiredGate>
+                <BiometricLockGate>
+                  <NavigationContainer linking={linking} onStateChange={(state) => setCurrentScreen(activeRouteName(state))}>
+                    <RootNavigator />
+                  </NavigationContainer>
+                  <JobReminderSync />
+                </BiometricLockGate>
+              </UpdateRequiredGate>
+              {/* Outside the gate: it also reloads data when the app comes back. */}
+              <OfflineBanner />
             </ErrorBoundary>
           </ThemeProvider>
         </LocaleProvider>

@@ -26,6 +26,7 @@ import { useSavedProviders, useToggleSavedProvider } from '../../api/saved';
 import { useSwitchRole, useUploadProfilePhoto } from '../../api/profile';
 import { Avatar } from '../../components/Avatar';
 import { Screen } from '../../components/Screen';
+import { isApiConfigured } from '../../lib/api';
 import { signOut } from '../../lib/auth';
 import { markLandingSeen } from '../../lib/landing';
 import { useSessionStore } from '../../store/useSessionStore';
@@ -45,7 +46,8 @@ const SETTINGS_SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     title: 'Account',
     rows: [
       { label: 'Edit profile', screen: 'EditProfile', icon: UserCog },
-      { label: 'Organizations', screen: 'Organizations', icon: Building2 },
+      // Organizations only works through the API server.
+      ...(isApiConfigured() ? [{ label: 'Organizations', screen: 'Organizations', icon: Building2 }] : []),
       { label: 'Saved locations', screen: 'SavedLocations', icon: MapPin },
       { label: 'Account security', screen: 'AccountSecurity', icon: KeyRound },
     ],

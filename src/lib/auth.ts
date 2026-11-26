@@ -157,8 +157,24 @@ export async function signInWithPassword(email: string, password: string) {
   return data;
 }
 
+let signingOut = false;
+
 export async function signOut(): Promise<void> {
-  await supabase.auth.signOut();
+  signingOut = true;
+  try {
+    await supabase.auth.signOut();
+  } finally {
+    signingOut = false;
+  }
+}
+
+/** Runs `handler` when a session ends without the person choosing to sign out,
+ * for example when it can no longer be renewed. */
+export function onSessionEnded(handler: () => void): () => void {
+  const { data } = supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT' && !signingOut) handler();
+  });
+  return () => data.subscription.unsubscribe();
 }
 
 /** Where the link in the password-reset email sends someone back into the app. */

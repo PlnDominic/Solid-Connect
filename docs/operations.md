@@ -7,6 +7,12 @@ Things that need an account, a secret or a dashboard click, so they cannot be do
 2. Build and publish the app (EAS) and deploy the admin site.
 3. Only when the new app build is the one people have: run `supabase/apply-0089-after-new-builds.sql`.
 
+## Notifications, expiry notices and forced updates
+1. In the Supabase SQL Editor, run `supabase/migrations/0092_push_and_expiry_in_database.sql`, then `0093_minimum_app_version.sql`. The database now sends phone notifications every 30 seconds and job post expiry notices every 5 minutes. No server is needed. If an older copy of the `api/` server is running, stop it or deploy the current one, or messages may be sent twice.
+2. To see whether notifications are going out: `select status, error, count(*) from public.push_outbox where created_at > now() - interval '1 day' group by 1, 2;`
+   `sent` means Expo accepted it. `NO_TOKEN` means that person's phone has not registered. `InvalidCredentials` means the Apple or Android push key is missing or wrong in EAS.
+3. To make old versions update: raise `version` in `app.json`, publish that build, and **only once it is in the stores** run `update public.platform_config set min_app_version = '1.1.0' where id = true;` (with that version). Set it to `null` to stop. Builds made before this check was added ignore it.
+
 ## 2. Backups and disaster recovery (Supabase)
 - Plan: the Free plan has no backups you can restore. Move to Pro and turn on **Point in Time Recovery** (Project settings > Add-ons) so you can restore to any minute in the last 7 days.
 - Storage buckets are not in database backups. Once a week, download `verification-docs`, `portfolio` and `request-photos` (Supabase CLI: `supabase storage cp -r ss:///verification-docs ./backup/`), or copy them to a second bucket on another provider.
